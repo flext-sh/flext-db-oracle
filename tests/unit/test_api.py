@@ -19,11 +19,12 @@ from threading import Thread
 import pytest
 from flext_tests import td, tm
 
-from flext_core import r
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleServices,
     FlextDbOracleSettings,
+    p,
+    r,
 )
 from tests import m, t, u
 
@@ -604,7 +605,7 @@ class TestFlextDbOracleApiRealFunctionality:
         get_result = self.api.get_plugin("test_plugin")
         tm.ok(get_result)
         empty_result = self.api.register_plugin("", {"test": "plugin"})
-        tm.ok(empty_result)
+        tm.fail(empty_result, has="Plugin name is required")
         unregister_result = self.api.unregister_plugin("test_plugin")
         tm.ok(unregister_result)
 
@@ -757,7 +758,7 @@ class TestApiModule:
         api = FlextDbOracleApi(settings=settings)
         self._TestDataHelper.create_test_oracle_config()
         if hasattr(api, "connect"):
-            result: r[FlextDbOracleApi] = api.connect()
+            result: p.Result[FlextDbOracleApi] = api.connect()
             tm.that(result, is_=r)
 
     def test_flext_db_oracle_api_disconnect(self) -> None:
@@ -788,7 +789,7 @@ class TestApiModule:
         api = FlextDbOracleApi(settings=settings)
         test_query = self._TestDataHelper.create_test_query_data()
         if hasattr(api, "query"):
-            result: r[Sequence[t.Dict]] = api.query(str(test_query["query"]))
+            result: p.Result[Sequence[t.Dict]] = api.query(str(test_query["query"]))
             tm.that(result, is_=r)
 
     def test_flext_db_oracle_api_execute_update(self) -> None:
@@ -809,7 +810,7 @@ class TestApiModule:
             if not isinstance(query_params, dict):
                 pytest.fail("test query data must expose SQL params as a mapping")
             params = {str(key): int(value) for key, value in query_params.items()}
-            result: r[int] = api.execute_sql(str(test_query["query"]), params)
+            result: p.Result[int] = api.execute_sql(str(test_query["query"]), params)
             tm.that(result, is_=r)
 
     def test_flext_db_oracle_api_get_metadata(self) -> None:
@@ -856,7 +857,7 @@ class TestApiModule:
         )
         api = FlextDbOracleApi(settings=settings)
         if hasattr(api, "get_tables"):
-            result: r[t.StrSequence] = api.get_tables()
+            result: p.Result[t.StrSequence] = api.get_tables()
             tm.that(result, is_=r)
 
     def test_flext_db_oracle_api_comprehensive_scenario(self) -> None:
@@ -874,16 +875,18 @@ class TestApiModule:
         test_query = self._TestDataHelper.create_test_query_data()
         tm.that(api, none=False)
         if hasattr(api, "connect"):
-            connect_result: r[FlextDbOracleApi] = api.connect()
+            connect_result: p.Result[FlextDbOracleApi] = api.connect()
             tm.that(connect_result, is_=r)
         if hasattr(api, "query"):
-            query_result: r[Sequence[t.Dict]] = api.query(str(test_query["query"]))
+            query_result: p.Result[Sequence[t.Dict]] = api.query(
+                str(test_query["query"]),
+            )
             tm.that(query_result, is_=r)
         if hasattr(api, "get_tables"):
-            schema_result: r[t.StrSequence] = api.get_tables()
+            schema_result: p.Result[t.StrSequence] = api.get_tables()
             tm.that(schema_result, is_=r)
         if hasattr(api, "disconnect"):
-            disconnect_result: r[bool] = api.disconnect()
+            disconnect_result: p.Result[bool] = api.disconnect()
             tm.that(disconnect_result, is_=r)
 
     def test_flext_db_oracle_api_error_handling(self) -> None:
@@ -899,10 +902,10 @@ class TestApiModule:
         api = FlextDbOracleApi(settings=settings)
         invalid_query = "INVALID SQL QUERY"
         if hasattr(api, "connect"):
-            result: r[FlextDbOracleApi] = api.connect()
+            result: p.Result[FlextDbOracleApi] = api.connect()
             tm.that(result, is_=r)
         if hasattr(api, "query"):
-            query_result: r[Sequence[t.Dict]] = api.query(invalid_query)
+            query_result: p.Result[Sequence[t.Dict]] = api.query(invalid_query)
             tm.that(query_result, is_=r)
         if hasattr(api, "get_table_metadata"):
             metadata_result = api.get_table_metadata("non_existent_table")
@@ -1009,11 +1012,13 @@ class TestApiModule:
         ]
         if hasattr(api, "connect"):
             for _config_data in realistic_configs:
-                result: r[FlextDbOracleApi] = api.connect()
+                result: p.Result[FlextDbOracleApi] = api.connect()
                 tm.that(result, is_=r)
         if hasattr(api, "query"):
             for query_data in realistic_queries:
-                query_result: r[Sequence[t.Dict]] = api.query(str(query_data["query"]))
+                query_result: p.Result[Sequence[t.Dict]] = api.query(
+                    str(query_data["query"]),
+                )
                 tm.that(query_result, is_=r)
 
     def test_flext_db_oracle_api_integration_patterns(self) -> None:
@@ -1058,7 +1063,7 @@ class TestApiModule:
         start_time = time.time()
         if hasattr(api, "connect"):
             for _ in range(10):
-                result: r[FlextDbOracleApi] = api.connect()
+                result: p.Result[FlextDbOracleApi] = api.connect()
                 tm.that(result, is_=r)
         end_time = time.time()
         tm.that(end_time - start_time, lt=2.0)
@@ -1074,17 +1079,19 @@ class TestApiModule:
             password=str(config_data["password"]),
         )
         api = FlextDbOracleApi(settings=settings)
-        results: MutableSequence[r[FlextDbOracleApi] | r[Sequence[t.Dict]]] = []
+        results: MutableSequence[
+            p.Result[FlextDbOracleApi] | p.Result[Sequence[t.Dict]]
+        ] = []
 
         def connect_to_database(_index: int) -> None:
             if hasattr(api, "connect"):
-                connect_result: r[FlextDbOracleApi] = api.connect()
+                connect_result: p.Result[FlextDbOracleApi] = api.connect()
                 results.append(connect_result)
 
         def execute_query(index: int) -> None:
             sql = f"SELECT {index} FROM dual"
             if hasattr(api, "query"):
-                query_result: r[Sequence[t.Dict]] = api.query(sql)
+                query_result: p.Result[Sequence[t.Dict]] = api.query(sql)
                 results.append(query_result)
 
         threads: MutableSequence[Thread] = []
@@ -1834,7 +1841,7 @@ class TestDirectCoverageBoostServices:
 
     def test_services_configuration_and_connection_paths(self) -> None:
         """Test services configuration and connection paths for complete coverage."""
-        configs: list[r[FlextDbOracleSettings]] = [
+        configs: list[p.Result[FlextDbOracleSettings]] = [
             r[FlextDbOracleSettings].ok(
                 FlextDbOracleSettings(
                     host="127.0.0.1",

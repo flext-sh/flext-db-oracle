@@ -68,7 +68,7 @@ Adopt Clean Architecture principles for flext-db-oracle with the following layer
 
 - **Dependency Direction**: Inner layers don't depend on outer layers
 - **Dependency Injection**: FlextContainer manages cross-cutting concerns
-- **Railway Pattern**: r[T] for error handling throughout
+- **Railway Pattern**: p.Result[T] for error handling throughout
 - **Domain-First Design**: Business rules drive infrastructure implementation
 
 ## Rationale

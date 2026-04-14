@@ -348,7 +348,7 @@ sequenceDiagram
     Oracle-->>Connection: result set
     Connection-->>API: QueryResult
     API->>Models: validate_result(result)
-    API-->>Client: r[QueryResult]
+    API-->>Client: p.Result[QueryResult]
 ```
 
 ### Error Handling Flow

@@ -53,15 +53,11 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             connect_timeout=self.db_config.timeout,
         )
         try:
-            connect_ctx = self._engine_connect(self._engine)
-            conn = self._context_enter(connect_ctx)
-            try:
+            with self._engine_connect(self._engine) as conn:
                 _ = self._connection_execute(
                     conn,
                     self._sqlalchemy_text("SELECT 1 FROM dual"),
                 )
-            finally:
-                self._context_exit(connect_ctx)
             self.logger.info(f"Connected to Oracle database: {self.db_config.host}")
             return r[Self](value=self, success=True)
         except (
@@ -87,15 +83,11 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                         connect_timeout=self.db_config.timeout,
                     )
                     try:
-                        connect_ctx = self._engine_connect(self._engine)
-                        conn = self._context_enter(connect_ctx)
-                        try:
+                        with self._engine_connect(self._engine) as conn:
                             _ = self._connection_execute(
                                 conn,
                                 self._sqlalchemy_text("SELECT 1 FROM dual"),
                             )
-                        finally:
-                            self._context_exit(connect_ctx)
                         self.logger.info(
                             f"Connected to Oracle database: {self.db_config.host}",
                         )
@@ -140,12 +132,8 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         if engine is None:
             msg = "No database connection established"
             raise RuntimeError(msg)
-        connect_ctx = self._engine_connect(engine)
-        connection = self._context_enter(connect_ctx)
-        try:
+        with self._engine_connect(engine) as connection:
             yield connection
-        finally:
-            self._context_exit(connect_ctx)
 
     def get_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
         """Get connection status - simplified."""
@@ -188,15 +176,11 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         if engine_result.failure:
             return r[bool].fail("Not connected to database")
         try:
-            connect_ctx = self._engine_connect(engine_result.value)
-            conn = self._context_enter(connect_ctx)
-            try:
+            with self._engine_connect(engine_result.value) as conn:
                 _ = self._connection_execute(
                     conn,
                     self._sqlalchemy_text("SELECT 1 FROM dual"),
                 )
-            finally:
-                self._context_exit(connect_ctx)
             return r[bool].ok(True)
         except (
             t.DbOracle.OracleDatabaseError,
@@ -215,12 +199,8 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         if engine is None:
             msg = "No database connection established"
             raise RuntimeError(msg)
-        transaction_ctx = self._engine_begin(engine)
-        txn = self._context_enter(transaction_ctx)
-        try:
+        with self._engine_begin(engine) as txn:
             yield txn
-        finally:
-            self._context_exit(transaction_ctx)
 
     def _build_connection_url(self) -> p.Result[str]:
         """Build Oracle connection URL from configuration."""

@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 
-from flext_tests import FlextTestsTypes, r
+from flext_tests import FlextTestsTypes
 
-from flext_db_oracle import FlextDbOracleTypes
+from flext_db_oracle import FlextDbOracleTypes, p
 
 
 class TestsFlextDbOracleTypes(FlextTestsTypes, FlextDbOracleTypes):
@@ -25,9 +25,9 @@ class TestsFlextDbOracleTypes(FlextTestsTypes, FlextDbOracleTypes):
             type ApiCoverageReturn = (
                 bool
                 | FlextDbOracleTypes.ConfigMap
-                | r[Mapping[str, FlextDbOracleTypes.ContainerValue]]
-                | r[str]
-                | r[FlextDbOracleTypes.StrSequence]
+                | p.Result[Mapping[str, FlextDbOracleTypes.ContainerValue]]
+                | p.Result[str]
+                | p.Result[FlextDbOracleTypes.StrSequence]
             )
             type ApiCoverageCallable = Callable[[], ApiCoverageReturn]
 

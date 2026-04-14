@@ -282,7 +282,7 @@ result = (
 
 #### ADR-003: Railway Pattern Implementation
 
-- **Decision**: r[T] throughout for composable error handling
+- **Decision**: p.Result[T] throughout for composable error handling
 - **Rationale**: Type-safe, composable error handling for enterprise reliability
 - **Impact**: No exception-based error handling in business logic
 

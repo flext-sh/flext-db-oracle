@@ -4,13 +4,17 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_core import m, u
+from flext_core import m, t, u
 
 
 class FlextDbOraclePassword(m.RootModel[str]):
     """Password value object used by Oracle settings."""
 
-    root: str = u.Field(default="", description="Oracle database password")
+    root: str = u.Field(
+        default="",
+        description="Oracle database password",
+        validate_default=True,
+    )
 
     @override
     def __str__(self) -> str:
@@ -22,7 +26,7 @@ class FlextDbOraclePassword(m.RootModel[str]):
         return self.root
 
     @override
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: t.ValueOrModel) -> bool:
         """Compare wrapped password value with wrappers and raw strings."""
         if isinstance(other, FlextDbOraclePassword):
             return self.root == other.root

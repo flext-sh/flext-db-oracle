@@ -16,8 +16,9 @@ from collections.abc import Mapping, MutableSequence, Sequence
 from datetime import UTC, datetime
 from typing import override
 
-from flext_cli import cli
+from flext_cli import cli as cli_runtime
 
+from flext_core import s
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleSettings,
@@ -25,7 +26,6 @@ from flext_db_oracle import (
     m,
     p,
     r,
-    s,
     t,
     u,
 )
@@ -109,7 +109,7 @@ class FlextDbOracleCli(s[str]):
         @staticmethod
         def display_message(message: str) -> None:
             """Display message to user via cli."""
-            cli.print(message)
+            cli_runtime.print(message)
 
         @staticmethod
         def format_data(
@@ -542,4 +542,4 @@ class FlextDbOracleCli(s[str]):
 
 cli = FlextDbOracleCli
 
-__all__ = ["FlextDbOracleCli", "cli"]
+__all__: list[str] = ["FlextDbOracleCli", "cli"]

@@ -10,11 +10,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import os
 from typing import Annotated, ClassVar, Self, override
 from urllib.parse import parse_qs, unquote, urlparse
 
 from flext_core import FlextSettings
+from flext_core.settings import EnvSettingsSource, PydanticBaseSettingsSource
 from flext_db_oracle import FlextDbOraclePassword, c, m, p, r, t, u
 
 
@@ -116,11 +116,11 @@ class FlextDbOracleSettings(FlextSettings):
     def settings_customise_sources(
         cls,
         settings_cls: type[m.BaseSettings],
-        init_settings: u.PydanticBaseSettingsSource,
-        env_settings: u.PydanticBaseSettingsSource,
-        dotenv_settings: u.PydanticBaseSettingsSource,
-        file_secret_settings: u.PydanticBaseSettingsSource,
-    ) -> tuple[u.PydanticBaseSettingsSource, ...]:
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
         del settings_cls, env_settings, dotenv_settings, file_secret_settings
         return (init_settings,)
 
@@ -167,6 +167,47 @@ class FlextDbOracleSettings(FlextSettings):
             raise ValueError(msg)
 
     @classmethod
+    def resolve_environment_values(
+        cls,
+        prefix: str,
+    ) -> dict[str, t.ContainerValue]:
+        """Resolve non-null environment values for the requested Oracle prefix."""
+        source = EnvSettingsSource(
+            settings_cls=cls,
+            env_prefix=prefix,
+            case_sensitive=False,
+        )
+        values = {k: v for k, v in source().items() if v is not None}
+        for env_name, field_name in c.DbOracle.OracleEnvironment.ENV_MAPPING.items():
+            if field_name in values or not env_name.startswith(prefix):
+                continue
+            normalized_env_name = env_name.lower()
+            if normalized_env_name in source.env_vars:
+                values[field_name] = source.env_vars[normalized_env_name]
+        if prefix == c.DbOracle.OracleEnvironment.PREFIX_ORACLE:
+            flext_source = EnvSettingsSource(
+                settings_cls=cls,
+                env_prefix=c.DbOracle.OracleEnvironment.PREFIX_FLEXT_TARGET_ORACLE,
+                case_sensitive=False,
+            )
+            flext_values = {k: v for k, v in flext_source().items() if v is not None}
+            for (
+                env_name,
+                field_name,
+            ) in c.DbOracle.OracleEnvironment.ENV_MAPPING.items():
+                if field_name in flext_values or not env_name.startswith(
+                    c.DbOracle.OracleEnvironment.PREFIX_FLEXT_TARGET_ORACLE,
+                ):
+                    continue
+                normalized_env_name = env_name.lower()
+                if normalized_env_name in flext_source.env_vars:
+                    flext_values[field_name] = flext_source.env_vars[
+                        normalized_env_name
+                    ]
+            values.update(flext_values)
+        return values
+
+    @classmethod
     def from_env(cls, prefix: str = "ORACLE_") -> p.Result[FlextDbOracleSettings]:
         """Create settings from environment variables via Pydantic EnvSettingsSource.
 
@@ -175,26 +216,8 @@ class FlextDbOracleSettings(FlextSettings):
         Pydantic handles all type coercion and validation natively.
         """
         try:
-            source = u.EnvSettingsSource(
-                settings_cls=cls, env_prefix=prefix, case_sensitive=False
-            )
-            values = {k: v for k, v in source().items() if v is not None}
-            database_name = os.getenv(f"{prefix}DATABASE_NAME")
-            if database_name is not None:
-                values["name"] = database_name
-            if prefix == "ORACLE_":
-                flext_source = u.EnvSettingsSource(
-                    settings_cls=cls,
-                    env_prefix="FLEXT_TARGET_ORACLE_",
-                    case_sensitive=False,
-                )
-                values.update(
-                    {k: v for k, v in flext_source().items() if v is not None},
-                )
-                flext_database_name = os.getenv("FLEXT_TARGET_ORACLE_DATABASE_NAME")
-                if flext_database_name is not None:
-                    values["name"] = flext_database_name
-            return r[FlextDbOracleSettings].ok(cls(**values))
+            values = cls.resolve_environment_values(prefix)
+            return r[FlextDbOracleSettings].ok(cls.model_validate(values))
         except (ValueError, TypeError) as e:
             return r[FlextDbOracleSettings].fail(f"Invalid environment settings: {e}")
 

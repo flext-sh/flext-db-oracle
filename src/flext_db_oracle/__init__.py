@@ -27,6 +27,7 @@ if _t.TYPE_CHECKING:
     from flext_db_oracle.password import FlextDbOraclePassword
     from flext_db_oracle.protocols import FlextDbOracleProtocols, p
     from flext_db_oracle.services.connection import FlextDbOracleServiceConnection
+    from flext_db_oracle.services.facade import FlextDbOracleServices
     from flext_db_oracle.services.plugin import FlextDbOracleServicePlugin
     from flext_db_oracle.services.query import FlextDbOracleServiceQuery
     from flext_db_oracle.services.schema import FlextDbOracleServiceSchema
@@ -137,6 +138,7 @@ __all__: list[str] = [
     "FlextDbOracleServiceSchema",
     "FlextDbOracleServiceSinger",
     "FlextDbOracleServiceSqlBuilder",
+    "FlextDbOracleServices",
     "FlextDbOracleSettings",
     "FlextDbOracleTypes",
     "FlextDbOracleUtilities",

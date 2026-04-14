@@ -20,10 +20,10 @@ from sqlalchemy.exc import (
     SQLAlchemyError,
 )
 
-from flext_db_oracle import p, r, s, t
+from flext_db_oracle import FlextDbOracleServiceBase, p, r, t
 
 
-class FlextDbOracleServiceQuery(s):
+class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     """Mixin providing query execution for FlextDbOracleServices.
 
     Handles: execute_query, execute_statement, execute_many,
@@ -42,9 +42,7 @@ class FlextDbOracleServiceQuery(s):
         if engine_result.failure:
             return r[int].fail(engine_result.error or "Failed to get database engine")
         try:
-            connect_ctx = self._engine_connect(engine_result.value)
-            conn = self._context_enter(connect_ctx)
-            try:
+            with self._engine_connect(engine_result.value) as conn:
                 total_affected = 0
                 for params in params_list:
                     typed_params = (
@@ -59,8 +57,6 @@ class FlextDbOracleServiceQuery(s):
                     )
                     total_affected += max(result.rowcount, 0)
                 return r[int].ok(total_affected)
-            finally:
-                self._context_exit(connect_ctx)
         except (
             t.DbOracle.OracleDatabaseError,
             t.DbOracle.OracleInterfaceError,
@@ -87,9 +83,7 @@ class FlextDbOracleServiceQuery(s):
                 engine_result.error or "Failed to get database engine",
             )
         try:
-            connect_ctx = self._engine_connect(engine_result.value)
-            conn = self._context_enter(connect_ctx)
-            try:
+            with self._engine_connect(engine_result.value) as conn:
                 result = self._connection_execute(
                     conn,
                     self._sqlalchemy_text(sql),
@@ -97,8 +91,6 @@ class FlextDbOracleServiceQuery(s):
                 )
                 rows: Sequence[t.Dict] = self._normalize_query_rows(result)
                 return r[Sequence[t.Dict]].ok(rows)
-            finally:
-                self._context_exit(connect_ctx)
         except (
             t.DbOracle.OracleDatabaseError,
             t.DbOracle.OracleInterfaceError,
@@ -120,9 +112,7 @@ class FlextDbOracleServiceQuery(s):
         if engine_result.failure:
             return r[int].fail(engine_result.error or "Failed to get database engine")
         try:
-            transaction_ctx = self._engine_begin(engine_result.value)
-            conn = self._context_enter(transaction_ctx)
-            try:
+            with self._engine_begin(engine_result.value) as conn:
                 result = self._connection_execute(
                     conn,
                     self._sqlalchemy_text(sql),
@@ -130,8 +120,6 @@ class FlextDbOracleServiceQuery(s):
                 )
                 rowcount = max(result.rowcount, 0)
                 return r[int].ok(rowcount)
-            finally:
-                self._context_exit(transaction_ctx)
         except (
             t.DbOracle.OracleDatabaseError,
             t.DbOracle.OracleInterfaceError,

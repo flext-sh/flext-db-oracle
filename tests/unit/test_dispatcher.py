@@ -13,6 +13,7 @@ from flext_db_oracle import (
     FlextDbOracleServices,
     FlextDbOracleSettings,
 )
+from tests import m
 
 
 class TestDispatcherSurgical:
@@ -34,7 +35,7 @@ class TestDispatcherSurgical:
 
     def test_command_creation(self) -> None:
         """Test command objects can be created."""
-        cmd = FlextDbOracleDispatcher.ExecuteQueryCommand(
+        cmd = m.DbOracle.ExecuteQueryCommand(
             sql="SELECT 1 FROM DUAL",
             parameters=None,
         )

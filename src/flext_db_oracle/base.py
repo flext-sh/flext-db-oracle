@@ -170,18 +170,6 @@ class FlextDbOracleServiceBase(s):
         return engine.begin()
 
     @staticmethod
-    def _context_enter[T](context_manager: contextlib.AbstractContextManager[T]) -> T:
-        """Enter dynamic context manager and return inner value."""
-        return context_manager.__enter__()
-
-    @staticmethod
-    def _context_exit(
-        context_manager: contextlib.AbstractContextManager[SAConnection],
-    ) -> None:
-        """Exit dynamic context manager safely."""
-        context_manager.__exit__(None, None, None)
-
-    @staticmethod
     def _engine_dispose(engine: SAEngine) -> None:
         """Dispose engine resources."""
         engine.dispose()

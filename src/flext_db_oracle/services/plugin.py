@@ -16,16 +16,16 @@ from sqlalchemy.exc import (
 )
 
 from flext_db_oracle import (
+    FlextDbOracleServiceBase,
     m,
     p,
     r,
-    s,
     t,
     u,
 )
 
 
-class FlextDbOracleServicePlugin(s):
+class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
     """Mixin providing plugin, metrics, and operations for FlextDbOracleServices.
 
     Handles: register_plugin, unregister_plugin, get_plugin, list_plugins,
@@ -86,9 +86,6 @@ class FlextDbOracleServicePlugin(s):
         """Register plugin in local service registry."""
         if not _name:
             return r[bool].fail("Plugin name is required")
-        plugin_payload = self._validate_config_map(_plugin)
-        if plugin_payload is None:
-            return r[bool].fail("Plugin payload must be a mapping")
         self._plugins[_name] = _plugin
         return r[bool].ok(True)
 

@@ -9,11 +9,11 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from typing import TYPE_CHECKING, override
 
-from flext_core import FlextContainer
-from flext_db_oracle import m, p, r, s, t
+from flext_core import FlextContainer, s
+from flext_db_oracle import m, p, r, t
 
 if TYPE_CHECKING:
-    from flext_db_oracle import FlextDbOracleServices
+    from flext_db_oracle.services.facade import FlextDbOracleServices
 
 
 class FlextDbOracleDispatcher(s[None]):
@@ -83,9 +83,9 @@ class FlextDbOracleDispatcher(s[None]):
             def _wrap(
                 fn: Callable[[t.ContainerValue], t.ContainerValue],
             ) -> t.HandlerLike:
-                def wrapped(*args: t.ContainerValue) -> t.ConfigMap:
+                def wrapped(*args: t.ContainerValue) -> p.Result[str]:
                     result = fn(*args)
-                    return t.ConfigMap(root={"result": result})
+                    return r[str].ok(str(result))
 
                 return wrapped
 
