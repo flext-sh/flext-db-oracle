@@ -158,7 +158,9 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         """Perform health check."""
         return r[m.DbOracle.HealthStatus].ok(
             m.DbOracle.HealthStatus(
-                status="healthy" if self.connected() else "unhealthy",
+                status=c.HealthStatus.HEALTHY.value
+                if self.connected()
+                else c.HealthStatus.UNHEALTHY.value,
                 timestamp=self._get_current_timestamp(),
                 service="oracle",
                 database=self.db_config.service_name,

@@ -280,7 +280,7 @@ class FlextDbOracleCli(s[str]):
             elapsed_time = time.time() - start_time
             health_data = health_result.value
             result = m.DbOracle.HealthCheckReport.model_validate({
-                "status": "healthy",
+                "status": c.HealthStatus.HEALTHY.value,
                 "host": host,
                 "port": port,
                 "service_name": service_name,
@@ -296,7 +296,7 @@ class FlextDbOracleCli(s[str]):
         ) as e:
             elapsed_time = time.time() - start_time
             error_result = m.DbOracle.HealthCheckReport(
-                status="unhealthy",
+                status=c.HealthStatus.UNHEALTHY.value,
                 host=host,
                 port=port,
                 service_name=service_name,

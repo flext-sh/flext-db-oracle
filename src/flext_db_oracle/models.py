@@ -57,7 +57,7 @@ class FlextDbOracleModels(m):
         class HealthCheckReport(DbOracleDomainModel):
             """Health-check result payload for CLI reporting."""
 
-            status: str = "unknown"
+            status: str = c.HealthStatus.UNKNOWN.value
             host: str = ""
             port: t.NonNegativeInt = 0
             service_name: str = ""
