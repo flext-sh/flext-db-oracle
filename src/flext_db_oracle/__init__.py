@@ -13,13 +13,14 @@ from flext_core.lazy import (
 from flext_db_oracle.__version__ import *
 
 if _t.TYPE_CHECKING:
-    from flext_cli import c, d, h, r, s, x
+    from flext_cli import d, h, r, s, x
 
     from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
     from flext_db_oracle.api import FlextDbOracleApi, db_oracle
     from flext_db_oracle.base import FlextDbOracleServiceBase
-    from flext_db_oracle.cli import FlextDbOracleCli, cli
+    from flext_db_oracle.cli import FlextDbOracleCli
     from flext_db_oracle.client import FlextDbOracleClient, client
+    from flext_db_oracle.constants import FlextDbOracleConstants, c
     from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
     from flext_db_oracle.exceptions import FlextDbOracleExceptions, e
     from flext_db_oracle.models import FlextDbOracleModels, m
@@ -57,13 +58,14 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "db_oracle",
             ),
             ".base": ("FlextDbOracleServiceBase",),
-            ".cli": (
-                "FlextDbOracleCli",
-                "cli",
-            ),
+            ".cli": ("FlextDbOracleCli",),
             ".client": (
                 "FlextDbOracleClient",
                 "client",
+            ),
+            ".constants": (
+                "FlextDbOracleConstants",
+                "c",
             ),
             ".dispatcher": ("FlextDbOracleDispatcher",),
             ".exceptions": (
@@ -89,7 +91,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "u",
             ),
             "flext_cli": (
-                "c",
                 "d",
                 "h",
                 "r",
@@ -117,6 +118,7 @@ __all__: list[str] = [
     "FlextDbOracleApi",
     "FlextDbOracleCli",
     "FlextDbOracleClient",
+    "FlextDbOracleConstants",
     "FlextDbOracleDispatcher",
     "FlextDbOracleExceptions",
     "FlextDbOracleModels",
@@ -143,7 +145,6 @@ __all__: list[str] = [
     "__version__",
     "__version_info__",
     "c",
-    "cli",
     "client",
     "d",
     "db_oracle",

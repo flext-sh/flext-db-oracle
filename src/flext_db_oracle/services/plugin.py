@@ -16,16 +16,16 @@ from sqlalchemy.exc import (
 )
 
 from flext_db_oracle import (
-    FlextDbOracleServiceBase,
     m,
     p,
     r,
+    s,
     t,
     u,
 )
 
 
-class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
+class FlextDbOracleServicePlugin(s):
     """Mixin providing plugin, metrics, and operations for FlextDbOracleServices.
 
     Handles: register_plugin, unregister_plugin, get_plugin, list_plugins,

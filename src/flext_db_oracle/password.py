@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_core import m, t, u
+from flext_db_oracle import m, t, u
 
 
 class FlextDbOraclePassword(m.RootModel[str]):

@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import override
 
 from flext_db_oracle import (
-    FlextDbOracleServiceBase,
     FlextDbOracleServiceConnection,
     FlextDbOracleServicePlugin,
     FlextDbOracleServiceQuery,
@@ -16,6 +15,7 @@ from flext_db_oracle import (
     m,
     p,
     r,
+    s,
     t,
 )
 
@@ -27,14 +27,13 @@ class FlextDbOracleServices(
     FlextDbOracleServiceSqlBuilder,
     FlextDbOracleServiceQuery,
     FlextDbOracleServiceConnection,
-    FlextDbOracleServiceBase,
 ):
     """Primary service facade composed from the canonical Oracle mixins."""
 
     @override
     def __init__(self, settings: FlextDbOracleSettings) -> None:
         """Initialize the composed Oracle services facade."""
-        super(FlextDbOracleServiceBase, self).__init__()
+        super(s, self).__init__()
         self._db_config = settings
         self._config = settings
         self._engine = None

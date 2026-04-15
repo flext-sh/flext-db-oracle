@@ -18,15 +18,15 @@ from sqlalchemy.exc import (
 )
 
 from flext_db_oracle import (
-    FlextDbOracleModels,
-    FlextDbOracleServiceBase,
+    m,
     p,
+    s,
     t,
     u,
 )
 
 
-class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
+class FlextDbOracleServiceSchema(s):
     """Mixin providing schema introspection for FlextDbOracleServices.
 
     Handles: get_columns, get_primary_keys, get_primary_key_columns,
@@ -37,7 +37,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         self,
         table_name: str,
         schema_name: str | None = None,
-    ) -> p.Result[Sequence[FlextDbOracleModels.DbOracle.Column]]:
+    ) -> p.Result[Sequence[m.DbOracle.Column]]:
         """Get column information for Oracle table."""
         if schema_name:
             sql = "\nSELECT column_name, data_type, data_length, data_precision, data_scale, nullable\nFROM all_tab_columns\nWHERE table_name = UPPER(:table_name) AND owner = UPPER(:schema_name)\nORDER BY column_id\n"
@@ -49,7 +49,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             params = t.ConfigMap(root={"table_name": table_name})
         return self.execute_query(sql, params).map(
             lambda rows: [
-                FlextDbOracleModels.DbOracle.Column(
+                m.DbOracle.Column(
                     name=str(
                         row.root.get("COLUMN_NAME") or row.root.get("column_name", "")
                     ),
@@ -124,10 +124,10 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         self,
         table_name: str,
         schema: str | None = None,
-    ) -> p.Result[FlextDbOracleModels.DbOracle.TableMetadata]:
+    ) -> p.Result[m.DbOracle.TableMetadata]:
         """Get complete table metadata."""
 
-        def _fetch_metadata() -> FlextDbOracleModels.DbOracle.TableMetadata:
+        def _fetch_metadata() -> m.DbOracle.TableMetadata:
             columns_result = self.get_columns(table_name, schema)
             if columns_result.failure:
                 raise RuntimeError(columns_result.error or "Failed to get columns")
@@ -136,11 +136,11 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             if pk_result.failure:
                 raise RuntimeError(pk_result.error or "Failed to get primary keys")
 
-            return FlextDbOracleModels.DbOracle.TableMetadata(
+            return m.DbOracle.TableMetadata(
                 table_name=table_name,
                 schema_name=schema or "",
                 columns=[
-                    FlextDbOracleModels.DbOracle.ColumnMetadata(
+                    m.DbOracle.ColumnMetadata(
                         name=column.name,
                         data_type=column.data_type,
                         nullable=column.nullable,

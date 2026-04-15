@@ -15,8 +15,7 @@ from typing import override
 
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
-from flext_core import s
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c, p, r, t, u
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c, p, r, s, t, u
 
 
 class FlextDbOracleClient(s):

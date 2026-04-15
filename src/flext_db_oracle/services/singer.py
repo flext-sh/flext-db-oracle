@@ -11,15 +11,15 @@ from __future__ import annotations
 from collections.abc import Mapping, MutableMapping
 
 from flext_db_oracle import (
-    FlextDbOracleServiceBase,
     m,
     p,
     r,
+    s,
     t,
 )
 
 
-class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
+class FlextDbOracleServiceSinger(s):
     """Mixin providing Singer type mapping for s.
 
     Handles: convert_singer_type, map_singer_schema.

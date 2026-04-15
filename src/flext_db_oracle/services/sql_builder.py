@@ -12,17 +12,17 @@ from __future__ import annotations
 from collections.abc import Mapping, MutableSequence, Sequence
 
 from flext_db_oracle import (
-    FlextDbOracleServiceBase,
     c,
     m,
     p,
     r,
+    s,
     t,
     u,
 )
 
 
-class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
+class FlextDbOracleServiceSqlBuilder(s):
     """Mixin providing SQL statement builders for FlextDbOracleServices.
 
     Handles: build_create_index_statement, build_delete_statement,

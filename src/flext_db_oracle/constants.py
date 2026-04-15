@@ -15,16 +15,14 @@ from enum import StrEnum, unique
 from types import MappingProxyType
 from typing import TYPE_CHECKING, ClassVar, Final
 
-from flext_cli import FlextCliConstants
-
-from flext_core import FlextConstants
+from flext_cli import c
 
 if TYPE_CHECKING:
     from flext_db_oracle import t
 
 
-class FlextDbOracleConstants(FlextCliConstants):
-    """Oracle database constants extending FlextConstants foundation.
+class FlextDbOracleConstants(c):
+    """Oracle database constants extending c foundation.
 
     Usage:
     ```python
@@ -51,7 +49,7 @@ class FlextDbOracleConstants(FlextCliConstants):
             DEFAULT_DATABASE_NAME: Final[str] = "XE"
             DEFAULT_SID: Final[str] = "XE"
             DEFAULT_USERNAME: Final[str] = "system"
-            DEFAULT_TIMEOUT: Final[int] = FlextConstants.DEFAULT_TIMEOUT_SECONDS
+            DEFAULT_TIMEOUT: Final[int] = c.DEFAULT_TIMEOUT_SECONDS
             DEFAULT_POOL_MIN: Final[int] = 2
             DEFAULT_POOL_MAX: Final[int] = 20
             DEFAULT_POOL_INCREMENT: Final[int] = 1
@@ -231,10 +229,8 @@ class FlextDbOracleConstants(FlextCliConstants):
             """Oracle-specific performance tuning constants."""
 
             MILLISECONDS_TO_SECONDS_THRESHOLD: Final[int] = 1000
-            DEFAULT_BATCH_SIZE: Final[int] = FlextConstants.DEFAULT_SIZE
-            MAX_BATCH_SIZE: Final[int] = (
-                FlextConstants.DEFAULT_MAX_COMMAND_RETRIES or 1000
-            )
+            DEFAULT_BATCH_SIZE: Final[int] = c.DEFAULT_SIZE
+            MAX_BATCH_SIZE: Final[int] = c.DEFAULT_MAX_COMMAND_RETRIES or 1000
             DEFAULT_COMMIT_SIZE: Final[int] = 1000
             PERFORMANCE_WARNING_THRESHOLD_SECONDS: Final[float] = 5.0
             MAX_DISPLAY_ROWS: Final[int] = 1000
@@ -296,7 +292,7 @@ class FlextDbOracleConstants(FlextCliConstants):
         class OracleDefaults:
             """Oracle-specific default configuration values."""
 
-            DEFAULT_HOST: Final[str] = FlextConstants.LOCALHOST
+            DEFAULT_HOST: Final[str] = c.LOCALHOST
             DEFAULT_PORT: Final[int] = 1521
             DEFAULT_USERNAME: Final[str] = "system"
             DEFAULT_SERVICE_NAME: Final[str] = "XEPDB1"
@@ -310,7 +306,7 @@ class FlextDbOracleConstants(FlextCliConstants):
             DEFAULT_COMMIT_SIZE: Final[int] = 1000
             DEFAULT_POOL_RECYCLE: Final[int] = 3600
             DEFAULT_SLOW_QUERY_THRESHOLD: Final[float] = 2.0
-            DEFAULT_BATCH_SIZE: Final[int] = FlextConstants.DEFAULT_SIZE
+            DEFAULT_BATCH_SIZE: Final[int] = c.DEFAULT_SIZE
 
         class OracleEnums:
             """Oracle-specific enumerations."""
@@ -461,3 +457,5 @@ class FlextDbOracleConstants(FlextCliConstants):
 
 
 c = FlextDbOracleConstants
+
+__all__ = ["FlextDbOracleConstants", "c"]
