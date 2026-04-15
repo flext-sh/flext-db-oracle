@@ -13,14 +13,13 @@ from flext_core.lazy import (
 from flext_db_oracle.__version__ import *
 
 if _t.TYPE_CHECKING:
-    from flext_cli import d, h, r, s, x
+    from flext_cli import c, d, h, r, s, x
 
     from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
     from flext_db_oracle.api import FlextDbOracleApi, db_oracle
     from flext_db_oracle.base import FlextDbOracleServiceBase
     from flext_db_oracle.cli import FlextDbOracleCli, cli
     from flext_db_oracle.client import FlextDbOracleClient, client
-    from flext_db_oracle.constants import FlextDbOracleConstants, c
     from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
     from flext_db_oracle.exceptions import FlextDbOracleExceptions, e
     from flext_db_oracle.models import FlextDbOracleModels, m
@@ -66,10 +65,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "FlextDbOracleClient",
                 "client",
             ),
-            ".constants": (
-                "FlextDbOracleConstants",
-                "c",
-            ),
             ".dispatcher": ("FlextDbOracleDispatcher",),
             ".exceptions": (
                 "FlextDbOracleExceptions",
@@ -94,6 +89,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "u",
             ),
             "flext_cli": (
+                "c",
                 "d",
                 "h",
                 "r",
@@ -103,10 +99,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
         },
     ),
     exclude_names=(
-        "FlextDispatcher",
-        "FlextLogger",
-        "FlextRegistry",
-        "FlextRuntime",
         "cleanup_submodule_namespace",
         "install_lazy_exports",
         "lazy_getattr",
@@ -125,7 +117,6 @@ __all__: list[str] = [
     "FlextDbOracleApi",
     "FlextDbOracleCli",
     "FlextDbOracleClient",
-    "FlextDbOracleConstants",
     "FlextDbOracleDispatcher",
     "FlextDbOracleExceptions",
     "FlextDbOracleModels",

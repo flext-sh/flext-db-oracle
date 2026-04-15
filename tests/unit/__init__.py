@@ -26,6 +26,19 @@ _LAZY_IMPORTS = build_lazy_import_map(
         ".test_services": ("test_services",),
         ".test_typings": ("test_typings",),
         ".test_utilities": ("test_utilities",),
+        "flext_db_oracle": (
+            "c",
+            "d",
+            "e",
+            "h",
+            "m",
+            "p",
+            "r",
+            "s",
+            "t",
+            "u",
+            "x",
+        ),
     },
 )
 

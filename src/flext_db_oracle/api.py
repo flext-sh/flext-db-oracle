@@ -19,6 +19,7 @@ from typing import Self, override
 from flext_db_oracle import (
     FlextDbOracleDispatcher,
     FlextDbOracleServiceBase,
+    FlextDbOracleServices,
     FlextDbOracleSettings,
     c,
     m,
@@ -27,7 +28,6 @@ from flext_db_oracle import (
     t,
     u,
 )
-from flext_db_oracle.services.facade import FlextDbOracleServices
 
 
 class FlextDbOracleApi(FlextDbOracleServiceBase):
