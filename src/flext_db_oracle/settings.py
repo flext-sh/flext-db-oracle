@@ -13,7 +13,7 @@ from __future__ import annotations
 from typing import Annotated, ClassVar, Self, override
 from urllib.parse import parse_qs, unquote, urlparse
 
-from flext_core import EnvSettingsSource, FlextSettings, PydanticBaseSettingsSource
+from flext_core import FlextSettings
 from flext_db_oracle import FlextDbOraclePassword, c, m, p, r, t, u
 
 
@@ -115,11 +115,11 @@ class FlextDbOracleSettings(FlextSettings):
     def settings_customise_sources(
         cls,
         settings_cls: type[m.BaseSettings],
-        init_settings: PydanticBaseSettingsSource,
-        env_settings: PydanticBaseSettingsSource,
-        dotenv_settings: PydanticBaseSettingsSource,
-        file_secret_settings: PydanticBaseSettingsSource,
-    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        init_settings: m.PydanticBaseSettingsSource,
+        env_settings: m.PydanticBaseSettingsSource,
+        dotenv_settings: m.PydanticBaseSettingsSource,
+        file_secret_settings: m.PydanticBaseSettingsSource,
+    ) -> tuple[m.PydanticBaseSettingsSource, ...]:
         del settings_cls, env_settings, dotenv_settings, file_secret_settings
         return (init_settings,)
 
@@ -171,7 +171,7 @@ class FlextDbOracleSettings(FlextSettings):
         prefix: str,
     ) -> dict[str, t.ContainerValue]:
         """Resolve non-null environment values for the requested Oracle prefix."""
-        source = EnvSettingsSource(
+        source = m.EnvSettingsSource(
             settings_cls=cls,
             env_prefix=prefix,
             case_sensitive=False,
@@ -184,7 +184,7 @@ class FlextDbOracleSettings(FlextSettings):
             if normalized_env_name in source.env_vars:
                 values[field_name] = source.env_vars[normalized_env_name]
         if prefix == c.DbOracle.OracleEnvironment.PREFIX_ORACLE:
-            flext_source = EnvSettingsSource(
+            flext_source = m.EnvSettingsSource(
                 settings_cls=cls,
                 env_prefix=c.DbOracle.OracleEnvironment.PREFIX_FLEXT_TARGET_ORACLE,
                 case_sensitive=False,

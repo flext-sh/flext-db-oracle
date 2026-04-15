@@ -18,15 +18,15 @@ from sqlalchemy.exc import (
 )
 
 from flext_db_oracle import (
+    FlextDbOracleServiceBase,
     m,
     p,
-    s,
     t,
     u,
 )
 
 
-class FlextDbOracleServiceSchema(s):
+class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
     """Mixin providing schema introspection for FlextDbOracleServices.
 
     Handles: get_columns, get_primary_keys, get_primary_key_columns,

@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from flext_db_oracle import FlextDbOracleServices
 
 
-class FlextDbOracleDispatcher(s[None]):
+class FlextDbOracleDispatcher(s):
     """Unified Oracle Database Dispatcher with integrated command classes."""
 
     @override
