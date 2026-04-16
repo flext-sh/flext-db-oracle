@@ -1,0 +1,28 @@
+docs/guides/troubleshooting.md
+  h_9db9d35f50cf33 249,517
+tests/utilities.py
+  h_9db9d35f50cf33 18,30,42
+docs/architecture/c4-components.md
+  h_9db9d35f50cf33 206,214
+docs/guides/configuration.md
+  h_9db9d35f50cf33 256,381,384,388
+tests/unit/test_utilities.py
+  h_9db9d35f50cf33 20,284
+docs/guides/development.md
+  h_9db9d35f50cf33 192,195,201,205,349,352,355
+src/flext_db_oracle/settings.py
+  h_9db9d35f50cf33 26
+src/flext_db_oracle/models.py
+  h_9db9d35f50cf33 37,94,257
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "668e36e9d054938b2124df86c2f22c4a55e113d5",
+  "prompts": {},
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
