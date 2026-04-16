@@ -501,7 +501,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_map_singer_schema_method_real(self) -> None:
         """Test map_singer_schema method."""
         test_schema: t.ContainerValueMapping = {
-            "type": "t.RecursiveContainer",
+            "type": "object",
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string", "maxLength": 100},

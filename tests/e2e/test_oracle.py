@@ -188,7 +188,7 @@ class TestOracleE2E:
                     "name": {"type": "string"},
                     "email": {"type": "string"},
                     "is_active": {"type": "boolean"},
-                    "metadata": {"type": "t.RecursiveContainer"},
+                    "metadata": {"type": "object"},
                     "created_at": {"type": "string", "format": "date-time"},
                 },
             }

@@ -122,7 +122,7 @@ Railway Pattern with r[T] provides the most robust, type-safe, and composable er
 
 - **Minimal Overhead**: Railway pattern has negligible performance impact
 - **Early Returns**: Failed operations short-circuit without unnecessary work
-- **Memory Efficiency**: No exception t.RecursiveContainer creation overhead
+- **Memory Efficiency**: No exception object creation overhead
 - **Async Compatibility**: Works seamlessly with async/await patterns
 
 ## Alternatives Considered

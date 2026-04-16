@@ -237,7 +237,7 @@ result = (
 #### Strict Type Checking
 
 - **Pyrefly strict mode**: All code must pass strict type checking
-- **100% type annotations**: No `t.RecursiveContainer` types in production code
+- **100% type annotations**: No `object` types in production code
 - **Generic type support**: Full support for `r[T]` patterns
 - **Protocol compliance**: Structural typing over inheritance
 

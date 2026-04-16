@@ -199,7 +199,7 @@ ______________________________________________________________________
 #### 3. **Type Safety Enforcement**
 
 **Challenge**: Achieving Pyrefly strict mode compliance across large codebase
-**Solution**: Comprehensive type annotations, no `t.RecursiveContainer` usage, strict import patterns
+**Solution**: Comprehensive type annotations, no `object` usage, strict import patterns
 **Impact**: Runtime error prevention, ecosystem reliability
 
 #### 4. **Oracle Container Testing**

@@ -53,6 +53,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "__version__",
                 "__version_info__",
             ),
+            "._utilities.db_oracle": ("FlextDbOracleUtilitiesDbOracle",),
             ".api": (
                 "FlextDbOracleApi",
                 "db_oracle",
@@ -81,6 +82,13 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "FlextDbOracleProtocols",
                 "p",
             ),
+            ".services.connection": ("FlextDbOracleServiceConnection",),
+            ".services.facade": ("FlextDbOracleServices",),
+            ".services.plugin": ("FlextDbOracleServicePlugin",),
+            ".services.query": ("FlextDbOracleServiceQuery",),
+            ".services.schema": ("FlextDbOracleServiceSchema",),
+            ".services.singer": ("FlextDbOracleServiceSinger",),
+            ".services.sql_builder": ("FlextDbOracleServiceSqlBuilder",),
             ".settings": ("FlextDbOracleSettings",),
             ".typings": (
                 "FlextDbOracleTypes",
