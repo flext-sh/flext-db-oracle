@@ -34,7 +34,7 @@ class FlextDbOracleModels(m):
         class DbOracleDomainModel(m.BaseModel):
             """Base model for FlextDbOracle with standard Pydantic v2 configuration."""
 
-            model_config: ClassVar[c.ConfigDict] = c.ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 use_enum_values=True,
                 validate_default=True,
                 str_strip_whitespace=True,
@@ -91,7 +91,7 @@ class FlextDbOracleModels(m):
         class ConnectionStatus(m.Entity, m.FlexibleModel):
             """Connection status using flext-core Entity."""
 
-            model_config: ClassVar[c.ConfigDict] = c.ConfigDict(frozen=False)
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=False)
 
             connected: bool = u.Field(
                 False,
@@ -254,7 +254,7 @@ class FlextDbOracleModels(m):
         class QueryResult(m.Entity, m.FlexibleModel):
             """Query result using flext-core Entity."""
 
-            model_config: ClassVar[c.ConfigDict] = c.ConfigDict(frozen=False)
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=False)
 
             query: str = u.Field(description="SQL query that produced the result")
             result_data: Sequence[t.ContainerValue] = u.Field(

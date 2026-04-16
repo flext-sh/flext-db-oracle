@@ -203,7 +203,7 @@ class FlextDbOracleApi(s):
 **Key Models**:
 
 ```python
-class OracleConfig(BaseModel):
+class OracleConfig(m.BaseModel):
     host: str
     port: int = 1521
     service_name: str
@@ -211,7 +211,7 @@ class OracleConfig(BaseModel):
     password: SecretStr
 
 
-class QueryResult(BaseModel):
+class QueryResult(m.BaseModel):
     rows: List[List[t.RecursiveContainer]]
     columns: t.StringList
     row_count: int

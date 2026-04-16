@@ -17,7 +17,7 @@ from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleSettings,
 )
-from tests import c, t, u
+from tests import c, m, t, u
 
 
 @pytest.mark.unit_pure
@@ -281,7 +281,7 @@ class Testu:
         )
         tm.ok(result)
 
-    _JSON_RESULT_ADAPTER: TypeAdapter[
+    _JSON_RESULT_ADAPTER: m.TypeAdapter[
         Sequence[Mapping[str, int | str | bool]]
         | Sequence[t.StrMapping]
         | Sequence[t.IntMapping]

@@ -23,7 +23,7 @@ class FlextDbOracleSettings(FlextSettings):
 
     _singleton_enabled: ClassVar[bool] = False
 
-    model_config: ClassVar[c.SettingsConfigDict] = c.SettingsConfigDict(
+    model_config: ClassVar[m.SettingsConfigDict] = m.SettingsConfigDict(
         env_prefix=c.DbOracle.OracleEnvironment.PREFIX_ORACLE,
         case_sensitive=False,
         extra="ignore",
