@@ -12,7 +12,7 @@ class FlextDbOracleUtilities(u):
 
     Architecture: Advanced utilities with ZERO code bloat through:
     - TypeIs/TypeGuard for narrowing (PEP 742)
-    - BeforeValidator factories for Pydantic coercion
+    - m.BeforeValidator factories for Pydantic coercion
     - @validated decorators eliminating manual validation
     - Generic parsing utilities for StrEnums (inherited from parent)
     """

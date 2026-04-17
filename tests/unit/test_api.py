@@ -1129,7 +1129,7 @@ class TestFlextDbOracleApiSafeMethods:
         tm.that(not api.connected, eq=True)
 
     def test_api_class_methods_with_config(self) -> None:
-        """Test API creation via with_config class method."""
+        """Test API creation via u.with_config class method."""
         settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,

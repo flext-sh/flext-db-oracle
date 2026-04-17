@@ -50,7 +50,7 @@ class FlextDbOracleUtilitiesDbOracle:
             enum_cls: The StrEnum class to create a coerced type for.
 
         Returns:
-            The enum class itself (callers apply Annotated+BeforeValidator as needed).
+            The enum class itself (callers apply Annotated+m.BeforeValidator as needed).
 
         """
         return enum_cls

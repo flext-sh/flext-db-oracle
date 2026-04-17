@@ -49,12 +49,12 @@ Clean Architecture implementation for Oracle Database integration in the FLEXT e
 
 ### FLEXT Pattern Integration
 
-| Pattern             | Implementation         | Status      |
-| ------------------- | ---------------------- | ----------- |
-| **r\<T>**           | Monadic error handling | Complete    |
-| **s**               | Base service patterns  | Implemented |
-| **FlextContainer**  | Dependency injection   | Partial     |
-| **FlextLogger**     | Structured logging     | Integrated  |
+| Pattern            | Implementation         | Status      |
+| ------------------ | ---------------------- | ----------- |
+| **r\<T>**          | Monadic error handling | Complete    |
+| **s**              | Base service patterns  | Implemented |
+| **FlextContainer** | Dependency injection   | Partial     |
+| **FlextLogger**    | Structured logging     | Integrated  |
 
 ## Module Architecture
 
