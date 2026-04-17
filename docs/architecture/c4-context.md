@@ -39,7 +39,7 @@ graph TB
         TAP[flext-tap-oracle<br/>Data Extraction]
         TARGET[flext-target-oracle<br/>Data Loading]
         DBT[flext-dbt-oracle<br/>Data Transformation]
-        FLEXT[flext-oud-mig<br/>Migration Tools]
+        FLEXT[algar-oud-mig<br/>Migration Tools]
     end
 
     subgraph "External Systems"

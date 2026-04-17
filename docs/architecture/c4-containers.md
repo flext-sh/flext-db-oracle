@@ -46,7 +46,7 @@ graph TB
         TAP_APP[flext-tap-oracle<br/>🐍 Python Application<br/>Data Extraction Service]
         TARGET_APP[flext-target-oracle<br/>🐍 Python Application<br/>Data Loading Service]
         DBT_APP[flext-dbt-oracle<br/>🐍 Python Application<br/>Data Transformation Service]
-        FLEXT_APP[flext-oud-mig<br/>🐍 Python Application<br/>Migration Tool]
+        FLEXT_APP[algar-oud-mig<br/>🐍 Python Application<br/>Migration Tool]
     end
 
     subgraph "flext-db-oracle Library"
@@ -176,7 +176,7 @@ graph TB
 - Uses FlextDbOracleApi for dbt operations
 - Implements dbt Oracle adapter interface
 
-#### flext-oud-mig
+#### algar-oud-mig
 
 **Technology**: Python Application
 **Purpose**: Oracle Unified Directory migration tools
