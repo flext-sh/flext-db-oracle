@@ -17,7 +17,7 @@ if _t.TYPE_CHECKING:
     from flext_db_oracle import d, e, h, r, s, x
     from tests.conftest import OperationTestError
     from tests.constants import TestsFlextDbOracleConstants, c
-    from tests.e2e.test_oracle import TestOracleE2E
+    from tests.e2e.test_oracle import OperationTestErrorE2E, TestOracleE2E
     from tests.integration.test_oracle import TestOracleIntegration
     from tests.models import TestsFlextDbOracleModels, m
     from tests.protocols import TestsFlextDbOracleProtocols, p
@@ -61,7 +61,7 @@ if _t.TYPE_CHECKING:
     from tests.unit.test_exceptions import Teste
     from tests.unit.test_fields import TestFlextDbOracleFields
     from tests.unit.test_metadata import TestFlextDbOracleMetadataManagerComprehensive
-    from tests.unit.test_models import Testm
+    from tests.unit.test_models import TestFlextDbOracleSettingsModels, Testm
     from tests.unit.test_oracle_example import (
         TestRealOracleApi,
         TestRealOracleConnection,
@@ -74,7 +74,14 @@ if _t.TYPE_CHECKING:
     )
     from tests.unit.test_protocols import TestFlextDbOracleProtocols
     from tests.unit.test_services import (
+        TestDirectCoverageBoostAPIServices,
+        TestDirectCoverageBoostConfigServices,
+        TestDirectCoverageBoostConnectionServices,
+        TestDirectCoverageBoostObservabilityServices,
+        TestDirectCoverageBoostServicesServices,
+        TestDirectCoverageBoostTypesServices,
         TestFlextDbOracleConnectionSimple,
+        TestFlextDbOracleMetadataManagerComprehensiveServices,
         TestFlextDbOracleServicesBasic,
         TestFlextDbOracleServicesPlaceholderRemovals,
         TestServiceErrorHandling,
@@ -95,7 +102,10 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "TestsFlextDbOracleConstants",
                 "c",
             ),
-            ".e2e.test_oracle": ("TestOracleE2E",),
+            ".e2e.test_oracle": (
+                "OperationTestErrorE2E",
+                "TestOracleE2E",
+            ),
             ".integration.test_oracle": ("TestOracleIntegration",),
             ".models": (
                 "TestsFlextDbOracleModels",
@@ -148,7 +158,10 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".unit.test_exceptions": ("Teste",),
             ".unit.test_fields": ("TestFlextDbOracleFields",),
             ".unit.test_metadata": ("TestFlextDbOracleMetadataManagerComprehensive",),
-            ".unit.test_models": ("Testm",),
+            ".unit.test_models": (
+                "TestFlextDbOracleSettingsModels",
+                "Testm",
+            ),
             ".unit.test_oracle_example": (
                 "TestRealOracleApi",
                 "TestRealOracleConnection",
@@ -161,7 +174,14 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ),
             ".unit.test_protocols": ("TestFlextDbOracleProtocols",),
             ".unit.test_services": (
+                "TestDirectCoverageBoostAPIServices",
+                "TestDirectCoverageBoostConfigServices",
+                "TestDirectCoverageBoostConnectionServices",
+                "TestDirectCoverageBoostObservabilityServices",
+                "TestDirectCoverageBoostServicesServices",
+                "TestDirectCoverageBoostTypesServices",
                 "TestFlextDbOracleConnectionSimple",
+                "TestFlextDbOracleMetadataManagerComprehensiveServices",
                 "TestFlextDbOracleServicesBasic",
                 "TestFlextDbOracleServicesPlaceholderRemovals",
                 "TestServiceErrorHandling",
@@ -207,6 +227,7 @@ install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
 __all__: list[str] = [
     "FlextDbOracleTestExceptions",
     "OperationTestError",
+    "OperationTestErrorE2E",
     "TestApiModule",
     "TestApiSurgicalSimple",
     "TestBasicModelCreation",
@@ -214,11 +235,17 @@ __all__: list[str] = [
     "TestCliServiceOperations",
     "TestConstants",
     "TestDirectCoverageBoostAPI",
+    "TestDirectCoverageBoostAPIServices",
     "TestDirectCoverageBoostConfig",
+    "TestDirectCoverageBoostConfigServices",
     "TestDirectCoverageBoostConnection",
+    "TestDirectCoverageBoostConnectionServices",
     "TestDirectCoverageBoostObservability",
+    "TestDirectCoverageBoostObservabilityServices",
     "TestDirectCoverageBoostServices",
+    "TestDirectCoverageBoostServicesServices",
     "TestDirectCoverageBoostTypes",
+    "TestDirectCoverageBoostTypesServices",
     "TestDispatcherSurgical",
     "TestExceptions",
     "TestFlextDbOracleApiRealFunctionality",
@@ -231,11 +258,13 @@ __all__: list[str] = [
     "TestFlextDbOracleConnectionSimple",
     "TestFlextDbOracleFields",
     "TestFlextDbOracleMetadataManagerComprehensive",
+    "TestFlextDbOracleMetadataManagerComprehensiveServices",
     "TestFlextDbOracleProtocols",
     "TestFlextDbOracleServices",
     "TestFlextDbOracleServicesBasic",
     "TestFlextDbOracleServicesPlaceholderRemovals",
     "TestFlextDbOracleSettings",
+    "TestFlextDbOracleSettingsModels",
     "TestFlextDbOracleTypes",
     "TestModuleImports",
     "TestOracleConnectionHelper",

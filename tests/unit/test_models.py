@@ -436,7 +436,7 @@ class Testm:
                 tm.that(table.columns, eq=[])
 
 
-class TestFlextDbOracleSettings:
+class TestFlextDbOracleSettingsModels:
     """Comprehensive test FlextDbOracleSettings functionality."""
 
     def test_config_creation_defaults(self) -> None:

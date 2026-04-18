@@ -531,7 +531,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
 "Direct Coverage Boost Tests - Target specific missed lines.\n\nThis module directly calls internal functions to boost coverage from 41% toward ~100%.\nFocus on API (40%), CLI (21%), and other modules with lowest coverage.\n\n\n\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
 
 
-class TestDirectCoverageBoostAPI:
+class TestDirectCoverageBoostAPIServices:
     """Direct tests for API module missed lines (40% → higher)."""
 
     def test_api_connection_error_paths_571_610(self) -> None:
@@ -605,7 +605,7 @@ class TestDirectCoverageBoostAPI:
             connected_api.disconnect()
 
 
-class TestDirectCoverageBoostConfig:
+class TestDirectCoverageBoostConfigServices:
     """Direct tests for Config module missed lines (46% → higher)."""
 
     def test_config_validation_edge_cases(self) -> None:
@@ -664,7 +664,7 @@ class TestDirectCoverageBoostConfig:
                     os.environ[var] = original_value
 
 
-class TestDirectCoverageBoostConnection:
+class TestDirectCoverageBoostConnectionServices:
     """Direct tests for Connection module missed lines (54% → higher)."""
 
     def test_connection_edge_cases(
@@ -712,7 +712,7 @@ class TestDirectCoverageBoostConnection:
                 pass
 
 
-class TestDirectCoverageBoostTypes:
+class TestDirectCoverageBoostTypesServices:
     """Direct tests for Types module missed lines (35% → higher)."""
 
     def test_types_validation_comprehensive(self) -> None:
@@ -768,7 +768,7 @@ class TestDirectCoverageBoostTypes:
         tm.that(column_with_default.default_value, eq="DEFAULT_VALUE")
 
 
-class TestDirectCoverageBoostObservability:
+class TestDirectCoverageBoostObservabilityServices:
     """Direct tests for Observability module missed lines (38% → higher)."""
 
     def test_observability_initialization_paths(self) -> None:
@@ -808,7 +808,7 @@ class TestDirectCoverageBoostObservability:
             connected_api.disconnect()
 
 
-class TestDirectCoverageBoostServices:
+class TestDirectCoverageBoostServicesServices:
     """Comprehensive Services coverage tests using flext_tests - target 100%."""
 
     def test_services_direct_imports_and_coverage(self) -> None:
@@ -963,7 +963,7 @@ class TestDirectCoverageBoostServices:
 "Test metadata management functionality with real code paths.\n\nThis module tests the metadata management functionality with real code paths\ninstead of mocks, following the user's requirement for real code testing.\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
 
 
-class TestFlextDbOracleMetadataManagerComprehensive:
+class TestFlextDbOracleMetadataManagerComprehensiveServices:
     """Comprehensive tests for metadata manager using real code paths."""
 
     settings: FlextDbOracleSettings

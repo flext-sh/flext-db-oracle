@@ -50,7 +50,10 @@ _LAZY_IMPORTS = build_lazy_import_map(
         ".test_exceptions": ("Teste",),
         ".test_fields": ("TestFlextDbOracleFields",),
         ".test_metadata": ("TestFlextDbOracleMetadataManagerComprehensive",),
-        ".test_models": ("Testm",),
+        ".test_models": (
+            "TestFlextDbOracleSettingsModels",
+            "Testm",
+        ),
         ".test_oracle_example": (
             "TestRealOracleApi",
             "TestRealOracleConnection",
@@ -63,7 +66,14 @@ _LAZY_IMPORTS = build_lazy_import_map(
         ),
         ".test_protocols": ("TestFlextDbOracleProtocols",),
         ".test_services": (
+            "TestDirectCoverageBoostAPIServices",
+            "TestDirectCoverageBoostConfigServices",
+            "TestDirectCoverageBoostConnectionServices",
+            "TestDirectCoverageBoostObservabilityServices",
+            "TestDirectCoverageBoostServicesServices",
+            "TestDirectCoverageBoostTypesServices",
             "TestFlextDbOracleConnectionSimple",
+            "TestFlextDbOracleMetadataManagerComprehensiveServices",
             "TestFlextDbOracleServicesBasic",
             "TestFlextDbOracleServicesPlaceholderRemovals",
             "TestServiceErrorHandling",

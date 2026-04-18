@@ -18,7 +18,7 @@ from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import t
 
 
-class OperationTestError(Exception):
+class OperationTestErrorE2E(Exception):
     """Custom exception for test operations."""
 
     def __init__(self, message: str, error: str | None = None) -> None:
@@ -51,17 +51,21 @@ class TestOracleE2E:
             connection_test = api.test_connection()
             if connection_test.failure:
                 msg = "Connection"
-                raise OperationTestError(msg, connection_test.error or "Unknown error")
+                raise OperationTestErrorE2E(
+                    msg, connection_test.error or "Unknown error"
+                )
             schemas_result = api.get_schemas()
             if schemas_result.failure:
                 msg = "Schema discovery"
-                raise OperationTestError(msg, schemas_result.error or "Unknown error")
+                raise OperationTestErrorE2E(
+                    msg, schemas_result.error or "Unknown error"
+                )
             schemas = schemas_result.value
             assert schemas, "No schemas found"
             tables_result = api.get_tables()
             if tables_result.failure:
                 msg = "Table listing"
-                raise OperationTestError(msg, tables_result.error or "Unknown error")
+                raise OperationTestErrorE2E(msg, tables_result.error or "Unknown error")
             test_table_name = "E2E_TEST_TABLE"
             create_sql = f"CREATE TABLE {test_table_name} (\n                ID NUMBER(10) NOT NULL PRIMARY KEY,\n                NAME VARCHAR2(100) NOT NULL,\n                EMAIL VARCHAR2(255),\n                CREATED_AT TIMESTAMP DEFAULT SYSDATE\n            )"
             execute_result = api.execute_sql(create_sql)
