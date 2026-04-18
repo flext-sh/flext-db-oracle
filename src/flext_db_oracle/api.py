@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import contextlib
 import types
 from collections.abc import Sequence
 from datetime import UTC, datetime
@@ -68,9 +67,11 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         exc_tb: types.TracebackType | None,
     ) -> None:
         """Context manager exit - cleanup resources."""
-        with contextlib.suppress(Exception):
+        try:
             self.logger.debug("Disconnecting on context exit")
             self._services.disconnect()
+        except Exception as exc:
+            self.logger.warning("Disconnect failed on context exit", error=str(exc))
 
     @property
     def _dispatch_enabled(self) -> bool:
