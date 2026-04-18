@@ -362,7 +362,7 @@ class TestOutputFormatter:
         result = formatter.format_list_output(items, "Test Items", "yaml")
         tm.ok(result)
         output = result.value
-        data = u.Cli.yaml_parse(output).unwrap_or({})
+        data: t.Cli.YamlDict = u.Cli.yaml_parse(output).unwrap_or({})
         tm.that(data["title"], eq="Test Items")
         tm.that(data["items"], eq=["item1", "item2"])
 
