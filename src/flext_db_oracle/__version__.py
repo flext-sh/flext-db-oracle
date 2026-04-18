@@ -1,44 +1,37 @@
-"""Version and package metadata from project declarations.
+# AUTO-GENERATED FILE — Regenerate with: make gen
+"""Package version and metadata for flext-db-oracle.
 
-Single source of truth lives in pyproject.toml.
-This module reads required package metadata directly from the local project
-declarations and fails fast if any mandatory field is missing.
+Subclass of ``FlextVersion`` — overrides only ``_metadata``.
+All derived attributes (``__version__``, ``__title__``, etc.) are
+computed automatically via ``FlextVersion.__init_subclass__``.
 
-Copyright (c) 2025 Flext Telecom. Todos os direitos reservados.
-SPDX-License-Identifier: Proprietary
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
 
-import tomllib
-from pathlib import Path
-from typing import TYPE_CHECKING
+from importlib.metadata import PackageMetadata, metadata
 
-if TYPE_CHECKING:
-    from flext_db_oracle import t
+from flext_core import FlextVersion
 
-_PYPROJECT_PATH = Path(__file__).resolve().parents[2] / "pyproject.toml"
-_PROJECT_METADATA = tomllib.loads(_PYPROJECT_PATH.read_text(encoding="utf-8"))[
-    "project"
-]
-_AUTHOR_METADATA = _PROJECT_METADATA["authors"][0]
 
-__version__ = _PROJECT_METADATA["version"]
-_version_without_metadata = __version__.split("+", maxsplit=1)[0]
-_version_base, _has_prerelease, _prerelease = _version_without_metadata.partition("-")
-_base_parts = _version_base.split(".")
-_prerelease_parts: t.StrSequence = _prerelease.split(".") if _has_prerelease else []
-__version_info__ = tuple(
-    int(part) if part.isdigit() else part for part in _base_parts + _prerelease_parts
-)
-__title__ = _PROJECT_METADATA["name"]
-__description__ = _PROJECT_METADATA["description"]
-__author__ = _AUTHOR_METADATA["name"]
-__author_email__ = _AUTHOR_METADATA["email"]
-__license__ = _PROJECT_METADATA["license"]
-_PROJECT_URLS = _PROJECT_METADATA.get("urls", {})
-__url__ = _PROJECT_URLS.get("Homepage", "")
+class FlextDbOracleVersion(FlextVersion):
+    """flext-db-oracle version — MRO-derived from FlextVersion."""
+
+    _metadata: PackageMetadata = metadata("flext-db-oracle")
+
+
+__version__ = FlextDbOracleVersion.__version__
+__version_info__ = FlextDbOracleVersion.__version_info__
+__title__ = FlextDbOracleVersion.__title__
+__description__ = FlextDbOracleVersion.__description__
+__author__ = FlextDbOracleVersion.__author__
+__author_email__ = FlextDbOracleVersion.__author_email__
+__license__ = FlextDbOracleVersion.__license__
+__url__ = FlextDbOracleVersion.__url__
 __all__: list[str] = [
+    "FlextDbOracleVersion",
     "__author__",
     "__author_email__",
     "__description__",
