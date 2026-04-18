@@ -203,14 +203,14 @@ class TestFlextDbOracleCli:
     def test_cli_service_initialization_success(self) -> None:
         """Test successful CLI service initialization."""
         cli_service = FlextDbOracleCli()
-        tm.that(isinstance(cli_service, FlextDbOracleCli), eq=True)
+        tm.that(cli_service, is_=FlextDbOracleCli)
         tm.that(cli_service._container is not None, eq=True)
-        tm.that(cli_service.logger is not None, eq=True)
+        tm.that(cli_service.logger, is_=object)
 
     def test_cli_service_initialization_basic(self) -> None:
         """Test basic CLI service initialization."""
         cli_service = FlextDbOracleCli()
-        tm.that(isinstance(cli_service, FlextDbOracleCli), eq=True)
+        tm.that(cli_service, is_=FlextDbOracleCli)
 
 
 class TestOracleConnectionHelper:

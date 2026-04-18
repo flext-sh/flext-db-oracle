@@ -12,14 +12,18 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from importlib.metadata import PackageMetadata, metadata
+from typing import TYPE_CHECKING
 
 from flext_core import FlextVersion
+
+if TYPE_CHECKING:
+    from flext_core import t
 
 
 class FlextDbOracleVersion(FlextVersion):
     """flext-db-oracle version — MRO-derived from FlextVersion."""
 
-    _metadata: PackageMetadata = metadata("flext-db-oracle")
+    _metadata: PackageMetadata | t.StrMapping = metadata("flext-db-oracle")
 
 
 __version__ = FlextDbOracleVersion.__version__

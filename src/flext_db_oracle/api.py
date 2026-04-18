@@ -13,7 +13,7 @@ from __future__ import annotations
 import types
 from collections.abc import Sequence
 from datetime import UTC, datetime
-from typing import Self, override
+from typing import Self
 
 from flext_db_oracle import (
     FlextDbOracleDispatcher,
@@ -32,7 +32,6 @@ from flext_db_oracle import (
 class FlextDbOracleApi(FlextDbOracleServiceBase):
     """Unified DB Oracle service facade via MRO composition."""
 
-    @override
     def __init__(
         self,
         settings: FlextDbOracleSettings,
@@ -46,10 +45,9 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         self._context = None
         self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
 
-    @override
     def __repr__(self) -> str:
         """Return string representation of the API instance."""
-        status = "connected" if self.connected else "disconnected"
+        status = "connected" if self.connected() else "disconnected"
         return f"FlextDbOracleApi(host={self._oracle_config.host}, status={status})"
 
     def __enter__(self) -> Self:
@@ -79,7 +77,6 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         return True
 
     @property
-    @override
     def settings(self) -> FlextDbOracleSettings:
         """Get the configuration."""
         return self._oracle_config
@@ -89,8 +86,6 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         """Get connection t.RecursiveContainer - public interface."""
         return self._services if self._services.connected() else None
 
-    @property
-    @override
     def connected(self) -> bool:
         """Check if connected to the database."""
         return self._services.connected()
@@ -194,7 +189,6 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         """
         return FlextDbOracleSettings.from_url(url).flat_map(cls._build_api_result)
 
-    @override
     def connect(self) -> p.Result[FlextDbOracleApi]:
         """Connect to Oracle database."""
         self.logger.info(
@@ -203,7 +197,6 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         )
         return self._services.connect().map(lambda _: self)
 
-    @override
     def convert_singer_type(
         self,
         singer_type: str | t.StrSequence,
@@ -212,20 +205,17 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         """Convert Singer JSON Schema type to Oracle SQL type."""
         return self._services.convert_singer_type(singer_type, _format_hint)
 
-    @override
     def disconnect(self) -> p.Result[bool]:
         """Disconnect from Oracle database."""
         self.logger.info("Disconnecting from Oracle database")
         return self._services.disconnect()
 
-    @override
     def execute(self, **_kwargs: t.Scalar) -> p.Result[FlextDbOracleSettings]:
         """Execute default domain service operation - return settings."""
         return u.try_(lambda: self._oracle_config).map_error(
             lambda e: f"API execution failed: {e}",
         )
 
-    @override
     def execute_many(
         self,
         sql: str,
@@ -248,7 +238,6 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
         return self.execute_statement(sql, parameters)
 
-    @override
     def execute_statement(
         self,
         sql: str | t.ContainerValue,
@@ -264,7 +253,6 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
             ),
         )
 
-    @override
     def get_columns(
         self,
         table_name: str,
@@ -281,12 +269,10 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         """Get observability metrics for the connection."""
         return self._services.get_metrics().map(lambda metrics: metrics.model_dump())
 
-    @override
     def get_plugin(self, _name: str) -> p.Result[t.ContainerValue]:
         """Get a registered plugin by name."""
         return self._services.get_plugin(_name)
 
-    @override
     def get_primary_keys(
         self,
         table_name: str,
@@ -295,12 +281,10 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         """Get primary key column names for specified table."""
         return self._services.get_primary_keys(table_name, schema)
 
-    @override
     def get_schemas(self) -> p.Result[t.StrSequence]:
         """Get list of available schemas."""
         return self._services.get_schemas()
 
-    @override
     def get_table_metadata(
         self,
         table_name: str,
@@ -309,26 +293,22 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         """Get complete table metadata including columns and constraints."""
         return self._services.get_table_metadata(table_name, schema)
 
-    @override
     def get_tables(self, schema: str | None = None) -> p.Result[t.StrSequence]:
         """Get list of tables in specified schema."""
         return self._services.get_tables(schema)
 
-    @override
     def valid(self) -> bool:
         """Check if API configuration is valid."""
         return self._oracle_config.port >= c.DbOracle.OracleNetwork.MIN_PORT and bool(
             self._oracle_config.service_name,
         )
 
-    @override
     def list_plugins(self) -> p.Result[t.StrSequence]:
         """List all registered plugin names."""
         return self._services.list_plugins().map(
             lambda plugin_map: list(plugin_map.root.keys()),
         )
 
-    @override
     def map_singer_schema(
         self,
         singer_schema: t.ContainerValue,
@@ -374,12 +354,10 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
             ),
         )
 
-    @override
     def register_plugin(self, _name: str, _plugin: t.ContainerValue) -> p.Result[bool]:
         """Register a plugin in local API registry."""
         return self._services.register_plugin(_name, _plugin)
 
-    @override
     def test_connection(self) -> p.Result[bool]:
         """Test Oracle database connection."""
         return self._services.test_connection()
@@ -397,14 +375,13 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
                     exclude={"password"},
                     mode="python",
                 ),
-                "connected": self.connected,
+                "connected": self.connected(),
                 "plugin_count": len(
                     self._services.list_plugins().unwrap_or(t.ConfigMap(root={})).root,
                 ),
             },
         )
 
-    @override
     def transaction(self) -> p.Result[t.ContainerValueMapping]:
         """Get transaction status information."""
         return r[t.ContainerValueMapping].ok(
@@ -414,7 +391,6 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
             },
         )
 
-    @override
     def unregister_plugin(self, _name: str) -> p.Result[bool]:
         """Unregister a plugin from local API registry."""
         return self._services.unregister_plugin(_name)

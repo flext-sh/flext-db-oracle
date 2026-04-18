@@ -49,7 +49,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
         singer_schema: m.DbOracle.SingerSchema | t.ContainerValueMapping,
     ) -> p.Result[m.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified."""
-        raw_properties: t.ContainerValueMapping | None = None
+        raw_properties: t.ContainerValueMapping = {}
         if isinstance(singer_schema, m.DbOracle.SingerSchema):
             schema_model = singer_schema
         else:
@@ -83,11 +83,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
             })
         mapping = t.ConfigMap(root={})
         for field_name, field_def in schema_model.properties.items():
-            raw_field = (
-                raw_properties.get(field_name)
-                if isinstance(raw_properties, Mapping)
-                else None
-            )
+            raw_field = raw_properties.get(field_name)
             format_value = (
                 raw_field.get("format") if isinstance(raw_field, Mapping) else None
             )
