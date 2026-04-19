@@ -12,10 +12,9 @@ from collections.abc import MutableMapping, Sequence
 from typing import ClassVar
 
 from flext_tests import FlextTestsUtilities, tk
-from pydantic import TypeAdapter
 
 from flext_db_oracle import FlextDbOracleUtilities
-from tests import c, m, t
+from tests import e, m, t
 
 
 class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
@@ -27,8 +26,8 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
         class Tests:
             """Test-specific utilities."""
 
-            _PORT_BINDINGS_ADAPTER: ClassVar[m.TypeAdapter[t.StrMapping]] = TypeAdapter(
-                t.StrMapping
+            _PORT_BINDINGS_ADAPTER: ClassVar[m.TypeAdapter[t.StrMapping]] = (
+                m.TypeAdapter(t.StrMapping)
             )
 
             @classmethod
@@ -39,7 +38,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
                 """Normalize Docker port bindings into a typed mapping."""
                 try:
                     return cls._PORT_BINDINGS_ADAPTER.validate_python(value)
-                except c.ValidationError:
+                except e.ValidationError:
                     return {}
 
             @classmethod

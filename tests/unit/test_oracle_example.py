@@ -13,13 +13,12 @@ from collections.abc import Sequence
 import pytest
 from flext_tests import tm
 
-from flext_core import r
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleServices,
     FlextDbOracleSettings,
 )
-from tests import t
+from tests import r, t
 
 
 def safe_get_first_value(data: t.RecursiveContainer) -> t.RecursiveContainer:

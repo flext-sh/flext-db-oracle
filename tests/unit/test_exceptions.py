@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from flext_tests import tm
 
-from flext_db_oracle import e
+from tests import e
 
 
 class Teste:

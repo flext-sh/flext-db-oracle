@@ -11,7 +11,6 @@ from collections.abc import Mapping, Sequence
 
 import pytest
 from flext_tests import tm
-from pydantic import TypeAdapter
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -286,7 +285,7 @@ class Testu:
         | Sequence[t.StrMapping]
         | Sequence[t.IntMapping]
         | None
-    ] = TypeAdapter(
+    ] = m.TypeAdapter(
         Sequence[Mapping[str, int | str | bool]]
         | Sequence[t.StrMapping]
         | Sequence[t.IntMapping]
