@@ -55,11 +55,11 @@ class TestOracleIntegration:
             connected_api = connect_result.value
             test_result = connected_api.test_connection()
             assert test_result.success, f"Connection test failed: {test_result.error}"
-            schemas_result = connected_api.get_schemas()
+            schemas_result = connected_api.fetch_schemas()
             assert schemas_result.success, f"Get schemas failed: {schemas_result.error}"
             schemas = schemas_result.value
             assert schemas, "Should have at least one schema"
-            tables_result = connected_api.get_tables()
+            tables_result = connected_api.fetch_tables()
             assert tables_result.success, f"Get tables failed: {tables_result.error}"
             query_result = connected_api.query("SELECT SYSDATE FROM DUAL")
             assert query_result.success, f"Query failed: {query_result.error}"
@@ -138,7 +138,7 @@ class TestOracleIntegration:
         if connect_result.failure:
             pytest.skip(f"Failed to connect to Oracle: {connect_result.error}")
         connected_api = connect_result.value
-        schemas_result = connected_api.get_schemas()
+        schemas_result = connected_api.fetch_schemas()
         if schemas_result.failure:
             msg = f"Get schemas failed: {schemas_result.error}"
             raise AssertionError(msg)
@@ -146,14 +146,14 @@ class TestOracleIntegration:
         assert isinstance(schemas, list)
         if schemas:
             first_schema = schemas[0]
-            tables_result = connected_api.get_tables(first_schema)
+            tables_result = connected_api.fetch_tables(first_schema)
             if tables_result.failure:
                 msg = f"Get tables failed: {tables_result.error}"
                 raise AssertionError(msg)
             tables = tables_result.value
             if tables:
                 table_name_str = str(tables[0])
-                columns_result = connected_api.get_columns(table_name_str)
+                columns_result = connected_api.fetch_columns(table_name_str)
                 if columns_result.failure:
                     msg = f"Get columns failed: {columns_result.error}"
                     raise AssertionError(msg)
@@ -245,7 +245,7 @@ class TestOracleIntegration:
             pytest.skip(
                 "Oracle container not available - skipping schema operations test",
             )
-        schemas_result = connected_oracle_api.get_schemas()
+        schemas_result = connected_oracle_api.fetch_schemas()
         assert schemas_result.success, f"Get schemas failed: {schemas_result.error}"
         schemas = schemas_result.value
         assert isinstance(schemas, list)
@@ -266,7 +266,7 @@ class TestOracleIntegration:
         if connect_result.failure:
             pytest.skip(f"Failed to connect to Oracle: {connect_result.error}")
         connected_api = connect_result.value
-        health_result = connected_api.get_health_status()
+        health_result = connected_api.fetch_health_status()
         assert health_result.success, f"Health status failed: {health_result.error}"
         status = health_result.value
         assert status.connected is True

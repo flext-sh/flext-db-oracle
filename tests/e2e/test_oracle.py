@@ -54,7 +54,7 @@ class TestOracleE2E:
                 raise OperationTestErrorE2E(
                     msg, connection_test.error or "Unknown error"
                 )
-            schemas_result = api.get_schemas()
+            schemas_result = api.fetch_schemas()
             if schemas_result.failure:
                 msg = "Schema discovery"
                 raise OperationTestErrorE2E(
@@ -62,7 +62,7 @@ class TestOracleE2E:
                 )
             schemas = schemas_result.value
             assert schemas, "No schemas found"
-            tables_result = api.get_tables()
+            tables_result = api.fetch_tables()
             if tables_result.failure:
                 msg = "Table listing"
                 raise OperationTestErrorE2E(msg, tables_result.error or "Unknown error")
@@ -116,7 +116,7 @@ class TestOracleE2E:
                 assert int(str(count_value)) == 3, (
                     f"Expected count 3, got {count_value}"
                 )
-                metadata_result = api.get_table_metadata(test_table_name)
+                metadata_result = api.fetch_table_metadata(test_table_name)
                 if metadata_result.failure:
                     raise AssertionError(
                         f"Metadata query failed: {metadata_result.error}",
@@ -126,12 +126,12 @@ class TestOracleE2E:
                 columns_obj = table_metadata["columns"]
                 if isinstance(columns_obj, (list, tuple, dict, str)):
                     assert len(columns_obj) >= 4
-                columns_result = api.get_columns(test_table_name)
+                columns_result = api.fetch_columns(test_table_name)
                 if columns_result.failure:
                     raise AssertionError(f"Column info failed: {columns_result.error}")
                 columns_info = columns_result.value
                 assert len(columns_info) >= 4
-                pk_result = api.get_primary_keys(test_table_name)
+                pk_result = api.fetch_primary_keys(test_table_name)
                 if pk_result.failure:
                     raise AssertionError(f"Primary key query failed: {pk_result.error}")
                 primary_keys = pk_result.value
@@ -255,7 +255,7 @@ class TestOracleE2E:
             msg = "Query should fail without connection"
             raise AssertionError(msg)
         assert "not connected to database" in (query_result.error or "").lower()
-        metadata_result = api.get_tables()
+        metadata_result = api.fetch_tables()
         if metadata_result.success:
             msg = "Get tables should fail without connection"
             raise AssertionError(msg)

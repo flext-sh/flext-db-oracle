@@ -128,7 +128,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
                     """Return all registered plugins."""
                     return list(self._registry.values())
 
-                def get_plugin(
+                def fetch_plugin(
                     self,
                     plugin_name: str,
                 ) -> m.DbOracle.Tests.StubPluginEntity | None:

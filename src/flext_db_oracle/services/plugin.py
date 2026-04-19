@@ -32,7 +32,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
     record_metric, get_metrics, track_operation, get_operations.
     """
 
-    def get_metrics(self) -> p.Result[m.DbOracle.HealthStatus]:
+    def fetch_metrics(self) -> p.Result[m.DbOracle.HealthStatus]:
         """Get metrics status with observability integration."""
         status = "connected" if self.connected() else "disconnected"
         metrics_payload: t.StrMapping = {
@@ -49,7 +49,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
             }),
         )
 
-    def get_operations(
+    def fetch_operations(
         self,
     ) -> p.Result[Sequence[m.DbOracle.OperationRecord]]:
         """Get tracked operations."""
@@ -57,7 +57,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
             list(self._operations),
         )
 
-    def get_plugin(self, _name: str) -> p.Result[t.ContainerValue]:
+    def fetch_plugin(self, _name: str) -> p.Result[t.ContainerValue]:
         """Get plugin data from local service registry."""
         if not _name:
             return r[t.ContainerValue].fail("Plugin name is required")

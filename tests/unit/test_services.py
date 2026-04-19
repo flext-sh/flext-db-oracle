@@ -298,7 +298,7 @@ class TestFlextDbOracleServicesBasic:
         service = FlextDbOracleServices(settings=settings)
         metric_result = service.record_metric("query_time", 150.5, {"table": "users"})
         tm.ok(metric_result)
-        metrics_result = service.get_metrics()
+        metrics_result = service.fetch_metrics()
         tm.ok(metrics_result)
         tm.that(metrics_result.value.status, has="with_observability")
 
@@ -319,7 +319,7 @@ class TestFlextDbOracleServicesBasic:
             metadata={"table": "users"},
         )
         tm.ok(track_result)
-        ops_result = service.get_operations()
+        ops_result = service.fetch_operations()
         tm.ok(ops_result)
         tm.that(len(ops_result.value) > 0, eq=True)
 
@@ -336,12 +336,12 @@ class TestFlextDbOracleServicesBasic:
         test_plugin = {"name": "test_plugin", "version": "1.0"}
         register_result = service.register_plugin("test", test_plugin)
         tm.ok(register_result)
-        get_result = service.get_plugin("test")
+        get_result = service.fetch_plugin("test")
         tm.ok(get_result)
         tm.that(get_result.value, eq=test_plugin)
         unregister_result = service.unregister_plugin("test")
         tm.ok(unregister_result)
-        missing_result = service.get_plugin("missing")
+        missing_result = service.fetch_plugin("missing")
         tm.that(missing_result.failure, eq=True)
 
     def test_service_health_check(self) -> None:
@@ -490,10 +490,10 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         tm.that(result.failure, eq=True)
         tm.that((result.error or ""), has="Metric name is required")
 
-    def test_get_metrics_returns_health_status(self) -> None:
-        """Test get_metrics returns HealthStatus with observability data."""
+    def test_fetch_metrics_returns_health_status(self) -> None:
+        """Test fetch_metrics returns HealthStatus with observability data."""
         service = self._make_service()
-        result = service.get_metrics()
+        result = service.fetch_metrics()
         tm.ok(result)
         tm.that(result.value.status.endswith("_with_observability"), eq=True)
 
@@ -508,23 +508,23 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         list_result = service.list_plugins()
         tm.ok(list_result)
         tm.that(list_result.value.root, eq={"sample": True})
-        get_result = service.get_plugin("sample")
+        get_result = service.fetch_plugin("sample")
         tm.ok(get_result)
         tm.that(get_result.value, is_=dict)
         unregister_result = service.unregister_plugin("sample")
         tm.ok(unregister_result)
 
     def test_plugin_not_found(self) -> None:
-        """Test get_plugin/unregister_plugin fail for missing plugins."""
+        """Test fetch_plugin/unregister_plugin fail for missing plugins."""
         service = self._make_service()
-        tm.that(service.get_plugin("missing").failure, eq=True)
+        tm.that(service.fetch_plugin("missing").failure, eq=True)
         tm.that(service.unregister_plugin("missing").failure, eq=True)
 
     def test_plugin_empty_name_fails(self) -> None:
         """Test plugin operations fail with empty name."""
         service = self._make_service()
         tm.that(service.register_plugin("", {"v": "1"}).failure, eq=True)
-        tm.that(service.get_plugin("").failure, eq=True)
+        tm.that(service.fetch_plugin("").failure, eq=True)
         tm.that(service.unregister_plugin("").failure, eq=True)
 
 
@@ -546,9 +546,9 @@ class TestDirectCoverageBoostAPIServices:
         api = FlextDbOracleApi(bad_config)
         result1 = api.test_connection()
         tm.that(result1.failure or result1.success, eq=True)
-        result2 = api.get_schemas()
+        result2 = api.fetch_schemas()
         tm.that(result2.failure or result2.success, eq=True)
-        result3 = api.get_tables()
+        result3 = api.fetch_tables()
         tm.that(result3.failure or result3.success, eq=True)
         result4 = api.query("SELECT 1 FROM DUAL")
         tm.that(result4.failure or result4.success, eq=True)
@@ -566,9 +566,9 @@ class TestDirectCoverageBoostAPIServices:
         try:
             schema_names = ["FLEXTTEST", "SYS", "SYSTEM", "NONEXISTENT"]
             for schema in schema_names:
-                tables_result = connected_api.get_tables(schema)
+                tables_result = connected_api.fetch_tables(schema)
                 columns_result = (
-                    connected_api.get_columns("DUAL", schema)
+                    connected_api.fetch_columns("DUAL", schema)
                     if schema != "NONEXISTENT"
                     else None
                 )
@@ -693,8 +693,8 @@ class TestDirectCoverageBoostConnectionServices:
         connection = FlextDbOracleServices(settings=bad_config)
         operations = [
             connection.test_connection,
-            connection.get_schemas,
-            lambda: connection.get_tables("test"),
+            connection.fetch_schemas,
+            lambda: connection.fetch_tables("test"),
             connection.connected,
         ]
         for operation in operations:
@@ -783,7 +783,7 @@ class TestDirectCoverageBoostObservabilityServices:
                 ssl_server_cert_dn=None,
             )
             api = FlextDbOracleApi(settings)
-            metrics_result = api.get_observability_metrics()
+            metrics_result = api.fetch_observability_metrics()
             tm.ok(metrics_result)
             tm.that(metrics_result.value, is_=dict)
         except (TypeError, AttributeError):
@@ -801,7 +801,7 @@ class TestDirectCoverageBoostObservabilityServices:
         connected_api = connect_result.value
         try:
             connected_api.test_connection()
-            connected_api.get_schemas()
+            connected_api.fetch_schemas()
             connected_api.query("SELECT 1 FROM DUAL")
             tm.that(True, eq=True)
         finally:
@@ -987,9 +987,9 @@ class TestFlextDbOracleMetadataManagerComprehensiveServices:
         tm.that(self.manager, none=False)
         tm.that(self.manager, eq=self.services)
 
-    def test_get_schemas_structure(self) -> None:
-        """Test get_schemas method structure and error handling."""
-        result = self.manager.get_schemas()
+    def test_fetch_schemas_structure(self) -> None:
+        """Test fetch_schemas method structure and error handling."""
+        result = self.manager.fetch_schemas()
         tm.that(not result.success, eq=True)
         tm.that(result.error, none=False)
         tm.that(
@@ -1003,35 +1003,35 @@ class TestFlextDbOracleMetadataManagerComprehensiveServices:
             eq=True,
         )
 
-    def test_get_tables_structure(self) -> None:
-        """Test get_tables method structure and error handling."""
-        result = self.manager.get_tables()
+    def test_fetch_tables_structure(self) -> None:
+        """Test fetch_tables method structure and error handling."""
+        result = self.manager.fetch_tables()
         tm.that(not result.success, eq=True)
-        result_with_schema = self.manager.get_tables("TEST_SCHEMA")
+        result_with_schema = self.manager.fetch_tables("TEST_SCHEMA")
         tm.that(not result_with_schema.success, eq=True)
 
-    def test_get_columns_structure(self) -> None:
-        """Test get_columns method structure and error handling."""
-        result = self.manager.get_tables("TEST_TABLE")
+    def test_fetch_columns_structure(self) -> None:
+        """Test fetch_columns method structure and error handling."""
+        result = self.manager.fetch_tables("TEST_TABLE")
         tm.that(not result.success, eq=True)
-        result_with_schema = self.manager.get_tables("TEST_SCHEMA")
+        result_with_schema = self.manager.fetch_tables("TEST_SCHEMA")
         tm.that(not result_with_schema.success, eq=True)
 
-    def test_get_table_metadata_structure(self) -> None:
-        """Test get_table_metadata method structure and error handling."""
-        result = self.manager.get_tables("TEST_TABLE")
+    def test_fetch_table_metadata_structure(self) -> None:
+        """Test fetch_table_metadata method structure and error handling."""
+        result = self.manager.fetch_tables("TEST_TABLE")
         tm.that(not result.success, eq=True)
-        result_with_schema = self.manager.get_tables("TEST_SCHEMA")
+        result_with_schema = self.manager.fetch_tables("TEST_SCHEMA")
         tm.that(not result_with_schema.success, eq=True)
 
     def test_get_column_metadata_structure(self) -> None:
         """Test get_column_metadata method structure and error handling."""
-        result = self.manager.get_tables("TEST_COLUMN")
+        result = self.manager.fetch_tables("TEST_COLUMN")
         tm.that(not result.success, eq=True)
 
     def test_get_schema_metadata_structure(self) -> None:
         """Test get_schema_metadata method structure and error handling."""
-        result = self.manager.get_schemas()
+        result = self.manager.fetch_schemas()
         tm.that(not result.success, eq=True)
 
     def test_generate_ddl_structure(self) -> None:
@@ -1053,7 +1053,7 @@ class TestFlextDbOracleMetadataManagerComprehensiveServices:
             owner="TEST_SCHEMA",
             columns=columns,
         )
-        result = self.manager.get_tables("TEST_SCHEMA")
+        result = self.manager.fetch_tables("TEST_SCHEMA")
         tm.that(not result.success, eq=True)
         tm.that(result.error, none=False)
         error_lower = result.error.lower() if result.error is not None else ""
@@ -1064,15 +1064,15 @@ class TestFlextDbOracleMetadataManagerComprehensiveServices:
 
     def test_test_connection_structure(self) -> None:
         """Test test_connection method structure."""
-        result = self.manager.get_schemas()
+        result = self.manager.fetch_schemas()
         tm.that(not result.success, eq=True)
 
     def test_error_handling_patterns(self) -> None:
         """Test consistent error handling patterns across methods."""
         methods_to_test: list[tuple[str, t.StrSequence]] = [
-            ("get_schemas", []),
-            ("get_tables", []),
-            ("get_tables", ["TEST_SCHEMA"]),
+            ("fetch_schemas", []),
+            ("fetch_tables", []),
+            ("fetch_tables", ["TEST_SCHEMA"]),
         ]
         for method_name, args in methods_to_test:
             method = getattr(self.manager, method_name)
@@ -1087,9 +1087,9 @@ class TestFlextDbOracleMetadataManagerComprehensiveServices:
         tm.that(self.manager is self.services, eq=True)
         tm.that(self.manager, none=False)
         existing_methods = [
-            "get_schemas",
-            "get_tables",
-            "get_columns",
+            "fetch_schemas",
+            "fetch_tables",
+            "fetch_columns",
             "test_connection",
         ]
         for _method_name in existing_methods:
@@ -1128,7 +1128,7 @@ class TestFlextDbOracleMetadataManagerComprehensiveServices:
         tm.that(table.name, eq="COMPLEX_TABLE")
         tm.that(table.owner, eq="APP_SCHEMA")
         tm.that(len(table.columns), eq=4)
-        result = self.manager.get_tables("APP_SCHEMA")
+        result = self.manager.fetch_tables("APP_SCHEMA")
         tm.that(not result.success, eq=True)
         tm.that(result.error, none=False)
         error_lower = result.error.lower() if result.error is not None else ""
@@ -1139,11 +1139,11 @@ class TestFlextDbOracleMetadataManagerComprehensiveServices:
 
     def test_validation_logic_comprehensive(self) -> None:
         """Test validation logic in metadata operations."""
-        result_empty_table = self.manager.get_tables("")
+        result_empty_table = self.manager.fetch_tables("")
         tm.that(not result_empty_table.success, eq=True)
-        result_empty_schema = self.manager.get_tables("")
+        result_empty_schema = self.manager.fetch_tables("")
         tm.that(not result_empty_schema.success, eq=True)
-        result_none_table = self.manager.get_tables(None)
+        result_none_table = self.manager.fetch_tables(None)
         tm.that(not result_none_table.success, eq=True)
 
 
@@ -1208,8 +1208,8 @@ class TestFlextDbOracleConnectionSimple:
 
     def test_schema_operations_error_handling(self) -> None:
         """Test schema operations error handling when not connected."""
-        self.connection.get_schemas()
-        self.connection.get_tables()
+        self.connection.fetch_schemas()
+        self.connection.fetch_tables()
 
     def test_sql_building_methods(self) -> None:
         """Test SQL building methods."""
@@ -1491,7 +1491,7 @@ class TestFlextDbOracleConnectionSimple:
         service = FlextDbOracleServices(settings=settings)
         metric_result = service.record_metric("query_time", 150.5, {"table": "users"})
         tm.ok(metric_result)
-        metrics_result = service.get_metrics()
+        metrics_result = service.fetch_metrics()
         tm.ok(metrics_result)
         tm.that(metrics_result.value.status, has="with_observability")
 
@@ -1512,7 +1512,7 @@ class TestFlextDbOracleConnectionSimple:
             metadata={"table": "users"},
         )
         tm.ok(track_result)
-        ops_result = service.get_operations()
+        ops_result = service.fetch_operations()
         tm.ok(ops_result)
         tm.that(len(ops_result.value) > 0, eq=True)
 
@@ -1529,12 +1529,12 @@ class TestFlextDbOracleConnectionSimple:
         test_plugin = {"name": "test_plugin", "version": "1.0"}
         register_result = service.register_plugin("test", test_plugin)
         tm.ok(register_result)
-        get_result = service.get_plugin("test")
+        get_result = service.fetch_plugin("test")
         tm.ok(get_result)
         tm.that(get_result.value, eq=test_plugin)
         unregister_result = service.unregister_plugin("test")
         tm.ok(unregister_result)
-        missing_result = service.get_plugin("missing")
+        missing_result = service.fetch_plugin("missing")
         tm.that(missing_result.failure, eq=True)
 
     def test_service_health_check(self) -> None:

@@ -376,7 +376,7 @@ class FlextDbOracleClient(s):
             health_data = t.ConfigMap(
                 root={
                     "connection_status": c.CommonStatus.ACTIVE
-                    if self.current_connection.connected
+                    if self.current_connection.connected()
                     else "inactive",
                     "host": self.current_connection.oracle_config.host,
                     "port": self.current_connection.oracle_config.port,
@@ -534,7 +534,7 @@ class FlextDbOracleClient(s):
         """Handle health check operation."""
         if self.current_connection is None:
             return r[t.ConfigMap].fail("No active database connection")
-        return self.current_connection.get_health_status().map(
+        return self.current_connection.fetch_health_status().map(
             lambda status: t.ConfigMap(root=status.model_dump()),
         )
 
@@ -542,7 +542,7 @@ class FlextDbOracleClient(s):
         """Handle list schemas operation."""
         if self.current_connection is None:
             return r[t.ConfigMap].fail("No active database connection")
-        return self.current_connection.get_schemas().map(
+        return self.current_connection.fetch_schemas().map(
             lambda schemas: t.ConfigMap.model_validate({
                 "root": {"schemas": list(schemas)},
             }),
@@ -556,7 +556,7 @@ class FlextDbOracleClient(s):
         if self.current_connection is None:
             return r[t.ConfigMap].fail("No active database connection")
         schema = str(params.get("schema", ""))
-        return self.current_connection.get_tables(schema or None).map(
+        return self.current_connection.fetch_tables(schema or None).map(
             lambda tables: t.ConfigMap.model_validate({
                 "root": {"tables": list(tables)},
             }),
@@ -604,7 +604,7 @@ class FlextDbOracleClient(s):
         """
         if not self.current_connection:
             return r[bool].fail("No active Oracle connection")
-        if not self.current_connection.connected:
+        if not self.current_connection.connected():
             return r[bool].fail("Oracle connection not active")
         return r[bool].ok(True)
 

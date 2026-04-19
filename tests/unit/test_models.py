@@ -426,7 +426,7 @@ class Testm:
         """Test Table model with real Oracle schema data."""
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
-        schemas_result = connected_oracle_api.get_schemas()
+        schemas_result = connected_oracle_api.fetch_schemas()
         if schemas_result.success:
             schemas = schemas_result.value
             if schemas:

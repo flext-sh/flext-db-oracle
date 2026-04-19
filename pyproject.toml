@@ -353,7 +353,7 @@ root = "tests"
 
 # [MANAGED] pytest
 [tool.pytest.ini_options]
-addopts = [ "--strict-markers" ]
+addopts = [ "--markdown-docs", "--strict-markers" ]
 markers = [
   "docker: tests requiring Docker",
   "e2e: end-to-end integration tests",

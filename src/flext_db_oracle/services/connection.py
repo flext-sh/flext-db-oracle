@@ -126,7 +126,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         )
 
     @contextmanager
-    def get_connection(self) -> Generator[SAConnection]:
+    def fetch_connection(self) -> Generator[SAConnection]:
         """Get database connection context manager."""
         engine = self._engine
         if engine is None:
@@ -135,7 +135,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         with self._engine_connect(engine) as connection:
             yield connection
 
-    def get_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
+    def fetch_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
         """Get connection status - simplified."""
         now = datetime.now(UTC)
         return r[m.DbOracle.ConnectionStatus].ok(

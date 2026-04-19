@@ -272,7 +272,7 @@ class FlextDbOracleCli(s[str]):
                 "timeout": timeout,
             })
             api = FlextDbOracleApi(settings=settings)
-            health_result = api.get_health_status()
+            health_result = api.fetch_health_status()
             if health_result.failure:
                 return r[m.DbOracle.HealthCheckReport].fail(
                     f"Health check failed: {health_result.error}",
@@ -347,7 +347,7 @@ class FlextDbOracleCli(s[str]):
                 formatter.display_message(error_msg.value)
             return r[str].fail(error_text)
         api = FlextDbOracleApi(settings=settings)
-        schemas_result = api.get_schemas()
+        schemas_result = api.fetch_schemas()
         if schemas_result.failure:
             error_text = schemas_result.error or "Unknown schemas error"
             error_msg = formatter.format_error_message(
@@ -407,7 +407,7 @@ class FlextDbOracleCli(s[str]):
                 formatter.display_message(error_msg.value)
             return r[str].fail(error_text)
         api = FlextDbOracleApi(settings=settings)
-        tables_result = api.get_tables(schema)
+        tables_result = api.fetch_tables(schema)
         if tables_result.failure:
             error_text = tables_result.error or "Unknown tables error"
             error_msg = formatter.format_error_message(

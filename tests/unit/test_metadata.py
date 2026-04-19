@@ -43,9 +43,9 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         tm.that(self.manager, none=False)
         tm.that(self.manager, eq=self.services)
 
-    def test_get_schemas_structure(self) -> None:
-        """Test get_schemas method structure and error handling."""
-        result = self.manager.get_schemas()
+    def test_fetch_schemas_structure(self) -> None:
+        """Test fetch_schemas method structure and error handling."""
+        result = self.manager.fetch_schemas()
         tm.fail(result)
         tm.that(result.error, none=False)
         tm.that(
@@ -59,35 +59,35 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             eq=True,
         )
 
-    def test_get_tables_structure(self) -> None:
-        """Test get_tables method structure and error handling."""
-        result = self.manager.get_tables()
+    def test_fetch_tables_structure(self) -> None:
+        """Test fetch_tables method structure and error handling."""
+        result = self.manager.fetch_tables()
         tm.fail(result)
-        result_with_schema = self.manager.get_tables("TEST_SCHEMA")
+        result_with_schema = self.manager.fetch_tables("TEST_SCHEMA")
         tm.fail(result_with_schema)
 
-    def test_get_columns_structure(self) -> None:
-        """Test get_columns method structure and error handling."""
-        result = self.manager.get_tables("TEST_TABLE")
+    def test_fetch_columns_structure(self) -> None:
+        """Test fetch_columns method structure and error handling."""
+        result = self.manager.fetch_tables("TEST_TABLE")
         tm.fail(result)
-        result_with_schema = self.manager.get_tables("TEST_SCHEMA")
+        result_with_schema = self.manager.fetch_tables("TEST_SCHEMA")
         tm.fail(result_with_schema)
 
-    def test_get_table_metadata_structure(self) -> None:
-        """Test get_table_metadata method structure and error handling."""
-        result = self.manager.get_tables("TEST_TABLE")
+    def test_fetch_table_metadata_structure(self) -> None:
+        """Test fetch_table_metadata method structure and error handling."""
+        result = self.manager.fetch_tables("TEST_TABLE")
         tm.fail(result)
-        result_with_schema = self.manager.get_tables("TEST_SCHEMA")
+        result_with_schema = self.manager.fetch_tables("TEST_SCHEMA")
         tm.fail(result_with_schema)
 
     def test_get_column_metadata_structure(self) -> None:
         """Test get_column_metadata method structure and error handling."""
-        result = self.manager.get_tables("TEST_COLUMN")
+        result = self.manager.fetch_tables("TEST_COLUMN")
         tm.fail(result)
 
     def test_get_schema_metadata_structure(self) -> None:
         """Test get_schema_metadata method structure and error handling."""
-        result = self.manager.get_schemas()
+        result = self.manager.fetch_schemas()
         tm.fail(result)
 
     def test_generate_ddl_structure(self) -> None:
@@ -109,7 +109,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             owner="TEST_SCHEMA",
             columns=columns,
         )
-        result = self.manager.get_tables("TEST_SCHEMA")
+        result = self.manager.fetch_tables("TEST_SCHEMA")
         tm.fail(result)
         tm.that(result.error, none=False)
         error_lower = result.error.lower() if result.error is not None else ""
@@ -117,15 +117,15 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
     def test_test_connection_structure(self) -> None:
         """Test test_connection method structure."""
-        result = self.manager.get_schemas()
+        result = self.manager.fetch_schemas()
         tm.fail(result)
 
     def test_error_handling_patterns(self) -> None:
         """Test consistent error handling patterns across methods."""
         methods_to_test: list[tuple[str, t.StrSequence]] = [
-            ("get_schemas", []),
-            ("get_tables", []),
-            ("get_tables", ["TEST_SCHEMA"]),
+            ("fetch_schemas", []),
+            ("fetch_tables", []),
+            ("fetch_tables", ["TEST_SCHEMA"]),
         ]
         for method_name, args in methods_to_test:
             method = getattr(self.manager, method_name)
@@ -140,9 +140,9 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         tm.that(self.manager is self.services, eq=True)
         tm.that(self.manager, none=False)
         existing_methods = [
-            "get_schemas",
-            "get_tables",
-            "get_columns",
+            "fetch_schemas",
+            "fetch_tables",
+            "fetch_columns",
             "test_connection",
         ]
         for _method_name in existing_methods:
@@ -181,7 +181,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         tm.that(table.name, eq="COMPLEX_TABLE")
         tm.that(table.owner, eq="APP_SCHEMA")
         tm.that(len(table.columns), eq=4)
-        result = self.manager.get_tables("APP_SCHEMA")
+        result = self.manager.fetch_tables("APP_SCHEMA")
         tm.fail(result)
         tm.that(result.error, none=False)
         error_lower = result.error.lower() if result.error is not None else ""
@@ -189,9 +189,9 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
     def test_validation_logic_comprehensive(self) -> None:
         """Test validation logic in metadata operations."""
-        result_empty_table = self.manager.get_tables("")
+        result_empty_table = self.manager.fetch_tables("")
         tm.fail(result_empty_table)
-        result_empty_schema = self.manager.get_tables("")
+        result_empty_schema = self.manager.fetch_tables("")
         tm.fail(result_empty_schema)
-        result_none_table = self.manager.get_tables(None)
+        result_none_table = self.manager.fetch_tables(None)
         tm.fail(result_none_table)

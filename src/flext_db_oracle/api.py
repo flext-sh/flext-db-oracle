@@ -13,7 +13,7 @@ from __future__ import annotations
 import types
 from collections.abc import Sequence
 from datetime import UTC, datetime
-from typing import Self
+from typing import Self, override
 
 from flext_db_oracle import (
     FlextDbOracleDispatcher,
@@ -45,6 +45,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         self._context = None
         self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
 
+    @override
     def __repr__(self) -> str:
         """Return string representation of the API instance."""
         status = "connected" if self.connected() else "disconnected"
@@ -77,6 +78,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         return True
 
     @property
+    @override
     def settings(self) -> FlextDbOracleSettings:
         """Get the configuration."""
         return self._oracle_config
@@ -86,6 +88,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         """Get connection t.RecursiveContainer - public interface."""
         return self._services if self._services.connected() else None
 
+    @override
     def connected(self) -> bool:
         """Check if connected to the database."""
         return self._services.connected()
@@ -129,12 +132,14 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         """Normalize query parameters into the canonical ConfigMap contract."""
         if parameters is None:
             return r[t.ConfigMap].ok(t.ConfigMap(root={}))
-        try:
-            return r[t.ConfigMap].ok(
-                t.ConfigMap.model_validate({"root": dict(parameters)}),
+        return (
+            u
+            .try_(lambda: dict(parameters))
+            .map(lambda normalized: t.ConfigMap.model_validate({"root": normalized}))
+            .lash(
+                lambda error: r[t.ConfigMap].fail(f"Invalid query parameters: {error}")
             )
-        except (TypeError, c.ValidationError) as error:
-            return r[t.ConfigMap].fail(f"Invalid query parameters: {error}")
+        )
 
     @classmethod
     def _normalize_parameters_list(
@@ -210,6 +215,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         self.logger.info("Disconnecting from Oracle database")
         return self._services.disconnect()
 
+    @override
     def execute(self, **_kwargs: t.Scalar) -> p.Result[FlextDbOracleSettings]:
         """Execute default domain service operation - return settings."""
         return u.try_(lambda: self._oracle_config).map_error(
@@ -253,50 +259,51 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
             ),
         )
 
-    def get_columns(
+    def fetch_columns(
         self,
         table_name: str,
         schema_name: str | None = None,
     ) -> p.Result[Sequence[m.DbOracle.Column]]:
         """Get column information for specified table."""
-        return self._services.get_columns(table_name, schema_name)
+        return self._services.fetch_columns(table_name, schema_name)
 
-    def get_health_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
+    def fetch_health_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
         """Get database connection health status."""
-        return self._services.get_connection_status()
+        return self._services.fetch_connection_status()
 
-    def get_observability_metrics(self) -> p.Result[t.ContainerValueMapping]:
+    def fetch_observability_metrics(self) -> p.Result[t.ContainerValueMapping]:
         """Get observability metrics for the connection."""
-        return self._services.get_metrics().map(lambda metrics: metrics.model_dump())
+        return self._services.fetch_metrics().map(lambda metrics: metrics.model_dump())
 
-    def get_plugin(self, _name: str) -> p.Result[t.ContainerValue]:
+    def fetch_plugin(self, _name: str) -> p.Result[t.ContainerValue]:
         """Get a registered plugin by name."""
-        return self._services.get_plugin(_name)
+        return self._services.fetch_plugin(_name)
 
-    def get_primary_keys(
+    def fetch_primary_keys(
         self,
         table_name: str,
         schema: str | None = None,
     ) -> p.Result[t.StrSequence]:
         """Get primary key column names for specified table."""
-        return self._services.get_primary_keys(table_name, schema)
+        return self._services.fetch_primary_keys(table_name, schema)
 
-    def get_schemas(self) -> p.Result[t.StrSequence]:
+    def fetch_schemas(self) -> p.Result[t.StrSequence]:
         """Get list of available schemas."""
-        return self._services.get_schemas()
+        return self._services.fetch_schemas()
 
-    def get_table_metadata(
+    def fetch_table_metadata(
         self,
         table_name: str,
         schema: str | None = None,
     ) -> p.Result[m.DbOracle.TableMetadata]:
         """Get complete table metadata including columns and constraints."""
-        return self._services.get_table_metadata(table_name, schema)
+        return self._services.fetch_table_metadata(table_name, schema)
 
-    def get_tables(self, schema: str | None = None) -> p.Result[t.StrSequence]:
+    def fetch_tables(self, schema: str | None = None) -> p.Result[t.StrSequence]:
         """Get list of tables in specified schema."""
-        return self._services.get_tables(schema)
+        return self._services.fetch_tables(schema)
 
+    @override
     def valid(self) -> bool:
         """Check if API configuration is valid."""
         return self._oracle_config.port >= c.DbOracle.OracleNetwork.MIN_PORT and bool(

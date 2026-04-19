@@ -471,7 +471,7 @@ class TestCliServiceOperations:
     def test_execute_health_check_connection_failure(self) -> None:
         """Test health check with connection validation failure."""
         cli_service = FlextDbOracleCli()
-        with patch.object(FlextDbOracleApi, "get_health_status") as mock_health:
+        with patch.object(FlextDbOracleApi, "fetch_health_status") as mock_health:
             mock_health.return_value = r.fail("Database unreachable")
             result = cli_service.execute_health_check(
                 host="unreachable-host",
@@ -491,7 +491,7 @@ class TestCliServiceOperations:
         """Test successful schema listing."""
         cli_service = FlextDbOracleCli()
         mock_api = Mock()
-        mock_api.get_schemas.return_value = r[t.StrSequence].ok([
+        mock_api.fetch_schemas.return_value = r[t.StrSequence].ok([
             "SCHEMA1",
             "SCHEMA2",
             "SCHEMA3",
@@ -499,10 +499,10 @@ class TestCliServiceOperations:
         with (
             patch.object(FlextDbOracleApi, "__init__", return_value=None),
             patch.object(FlextDbOracleApi, "connect") as mock_connect,
-            patch.object(FlextDbOracleApi, "get_schemas") as mock_get_schemas,
+            patch.object(FlextDbOracleApi, "fetch_schemas") as mock_fetch_schemas,
         ):
             mock_connect.return_value = r[FlextDbOracleApi].ok(mock_api)
-            mock_get_schemas.return_value = r[t.StrSequence].ok([
+            mock_fetch_schemas.return_value = r[t.StrSequence].ok([
                 "SCHEMA1",
                 "SCHEMA2",
             ])
@@ -547,10 +547,12 @@ class TestCliServiceOperations:
         with (
             patch.object(FlextDbOracleApi, "__init__", return_value=None),
             patch.object(FlextDbOracleApi, "connect") as mock_connect,
-            patch.object(FlextDbOracleApi, "get_schemas") as mock_get_schemas,
+            patch.object(FlextDbOracleApi, "fetch_schemas") as mock_fetch_schemas,
         ):
             mock_connect.return_value = r[FlextDbOracleApi].ok(mock_api)
-            mock_get_schemas.return_value = r[t.StrSequence].fail("Schema query failed")
+            mock_fetch_schemas.return_value = r[t.StrSequence].fail(
+                "Schema query failed"
+            )
             result = cli_service.execute_list_schemas(
                 host="localhost",
                 port=1521,
@@ -571,10 +573,10 @@ class TestCliServiceOperations:
         with (
             patch.object(FlextDbOracleApi, "__init__", return_value=None),
             patch.object(FlextDbOracleApi, "connect") as mock_connect,
-            patch.object(FlextDbOracleApi, "get_tables") as mock_get_tables,
+            patch.object(FlextDbOracleApi, "fetch_tables") as mock_fetch_tables,
         ):
             mock_connect.return_value = r[FlextDbOracleApi].ok(Mock())
-            mock_get_tables.return_value = r[t.StrSequence].ok([
+            mock_fetch_tables.return_value = r[t.StrSequence].ok([
                 "TABLE1",
                 "TABLE2",
             ])
@@ -597,10 +599,10 @@ class TestCliServiceOperations:
         with (
             patch.object(FlextDbOracleApi, "__init__", return_value=None),
             patch.object(FlextDbOracleApi, "connect") as mock_connect,
-            patch.object(FlextDbOracleApi, "get_tables") as mock_get_tables,
+            patch.object(FlextDbOracleApi, "fetch_tables") as mock_fetch_tables,
         ):
             mock_connect.return_value = r[FlextDbOracleApi].ok(Mock())
-            mock_get_tables.return_value = r[t.StrSequence].ok(["TABLE1"])
+            mock_fetch_tables.return_value = r[t.StrSequence].ok(["TABLE1"])
             result = cli_service.execute_list_tables(
                 host="localhost",
                 port=1521,
@@ -738,7 +740,7 @@ class TestCLIRealFunctionality:
             password="test",
         )
         api = FlextDbOracleApi(settings)
-        metrics_result = api.get_observability_metrics()
+        metrics_result = api.fetch_observability_metrics()
         tm.ok(metrics_result)
         tm.that(metrics_result.value, is_=dict)
         api.test_connection()
@@ -781,9 +783,9 @@ class TestCLIRealFunctionality:
             ),
             eq=True,
         )
-        schemas_result = api.get_schemas()
+        schemas_result = api.fetch_schemas()
         tm.that(schemas_result.failure, eq=True)
-        tables_result = api.get_tables()
+        tables_result = api.fetch_tables()
         tm.that(tables_result.failure, eq=True)
 
     def test_parameter_processing_real(self) -> None:
@@ -822,7 +824,7 @@ class TestCLIRealFunctionality:
         methods_to_test: Sequence[tuple[str, t.DbOracle.Tests.ApiCoverageCallable]] = [
             ("valid", api.valid),
             ("to_dict", api.to_dict),
-            ("get_observability_metrics", api.get_observability_metrics),
+            ("fetch_observability_metrics", api.fetch_observability_metrics),
             ("optimize_query", lambda: api.optimize_query("SELECT * FROM test")),
             ("list_plugins", api.list_plugins),
         ]
@@ -898,7 +900,7 @@ class TestCLIRealFunctionality:
         tm.ok(list_result)
         plugin_list = list_result.value
         tm.that(plugin_list, has="test_plugin")
-        get_result = api.get_plugin("test_plugin")
+        get_result = api.fetch_plugin("test_plugin")
         tm.ok(get_result)
         retrieved_plugin = get_result.value
         tm.that(retrieved_plugin, eq=test_plugin)

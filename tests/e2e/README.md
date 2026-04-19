@@ -215,12 +215,12 @@ def test_api_integration_workflow():
         assert api.is_connected()
 
         # Test schema operations
-        schemas_result = api.get_schemas()
+        schemas_result = api.fetch_schemas()
         assert schemas_result.success
         assert "FLEXT_E2E" in schemas_result.value
 
         # Test table operations
-        tables_result = api.get_tables("FLEXT_E2E")
+        tables_result = api.fetch_tables("FLEXT_E2E")
         assert tables_result.success
         assert len(tables_result.value) >= 2
 

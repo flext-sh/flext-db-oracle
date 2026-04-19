@@ -213,17 +213,19 @@ class Testc:
     def test_literals_constants(self) -> None:
         """Test type-safe literal constants."""
         tm.that(
-            c.DbOracle.ConnectionTypeLiteral,
+            c.DbOracle.CONNECTION_TYPE_LITERAL,
             eq=tuple(c.DbOracle.Lists.VALID_CONNECTION_TYPES),
         )
         tm.that(
-            c.DbOracle.QueryTypeLiteral,
+            c.DbOracle.QUERY_TYPE_LITERAL,
             eq=tuple(c.DbOracle.Lists.VALID_QUERY_TYPES),
         )
-        tm.that(c.DbOracle.DataTypeLiteral, eq=tuple(c.DbOracle.Lists.VALID_DATA_TYPES))
-        tm.that(c.DbOracle.ConnectionTypeLiteral, is_=tuple)
-        tm.that(c.DbOracle.QueryTypeLiteral, is_=tuple)
-        tm.that(c.DbOracle.DataTypeLiteral, is_=tuple)
+        tm.that(
+            c.DbOracle.DATA_TYPE_LITERAL, eq=tuple(c.DbOracle.Lists.VALID_DATA_TYPES)
+        )
+        tm.that(c.DbOracle.CONNECTION_TYPE_LITERAL, is_=tuple)
+        tm.that(c.DbOracle.QUERY_TYPE_LITERAL, is_=tuple)
+        tm.that(c.DbOracle.DATA_TYPE_LITERAL, is_=tuple)
         assert isinstance(c.DbOracle.Literals, type)
 
     def test_lists_constants(self) -> None:

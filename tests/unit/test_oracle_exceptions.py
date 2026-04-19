@@ -212,9 +212,9 @@ class TestRealOracleExceptionsAdvanced:
         invalid_schemas = ["NON_EXISTENT_SCHEMA_12345", "INVALID$SCHEMA", ""]
         for invalid_schema in invalid_schemas:
             if invalid_schema:
-                result = connected_oracle_api.get_tables(schema=invalid_schema)
+                result = connected_oracle_api.fetch_tables(schema=invalid_schema)
                 tm.that(result.success or result.failure, eq=True)
-        columns_result = connected_oracle_api.get_columns("NON_EXISTENT_TABLE_12345")
+        columns_result = connected_oracle_api.fetch_columns("NON_EXISTENT_TABLE_12345")
         if columns_result.failure:
             msg = f"Get columns failed: {columns_result.error}"
             raise AssertionError(msg)

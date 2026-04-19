@@ -364,7 +364,7 @@ class FlextDbOracleConstants(c):
 
             Python 3.13+ best practice: Use type keyword for type aliases.
             All Literal types are now at DbOracle level for direct access.
-            Use: c.DbOracle.ConnectionTypeLiteral (not c.DbOracle.Literals.ConnectionTypeLiteral)
+            Use: c.DbOracle.CONNECTION_TYPE_LITERAL (not c.DbOracle.Literals.ConnectionTypeLiteral)
             """
 
         class Lists:
@@ -431,9 +431,9 @@ class FlextDbOracleConstants(c):
             LOCALHOST_IP: Final[str] = "127.0.0.1"
             LOOPBACK_IP: Final[str] = "127.0.0.1"
 
-        ConnectionTypeLiteral: Final = tuple(Lists.VALID_CONNECTION_TYPES)
-        QueryTypeLiteral: Final = tuple(Lists.VALID_QUERY_TYPES)
-        DataTypeLiteral: Final = tuple(Lists.VALID_DATA_TYPES)
+        CONNECTION_TYPE_LITERAL: Final = tuple(Lists.VALID_CONNECTION_TYPES)
+        QUERY_TYPE_LITERAL: Final = tuple(Lists.VALID_QUERY_TYPES)
+        DATA_TYPE_LITERAL: Final = tuple(Lists.VALID_DATA_TYPES)
 
         @unique
         class ProjectType(StrEnum):

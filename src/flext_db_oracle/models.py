@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
+from types import MappingProxyType
 from typing import ClassVar
 
 from flext_cli import m, u
@@ -51,7 +52,8 @@ class FlextDbOracleModels(m):
 
             title: str = ""
             items: t.StrSequence = u.Field(
-                default_factory=list, description="List of named items for display"
+                default_factory=tuple,
+                description="List of named items for display",
             )
 
         class HealthCheckReport(DbOracleDomainModel):
@@ -63,7 +65,8 @@ class FlextDbOracleModels(m):
             service_name: str = ""
             response_time_ms: t.NonNegativeFloat = 0.0
             details: t.ContainerValueMapping = u.Field(
-                default_factory=dict, description="Health check detail key-value pairs"
+                default_factory=lambda: MappingProxyType({}),
+                description="Health check detail key-value pairs",
             )
             error: str | None = None
             timestamp: str = ""
@@ -72,7 +75,8 @@ class FlextDbOracleModels(m):
             """Typed row payload for query results."""
 
             values: Sequence[t.ContainerValue] = u.Field(
-                default_factory=list, description="Row column values"
+                default_factory=tuple,
+                description="Row column values",
             )
 
         class ColumnMetadata(DbOracleDomainModel):
@@ -258,7 +262,8 @@ class FlextDbOracleModels(m):
 
             query: str = u.Field(description="SQL query that produced the result")
             result_data: Sequence[t.ContainerValue] = u.Field(
-                default_factory=list, description="Raw result data from query execution"
+                default_factory=tuple,
+                description="Raw result data from query execution",
             )
             row_count: t.NonNegativeInt = u.Field(
                 0,
@@ -273,7 +278,8 @@ class FlextDbOracleModels(m):
 
             # Additional Oracle-specific query result details
             columns: t.StrSequence = u.Field(
-                default_factory=list, description="Column names in result set"
+                default_factory=tuple,
+                description="Column names in result set",
             )
             rows: Sequence[FlextDbOracleModels.DbOracle.RowData] = u.Field(
                 default_factory=lambda: list[FlextDbOracleModels.DbOracle.RowData](),
@@ -408,7 +414,8 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
             metrics: t.ContainerValueMapping = u.Field(
-                default_factory=dict, description="Health check metric values"
+                default_factory=lambda: MappingProxyType({}),
+                description="Health check metric values",
             )
 
             def __getitem__(self, key: str) -> t.ContainerValue:
@@ -441,7 +448,8 @@ class FlextDbOracleModels(m):
                 description="Column metadata for the table",
             )
             primary_keys: t.StrSequence = u.Field(
-                default_factory=list, description="Primary key column names"
+                default_factory=tuple,
+                description="Primary key column names",
             )
 
             def __getitem__(self, key: str) -> t.ContainerValue:
@@ -458,7 +466,8 @@ class FlextDbOracleModels(m):
             """Singer-to-Oracle type mapping."""
 
             mapping: t.StrMapping = u.Field(
-                default_factory=dict, description="Singer-to-Oracle type conversion map"
+                default_factory=lambda: MappingProxyType({}),
+                description="Singer-to-Oracle type conversion map",
             )
 
             def __getitem__(self, key: str) -> str:
@@ -487,7 +496,7 @@ class FlextDbOracleModels(m):
 
             properties: Mapping[str, FlextDbOracleModels.DbOracle.SingerField] = (
                 u.Field(
-                    default_factory=dict,
+                    default_factory=lambda: MappingProxyType({}),
                     description="Singer schema property definitions",
                 )
             )
@@ -599,10 +608,12 @@ class FlextDbOracleModels(m):
                 description="Join conditions for MERGE matching"
             )
             update_columns: t.StrSequence = u.Field(
-                default_factory=list, description="Columns to update on match"
+                default_factory=tuple,
+                description="Columns to update on match",
             )
             insert_columns: t.StrSequence = u.Field(
-                default_factory=list, description="Columns to insert on no match"
+                default_factory=tuple,
+                description="Columns to insert on no match",
             )
 
         # Command classes for dispatcher integration

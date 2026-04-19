@@ -182,14 +182,14 @@ class FlextDbOracleDispatcher(s):
         """Create schema/metadata handler functions."""
 
         def get_schemas_handler(_cmd: t.ContainerValue) -> t.ContainerValue:
-            result = services.get_schemas()
+            result = services.fetch_schemas()
             return ",".join(result.value) if result.success else ""
 
         def get_tables_handler(command: t.ContainerValue) -> t.ContainerValue:
             schema: str | None = None
             if isinstance(command, m.DbOracle.GetTablesCommand):
                 schema = command.schema_name
-            result = services.get_tables(schema)
+            result = services.fetch_tables(schema)
             return ",".join(result.value) if result.success else ""
 
         def get_columns_handler(command: t.ContainerValue) -> t.ContainerValue:
@@ -199,7 +199,7 @@ class FlextDbOracleDispatcher(s):
             else:
                 table = ""
                 schema = None
-            result = services.get_columns(table, schema)
+            result = services.fetch_columns(table, schema)
             return ",".join(col.name for col in result.value) if result.success else ""
 
         return {

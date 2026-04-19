@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Protocol, runtime_checkable
+from typing import ClassVar, Protocol, runtime_checkable
 
 from flext_core import p
 from flext_db_oracle import m, t
@@ -78,7 +78,7 @@ class FlextDbOracleProtocols(p):
             must satisfy this protocol.
             """
 
-            def get_connection(self) -> p.Result[t.ContainerValue]:
+            def fetch_connection(self) -> p.Result[t.ContainerValue]:
                 """Get current Oracle connection t.RecursiveContainer.
 
                 Returns:
@@ -180,7 +180,7 @@ class FlextDbOracleProtocols(p):
         class SchemaIntrospector(Protocol):
             """Protocol for Oracle schema introspection operations."""
 
-            def get_columns(
+            def fetch_columns(
                 self,
                 table: str,
                 schema: str | None = None,
@@ -197,7 +197,7 @@ class FlextDbOracleProtocols(p):
                 """
                 ...
 
-            def get_primary_keys(
+            def fetch_primary_keys(
                 self,
                 table: str,
                 schema: str | None = None,
@@ -214,7 +214,7 @@ class FlextDbOracleProtocols(p):
                 """
                 ...
 
-            def get_schemas(self) -> p.Result[t.StrSequence]:
+            def fetch_schemas(self) -> p.Result[t.StrSequence]:
                 """Get list of Oracle schemas.
 
                 Returns:
@@ -223,7 +223,7 @@ class FlextDbOracleProtocols(p):
                 """
                 ...
 
-            def get_table_metadata(
+            def fetch_table_metadata(
                 self,
                 table: str,
                 schema: str | None = None,
@@ -240,7 +240,9 @@ class FlextDbOracleProtocols(p):
                 """
                 ...
 
-            def get_tables(self, schema: str | None = None) -> p.Result[t.StrSequence]:
+            def fetch_tables(
+                self, schema: str | None = None
+            ) -> p.Result[t.StrSequence]:
                 """Get list of tables in Oracle schema.
 
                 Args:
@@ -394,7 +396,7 @@ class FlextDbOracleProtocols(p):
         class MetricsCollector(Protocol):
             """Protocol for Oracle database metrics collection."""
 
-            def get_metrics(self) -> p.Result[m.DbOracle.HealthStatus]:
+            def fetch_metrics(self) -> p.Result[m.DbOracle.HealthStatus]:
                 """Get collected Oracle metrics.
 
                 Returns:
@@ -446,7 +448,7 @@ class FlextDbOracleProtocols(p):
         class PluginRegistry(Protocol):
             """Protocol for Oracle database plugin registry operations."""
 
-            def get_plugin(self, name: str) -> p.Result[t.ContainerValue]:
+            def fetch_plugin(self, name: str) -> p.Result[t.ContainerValue]:
                 """Get Oracle database plugin by name.
 
                 Args:
@@ -498,7 +500,9 @@ class FlextDbOracleProtocols(p):
         class HealthCheck(Protocol):
             """Protocol for Oracle database health check operations."""
 
-            def get_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
+            _flext_enforcement_exempt: ClassVar[bool] = True
+
+            def fetch_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
                 """Get Oracle connection status information.
 
                 Returns:

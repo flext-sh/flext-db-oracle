@@ -173,9 +173,11 @@ class TestRealOracleApi:
         except RuntimeError:
             pytest.skip("Oracle connection unavailable for context manager test")
 
-    def test_real_api_get_schemas(self, connected_oracle_api: FlextDbOracleApi) -> None:
+    def test_real_api_fetch_schemas(
+        self, connected_oracle_api: FlextDbOracleApi
+    ) -> None:
         """Test real Oracle schema listing using utilities."""
-        schemas_result = connected_oracle_api.get_schemas()
+        schemas_result = connected_oracle_api.fetch_schemas()
         if schemas_result.failure:
             msg = f"Get schemas failed: {schemas_result.error}"
             raise AssertionError(msg)
@@ -190,9 +192,11 @@ class TestRealOracleApi:
             eq=True,
         )
 
-    def test_real_api_get_tables(self, connected_oracle_api: FlextDbOracleApi) -> None:
+    def test_real_api_fetch_tables(
+        self, connected_oracle_api: FlextDbOracleApi
+    ) -> None:
         """Test real Oracle table listing using utilities."""
-        tables_result = connected_oracle_api.get_tables()
+        tables_result = connected_oracle_api.fetch_tables()
         if tables_result.failure:
             msg = f"Get tables failed: {tables_result.error}"
             raise AssertionError(msg)
@@ -203,9 +207,11 @@ class TestRealOracleApi:
         for table in expected_tables:
             tm.that(any(table in str(t).upper() for t in tables), eq=True)
 
-    def test_real_api_get_columns(self, connected_oracle_api: FlextDbOracleApi) -> None:
+    def test_real_api_fetch_columns(
+        self, connected_oracle_api: FlextDbOracleApi
+    ) -> None:
         """Test real Oracle column listing."""
-        result = connected_oracle_api.get_columns("EMPLOYEES")
+        result = connected_oracle_api.fetch_columns("EMPLOYEES")
         if result.failure:
             msg = f"Get columns failed: {result.error}"
             raise AssertionError(msg)
@@ -296,14 +302,14 @@ class TestRealOracleApi:
             if execute_result.failure:
                 msg = f"DDL execution failed: {execute_result.error}"
                 raise AssertionError(msg)
-            tables_result = connected_oracle_api.get_tables()
+            tables_result = connected_oracle_api.fetch_tables()
             if tables_result.failure:
                 msg = f"Get tables failed: {tables_result.error}"
                 raise AssertionError(msg)
             tables_data = tables_result.value
             table_names = [str(t).upper() for t in tables_data]
             tm.that(table_names, has=table_name.upper())
-            metadata_result = connected_oracle_api.get_tables(table_name)
+            metadata_result = connected_oracle_api.fetch_tables(table_name)
             if metadata_result.failure:
                 msg = f"Get metadata failed: {metadata_result.error}"
                 raise AssertionError(msg)
@@ -378,7 +384,7 @@ class TestRealOracleErrorHandling:
         result = api.query("SELECT 1 FROM DUAL")
         tm.fail(result)
         tm.that((result.error or "").lower(), has="not connected")
-        tables_result = api.get_tables()
+        tables_result = api.fetch_tables()
         tm.fail(tables_result)
         tm.that(
             (

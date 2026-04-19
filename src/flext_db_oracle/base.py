@@ -46,7 +46,7 @@ class FlextDbOracleServiceBase(s):
     """
 
     _db_config: FlextDbOracleSettings | None = u.PrivateAttr()
-    _engine: SAEngine | None = u.PrivateAttr()
+    _engine: SAEngine | None = u.PrivateAttr(default_factory=lambda: None)
     _operations: MutableSequence[m.DbOracle.OperationRecord] = u.PrivateAttr(
         default_factory=lambda: list[m.DbOracle.OperationRecord]()
     )
