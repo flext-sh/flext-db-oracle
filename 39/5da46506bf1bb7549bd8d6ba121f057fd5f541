@@ -1,0 +1,74 @@
+src/flext_db_oracle/services/schema.py
+  h_9db9d35f50cf33 44,49,90,93,196
+docs/api-reference.md
+  h_9db9d35f50cf33 51,70,73,76
+docs/architecture/adr-002-sqlalchemy-abstraction.md
+  h_9db9d35f50cf33 137
+tests/e2e/test_oracle.py
+  h_9db9d35f50cf33 177
+tests/unit/test_cli.py
+  h_9db9d35f50cf33 381,620-622,630
+tests/utilities.py
+  h_9db9d35f50cf33 36
+src/flext_db_oracle/exceptions.py
+  h_9db9d35f50cf33 67
+src/flext_db_oracle/constants.py
+  h_9db9d35f50cf33 102
+examples/06_cli.py
+  h_9db9d35f50cf33 14,22,26,85
+docs/guides/maintenance-readme.md
+  h_9db9d35f50cf33 400
+docs/guides/testing.md
+  h_9db9d35f50cf33 528
+docs/guides/troubleshooting.md
+  h_9db9d35f50cf33 141,155
+docs/architecture/c4-code.md
+  h_9db9d35f50cf33 213
+tests/unit/test_oracle_example.py
+  h_9db9d35f50cf33 24,33-34
+examples/README.md
+  h_9db9d35f50cf33 300
+docs/guides/development.md
+  h_9db9d35f50cf33 154,193,196,202,353,356,405
+src/flext_db_oracle/protocols.py
+  h_9db9d35f50cf33 82,85,132,166,174
+docs/architecture/c4-components.md
+  h_9db9d35f50cf33 155,215
+src/flext_db_oracle/services/sql_builder.py
+  h_9db9d35f50cf33 105,111-112
+tests/unit/test_constants.py
+  h_9db9d35f50cf33 81
+src/flext_db_oracle/services/singer.py
+  h_9db9d35f50cf33 84
+tests/unit/test_api.py
+  h_9db9d35f50cf33 90,687,792,881,908,1019,1083,1094,1496,1888,1912
+src/flext_db_oracle/services/query.py
+  h_9db9d35f50cf33 23,36,50-51,75-76,79,82,92-93,103,106,137-138,147,152-153,161,165-166,171,173
+src/flext_db_oracle/dispatcher.py
+  h_9db9d35f50cf33 110,115,122,127,137,142
+src/flext_db_oracle/api.py
+  h_9db9d35f50cf33 88,108,131,134,138,140,148,150,154,158,341,355,375,378-379,387,408
+tests/unit/test_services.py
+  h_9db9d35f50cf33 482,928
+src/flext_db_oracle/_utilities/db_oracle.py
+  h_9db9d35f50cf33 123,128,133,137,202,234
+docs/architecture/adr-template.md
+  h_9db9d35f50cf33 110
+src/flext_db_oracle/services/plugin.py
+  h_9db9d35f50cf33 68,71,77,98,105-106
+src/flext_db_oracle/client.py
+  h_9db9d35f50cf33 18,30-31,34,36,53-54,93,96,229-230,232,244,248,260,275,285-286,290,295,299,301,305,307,318,325,336,338,343,349,351,361,365,371,375-376,387,393,398-399,403,407,417,423,428-429,433,438,443,462,478,503,512,520-521,529,533,536,538,541,544,546,553-554,557,560,567-568,571,574-576,588,593
+src/flext_db_oracle/base.py
+  h_9db9d35f50cf33 85,90,95,99,120,192,201-202
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "395da46506bf1bb7549bd8d6ba121f057fd5f541",
+  "prompts": {},
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
