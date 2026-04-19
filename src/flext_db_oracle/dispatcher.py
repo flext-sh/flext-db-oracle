@@ -107,24 +107,24 @@ class FlextDbOracleDispatcher(s):
         def execute_query_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(command, m.DbOracle.ExecuteQueryCommand):
                 sql = command.sql
-                parameters = t.ConfigMap.model_validate({
+                parameters = m.ConfigMap.model_validate({
                     "root": command.parameters or {},
                 })
             else:
                 sql = ""
-                parameters = t.ConfigMap(root={})
+                parameters = m.ConfigMap(root={})
             result = services.execute_query(sql, parameters)
             return len(result.value) if result.success else 0
 
         def fetch_one_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(command, m.DbOracle.FetchOneCommand):
                 sql = command.sql
-                parameters = t.ConfigMap.model_validate({
+                parameters = m.ConfigMap.model_validate({
                     "root": command.parameters or {},
                 })
             else:
                 sql = ""
-                parameters = t.ConfigMap(root={})
+                parameters = m.ConfigMap(root={})
             result = services.fetch_one(sql, parameters)
             return str(result.value) if result.success and result.value else ""
 
@@ -134,12 +134,12 @@ class FlextDbOracleDispatcher(s):
                 m.DbOracle.ExecuteStatementCommand,
             ):
                 sql = command.sql
-                parameters = t.ConfigMap.model_validate({
+                parameters = m.ConfigMap.model_validate({
                     "root": command.parameters or {},
                 })
             else:
                 sql = ""
-                parameters = t.ConfigMap(root={})
+                parameters = m.ConfigMap(root={})
             return services.execute_statement(sql, parameters).map_or(0)
 
         def execute_many_handler(command: t.ContainerValue) -> t.ContainerValue:

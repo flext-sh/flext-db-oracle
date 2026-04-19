@@ -87,7 +87,7 @@ class TestFlextDbOracleApiRealFunctionality:
         config_obj = result["settings"]
         tm.that(config_obj, is_=dict)
         if isinstance(config_obj, dict):
-            config_dict: t.RecursiveContainerMapping = config_obj
+            config_dict: Mapping[str, t.Container] = config_obj
         else:
             config_dict = {}
         tm.that(config_dict["host"], eq="127.0.0.1")
@@ -684,7 +684,7 @@ class TestApiModule:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_oracle_config() -> t.RecursiveContainerMapping:
+        def create_test_oracle_config() -> Mapping[str, t.Container]:
             """Create test Oracle configuration data."""
             return {
                 "host": "localhost",
@@ -789,7 +789,7 @@ class TestApiModule:
         api = FlextDbOracleApi(settings=settings)
         test_query = self._TestDataHelper.create_test_query_data()
         if hasattr(api, "query"):
-            result: p.Result[Sequence[t.Dict]] = api.query(str(test_query["query"]))
+            result: p.Result[Sequence[m.Dict]] = api.query(str(test_query["query"]))
             tm.that(result, is_=r)
 
     def test_flext_db_oracle_api_execute_update(self) -> None:
@@ -878,7 +878,7 @@ class TestApiModule:
             connect_result: p.Result[FlextDbOracleApi] = api.connect()
             tm.that(connect_result, is_=r)
         if hasattr(api, "query"):
-            query_result: p.Result[Sequence[t.Dict]] = api.query(
+            query_result: p.Result[Sequence[m.Dict]] = api.query(
                 str(test_query["query"]),
             )
             tm.that(query_result, is_=r)
@@ -905,7 +905,7 @@ class TestApiModule:
             result: p.Result[FlextDbOracleApi] = api.connect()
             tm.that(result, is_=r)
         if hasattr(api, "query"):
-            query_result: p.Result[Sequence[t.Dict]] = api.query(invalid_query)
+            query_result: p.Result[Sequence[m.Dict]] = api.query(invalid_query)
             tm.that(query_result, is_=r)
         if hasattr(api, "fetch_table_metadata"):
             metadata_result = api.fetch_table_metadata("non_existent_table")
@@ -1016,7 +1016,7 @@ class TestApiModule:
                 tm.that(result, is_=r)
         if hasattr(api, "query"):
             for query_data in realistic_queries:
-                query_result: p.Result[Sequence[t.Dict]] = api.query(
+                query_result: p.Result[Sequence[m.Dict]] = api.query(
                     str(query_data["query"]),
                 )
                 tm.that(query_result, is_=r)
@@ -1080,7 +1080,7 @@ class TestApiModule:
         )
         api = FlextDbOracleApi(settings=settings)
         results: MutableSequence[
-            p.Result[FlextDbOracleApi] | p.Result[Sequence[t.Dict]]
+            p.Result[FlextDbOracleApi] | p.Result[Sequence[m.Dict]]
         ] = []
 
         def connect_to_database(_index: int) -> None:
@@ -1091,7 +1091,7 @@ class TestApiModule:
         def execute_query(index: int) -> None:
             sql = f"SELECT {index} FROM dual"
             if hasattr(api, "query"):
-                query_result: p.Result[Sequence[t.Dict]] = api.query(sql)
+                query_result: p.Result[Sequence[m.Dict]] = api.query(sql)
                 results.append(query_result)
 
         threads: MutableSequence[Thread] = []
@@ -1493,7 +1493,7 @@ class TestFlextDbOracleApiWorking:
         tm.that(api_from_config, is_=FlextDbOracleApi)
 
     def test_dict_serialization(self) -> None:
-        """Test t.RecursiveContainerMapping serialization methods."""
+        """Test Mapping[str, t.Container] serialization methods."""
         as_dict = self.api.to_dict()
         tm.that(as_dict, none=False)
 
@@ -1885,7 +1885,7 @@ class TestDirectCoverageBoostServices:
             ssl_server_cert_dn=None,
         )
         services = FlextDbOracleServices(settings=settings)
-        sql_test_cases: list[dict[str, t.RecursiveContainer]] = [
+        sql_test_cases: list[dict[str, t.Container]] = [
             {
                 "method": "build_select",
                 "args": ("test_table", ["id", "name"], {"id": 1}),
@@ -1909,7 +1909,7 @@ class TestDirectCoverageBoostServices:
                 result = method(*raw_args)
                 tm.that(result, none=False)
                 tm.ok(result)
-                sql_content: t.RecursiveContainer = result.value
+                sql_content: t.Container = result.value
                 sql_text: str
                 if isinstance(sql_content, tuple):
                     sql_text = str(sql_content)

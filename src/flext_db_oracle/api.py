@@ -85,7 +85,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
 
     @property
     def connection(self) -> FlextDbOracleServices | None:
-        """Get connection t.RecursiveContainer - public interface."""
+        """Get connection t.Container - public interface."""
         return self._services if self._services.connected() else None
 
     @override
@@ -105,7 +105,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
 
     @classmethod
     def from_config(cls, settings: FlextDbOracleSettings) -> FlextDbOracleApi:
-        """Create API instance from an existing settings t.RecursiveContainer."""
+        """Create API instance from an existing settings t.Container."""
         return cls(settings=settings)
 
     @classmethod
@@ -128,16 +128,16 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
     @staticmethod
     def _normalize_parameters(
         parameters: t.ContainerValueMapping | None = None,
-    ) -> p.Result[t.ConfigMap]:
+    ) -> p.Result[m.ConfigMap]:
         """Normalize query parameters into the canonical ConfigMap contract."""
         if parameters is None:
-            return r[t.ConfigMap].ok(t.ConfigMap(root={}))
+            return r[m.ConfigMap].ok(m.ConfigMap(root={}))
         return (
             u
             .try_(lambda: dict(parameters))
-            .map(lambda normalized: t.ConfigMap.model_validate({"root": normalized}))
+            .map(lambda normalized: m.ConfigMap.model_validate({"root": normalized}))
             .lash(
-                lambda error: r[t.ConfigMap].fail(f"Invalid query parameters: {error}")
+                lambda error: r[m.ConfigMap].fail(f"Invalid query parameters: {error}")
             )
         )
 
@@ -145,17 +145,17 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
     def _normalize_parameters_list(
         cls,
         parameters_list: Sequence[t.ContainerValueMapping],
-    ) -> p.Result[Sequence[t.ConfigMap]]:
+    ) -> p.Result[Sequence[m.ConfigMap]]:
         """Normalize bulk query parameters into canonical ConfigMap values."""
-        normalized: list[t.ConfigMap] = []
+        normalized: list[m.ConfigMap] = []
         for parameters in parameters_list:
             result = cls._normalize_parameters(parameters)
             if result.failure:
-                return r[Sequence[t.ConfigMap]].fail(
+                return r[Sequence[m.ConfigMap]].fail(
                     result.error or "Invalid bulk query parameters",
                 )
             normalized.append(result.value)
-        return r[Sequence[t.ConfigMap]].ok(normalized)
+        return r[Sequence[m.ConfigMap]].ok(normalized)
 
     @classmethod
     def from_env(cls, prefix: str = "ORACLE_") -> p.Result[FlextDbOracleApi]:
@@ -338,7 +338,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         self,
         sql: str,
         parameters: t.ContainerValueMapping | None = None,
-    ) -> p.Result[Sequence[t.Dict]]:
+    ) -> p.Result[Sequence[m.Dict]]:
         """Execute a SELECT query and return all results."""
         self.logger.debug("Executing query", query_length=len(sql))
         return self._normalize_parameters(parameters).flat_map(
@@ -352,7 +352,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         self,
         sql: str,
         parameters: t.ContainerValueMapping | None = None,
-    ) -> p.Result[t.Dict | None]:
+    ) -> p.Result[m.Dict | None]:
         """Execute a SELECT query and return first result or None."""
         return self._normalize_parameters(parameters).flat_map(
             lambda normalized_parameters: self._services.fetch_one(
@@ -372,11 +372,11 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
     def to_dict(
         self,
         obj: t.ContainerValueMapping | None = None,
-    ) -> t.ConfigMap:
+    ) -> m.ConfigMap:
         """Serialize API state or explicit mapping into the canonical ConfigMap."""
         if obj is not None:
-            return t.ConfigMap(root=dict(obj))
-        return t.ConfigMap(
+            return m.ConfigMap(root=dict(obj))
+        return m.ConfigMap(
             root={
                 "settings": self.oracle_config.model_dump(
                     exclude={"password"},
@@ -384,7 +384,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
                 ),
                 "connected": self.connected(),
                 "plugin_count": len(
-                    self._services.list_plugins().unwrap_or(t.ConfigMap(root={})).root,
+                    self._services.list_plugins().unwrap_or(m.ConfigMap(root={})).root,
                 ),
             },
         )
@@ -405,7 +405,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
     def _convert_to_query_result(
         self,
         sql: str,
-        data: Sequence[t.Dict],
+        data: Sequence[m.Dict],
     ) -> m.DbOracle.QueryResult:
         """Convert raw query data to QueryResult model."""
         if not data:

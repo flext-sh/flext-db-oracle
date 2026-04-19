@@ -397,7 +397,7 @@ make docs DOCS_PHASE=audit | grep "broken_link\|forbidden_term"
 
 ```python
 # Extend DocumentationAuditor class
-def _validate_custom_rule(self, content: str) -> List[Dict[str, t.RecursiveContainer]]:
+def _validate_custom_rule(self, content: str) -> List[Dict[str, t.Container]]:
     """Implement custom validation logic."""
     issues = []
 

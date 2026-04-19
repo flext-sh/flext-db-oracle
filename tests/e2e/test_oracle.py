@@ -174,7 +174,7 @@ class TestOracleE2E:
                 ("number", "NUMBER"),
                 ("boolean", "NUMBER(1)"),
                 ("array", "VARCHAR2(255)"),
-                ("t.RecursiveContainer", "VARCHAR2(255)"),
+                ("t.Container", "VARCHAR2(255)"),
             ]
             for singer_type, expected_oracle_type in singer_types:
                 result = api.convert_singer_type(singer_type)

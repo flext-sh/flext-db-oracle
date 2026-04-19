@@ -48,7 +48,7 @@ status = api.is_connected() -> bool
 
 ```python
 # Execute SELECT queries
-result = api.query(sql, parameters=None) -> p.Result[Sequence[t.Dict]]
+result = api.query(sql, parameters=None) -> p.Result[Sequence[m.Dict]]
 
 # Execute single row SELECT
 result = api.query_one(sql, parameters=None) -> p.Result[dict | None]
@@ -67,13 +67,13 @@ result = api.execute_many(sql, parameters_list) -> p.Result[int]
 result = api.get_schemas() -> p.Result[t.StringList]
 
 # Get tables in schema
-result = api.get_tables(schema=None) -> p.Result[Sequence[t.Dict]]
+result = api.get_tables(schema=None) -> p.Result[Sequence[m.Dict]]
 
 # Get column information
-result = api.get_columns(table, schema=None) -> p.Result[Sequence[t.Dict]]
+result = api.get_columns(table, schema=None) -> p.Result[Sequence[m.Dict]]
 
 # Get table metadata
-result = api.get_table_metadata(table, schema=None) -> p.Result[t.Dict]
+result = api.get_table_metadata(table, schema=None) -> p.Result[m.Dict]
 ```
 
 ### Configuration Methods

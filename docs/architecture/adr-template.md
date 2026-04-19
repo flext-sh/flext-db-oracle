@@ -107,7 +107,7 @@ Include:
 
 ## Notes
 
-\[t.RecursiveContainer additional notes, considerations, or follow-up items:
+\[t.Container additional notes, considerations, or follow-up items:
 
 - Open questions
 - Future considerations

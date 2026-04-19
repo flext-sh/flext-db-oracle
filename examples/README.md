@@ -297,7 +297,7 @@ def demonstrate_cli_patterns():
     print("Testing connection...")
 
     # rc, out, err = run([sys.executable, '-m', 'flext_db_oracle.cli', 'connect-env'], env=env)
-    # Simulated result t.RecursiveContainer below for documentation purposes:
+    # Simulated result t.Container below for documentation purposes:
     class Result:
         """Lightweight result for documentation."""
 

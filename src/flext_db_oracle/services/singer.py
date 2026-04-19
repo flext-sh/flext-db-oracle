@@ -81,7 +81,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
             schema_model = m.DbOracle.SingerSchema.model_validate({
                 "properties": normalized_properties,
             })
-        mapping = t.ConfigMap(root={})
+        mapping = m.ConfigMap(root={})
         for field_name, field_def in schema_model.properties.items():
             raw_field = raw_properties.get(field_name)
             format_value = (

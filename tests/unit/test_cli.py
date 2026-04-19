@@ -378,7 +378,7 @@ class TestOutputFormatter:
         tm.that(output, has="item2")
 
     def test_format_list_output_dict_items(self) -> None:
-        """Test list output formatting with t.RecursiveContainerMapping items."""
+        """Test list output formatting with Mapping[str, t.Container] items."""
         formatter = FlextDbOracleCli._OutputFormatter()
         items: Sequence[m.DbOracle.NamedItem] = [
             m.DbOracle.NamedItem(name="table1"),
@@ -617,9 +617,9 @@ class TestCliServiceOperations:
     def test_execute_query_success(self) -> None:
         """Test successful query execution."""
         cli_service = FlextDbOracleCli()
-        mock_result: Sequence[t.Dict] = [
-            t.Dict(root={"id": 1, "name": "test"}),
-            t.Dict(root={"id": 2, "name": "test2"}),
+        mock_result: Sequence[m.Dict] = [
+            m.Dict(root={"id": 1, "name": "test"}),
+            m.Dict(root={"id": 2, "name": "test2"}),
         ]
         with (
             patch.object(FlextDbOracleApi, "__init__", return_value=None),
@@ -627,7 +627,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "query") as mock_query,
         ):
             mock_connect.return_value = r[FlextDbOracleApi].ok(Mock())
-            mock_query.return_value = r[Sequence[t.Dict]].ok(mock_result)
+            mock_query.return_value = r[Sequence[m.Dict]].ok(mock_result)
             result = cli_service.execute_query(
                 host="localhost",
                 port=1521,

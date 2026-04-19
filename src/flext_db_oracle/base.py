@@ -82,21 +82,21 @@ class FlextDbOracleServiceBase(s):
         return self._engine is not None
 
     @staticmethod
-    def _validate_config_map(value: t.ContainerValue) -> t.ConfigMap | None:
+    def _validate_config_map(value: t.ContainerValue) -> m.ConfigMap | None:
         """Validate arbitrary mapping input as ConfigMap."""
         if not isinstance(value, dict):
             return None
         try:
-            return t.ConfigMap.model_validate({"root": value})
+            return m.ConfigMap.model_validate({"root": value})
         except c.ValidationError:
             return None
 
     @staticmethod
-    def _normalize_params(params: t.ConfigMap | None) -> t.ConfigMap:
+    def _normalize_params(params: m.ConfigMap | None) -> m.ConfigMap:
         """Normalize optional parameters into ConfigMap."""
         if params is not None:
             return params
-        return t.ConfigMap(root={})
+        return m.ConfigMap(root={})
 
     @staticmethod
     def _parse_count_value(value: t.ContainerValue) -> int:
@@ -117,7 +117,7 @@ class FlextDbOracleServiceBase(s):
         except (TypeError, ValueError):
             return 0
 
-    def _parse_count_from_rows(self, rows: Sequence[t.Dict]) -> int:
+    def _parse_count_from_rows(self, rows: Sequence[m.Dict]) -> int:
         """Parse COUNT(*) value from normalized query rows."""
         if not rows:
             return 0
@@ -189,7 +189,7 @@ class FlextDbOracleServiceBase(s):
     def _connection_execute(
         connection: SAConnection,
         statement: TextClause,
-        parameters: t.ConfigMap | None = None,
+        parameters: m.ConfigMap | None = None,
     ) -> CursorResult[tuple[t.ContainerValue, ...]]:
         """Execute statement on SQL connection."""
         normalized_params = FlextDbOracleServiceBase._normalize_params(parameters)
@@ -198,8 +198,8 @@ class FlextDbOracleServiceBase(s):
     def execute_query(
         self,
         sql: str,
-        params: t.ConfigMap | None = None,
-    ) -> p.Result[Sequence[t.Dict]]:
+        params: m.ConfigMap | None = None,
+    ) -> p.Result[Sequence[m.Dict]]:
         """Execute a SQL query in composed service facades."""
         del sql, params
         msg = "execute_query requires the composed DB Oracle service facade"

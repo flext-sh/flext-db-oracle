@@ -102,14 +102,14 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         self,
         table_name: str,
         columns: t.StrSequence | None = None,
-        conditions: t.ConfigMap | t.ContainerValueMapping | None = None,
+        conditions: m.ConfigMap | t.ContainerValueMapping | None = None,
         schema_name: str | None = None,
     ) -> p.Result[str]:
         """Build SELECT query - simplified implementation."""
         typed_conditions = (
             conditions
-            if isinstance(conditions, t.ConfigMap) or conditions is None
-            else t.ConfigMap(root=dict(conditions))
+            if isinstance(conditions, m.ConfigMap) or conditions is None
+            else m.ConfigMap(root=dict(conditions))
         )
         cols = ", ".join(columns) if columns else "*"
         if typed_conditions and typed_conditions.root:

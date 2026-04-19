@@ -33,7 +33,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
             @classmethod
             def normalize_port_bindings(
                 cls,
-                value: t.RecursiveContainer,
+                value: t.Container,
             ) -> t.StrMapping:
                 """Normalize Docker port bindings into a typed mapping."""
                 try:

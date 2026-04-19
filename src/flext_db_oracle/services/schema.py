@@ -41,12 +41,12 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         """Get column information for Oracle table."""
         if schema_name:
             sql = "\nSELECT column_name, data_type, data_length, data_precision, data_scale, nullable\nFROM all_tab_columns\nWHERE table_name = UPPER(:table_name) AND owner = UPPER(:schema_name)\nORDER BY column_id\n"
-            params = t.ConfigMap(
+            params = m.ConfigMap(
                 root={"table_name": table_name, "schema_name": schema_name},
             )
         else:
             sql = "\nSELECT column_name, data_type, data_length, data_precision, data_scale, nullable\nFROM user_tab_columns\nWHERE table_name = UPPER(:table_name)\nORDER BY column_id\n"
-            params = t.ConfigMap(root={"table_name": table_name})
+            params = m.ConfigMap(root={"table_name": table_name})
         return self.execute_query(sql, params).map(
             lambda rows: [
                 m.DbOracle.Column(
@@ -87,10 +87,10 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         def _fetch_keys() -> t.StrSequence:
             if schema:
                 sql = "\n                SELECT column_name\n                FROM all_constraints c, all_cons_columns cc\n                WHERE c.constraint_type = 'P'\n                AND c.constraint_name = cc.constraint_name\n                AND c.table_name = UPPER(:table_name)\n                AND c.owner = UPPER(:schema)\n                ORDER BY cc.position\n                "
-                params = t.ConfigMap(root={"table_name": table_name, "schema": schema})
+                params = m.ConfigMap(root={"table_name": table_name, "schema": schema})
             else:
                 sql = "\n                SELECT column_name\n                FROM user_constraints c, user_cons_columns cc\n                WHERE c.constraint_type = 'P'\n                AND c.constraint_name = cc.constraint_name\n                AND c.table_name = UPPER(:table_name)\n                ORDER BY cc.position\n                "
-                params = t.ConfigMap(root={"table_name": table_name})
+                params = m.ConfigMap(root={"table_name": table_name})
             query_result = self.execute_query(sql, params)
             if query_result.failure:
                 raise RuntimeError(query_result.error or "Query execution failed")
@@ -193,7 +193,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         """Get list of tables in Oracle schema."""
         if schema:
             sql = "SELECT table_name FROM all_tables WHERE owner = UPPER(:schema_name) ORDER BY table_name"
-            params: t.ConfigMap | None = t.ConfigMap(root={"schema_name": schema})
+            params: m.ConfigMap | None = m.ConfigMap(root={"schema_name": schema})
         else:
             sql = "SELECT table_name FROM user_tables ORDER BY table_name"
             params = None

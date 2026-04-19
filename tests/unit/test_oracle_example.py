@@ -21,7 +21,7 @@ from flext_db_oracle import (
 from tests import r, t
 
 
-def safe_get_first_value(data: t.RecursiveContainer) -> t.RecursiveContainer:
+def safe_get_first_value(data: t.Container) -> t.Container:
     """Safely get first value from various data structures."""
     if isinstance(data, (list, tuple)) and data:
         return data[0]
@@ -30,8 +30,8 @@ def safe_get_first_value(data: t.RecursiveContainer) -> t.RecursiveContainer:
     return data
 
 
-def _dict_first_value(row: t.Dict) -> t.RecursiveContainer:
-    """Get first value from a t.Dict RootModel."""
+def _dict_first_value(row: m.Dict) -> t.Container:
+    """Get first value from a m.Dict RootModel."""
     root = row.root
     if root:
         val = next(iter(root.values()))

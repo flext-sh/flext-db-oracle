@@ -120,21 +120,21 @@ class FlextDbOracleUtilitiesDbOracle:
         return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
 
     @staticmethod
-    def _validate_config_map(value: t.ContainerValue) -> t.ConfigMap | None:
+    def _validate_config_map(value: t.ContainerValue) -> m.ConfigMap | None:
         """Validate arbitrary mapping input as ConfigMap."""
         if not isinstance(value, dict):
             return None
         try:
-            return t.ConfigMap.model_validate({"root": value})
+            return m.ConfigMap.model_validate({"root": value})
         except c.ValidationError:
             return None
 
     @staticmethod
-    def normalize_params(params: t.ConfigMap | None) -> t.ConfigMap:
+    def normalize_params(params: m.ConfigMap | None) -> m.ConfigMap:
         """Normalize optional parameters into ConfigMap."""
         if params is not None:
             return params
-        return t.ConfigMap(root={})
+        return m.ConfigMap(root={})
 
     @classmethod
     def _parse_rowcount(cls, value: t.ContainerValue) -> int:
@@ -199,7 +199,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @staticmethod
     def _sqlalchemy_text(statement: str) -> TextClause:
-        """Build SQL text t.RecursiveContainer."""
+        """Build SQL text t.Container."""
         return text(statement)
 
     @staticmethod
@@ -231,7 +231,7 @@ class FlextDbOracleUtilitiesDbOracle:
         cls,
         connection: SAConnection,
         statement: TextClause,
-        parameters: t.ConfigMap | None = None,
+        parameters: m.ConfigMap | None = None,
     ) -> CursorResult[tuple[t.ContainerValue, ...]]:
         """Execute statement on SQL connection."""
         normalized_params = cls.normalize_params(

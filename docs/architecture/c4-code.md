@@ -210,7 +210,7 @@ __all__: list[str] = [
 
 ```python
 def connect(self, settings: OracleConfig) -> p.Result[Connection]
-def execute_query(self, sql: str, params: t.RecursiveContainerMapping = None) -> p.Result[QueryResult]
+def execute_query(self, sql: str, params: Mapping[str, t.Container] = None) -> p.Result[QueryResult]
 def get_schema_info(self, schema: str) -> p.Result[SchemaInfo]
 def begin_transaction(self) -> p.Result[Transaction]
 def commit_transaction(self) -> p.Result[bool]

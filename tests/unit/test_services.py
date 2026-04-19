@@ -479,7 +479,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         result = service.record_metric(
             "db_query_duration",
             12.5,
-            t.ConfigMap(root={"k": "v"}),
+            m.ConfigMap(root={"k": "v"}),
         )
         tm.ok(result)
 
@@ -925,7 +925,7 @@ class TestDirectCoverageBoostServicesServices:
                 result = method(*args)
                 tm.that(result, none=False)
                 tm.ok(result)
-                sql_content: t.RecursiveContainer = result.value
+                sql_content: t.Container = result.value
                 sql_text: str
                 if isinstance(sql_content, tuple):
                     sql_text = str(sql_content)

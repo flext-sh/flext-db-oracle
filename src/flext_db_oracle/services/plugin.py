@@ -65,16 +65,16 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
             return r[t.ContainerValue].fail(f"Plugin '{_name}' not found")
         return r[t.ContainerValue].ok(self._plugins[_name])
 
-    def list_plugins(self) -> p.Result[t.ConfigMap]:
+    def list_plugins(self) -> p.Result[m.ConfigMap]:
         """List plugin names from local service registry."""
         plugin_names = list(self._plugins.keys())
-        return r[t.ConfigMap].ok(t.ConfigMap(root=dict.fromkeys(plugin_names, True)))
+        return r[m.ConfigMap].ok(m.ConfigMap(root=dict.fromkeys(plugin_names, True)))
 
     def record_metric(
         self,
         _name: str,
         _value: float,
-        _tags: t.ConfigMap | t.ContainerValueMapping | None = None,
+        _tags: m.ConfigMap | t.ContainerValueMapping | None = None,
     ) -> p.Result[bool]:
         """Record metric in the local service metrics registry."""
         if not _name:
@@ -95,15 +95,15 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         duration: float = 0.0,
         *,
         success: bool = True,
-        metadata: t.ConfigMap | t.ContainerValueMapping | None = None,
+        metadata: m.ConfigMap | t.ContainerValueMapping | None = None,
     ) -> p.Result[bool]:
         """Track database operation for monitoring."""
 
         def _track() -> bool:
             metadata_value = (
                 metadata
-                if isinstance(metadata, t.ConfigMap)
-                else t.ConfigMap.model_validate({
+                if isinstance(metadata, m.ConfigMap)
+                else m.ConfigMap.model_validate({
                     "root": dict(metadata) if metadata else {},
                 })
             )

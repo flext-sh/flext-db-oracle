@@ -79,10 +79,10 @@ class FlextDbOracleProtocols(p):
             """
 
             def fetch_connection(self) -> p.Result[t.ContainerValue]:
-                """Get current Oracle connection t.RecursiveContainer.
+                """Get current Oracle connection t.Container.
 
                 Returns:
-                r: Connection t.RecursiveContainer or error
+                r: Connection t.Container or error
 
                 """
                 ...
@@ -129,7 +129,7 @@ class FlextDbOracleProtocols(p):
                 self,
                 sql: str,
                 params: t.ContainerValueMapping | None = None,
-            ) -> p.Result[Sequence[t.Dict]]:
+            ) -> p.Result[Sequence[m.Dict]]:
                 """Execute Oracle SQL query.
 
                 Args:
@@ -163,7 +163,7 @@ class FlextDbOracleProtocols(p):
                 self,
                 sql: str,
                 params: t.ContainerValueMapping | None = None,
-            ) -> p.Result[t.Dict | None]:
+            ) -> p.Result[m.Dict | None]:
                 """Fetch single result from Oracle query.
 
                 Args:
@@ -171,7 +171,7 @@ class FlextDbOracleProtocols(p):
                 params: Query parameters
 
                 Returns:
-                r[t.Dict | None]: Single result or None
+                r[m.Dict | None]: Single result or None
 
                 """
                 ...
