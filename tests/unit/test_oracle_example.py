@@ -8,7 +8,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
-from collections.abc import Sequence
+from collections.abc import (
+    Sequence,
+)
 
 import pytest
 from flext_tests import tm
@@ -18,7 +20,7 @@ from flext_db_oracle import (
     FlextDbOracleServices,
     FlextDbOracleSettings,
 )
-from tests import r, t
+from tests import m, r, t
 
 
 def safe_get_first_value(data: t.Container) -> t.Container:

@@ -11,7 +11,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import types
-from collections.abc import Sequence
+from collections.abc import (
+    Sequence,
+)
 from datetime import UTC, datetime
 from typing import Self, override
 

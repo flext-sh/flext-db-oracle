@@ -13,7 +13,11 @@ from __future__ import annotations
 import os
 import threading
 import time
-from collections.abc import Mapping, MutableSequence, Sequence
+from collections.abc import (
+    Mapping,
+    MutableSequence,
+    Sequence,
+)
 from threading import Thread
 
 import pytest

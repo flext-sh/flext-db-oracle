@@ -8,7 +8,10 @@ from __future__ import annotations
 
 import os
 import time
-from collections.abc import MutableMapping, Sequence
+from collections.abc import (
+    MutableMapping,
+    Sequence,
+)
 from typing import ClassVar
 
 from flext_tests import FlextTestsUtilities, tk

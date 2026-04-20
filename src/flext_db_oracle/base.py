@@ -11,7 +11,11 @@ from __future__ import annotations
 
 import contextlib
 import time
-from collections.abc import MutableMapping, MutableSequence, Sequence
+from collections.abc import (
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
 
 from sqlalchemy import (
     Connection as SAConnection,

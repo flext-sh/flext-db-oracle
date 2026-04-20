@@ -10,7 +10,9 @@ a real Oracle database connection, using mocked connections and result data.
 from __future__ import annotations
 
 import os
-from collections.abc import Sequence
+from collections.abc import (
+    Sequence,
+)
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 

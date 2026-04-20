@@ -10,7 +10,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import (
+    Callable,
+    Sequence,
+)
 from typing import override
 
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError

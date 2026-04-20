@@ -13,7 +13,9 @@ import contextlib
 import os
 import socket
 import time
-from collections.abc import Generator
+from collections.abc import (
+    Generator,
+)
 from pathlib import Path
 
 import oracledb

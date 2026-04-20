@@ -9,7 +9,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Generator
+from collections.abc import (
+    Generator,
+)
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from typing import Self, override

@@ -9,7 +9,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import (
+    Sequence,
+)
 
 from sqlalchemy.exc import (
     DatabaseError as SQLAlchemyDatabaseError,

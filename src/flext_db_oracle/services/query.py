@@ -10,7 +10,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Sequence
+from collections.abc import (
+    Sequence,
+)
 from typing import override
 
 from sqlalchemy.engine import CursorResult
