@@ -87,10 +87,10 @@ class FlextDbOracleDispatcher(s):
 
             def _wrap(
                 fn: Callable[[t.Container], t.Container],
-            ) -> t.HandlerLike:
-                def wrapped(*args: t.Container) -> p.Result[str]:
+            ) -> Callable[[t.Container], p.Result[t.Container]]:
+                def wrapped(*args: t.Container) -> p.Result[t.Container]:
                     result = fn(*args)
-                    return r[str].ok(str(result))
+                    return r[t.Container].ok(result)
 
                 return wrapped
 

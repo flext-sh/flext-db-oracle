@@ -44,7 +44,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         self._oracle_config = settings
         self._services = FlextDbOracleServices(settings=self._oracle_config)
         self._context_name = context_name or "oracle-api"
-        self._context = None
+        self._context: None = None
         self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
 
     @override
