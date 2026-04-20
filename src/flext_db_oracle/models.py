@@ -77,7 +77,7 @@ class FlextDbOracleModels(m):
         class RowData(DbOracleDomainModel):
             """Typed row payload for query results."""
 
-            values: Sequence[t.ContainerValue] = u.Field(
+            values: Sequence[t.Container] = u.Field(
                 default_factory=tuple,
                 description="Row column values",
             )
@@ -264,7 +264,7 @@ class FlextDbOracleModels(m):
             model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=False)
 
             query: str = u.Field(description="SQL query that produced the result")
-            result_data: Sequence[t.ContainerValue] = u.Field(
+            result_data: Sequence[t.Container] = u.Field(
                 default_factory=tuple,
                 description="Raw result data from query execution",
             )
@@ -421,7 +421,7 @@ class FlextDbOracleModels(m):
                 description="Health check metric values",
             )
 
-            def __getitem__(self, key: str) -> t.ContainerValue:
+            def __getitem__(self, key: str) -> t.Container:
                 """Get item from health status."""
                 if key in self.metrics:
                     return self.metrics[key]
@@ -455,7 +455,7 @@ class FlextDbOracleModels(m):
                 description="Primary key column names",
             )
 
-            def __getitem__(self, key: str) -> t.ContainerValue:
+            def __getitem__(self, key: str) -> t.Container:
                 """Get item from table metadata."""
                 dump = self.model_dump()
                 value = dump.get(key, "")
@@ -539,7 +539,7 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
 
-            def __getitem__(self, key: str) -> t.ContainerValue:
+            def __getitem__(self, key: str) -> t.Container:
                 """Get item from column metadata."""
                 key_map: t.ContainerValueMapping = {
                     "column_name": self.name,

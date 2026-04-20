@@ -41,7 +41,7 @@ class FlextDbOracleClient(s):
             return None
 
     @staticmethod
-    def _validate_general_list(value: t.ContainerValue) -> t.FlatContainerList | None:
+    def _validate_general_list(value: t.Container) -> t.FlatContainerList | None:
         """Validate list payload with Pydantic."""
         return t.FLAT_CONTAINER_LIST_ADAPTER.validate_python(value)
 
@@ -295,19 +295,19 @@ class FlextDbOracleClient(s):
         """
         try:
 
-            def adapt_schemas(raw_value: t.ContainerValue) -> Sequence[m.ConfigMap]:
+            def adapt_schemas(raw_value: t.Container) -> Sequence[m.ConfigMap]:
                 schemas = FlextDbOracleClient._validate_general_list(raw_value)
                 if schemas is None:
                     return []
                 return [m.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
 
-            def adapt_tables(raw_value: t.ContainerValue) -> Sequence[m.ConfigMap]:
+            def adapt_tables(raw_value: t.Container) -> Sequence[m.ConfigMap]:
                 tables = FlextDbOracleClient._validate_general_list(raw_value)
                 if tables is None:
                     return []
                 return [m.ConfigMap(root={"table": str(table)}) for table in tables]
 
-            def adapt_health(raw_value: t.ContainerValue) -> Sequence[m.ConfigMap]:
+            def adapt_health(raw_value: t.Container) -> Sequence[m.ConfigMap]:
                 try:
                     health_map = t.CONTAINER_VALUE_MAPPING_ADAPTER.validate_python(
                         raw_value
@@ -325,7 +325,7 @@ class FlextDbOracleClient(s):
                 ]
 
             adaptation_strategies: Sequence[
-                tuple[str, Callable[[t.ContainerValue], Sequence[m.ConfigMap]]]
+                tuple[str, Callable[[t.Container], Sequence[m.ConfigMap]]]
             ] = [
                 ("schemas", adapt_schemas),
                 ("tables", adapt_tables),

@@ -248,7 +248,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
 
     def execute_statement(
         self,
-        sql: str | t.ContainerValue,
+        sql: str | t.Container,
         params: t.ContainerValueMapping | None = None,
     ) -> p.Result[int]:
         """Execute SQL statement directly and return affected rows."""
@@ -277,7 +277,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         """Get observability metrics for the connection."""
         return self._services.fetch_metrics().map(lambda metrics: metrics.model_dump())
 
-    def fetch_plugin(self, _name: str) -> p.Result[t.ContainerValue]:
+    def fetch_plugin(self, _name: str) -> p.Result[t.Container]:
         """Get a registered plugin by name."""
         return self._services.fetch_plugin(_name)
 
@@ -320,7 +320,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
 
     def map_singer_schema(
         self,
-        singer_schema: t.ContainerValue,
+        singer_schema: t.Container,
     ) -> p.Result[t.StrMapping]:
         """Map Singer JSON Schema to Oracle table schema."""
         if not isinstance(singer_schema, dict):
@@ -363,7 +363,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
             ),
         )
 
-    def register_plugin(self, _name: str, _plugin: t.ContainerValue) -> p.Result[bool]:
+    def register_plugin(self, _name: str, _plugin: t.Container) -> p.Result[bool]:
         """Register a plugin in local API registry."""
         return self._services.register_plugin(_name, _plugin)
 

@@ -91,8 +91,8 @@ class Testu:
 
     def test_generate_query_hash_params_order_independence(self) -> None:
         """Test query hash is independent of parameter order."""
-        params1: dict[str, t.ContainerValue] = {"id": 1, "name": "test", "active": True}
-        params2: dict[str, t.ContainerValue] = {"name": "test", "active": True, "id": 1}
+        params1: dict[str, t.Container] = {"id": 1, "name": "test", "active": True}
+        params2: dict[str, t.Container] = {"name": "test", "active": True, "id": 1}
         query = (
             "SELECT * FROM users WHERE id = :id AND name = :name AND active = :active"
         )
@@ -297,9 +297,7 @@ class Testu:
 
     def test_format_query_result_json(self) -> None:
         """Test JSON formatting."""
-        data: list[dict[str, t.ContainerValue]] = [
-            {"id": 1, "name": "John", "active": True}
-        ]
+        data: list[dict[str, t.Container]] = [{"id": 1, "name": "John", "active": True}]
         result = u.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value
@@ -325,7 +323,7 @@ class Testu:
 
     def test_format_query_result_table(self) -> None:
         """Test table formatting."""
-        data: list[dict[str, t.ContainerValue]] = [{"id": 1, "name": "John"}]
+        data: list[dict[str, t.Container]] = [{"id": 1, "name": "John"}]
         result = u.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value

@@ -87,7 +87,7 @@ class FlextDbOracleUtilitiesDbOracle:
     @classmethod
     def format_query_result(
         cls,
-        result: t.ContainerValue,
+        result: t.Container,
         format_type: str = "table",
     ) -> p.Result[str]:
         """Format a query result to string or JSON."""
@@ -120,7 +120,7 @@ class FlextDbOracleUtilitiesDbOracle:
         return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
 
     @staticmethod
-    def _validate_config_map(value: t.ContainerValue) -> m.ConfigMap | None:
+    def _validate_config_map(value: t.Container) -> m.ConfigMap | None:
         """Validate arbitrary mapping input as ConfigMap."""
         if not isinstance(value, dict):
             return None
@@ -137,7 +137,7 @@ class FlextDbOracleUtilitiesDbOracle:
         return m.ConfigMap(root={})
 
     @classmethod
-    def _parse_rowcount(cls, value: t.ContainerValue) -> int:
+    def _parse_rowcount(cls, value: t.Container) -> int:
         """Parse strict integer rowcount via Pydantic."""
         if isinstance(value, int):
             return value
@@ -149,7 +149,7 @@ class FlextDbOracleUtilitiesDbOracle:
             return 0
 
     @classmethod
-    def _parse_count_value(cls, value: t.ContainerValue) -> int:
+    def _parse_count_value(cls, value: t.Container) -> int:
         """Parse row count value accepting int or numeric string."""
         if isinstance(value, int):
             return value
@@ -232,7 +232,7 @@ class FlextDbOracleUtilitiesDbOracle:
         connection: SAConnection,
         statement: TextClause,
         parameters: m.ConfigMap | None = None,
-    ) -> CursorResult[tuple[t.ContainerValue, ...]]:
+    ) -> CursorResult[tuple[t.Container, ...]]:
         """Execute statement on SQL connection."""
         normalized_params = cls.normalize_params(
             parameters,

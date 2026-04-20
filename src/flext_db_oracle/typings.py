@@ -107,7 +107,7 @@ class FlextDbOracleTypes(t):
         ]
         type SessionState = Mapping[
             str,
-            t.ContainerValue | t.ContainerValueMapping,
+            t.Container | t.ContainerValueMapping,
         ]
         type SessionVariables = t.ContainerValueMapping
         type SessionMetrics = t.ConfigValueMapping
@@ -163,7 +163,7 @@ class FlextDbOracleTypes(t):
         type TypeMapping = t.ContainerValueMapping
         type DataConversion = t.ContainerValueMapping
         type TypeValidation = Mapping[str, bool | str | t.StrSequence]
-        type NullHandling = Mapping[str, bool | t.ContainerValue]
+        type NullHandling = Mapping[str, bool | t.Container]
 
         type ProjectType = Literal[
             "library",
@@ -187,9 +187,7 @@ class FlextDbOracleTypes(t):
         type CliScalar = t.Scalar | None
         "CLI scalar type - Scalar value or None for optional CLI parameters."
 
-    CONTAINER_VALUE_ADAPTER: u.TypeAdapter[t.ContainerValue] = u.TypeAdapter(
-        t.ContainerValue
-    )
+    CONTAINER_VALUE_ADAPTER: u.TypeAdapter[t.Container] = u.TypeAdapter(t.Container)
     CONTAINER_VALUE_MAPPING_ADAPTER: u.TypeAdapter[t.ContainerValueMapping] = (
         u.TypeAdapter(t.ContainerValueMapping)
     )

@@ -28,7 +28,7 @@ class TestsFlextDbOracleTypes(FlextTestsTypes, FlextDbOracleTypes):
             type ApiCoverageReturn = (
                 bool
                 | FlextDbOracleTypes.ConfigMap
-                | p.Result[Mapping[str, FlextDbOracleTypes.ContainerValue]]
+                | p.Result[Mapping[str, FlextDbOracleTypes.Container]]
                 | p.Result[str]
                 | p.Result[FlextDbOracleTypes.StrSequence]
             )

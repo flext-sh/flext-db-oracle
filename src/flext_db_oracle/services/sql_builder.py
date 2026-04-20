@@ -34,7 +34,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     create_table_ddl, drop_table_ddl.
     """
 
-    def build_create_index_statement(self, _config: t.ContainerValue) -> p.Result[str]:
+    def build_create_index_statement(self, _config: t.Container) -> p.Result[str]:
         """Build Oracle CREATE INDEX statement from configuration."""
         try:
             if not isinstance(_config, Mapping):

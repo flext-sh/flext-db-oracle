@@ -159,7 +159,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
 
     def _normalize_query_rows(
         self,
-        query_result: CursorResult[tuple[t.ContainerValue, ...]],
+        query_result: CursorResult[tuple[t.Container, ...]],
     ) -> Sequence[m.Dict]:
         """Normalize SQLAlchemy query result rows into typed mapping models."""
         mapping_result = query_result.mappings()

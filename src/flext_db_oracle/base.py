@@ -54,11 +54,11 @@ class FlextDbOracleServiceBase(s):
     _operations: MutableSequence[m.DbOracle.OperationRecord] = u.PrivateAttr(
         default_factory=lambda: list[m.DbOracle.OperationRecord]()
     )
-    _plugins: MutableMapping[str, t.ContainerValue] = u.PrivateAttr(
-        default_factory=lambda: dict[str, t.ContainerValue]()
+    _plugins: MutableMapping[str, t.Container] = u.PrivateAttr(
+        default_factory=lambda: dict[str, t.Container]()
     )
-    _metrics: MutableMapping[str, t.ContainerValue] = u.PrivateAttr(
-        default_factory=lambda: dict[str, t.ContainerValue]()
+    _metrics: MutableMapping[str, t.Container] = u.PrivateAttr(
+        default_factory=lambda: dict[str, t.Container]()
     )
 
     class _CountValue(m.RootModel[int | str]):
@@ -86,7 +86,7 @@ class FlextDbOracleServiceBase(s):
         return self._engine is not None
 
     @staticmethod
-    def _validate_config_map(value: t.ContainerValue) -> m.ConfigMap | None:
+    def _validate_config_map(value: t.Container) -> m.ConfigMap | None:
         """Validate arbitrary mapping input as ConfigMap."""
         if not isinstance(value, dict):
             return None
@@ -103,7 +103,7 @@ class FlextDbOracleServiceBase(s):
         return m.ConfigMap(root={})
 
     @staticmethod
-    def _parse_count_value(value: t.ContainerValue) -> int:
+    def _parse_count_value(value: t.Container) -> int:
         """Parse row count value accepting int or numeric string."""
         if isinstance(value, int):
             return value
@@ -194,7 +194,7 @@ class FlextDbOracleServiceBase(s):
         connection: SAConnection,
         statement: TextClause,
         parameters: m.ConfigMap | None = None,
-    ) -> CursorResult[tuple[t.ContainerValue, ...]]:
+    ) -> CursorResult[tuple[t.Container, ...]]:
         """Execute statement on SQL connection."""
         normalized_params = FlextDbOracleServiceBase._normalize_params(parameters)
         return connection.execute(statement, normalized_params.root)
