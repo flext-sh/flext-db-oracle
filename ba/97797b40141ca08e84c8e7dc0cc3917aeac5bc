@@ -1,0 +1,16 @@
+src/flext_db_oracle/dispatcher.py
+  h_9db9d35f50cf33 90-91,93
+src/flext_db_oracle/api.py
+  h_9db9d35f50cf33 47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "ba97797b40141ca08e84c8e7dc0cc3917aeac5bc",
+  "prompts": {},
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
