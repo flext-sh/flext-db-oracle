@@ -20,10 +20,10 @@ from collections.abc import (
 )
 from typing import Literal
 
-import oracledb
+from flext_core import u
 from flext_infra import t
 
-from flext_core import u
+import oracledb
 
 
 class FlextDbOracleTypes(t):

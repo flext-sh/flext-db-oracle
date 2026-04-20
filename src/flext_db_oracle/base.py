@@ -17,6 +17,7 @@ from collections.abc import (
     Sequence,
 )
 
+from flext_core import s
 from sqlalchemy import (
     Connection as SAConnection,
     Engine as SAEngine,
@@ -26,7 +27,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import CursorResult
 
-from flext_core import s
 from flext_db_oracle import (
     FlextDbOracleSettings,
     c,

@@ -12,6 +12,7 @@ from collections.abc import (
 from typing import ClassVar, Protocol, runtime_checkable
 
 from flext_core import p
+
 from flext_db_oracle import m, t
 
 

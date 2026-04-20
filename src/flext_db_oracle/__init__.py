@@ -10,6 +10,7 @@ from flext_core.lazy import (
     install_lazy_exports,
     merge_lazy_imports,
 )
+
 from flext_db_oracle.__version__ import *
 
 if _t.TYPE_CHECKING:
