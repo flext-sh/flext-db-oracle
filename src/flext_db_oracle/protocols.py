@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import (
     Sequence,
 )
-from typing import ClassVar, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from flext_core import p
 
@@ -502,8 +502,6 @@ class FlextDbOracleProtocols(p):
         @runtime_checkable
         class HealthCheck(Protocol):
             """Protocol for Oracle database health check operations."""
-
-            _flext_enforcement_exempt: ClassVar[bool] = True
 
             def fetch_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
                 """Get Oracle connection status information.
