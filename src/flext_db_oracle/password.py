@@ -26,7 +26,7 @@ class FlextDbOraclePassword(m.RootModel[str]):
         return self.root
 
     @override
-    def __eq__(self, other: t.ValueOrModel) -> bool:
+    def __eq__(self, other: t.RuntimeData) -> bool:
         """Compare wrapped password value with wrappers and raw strings."""
         if isinstance(other, FlextDbOraclePassword):
             return self.root == other.root
