@@ -311,7 +311,7 @@ class Testu:
         tm.ok(result)
         formatted = result.value
         parsed = self._JSON_RESULT_ADAPTER.validate_json(formatted)
-        tm.that(parsed, eq=[])
+        tm.that(parsed, empty=True)
 
     def test_format_query_result_json_non_serializable(self) -> None:
         """Test JSON formatting with non-serializable data."""

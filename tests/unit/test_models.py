@@ -150,9 +150,9 @@ class Testm:
         tm.that(result.query, eq="SELECT 1")
         tm.that(result.row_count, eq=0)
         tm.that(result.execution_time_ms, eq=0)
-        tm.that(result.result_data, eq=[])
-        tm.that(result.columns, eq=[])
-        tm.that(result.rows, eq=[])
+        tm.that(result.result_data, empty=True)
+        tm.that(result.columns, empty=True)
+        tm.that(result.rows, empty=True)
         tm.that(result.query_hash, eq="")
         tm.that(result.explain_plan, eq="")
 
@@ -264,7 +264,7 @@ class Testm:
         table = m.DbOracle.Table(name="users", owner="hr")
         tm.that(table.name, eq="users")
         tm.that(table.owner, eq="hr")
-        tm.that(table.columns, eq=[])
+        tm.that(table.columns, empty=True)
 
     def test_table_with_columns(self) -> None:
         """Test Table with columns."""
@@ -304,7 +304,7 @@ class Testm:
         """Test Schema model creation."""
         schema = m.DbOracle.Schema(name="hr")
         tm.that(schema.name, eq="hr")
-        tm.that(schema.tables, eq=[])
+        tm.that(schema.tables, empty=True)
 
     def test_schema_with_tables(self) -> None:
         """Test Schema with tables."""
@@ -433,7 +433,7 @@ class Testm:
                 table = m.DbOracle.Table(name="dual", owner="SYS")
                 tm.that(table.name, eq="dual")
                 tm.that(table.owner, eq="SYS")
-                tm.that(table.columns, eq=[])
+                tm.that(table.columns, empty=True)
 
 
 class TestFlextDbOracleSettingsModels:

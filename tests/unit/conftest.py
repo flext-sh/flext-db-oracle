@@ -18,10 +18,10 @@ from collections.abc import (
 )
 from pathlib import Path
 
+import oracledb
 import pytest
 from flext_tests import tk
 
-import oracledb
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import p, t, u
 

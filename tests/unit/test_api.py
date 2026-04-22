@@ -439,7 +439,7 @@ class TestFlextDbOracleApiRealFunctionality:
         api1.register_plugin("plugin1", plugin1)
         api2_list = api2.list_plugins()
         tm.ok(api2_list)
-        tm.that(api2_list.value, eq=[])
+        tm.that(api2_list.value, empty=True)
         api1_list = api1.list_plugins()
         tm.ok(api1_list)
         plugin_list = api1_list.value
