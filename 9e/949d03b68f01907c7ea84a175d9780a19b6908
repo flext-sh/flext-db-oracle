@@ -1,0 +1,44 @@
+tests/conftest.py
+  h_9db9d35f50cf33 93
+tests/unit/test_services.py
+  h_9db9d35f50cf33 152,1345,1625,1628
+src/flext_db_oracle/services/connection.py
+  h_9db9d35f50cf33 64,96
+tests/utilities.py
+  h_9db9d35f50cf33 39,62,64,85,87
+src/flext_db_oracle/services/sql_builder.py
+  h_9db9d35f50cf33 37,50-51
+tests/unit/test_cli.py
+  h_9db9d35f50cf33 209,826
+src/flext_db_oracle/_utilities/db_oracle.py
+  h_9db9d35f50cf33 20,91,96-110,112-113
+tests/unit/test_api.py
+  h_9db9d35f50cf33 94,507,711,1207,1313,1889
+tests/unit/test_utilities.py
+  h_9db9d35f50cf33 300
+src/flext_db_oracle/services/plugin.py
+  h_9db9d35f50cf33 62,65,67-68,87
+tests/e2e/test_oracle.py
+  h_9db9d35f50cf33 189
+tests/unit/test_oracle_example.py
+  h_9db9d35f50cf33 23,26,35,40-43,45
+src/flext_db_oracle/protocols.py
+  h_9db9d35f50cf33 454,476
+src/flext_db_oracle/base.py
+  h_9db9d35f50cf33 57-58
+src/flext_db_oracle/api.py
+  h_9db9d35f50cf33 280,323,326,369
+src/flext_db_oracle/services/singer.py
+  h_9db9d35f50cf33 52,55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "9e949d03b68f01907c7ea84a175d9780a19b6908",
+  "prompts": {},
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
