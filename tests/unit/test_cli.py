@@ -206,7 +206,7 @@ class TestFlextDbOracleCli:
         """Test successful CLI service initialization."""
         cli_service = FlextDbOracleCli()
         tm.that(cli_service, is_=FlextDbOracleCli)
-        tm.that(cli_service._container is not None, eq=True)
+        tm.that(cli_service.container is not None, eq=True)
         tm.that(cli_service.logger, is_=object)
 
     def test_cli_service_initialization_basic(self) -> None:
@@ -823,7 +823,7 @@ class TestCLIRealFunctionality:
             password="comp_pass",
         )
         api = FlextDbOracleApi(settings)
-        methods_to_test: Sequence[tuple[str, t.DbOracle.Tests.ApiCoverageCallable]] = [
+        methods_to_test = [
             ("valid", api.valid),
             ("to_dict", api.to_dict),
             ("fetch_observability_metrics", api.fetch_observability_metrics),

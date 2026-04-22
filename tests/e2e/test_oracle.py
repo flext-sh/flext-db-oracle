@@ -186,7 +186,7 @@ class TestOracleE2E:
                 assert expected_oracle_type in oracle_type, (
                     f"Expected {expected_oracle_type} in {oracle_type}"
                 )
-            singer_schema: t.ContainerValueMapping = {
+            singer_schema: dict[str, t.JsonValue] = {
                 "properties": {
                     "id": {"type": "integer"},
                     "name": {"type": "string"},

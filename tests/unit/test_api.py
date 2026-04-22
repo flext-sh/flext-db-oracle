@@ -91,7 +91,7 @@ class TestFlextDbOracleApiRealFunctionality:
         config_obj = result["settings"]
         tm.that(config_obj, is_=dict)
         if isinstance(config_obj, dict):
-            config_dict: Mapping[str, t.Container] = config_obj
+            config_dict: Mapping[str, t.Container | t.JsonValue] = config_obj
         else:
             config_dict = {}
         tm.that(config_dict["host"], eq="127.0.0.1")
@@ -504,7 +504,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
     def test_map_singer_schema_method_real(self) -> None:
         """Test map_singer_schema method."""
-        test_schema: t.ContainerValueMapping = {
+        test_schema: dict[str, t.JsonValue] = {
             "type": "object",
             "properties": {
                 "id": {"type": "integer"},
@@ -708,10 +708,7 @@ class TestApiModule:
             }
 
         @staticmethod
-        def create_test_schema_data() -> Mapping[
-            str,
-            str | Sequence[t.FeatureFlagMapping],
-        ]:
+        def create_test_schema_data() -> dict[str, t.JsonValue]:
             """Create test schema data."""
             return {
                 "table_name": "test_table",
@@ -846,7 +843,7 @@ class TestApiModule:
         api = FlextDbOracleApi(settings=settings)
         test_schema = self._TestDataHelper.create_test_schema_data()
         if hasattr(api, "map_singer_schema"):
-            result = api.map_singer_schema(dict(test_schema))
+            result = api.map_singer_schema(test_schema)
             tm.that(result, is_=r)
 
     def test_flext_db_oracle_api_get_table_schema(self) -> None:
@@ -1207,7 +1204,7 @@ class TestFlextDbOracleApiSafeMethods:
                 ),
                 eq=True,
             )
-        plugin: t.ContainerValueMapping = {
+        plugin: dict[str, t.JsonValue] = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1313,7 +1310,7 @@ class TestFlextDbOracleApiSafeMethods:
             password="helper_pass",
         )
         api = FlextDbOracleApi(settings)
-        plugin: t.ContainerValueMapping = {
+        plugin: dict[str, t.JsonValue] = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1889,7 +1886,7 @@ class TestDirectCoverageBoostServices:
             ssl_server_cert_dn=None,
         )
         services = FlextDbOracleServices(settings=settings)
-        sql_test_cases: list[dict[str, t.Container]] = [
+        sql_test_cases: list[dict[str, str | tuple[t.RuntimeData, ...]]] = [
             {
                 "method": "build_select",
                 "args": ("test_table", ["id", "name"], {"id": 1}),

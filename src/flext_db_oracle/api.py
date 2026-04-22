@@ -277,7 +277,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         """Get observability metrics for the connection."""
         return self._services.fetch_metrics().map(lambda metrics: metrics.model_dump())
 
-    def fetch_plugin(self, _name: str) -> p.Result[t.Container]:
+    def fetch_plugin(self, _name: str) -> p.Result[t.RuntimeData]:
         """Get a registered plugin by name."""
         return self._services.fetch_plugin(_name)
 
@@ -320,10 +320,10 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
 
     def map_singer_schema(
         self,
-        singer_schema: t.Container,
+        singer_schema: m.DbOracle.SingerSchema | t.JsonMapping,
     ) -> p.Result[t.StrMapping]:
         """Map Singer JSON Schema to Oracle table schema."""
-        if not isinstance(singer_schema, dict):
+        if not isinstance(singer_schema, (dict, m.DbOracle.SingerSchema)):
             return r[t.StrMapping].fail("Schema must be a mapping")
         return self._services.map_singer_schema(singer_schema).map(
             lambda value: value.mapping,
@@ -363,7 +363,11 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
             ),
         )
 
-    def register_plugin(self, _name: str, _plugin: t.Container) -> p.Result[bool]:
+    def register_plugin(
+        self,
+        _name: str,
+        _plugin: t.RuntimeData,
+    ) -> p.Result[bool]:
         """Register a plugin in local API registry."""
         return self._services.register_plugin(_name, _plugin)
 

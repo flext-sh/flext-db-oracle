@@ -34,7 +34,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     create_table_ddl, drop_table_ddl.
     """
 
-    def build_create_index_statement(self, _config: t.Container) -> p.Result[str]:
+    def build_create_index_statement(self, _config: t.JsonMapping) -> p.Result[str]:
         """Build Oracle CREATE INDEX statement from configuration."""
         try:
             if not isinstance(_config, Mapping):
@@ -46,7 +46,10 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
                 else []
             )
             raw_parallel = _config.get("parallel", 1)
-            parallel_value = u.to_int(raw_parallel, default=1)
+            parallel_value = u.to_int(
+                raw_parallel if raw_parallel is not None else 1,
+                default=1,
+            )
             payload = {
                 "table_name": str(_config.get("table_name", "")),
                 "index_name": str(_config.get("index_name", "")),

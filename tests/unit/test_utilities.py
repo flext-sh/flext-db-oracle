@@ -297,7 +297,7 @@ class Testu:
 
     def test_format_query_result_json(self) -> None:
         """Test JSON formatting."""
-        data: list[dict[str, t.Container]] = [{"id": 1, "name": "John", "active": True}]
+        data: list[dict[str, t.JsonValue]] = [{"id": 1, "name": "John", "active": True}]
         result = u.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value
@@ -306,7 +306,7 @@ class Testu:
 
     def test_format_query_result_json_empty(self) -> None:
         """Test JSON formatting with empty data."""
-        data: Sequence[t.StrMapping] = []
+        data: list[t.JsonValue] = []
         result = u.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value
@@ -315,7 +315,7 @@ class Testu:
 
     def test_format_query_result_json_non_serializable(self) -> None:
         """Test JSON formatting with non-serializable data."""
-        data: Sequence[t.StrMapping] = [{"key": "non-serializable-test"}]
+        data: list[dict[str, t.JsonValue]] = [{"key": "non-serializable-test"}]
         result = u.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value
@@ -323,7 +323,7 @@ class Testu:
 
     def test_format_query_result_table(self) -> None:
         """Test table formatting."""
-        data: list[dict[str, t.Container]] = [{"id": 1, "name": "John"}]
+        data: list[dict[str, t.JsonValue]] = [{"id": 1, "name": "John"}]
         result = u.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value
@@ -332,7 +332,7 @@ class Testu:
 
     def test_format_query_result_table_empty(self) -> None:
         """Test table formatting with empty data."""
-        data: Sequence[t.StrMapping] = []
+        data: list[t.JsonValue] = []
         result = u.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value
@@ -340,7 +340,7 @@ class Testu:
 
     def test_format_query_result_unknown_format(self) -> None:
         """Test formatting with unknown format falls back to str()."""
-        data = [{"id": 1}]
+        data: list[dict[str, t.JsonValue]] = [{"id": 1}]
         result = u.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value
@@ -354,7 +354,7 @@ class Testu:
 
     def test_format_query_result_case_insensitive_format(self) -> None:
         """Test format parameter is case insensitive."""
-        data = [{"id": 1}]
+        data: list[dict[str, t.JsonValue]] = [{"id": 1}]
         result = u.DbOracle.format_query_result(data, "json")
         tm.ok(result)
 

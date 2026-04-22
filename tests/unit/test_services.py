@@ -149,7 +149,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(settings=settings)
-        singer_schema: t.ContainerValueMapping = {
+        singer_schema: dict[str, t.JsonValue] = {
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
@@ -1342,7 +1342,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(settings=settings)
-        singer_schema: t.ContainerValueMapping = {
+        singer_schema: dict[str, t.JsonValue] = {
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
@@ -1622,9 +1622,9 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(settings=settings)
-        invalid_schema: t.ContainerValueMapping = {"properties": "not_a_dict"}
+        invalid_schema: dict[str, t.JsonValue] = {"properties": "not_a_dict"}
         mapping_result = service.map_singer_schema(invalid_schema)
         tm.that(mapping_result.failure, eq=True)
-        missing_props_schema: t.ContainerValueMapping = {}
+        missing_props_schema: dict[str, t.JsonValue] = {}
         mapping_result = service.map_singer_schema(missing_props_schema)
         tm.that(mapping_result.failure or not mapping_result.value, eq=True)

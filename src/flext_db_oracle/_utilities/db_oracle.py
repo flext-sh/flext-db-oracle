@@ -5,6 +5,7 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import os
+from collections.abc import Mapping
 from enum import StrEnum
 
 from sqlalchemy import (
@@ -16,7 +17,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import CursorResult
 
-from flext_db_oracle import c, m, p, r, t
+from flext_db_oracle import c, m, p, r, t, u
 
 
 class FlextDbOracleUtilitiesDbOracle:
@@ -87,15 +88,33 @@ class FlextDbOracleUtilitiesDbOracle:
     @classmethod
     def format_query_result(
         cls,
-        result: t.Container,
+        result: t.Container | t.JsonMapping | t.JsonList | m.BaseModel,
         format_type: str = "table",
     ) -> p.Result[str]:
         """Format a query result to string or JSON."""
         if format_type == "json":
+            json_payload: t.MetadataValue = u.normalize_to_metadata(result)
+            if isinstance(result, (list, tuple)):
+                rows_payload: list[t.JsonValue] = []
+                rows_are_mappings = True
+                for row in result:
+                    if not isinstance(row, Mapping):
+                        rows_are_mappings = False
+                        break
+                    row_payload: dict[str, t.JsonValue] = {
+                        str(key): u.normalize_to_metadata(value)
+                        for key, value in row.items()
+                    }
+                    rows_payload.append(row_payload)
+                if rows_are_mappings:
+                    json_payload = rows_payload
             return r[str].ok(
-                t.CONTAINER_VALUE_ADAPTER.dump_json(
-                    result,
-                ).decode(),
+                t
+                .json_value_adapter()
+                .dump_json(
+                    json_payload,
+                )
+                .decode(),
             )
         return r[str].ok(str(result))
 

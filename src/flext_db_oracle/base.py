@@ -54,8 +54,8 @@ class FlextDbOracleServiceBase(s):
     _operations: MutableSequence[m.DbOracle.OperationRecord] = u.PrivateAttr(
         default_factory=lambda: list[m.DbOracle.OperationRecord]()
     )
-    _plugins: MutableMapping[str, t.Container] = u.PrivateAttr(
-        default_factory=lambda: dict[str, t.Container]()
+    _plugins: MutableMapping[str, t.RuntimeData] = u.PrivateAttr(
+        default_factory=lambda: dict[str, t.RuntimeData]()
     )
     _metrics: MutableMapping[str, t.Container] = u.PrivateAttr(
         default_factory=lambda: dict[str, t.Container]()

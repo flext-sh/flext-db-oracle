@@ -20,26 +20,30 @@ from flext_db_oracle import (
     FlextDbOracleServices,
     FlextDbOracleSettings,
 )
-from tests import m, r, t
+from tests import m, r, t, u
 
 
-def safe_get_first_value(data: t.Container) -> t.Container:
+def safe_get_first_value(data: t.MetadataValue) -> t.MetadataValue:
     """Safely get first value from various data structures."""
-    if isinstance(data, (list, tuple)) and data:
+    if isinstance(data, list) and data:
         return data[0]
     if isinstance(data, dict) and data:
         return next(iter(data.values()))
     return data
 
 
-def _dict_first_value(row: m.Dict) -> t.Container:
+def _dict_first_value(row: m.Dict) -> t.MetadataValue:
     """Get first value from a m.Dict RootModel."""
     root = row.root
     if root:
         val = next(iter(root.values()))
+        if val is None:
+            return None
+        if isinstance(val, tuple):
+            return [u.normalize_to_metadata(item) for item in val]
         return (
-            val
-            if isinstance(val, (str, int, float, bool, dict, list, tuple, type(None)))
+            u.normalize_to_metadata(val)
+            if isinstance(val, (str, int, float, bool, dict, list))
             else None
         )
     return None
@@ -167,7 +171,7 @@ class TestRealOracleApi:
                     cell = _dict_first_value(row)
                     final_value = (
                         safe_get_first_value(cell)
-                        if isinstance(cell, (list, dict, tuple))
+                        if isinstance(cell, (list, dict))
                         else cell
                     )
                     tm.that(str(final_value), has="Hello Oracle")

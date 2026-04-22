@@ -36,7 +36,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
             @classmethod
             def normalize_port_bindings(
                 cls,
-                value: t.Container,
+                value: t.Container | t.JsonMapping,
             ) -> t.StrMapping:
                 """Normalize Docker port bindings into a typed mapping."""
                 try:
@@ -59,8 +59,9 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
                     )
                     if status_result.success:
                         status_value = status_result.value
+                        raw_ports = getattr(status_value, "ports", {})
                         ports = cls.normalize_port_bindings(
-                            getattr(status_value, "ports", {}),
+                            raw_ports if isinstance(raw_ports, dict) else {},
                         )
                         for container_port, host_port in ports.items():
                             if (
@@ -81,8 +82,9 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
                     )
                     if status_result.success:
                         status_value = status_result.value
+                        raw_ports = getattr(status_value, "ports", {})
                         ports = cls.normalize_port_bindings(
-                            getattr(status_value, "ports", {}),
+                            raw_ports if isinstance(raw_ports, dict) else {},
                         )
                         for container_port, host_port in ports.items():
                             if (
