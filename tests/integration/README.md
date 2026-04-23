@@ -162,7 +162,7 @@ CREATE TABLE flext_test.departments (
 
 ### **Database Connection Testing**
 
-```python
+```text
 @pytest.mark.integration
 def test_oracle_connection_with_real_database():
     """Test Oracle connection with actual database instance."""
@@ -183,7 +183,7 @@ def test_oracle_connection_with_real_database():
 
 ### **Query Execution Testing**
 
-```python
+```text
 @pytest.mark.integration
 def test_query_execution_with_real_oracle():
     """Test SQL query execution with actual Oracle database."""
@@ -204,7 +204,7 @@ def test_query_execution_with_real_oracle():
 
 ### **Schema Integration Testing**
 
-```python
+```text
 @pytest.mark.integration
 def test_schema_metadata_extraction():
     """Test Oracle schema metadata extraction with real database."""
@@ -234,7 +234,7 @@ def test_schema_metadata_extraction():
 
 Integration tests include performance benchmarks for critical operations:
 
-```python
+```text
 @pytest.mark.integration
 @pytest.mark.benchmark
 def test_connection_pool_performance():

@@ -95,7 +95,7 @@ pytest tests/unit/ -x --tb=short
 
 ### **Mock-Based Testing**
 
-```python
+```text
 @patch("flext_db_oracle.connection.create_engine")
 def test_connection_with_mocked_engine(mock_create_engine):
     """Test connection creation with mocked SQLAlchemy engine."""
