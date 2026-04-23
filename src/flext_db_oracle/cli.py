@@ -231,8 +231,9 @@ class FlextDbOracleCli(s[str]):
         """Module-level main entry point."""
         return 0 if cls.main().success else 1
 
-    @override
-    def execute(self, **kwargs: str | float | bool) -> p.Result[str]:
+    def execute(
+        self,
+    ) -> p.Result[str]:
         """Execute domain service - required by s.
 
         Returns:
