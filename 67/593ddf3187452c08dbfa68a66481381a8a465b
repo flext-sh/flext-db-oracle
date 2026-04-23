@@ -1,0 +1,32 @@
+src/flext_db_oracle/password.py
+  h_9db9d35f50cf33 29
+tests/unit/test_api.py
+  h_9db9d35f50cf33 1889
+src/flext_db_oracle/_utilities/db_oracle.py
+  h_9db9d35f50cf33 93,100,106,112
+src/flext_db_oracle/api.py
+  h_9db9d35f50cf33 13-14,17,25-26
+src/flext_db_oracle/services/plugin.py
+  h_9db9d35f50cf33 62,65,67-68,87,91
+src/flext_db_oracle/protocols.py
+  h_9db9d35f50cf33 454,476
+src/flext_db_oracle/client.py
+  h_9db9d35f50cf33 180
+src/flext_db_oracle/services/api_runtime.py
+  h_9db9d35f50cf33 1-441
+src/flext_db_oracle/base.py
+  h_9db9d35f50cf33 57-58
+src/flext_db_oracle/cli.py
+  h_9db9d35f50cf33 102,278,353,413,475
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "67593ddf3187452c08dbfa68a66481381a8a465b",
+  "prompts": {},
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
