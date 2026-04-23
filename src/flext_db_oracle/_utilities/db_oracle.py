@@ -90,26 +90,26 @@ class FlextDbOracleUtilitiesDbOracle:
     @classmethod
     def format_query_result(
         cls,
-        result: t.JsonValue | t.JsonMapping | t.JsonList | m.BaseModel,
+        result: t.JsonPayload,
         format_type: str = "table",
     ) -> p.Result[str]:
         """Format a query result to string or JSON."""
         if format_type == "json":
             json_payload: t.JsonValue = u.normalize_to_metadata(result)
             if isinstance(result, (list, tuple)):
-                rows_payload: list[t.JsonValue] = []
+                rows_payload: list[t.MetadataMapping] = []
                 rows_are_mappings = True
                 for row in result:
                     if not isinstance(row, Mapping):
                         rows_are_mappings = False
                         break
-                    row_payload: t.JsonMapping = {
+                    row_payload: t.MetadataMapping = {
                         str(key): u.normalize_to_metadata(value)
                         for key, value in row.items()
                     }
                     rows_payload.append(row_payload)
                 if rows_are_mappings:
-                    json_payload = rows_payload
+                    json_payload = t.json_value_adapter().validate_python(rows_payload)
             return r[str].ok(
                 t
                 .json_value_adapter()

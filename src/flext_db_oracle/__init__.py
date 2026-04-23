@@ -27,6 +27,7 @@ if _t.TYPE_CHECKING:
     from flext_db_oracle.models import FlextDbOracleModels, m
     from flext_db_oracle.password import FlextDbOraclePassword
     from flext_db_oracle.protocols import FlextDbOracleProtocols, p
+    from flext_db_oracle.services.api_runtime import FlextDbOracleApiRuntime
     from flext_db_oracle.services.connection import FlextDbOracleServiceConnection
     from flext_db_oracle.services.facade import FlextDbOracleServices
     from flext_db_oracle.services.plugin import FlextDbOracleServicePlugin
@@ -83,6 +84,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "FlextDbOracleProtocols",
                 "p",
             ),
+            ".services.api_runtime": ("FlextDbOracleApiRuntime",),
             ".services.connection": ("FlextDbOracleServiceConnection",),
             ".services.facade": ("FlextDbOracleServices",),
             ".services.plugin": ("FlextDbOracleServicePlugin",),
@@ -125,6 +127,7 @@ install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
 
 __all__: list[str] = [
     "FlextDbOracleApi",
+    "FlextDbOracleApiRuntime",
     "FlextDbOracleCli",
     "FlextDbOracleClient",
     "FlextDbOracleConstants",

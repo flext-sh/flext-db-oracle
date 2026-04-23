@@ -177,7 +177,7 @@ class FlextDbOracleClient(s):
                 "username": actual_username,
                 "password": actual_password,
             })
-            api = FlextDbOracleApi(settings=settings)
+            api = FlextDbOracleApi(settings)
             connect_result: p.Result[FlextDbOracleApi] = api.connect()
             if connect_result.success:
                 self.current_connection = api

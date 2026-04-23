@@ -1886,7 +1886,7 @@ class TestDirectCoverageBoostServices:
             ssl_server_cert_dn=None,
         )
         services = FlextDbOracleServices(settings=settings)
-        sql_test_cases: list[dict[str, str | tuple[t.RuntimeData, ...]]] = [
+        sql_test_cases: list[dict[str, str | tuple[t.JsonPayload, ...]]] = [
             {
                 "method": "build_select",
                 "args": ("test_table", ["id", "name"], {"id": 1}),

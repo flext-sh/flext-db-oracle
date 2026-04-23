@@ -99,7 +99,7 @@ class FlextDbOracleCli(s[str]):
             r[bool]: True if connection valid, False otherwise.
 
             """
-            new_api = FlextDbOracleApi(settings=settings)
+            new_api = FlextDbOracleApi(settings)
             connect_result = new_api.connect()
             if connect_result.failure:
                 error_text = connect_result.error or "Unknown connection error"
@@ -275,7 +275,7 @@ class FlextDbOracleCli(s[str]):
                 "password": password,
                 "timeout": timeout,
             })
-            api = FlextDbOracleApi(settings=settings)
+            api = FlextDbOracleApi(settings)
             health_result = api.fetch_health_status()
             if health_result.failure:
                 return r[m.DbOracle.HealthCheckReport].fail(
@@ -350,7 +350,7 @@ class FlextDbOracleCli(s[str]):
             if error_msg.success:
                 formatter.display_message(error_msg.value)
             return r[str].fail(error_text)
-        api = FlextDbOracleApi(settings=settings)
+        api = FlextDbOracleApi(settings)
         schemas_result = api.fetch_schemas()
         if schemas_result.failure:
             error_text = schemas_result.error or "Unknown schemas error"
@@ -410,7 +410,7 @@ class FlextDbOracleCli(s[str]):
             if error_msg.success:
                 formatter.display_message(error_msg.value)
             return r[str].fail(error_text)
-        api = FlextDbOracleApi(settings=settings)
+        api = FlextDbOracleApi(settings)
         tables_result = api.fetch_tables(schema)
         if tables_result.failure:
             error_text = tables_result.error or "Unknown tables error"
@@ -472,7 +472,7 @@ class FlextDbOracleCli(s[str]):
         if validation_result.failure:
             error_text = validation_result.error or "Unknown validation error"
             return self._handle_error_and_fail(formatter, error_text, error_text)
-        api = FlextDbOracleApi(settings=settings)
+        api = FlextDbOracleApi(settings)
         query_result = api.query(sql)
         if query_result.failure:
             error_text = query_result.error or "Unknown query error"
