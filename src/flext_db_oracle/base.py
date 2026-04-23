@@ -70,7 +70,7 @@ class FlextDbOracleServiceBase(s):
         """Initialize shared Oracle service state."""
         super().__init__()
         self._db_config = settings
-        self._config = settings
+        self.config = settings
 
     @property
     def db_config(self) -> FlextDbOracleSettings:

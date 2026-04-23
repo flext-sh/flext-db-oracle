@@ -118,7 +118,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         return r[bool].ok(True)
 
     @override
-    def execute(self, **_kwargs: t.Scalar) -> p.Result[FlextDbOracleSettings]:
+    def execute(self, **kwargs: t.Scalar) -> p.Result[FlextDbOracleSettings]:
         """Execute main domain service operation - return settings."""
         test_result = self.test_connection()
         if test_result.success:

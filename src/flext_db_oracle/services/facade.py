@@ -41,7 +41,7 @@ class FlextDbOracleServices(
         return self.db_config
 
     @override
-    def execute(self, **_kwargs: t.Scalar) -> p.Result[FlextDbOracleSettings]:
+    def execute(self, **kwargs: t.Scalar) -> p.Result[FlextDbOracleSettings]:
         """Return the active Oracle configuration as the default service result."""
         return r[FlextDbOracleSettings].ok(self.db_config)
 

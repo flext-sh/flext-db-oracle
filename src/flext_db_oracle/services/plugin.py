@@ -59,13 +59,13 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
             list(self._operations),
         )
 
-    def fetch_plugin(self, _name: str) -> p.Result[t.JsonPayload]:
+    def fetch_plugin(self, name: str) -> p.Result[t.JsonPayload]:
         """Get plugin data from local service registry."""
-        if not _name:
+        if not name:
             return r[t.JsonPayload].fail("Plugin name is required")
-        if _name not in self._plugins:
-            return r[t.JsonPayload].fail(f"Plugin '{_name}' not found")
-        return r[t.JsonPayload].ok(self._plugins[_name])
+        if name not in self._plugins:
+            return r[t.JsonPayload].fail(f"Plugin '{name}' not found")
+        return r[t.JsonPayload].ok(self._plugins[name])
 
     def list_plugins(self) -> p.Result[m.ConfigMap]:
         """List plugin names from local service registry."""
@@ -74,21 +74,29 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
     def record_metric(
         self,
-        _name: str,
-        _value: float,
-        _tags: m.ConfigMap | t.JsonMapping | None = None,
+        name: str,
+        value: float,
+        tags: m.ConfigMap | t.JsonMapping | None = None,
     ) -> p.Result[bool]:
         """Record metric in the local service metrics registry."""
-        if not _name:
+        if not name:
             return r[bool].fail("Metric name is required")
-        self._metrics[_name] = _value
+        metric_payload: t.JsonValue = value
+        if tags is not None:
+            metric_payload = {
+                "value": value,
+                "tags": {
+                    str(tag_name): tag_value for tag_name, tag_value in tags.items()
+                },
+            }
+        self._metrics[name] = metric_payload
         return r[bool].ok(True)
 
-    def register_plugin(self, _name: str, plugin: t.JsonPayload) -> p.Result[bool]:
+    def register_plugin(self, name: str, plugin: t.JsonPayload) -> p.Result[bool]:
         """Register plugin in local service registry."""
-        if not _name:
+        if not name:
             return r[bool].fail("Plugin name is required")
-        self._plugins[_name] = plugin
+        self._plugins[name] = plugin
         return r[bool].ok(True)
 
     def track_operation(
@@ -130,13 +138,13 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
             ),
         ).map_error(lambda e: f"Failed to track operation: {e}")
 
-    def unregister_plugin(self, _name: str) -> p.Result[bool]:
+    def unregister_plugin(self, name: str) -> p.Result[bool]:
         """Unregister plugin from local service registry."""
-        if not _name:
+        if not name:
             return r[bool].fail("Plugin name is required")
-        if _name not in self._plugins:
-            return r[bool].fail(f"Plugin '{_name}' not found")
-        self._plugins.pop(_name)
+        if name not in self._plugins:
+            return r[bool].fail(f"Plugin '{name}' not found")
+        self._plugins.pop(name)
         return r[bool].ok(True)
 
 

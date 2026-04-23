@@ -34,29 +34,29 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     create_table_ddl, drop_table_ddl.
     """
 
-    def build_create_index_statement(self, _config: t.JsonMapping) -> p.Result[str]:
+    def build_create_index_statement(self, config: t.JsonMapping) -> p.Result[str]:
         """Build Oracle CREATE INDEX statement from configuration."""
         try:
-            if not isinstance(_config, Mapping):
+            if not isinstance(config, Mapping):
                 return r[str].fail("Invalid CREATE INDEX settings payload")
-            raw_columns = _config.get("columns", [])
+            raw_columns = config.get("columns", [])
             columns_list: t.StrSequence = (
                 [str(col) for col in raw_columns]
                 if isinstance(raw_columns, list)
                 else []
             )
-            raw_parallel = _config.get("parallel", 1)
+            raw_parallel = config.get("parallel", 1)
             parallel_value = u.to_int(
                 raw_parallel if raw_parallel is not None else 1,
                 default=1,
             )
             payload = {
-                "table_name": str(_config.get("table_name", "")),
-                "index_name": str(_config.get("index_name", "")),
+                "table_name": str(config.get("table_name", "")),
+                "index_name": str(config.get("index_name", "")),
                 "columns": columns_list,
-                "unique": bool(_config.get("unique", False)),
-                "schema_name": str(_config.get("schema_name", "")),
-                "tablespace": str(_config.get("tablespace", "")),
+                "unique": bool(config.get("unique", False)),
+                "schema_name": str(config.get("schema_name", "")),
+                "tablespace": str(config.get("tablespace", "")),
                 "parallel": parallel_value,
             }
             settings = m.DbOracle.CreateIndexConfig.model_validate(

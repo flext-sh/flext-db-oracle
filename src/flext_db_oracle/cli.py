@@ -232,7 +232,7 @@ class FlextDbOracleCli(s[str]):
         return 0 if cls.main().success else 1
 
     @override
-    def execute(self, **_kwargs: str | float | bool) -> p.Result[str]:
+    def execute(self, **kwargs: str | float | bool) -> p.Result[str]:
         """Execute domain service - required by s.
 
         Returns:

@@ -27,7 +27,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     _oracle_config: FlextDbOracleSettings = u.PrivateAttr()
     _services: FlextDbOracleServices = u.PrivateAttr()
     _context_name: str = u.PrivateAttr(default_factory=lambda: "oracle-api")
-    _context: None = u.PrivateAttr(default_factory=lambda: None)
+    context: None = u.PrivateAttr(default_factory=lambda: None)
     _dispatcher: p.Dispatcher = u.PrivateAttr()
 
     def __init__(
@@ -40,7 +40,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         self._oracle_config = settings
         self._services = FlextDbOracleServices(settings=self._oracle_config)
         self._context_name = context_name or "oracle-api"
-        self._context: None = None
+        self.context: None = None
         self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
 
     @override
@@ -198,7 +198,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         return self._services.disconnect()
 
     @override
-    def execute(self, **_kwargs: t.Scalar) -> p.Result[FlextDbOracleSettings]:
+    def execute(self, **kwargs: t.Scalar) -> p.Result[FlextDbOracleSettings]:
         """Execute default domain service operation - return settings."""
         return u.try_(lambda: self._oracle_config).map_error(
             lambda e: f"API execution failed: {e}",
@@ -257,9 +257,9 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         """Get observability metrics for the connection."""
         return self._services.fetch_metrics().map(lambda metrics: metrics.model_dump())
 
-    def fetch_plugin(self, _name: str) -> p.Result[t.JsonPayload]:
+    def fetch_plugin(self, name: str) -> p.Result[t.JsonPayload]:
         """Get a registered plugin by name."""
-        return self._services.fetch_plugin(_name)
+        return self._services.fetch_plugin(name)
 
     def fetch_primary_keys(
         self,
@@ -345,11 +345,11 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
 
     def register_plugin(
         self,
-        _name: str,
+        name: str,
         plugin: t.JsonPayload,
     ) -> p.Result[bool]:
         """Register a plugin in local API registry."""
-        return self._services.register_plugin(_name, plugin)
+        return self._services.register_plugin(name, plugin)
 
     def test_connection(self) -> p.Result[bool]:
         """Test Oracle database connection."""
@@ -384,9 +384,9 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
             },
         )
 
-    def unregister_plugin(self, _name: str) -> p.Result[bool]:
+    def unregister_plugin(self, name: str) -> p.Result[bool]:
         """Unregister a plugin from local API registry."""
-        return self._services.unregister_plugin(_name)
+        return self._services.unregister_plugin(name)
 
     def _convert_to_query_result(
         self,
