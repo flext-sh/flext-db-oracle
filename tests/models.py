@@ -39,7 +39,7 @@ class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
                 description: str
                 author: str
                 plugin_type: str
-                metadata: Mapping[str, TestsFlextDbOracleTypes.Container]
+                metadata: Mapping[str, TestsFlextDbOracleTypes.FlatContainer]
 
                 @classmethod
                 def create(
@@ -50,7 +50,7 @@ class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
                     description: str,
                     author: str,
                     plugin_type: str,
-                    metadata: Mapping[str, TestsFlextDbOracleTypes.Container],
+                    metadata: Mapping[str, TestsFlextDbOracleTypes.FlatContainer],
                 ) -> TestsFlextDbOracleModels.DbOracle.Tests.StubPluginEntity:
                     """Create a stub plugin entity with the expected plugin API shape."""
                     return cls(

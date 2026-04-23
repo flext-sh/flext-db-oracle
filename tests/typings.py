@@ -13,7 +13,7 @@ from collections.abc import (
 
 from flext_tests import FlextTestsTypes
 
-from flext_db_oracle import FlextDbOracleTypes, p
+from flext_db_oracle import FlextDbOracleTypes, m, p
 
 
 class TestsFlextDbOracleTypes(FlextTestsTypes, FlextDbOracleTypes):
@@ -27,8 +27,8 @@ class TestsFlextDbOracleTypes(FlextTestsTypes, FlextDbOracleTypes):
 
             type ApiCoverageReturn = (
                 bool
-                | FlextDbOracleTypes.ConfigMap
-                | p.Result[Mapping[str, FlextDbOracleTypes.Container]]
+                | m.ConfigMap
+                | p.Result[Mapping[str, FlextDbOracleTypes.FlatContainer]]
                 | p.Result[str]
                 | p.Result[FlextDbOracleTypes.StrSequence]
             )

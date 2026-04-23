@@ -90,10 +90,14 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.that(result, has="plugin_count")
         config_obj = result["settings"]
         tm.that(config_obj, is_=dict)
-        if isinstance(config_obj, dict):
-            config_dict: t.JsonMapping = config_obj
-        else:
-            config_dict = {}
+        config_dict: dict[str, t.JsonValue] = {}
+        if isinstance(config_obj, Mapping):
+            for key, value in config_obj.items():
+                config_dict[str(key)] = (
+                    value
+                    if isinstance(value, (str, int, float, bool)) or value is None
+                    else str(value)
+                )
         tm.that(config_dict["host"], eq="127.0.0.1")
         tm.that(config_dict["port"], eq=19999)
         tm.that(config_dict["service_name"], eq="TEST")

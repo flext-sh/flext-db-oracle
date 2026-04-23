@@ -27,7 +27,6 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     _oracle_config: FlextDbOracleSettings = u.PrivateAttr()
     _services: FlextDbOracleServices = u.PrivateAttr()
     _context_name: str = u.PrivateAttr(default_factory=lambda: "oracle-api")
-    context: None = u.PrivateAttr(default_factory=lambda: None)
     _dispatcher: p.Dispatcher = u.PrivateAttr()
 
     def __init__(
@@ -40,7 +39,6 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         self._oracle_config = settings
         self._services = FlextDbOracleServices(settings=self._oracle_config)
         self._context_name = context_name or "oracle-api"
-        self.context: None = None
         self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
 
     @override
