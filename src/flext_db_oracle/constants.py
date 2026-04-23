@@ -99,7 +99,7 @@ class FlextDbOracleConstants(c):
                 "number": "NUMBER",
                 "boolean": "NUMBER(1)",
                 "array": "CLOB",
-                "t.Container": "CLOB",
+                "t.JsonValue": "CLOB",
                 "date-time": "TIMESTAMP",
                 "date": "DATE",
                 "time": "TIMESTAMP",

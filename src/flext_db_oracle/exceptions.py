@@ -65,7 +65,7 @@ class FlextDbOracleExceptions(e):
             object_type: str | None = None,
             **_kwargs: t.Scalar,
         ) -> None:
-            """Initialize metadata error with t.Container name and type metadata."""
+            """Initialize metadata error with t.JsonValue name and type metadata."""
             super().__init__(message)
             self.object_name = object_name
             self.object_type = object_type
@@ -94,7 +94,7 @@ class FlextDbOracleExceptions(e):
             message: str,
             *,
             sql_text: str | None = None,
-            bind_variables: t.ContainerValueMapping | None = None,
+            bind_variables: t.JsonMapping | None = None,
             **_kwargs: t.Scalar,
         ) -> None:
             """Initialize query error with SQL text and bind variables metadata."""

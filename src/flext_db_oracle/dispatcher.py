@@ -37,21 +37,21 @@ class FlextDbOracleDispatcher(s):
     ) -> Mapping[
         type,
         tuple[
-            Callable[[t.Container], t.Container],
-            t.ContainerValueMapping | None,
+            Callable[[t.JsonValue], t.JsonValue],
+            t.JsonMapping | None,
         ],
     ]:
         """Create connection-related handler functions."""
 
-        def connect_handler(_cmd: t.Container) -> t.Container:
+        def connect_handler(_cmd: t.JsonValue) -> t.JsonValue:
             return services.connect().success
 
-        def disconnect_handler(_cmd: t.Container) -> t.Container:
+        def disconnect_handler(_cmd: t.JsonValue) -> t.JsonValue:
             return services.disconnect().success
 
         def connection_test_handler(
-            _command_data: t.Container,
-        ) -> t.Container:
+            _command_data: t.JsonValue,
+        ) -> t.JsonValue:
             """Oracle connection test handler - command_data parameter required by dispatcher interface."""
             return services.test_connection().map_or(False)
 
@@ -69,15 +69,15 @@ class FlextDbOracleDispatcher(s):
         cls,
         services: FlextDbOracleServices,
         *,
-        _bus: t.Container | None = None,
+        _bus: t.JsonValue | None = None,
     ) -> p.Dispatcher:
         """Create a dispatcher instance wired to Oracle services."""
         dispatcher = FlextContainer.shared().dispatcher().unwrap()
         function_map: MutableMapping[
             type,
             tuple[
-                Callable[[t.Container], t.Container],
-                t.ContainerValueMapping | None,
+                Callable[[t.JsonValue], t.JsonValue],
+                t.JsonMapping | None,
             ],
         ] = {}
         function_map.update(cls._create_connection_handlers(services))
@@ -87,11 +87,11 @@ class FlextDbOracleDispatcher(s):
         for handler_fn, _metadata in function_map.values():
 
             def _wrap(
-                fn: Callable[[t.Container], t.Container],
-            ) -> Callable[[t.Container], p.Result[t.Container]]:
-                def wrapped(*args: t.Container) -> p.Result[t.Container]:
+                fn: Callable[[t.JsonValue], t.JsonValue],
+            ) -> Callable[[t.JsonValue], p.Result[t.JsonValue]]:
+                def wrapped(*args: t.JsonValue) -> p.Result[t.JsonValue]:
                     result = fn(*args)
-                    return r[t.Container].ok(result)
+                    return r[t.JsonValue].ok(result)
 
                 return wrapped
 
@@ -104,13 +104,13 @@ class FlextDbOracleDispatcher(s):
     ) -> Mapping[
         type,
         tuple[
-            Callable[[t.Container], t.Container],
-            t.ContainerValueMapping | None,
+            Callable[[t.JsonValue], t.JsonValue],
+            t.JsonMapping | None,
         ],
     ]:
         """Create query-related handler functions."""
 
-        def execute_query_handler(command: t.Container) -> t.Container:
+        def execute_query_handler(command: t.JsonValue) -> t.JsonValue:
             if isinstance(command, m.DbOracle.ExecuteQueryCommand):
                 sql = command.sql
                 parameters = m.ConfigMap.model_validate({
@@ -122,7 +122,7 @@ class FlextDbOracleDispatcher(s):
             result = services.execute_query(sql, parameters)
             return len(result.value) if result.success else 0
 
-        def fetch_one_handler(command: t.Container) -> t.Container:
+        def fetch_one_handler(command: t.JsonValue) -> t.JsonValue:
             if isinstance(command, m.DbOracle.FetchOneCommand):
                 sql = command.sql
                 parameters = m.ConfigMap.model_validate({
@@ -134,7 +134,7 @@ class FlextDbOracleDispatcher(s):
             result = services.fetch_one(sql, parameters)
             return str(result.value) if result.success and result.value else ""
 
-        def execute_statement_handler(command: t.Container) -> t.Container:
+        def execute_statement_handler(command: t.JsonValue) -> t.JsonValue:
             if isinstance(
                 command,
                 m.DbOracle.ExecuteStatementCommand,
@@ -148,12 +148,10 @@ class FlextDbOracleDispatcher(s):
                 parameters = m.ConfigMap(root={})
             return services.execute_statement(sql, parameters).map_or(0)
 
-        def execute_many_handler(command: t.Container) -> t.Container:
+        def execute_many_handler(command: t.JsonValue) -> t.JsonValue:
             if isinstance(command, m.DbOracle.ExecuteManyCommand):
                 sql = command.sql
-                parameters_list: Sequence[t.ContainerValueMapping] = list(
-                    command.parameters_list
-                )
+                parameters_list: Sequence[t.JsonMapping] = list(command.parameters_list)
             else:
                 sql = ""
                 parameters_list = []
@@ -181,24 +179,24 @@ class FlextDbOracleDispatcher(s):
     ) -> Mapping[
         type,
         tuple[
-            Callable[[t.Container], t.Container],
-            t.ContainerValueMapping | None,
+            Callable[[t.JsonValue], t.JsonValue],
+            t.JsonMapping | None,
         ],
     ]:
         """Create schema/metadata handler functions."""
 
-        def get_schemas_handler(_cmd: t.Container) -> t.Container:
+        def get_schemas_handler(_cmd: t.JsonValue) -> t.JsonValue:
             result = services.fetch_schemas()
             return ",".join(result.value) if result.success else ""
 
-        def get_tables_handler(command: t.Container) -> t.Container:
+        def get_tables_handler(command: t.JsonValue) -> t.JsonValue:
             schema: str | None = None
             if isinstance(command, m.DbOracle.GetTablesCommand):
                 schema = command.schema_name
             result = services.fetch_tables(schema)
             return ",".join(result.value) if result.success else ""
 
-        def get_columns_handler(command: t.Container) -> t.Container:
+        def get_columns_handler(command: t.JsonValue) -> t.JsonValue:
             if isinstance(command, m.DbOracle.GetColumnsCommand):
                 table = command.table
                 schema = command.schema_name

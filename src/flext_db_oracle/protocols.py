@@ -81,11 +81,11 @@ class FlextDbOracleProtocols(p):
             must satisfy this protocol.
             """
 
-            def fetch_connection(self) -> p.Result[t.Container]:
-                """Get current Oracle connection t.Container.
+            def fetch_connection(self) -> p.Result[t.JsonValue]:
+                """Get current Oracle connection t.JsonValue.
 
                 Returns:
-                r: Connection t.Container or error
+                r: Connection t.JsonValue or error
 
                 """
                 ...
@@ -114,7 +114,7 @@ class FlextDbOracleProtocols(p):
             def execute_many(
                 self,
                 sql: str,
-                params_list: Sequence[t.ContainerValueMapping],
+                params_list: Sequence[t.JsonMapping],
             ) -> p.Result[int]:
                 """Execute Oracle SQL statement with multiple parameter sets.
 
@@ -131,7 +131,7 @@ class FlextDbOracleProtocols(p):
             def execute_query(
                 self,
                 sql: str,
-                params: t.ContainerValueMapping | None = None,
+                params: t.JsonMapping | None = None,
             ) -> p.Result[Sequence[m.Dict]]:
                 """Execute Oracle SQL query.
 
@@ -148,7 +148,7 @@ class FlextDbOracleProtocols(p):
             def execute_statement(
                 self,
                 sql: str,
-                params: t.ContainerValueMapping | None = None,
+                params: t.JsonMapping | None = None,
             ) -> p.Result[bool]:
                 """Execute Oracle SQL statement.
 
@@ -165,7 +165,7 @@ class FlextDbOracleProtocols(p):
             def fetch_one(
                 self,
                 sql: str,
-                params: t.ContainerValueMapping | None = None,
+                params: t.JsonMapping | None = None,
             ) -> p.Result[m.Dict | None]:
                 """Fetch single result from Oracle query.
 
@@ -195,7 +195,7 @@ class FlextDbOracleProtocols(p):
                 schema: Schema name (optional)
 
                 Returns:
-                r[Sequence[t.ContainerValueMapping]]: Column metadata or error
+                r[Sequence[t.JsonMapping]]: Column metadata or error
 
                 """
                 ...
@@ -238,7 +238,7 @@ class FlextDbOracleProtocols(p):
                 schema: Schema name (optional)
 
                 Returns:
-                r[t.ContainerValueMapping]: Table metadata or error
+                r[t.JsonMapping]: Table metadata or error
 
                 """
                 ...
@@ -279,8 +279,8 @@ class FlextDbOracleProtocols(p):
             def build_insert_statement(
                 self,
                 table: str,
-                data: t.ContainerValueMapping,
-            ) -> p.Result[tuple[str, t.ContainerValueMapping]]:
+                data: t.JsonMapping,
+            ) -> p.Result[tuple[str, t.JsonMapping]]:
                 """Build Oracle INSERT statement.
 
                 Args:
@@ -288,7 +288,7 @@ class FlextDbOracleProtocols(p):
                 data: Column data
 
                 Returns:
-                r[tuple[str, t.ContainerValueMapping]]: SQL and parameters or error
+                r[tuple[str, t.JsonMapping]]: SQL and parameters or error
 
                 """
                 ...
@@ -319,9 +319,9 @@ class FlextDbOracleProtocols(p):
             def build_update_statement(
                 self,
                 table: str,
-                data: t.ContainerValueMapping,
+                data: t.JsonMapping,
                 where_clause: str,
-            ) -> p.Result[tuple[str, t.ContainerValueMapping]]:
+            ) -> p.Result[tuple[str, t.JsonMapping]]:
                 """Build Oracle UPDATE statement.
 
                 Args:
@@ -330,7 +330,7 @@ class FlextDbOracleProtocols(p):
                 where_clause: WHERE condition
 
                 Returns:
-                r[tuple[str, t.ContainerValueMapping]]: SQL and parameters or error
+                r[tuple[str, t.JsonMapping]]: SQL and parameters or error
 
                 """
                 ...
@@ -403,7 +403,7 @@ class FlextDbOracleProtocols(p):
                 """Get collected Oracle metrics.
 
                 Returns:
-                r[t.ContainerValueMapping]: Metrics data or error
+                r[t.JsonMapping]: Metrics data or error
 
                 """
                 ...
@@ -507,7 +507,7 @@ class FlextDbOracleProtocols(p):
                 """Get Oracle connection status information.
 
                 Returns:
-                r[t.ContainerValueMapping]: Connection status or error
+                r[t.JsonMapping]: Connection status or error
 
                 """
                 ...
@@ -516,7 +516,7 @@ class FlextDbOracleProtocols(p):
                 """Perform Oracle database health check.
 
                 Returns:
-                r[t.ContainerValueMapping]: Health status or error
+                r[t.JsonMapping]: Health status or error
 
                 """
                 ...

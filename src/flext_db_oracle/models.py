@@ -67,7 +67,7 @@ class FlextDbOracleModels(m):
             port: t.NonNegativeInt = 0
             service_name: str = ""
             response_time_ms: t.NonNegativeFloat = 0.0
-            details: t.ContainerValueMapping = u.Field(
+            details: t.JsonMapping = u.Field(
                 default_factory=lambda: MappingProxyType({}),
                 description="Health check detail key-value pairs",
             )
@@ -77,7 +77,7 @@ class FlextDbOracleModels(m):
         class RowData(DbOracleDomainModel):
             """Typed row payload for query results."""
 
-            values: Sequence[t.Container] = u.Field(
+            values: t.JsonList = u.Field(
                 default_factory=tuple,
                 description="Row column values",
             )
@@ -264,7 +264,7 @@ class FlextDbOracleModels(m):
             model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=False)
 
             query: str = u.Field(description="SQL query that produced the result")
-            result_data: Sequence[t.Container] = u.Field(
+            result_data: t.JsonList = u.Field(
                 default_factory=tuple,
                 description="Raw result data from query execution",
             )
@@ -416,12 +416,12 @@ class FlextDbOracleModels(m):
                 description="Database engine identifier",
                 validate_default=True,
             )
-            metrics: t.ContainerValueMapping = u.Field(
+            metrics: t.JsonMapping = u.Field(
                 default_factory=lambda: MappingProxyType({}),
                 description="Health check metric values",
             )
 
-            def __getitem__(self, key: str) -> t.Container:
+            def __getitem__(self, key: str) -> t.JsonValue:
                 """Get item from health status."""
                 if key in self.metrics:
                     return self.metrics[key]
@@ -455,7 +455,7 @@ class FlextDbOracleModels(m):
                 description="Primary key column names",
             )
 
-            def __getitem__(self, key: str) -> t.Container:
+            def __getitem__(self, key: str) -> t.JsonValue:
                 """Get item from table metadata."""
                 dump = self.model_dump()
                 value = dump.get(key, "")
@@ -539,9 +539,9 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
 
-            def __getitem__(self, key: str) -> t.Container:
+            def __getitem__(self, key: str) -> t.JsonValue:
                 """Get item from column metadata."""
-                key_map: t.ContainerValueMapping = {
+                key_map: t.JsonMapping = {
                     "column_name": self.name,
                     "name": self.name,
                     "data_type": self.data_type,
@@ -633,7 +633,7 @@ class FlextDbOracleModels(m):
             """Command to execute SELECT query."""
 
             sql: str = u.Field(description="SQL SELECT query to execute")
-            parameters: t.ContainerValueMapping | None = u.Field(
+            parameters: t.JsonMapping | None = u.Field(
                 None,
                 description="Query bind parameters",
                 validate_default=True,
@@ -643,7 +643,7 @@ class FlextDbOracleModels(m):
             """Command to fetch single row."""
 
             sql: str = u.Field(description="SQL query to fetch a single row")
-            parameters: t.ContainerValueMapping | None = u.Field(
+            parameters: t.JsonMapping | None = u.Field(
                 None,
                 description="Query bind parameters",
                 validate_default=True,
@@ -653,7 +653,7 @@ class FlextDbOracleModels(m):
             """Command to execute INSERT/UPDATE/DELETE."""
 
             sql: str = u.Field(description="SQL DML statement to execute")
-            parameters: t.ContainerValueMapping | None = u.Field(
+            parameters: t.JsonMapping | None = u.Field(
                 None,
                 description="Statement bind parameters",
                 validate_default=True,
@@ -663,8 +663,8 @@ class FlextDbOracleModels(m):
             """Command to execute batch statements."""
 
             sql: str = u.Field(description="SQL statement for batch execution")
-            parameters_list: Sequence[t.ContainerValueMapping] = u.Field(
-                default_factory=lambda: list[t.ContainerValueMapping](),
+            parameters_list: Sequence[t.JsonMapping] = u.Field(
+                default_factory=lambda: list[t.JsonMapping](),
                 description="List of parameter sets for batch execution",
             )
 

@@ -51,7 +51,7 @@ make type-check
 make test
 
 # All checks
-make validate
+make val
 ```
 
 ## Implementation Status
@@ -331,7 +331,7 @@ make oracle-operations  # Test database operations
 make oracle-stop        # Clean up
 
 # Commit with clean quality gates
-make validate           # Final validation (lint + type + security + test)
+make val           # Final validation (lint + type + security + test)
 git commit -m "feat: description of changes"
 ```
 

@@ -57,8 +57,8 @@ class FlextDbOracleServiceBase(s):
     _plugins: MutableMapping[str, t.RuntimeData] = u.PrivateAttr(
         default_factory=lambda: dict[str, t.RuntimeData]()
     )
-    _metrics: MutableMapping[str, t.Container] = u.PrivateAttr(
-        default_factory=lambda: dict[str, t.Container]()
+    _metrics: t.MutableJsonMapping = u.PrivateAttr(
+        default_factory=lambda: dict[str, t.JsonValue]()
     )
 
     class _CountValue(m.RootModel[int | str]):
@@ -86,7 +86,7 @@ class FlextDbOracleServiceBase(s):
         return self._engine is not None
 
     @staticmethod
-    def _validate_config_map(value: t.Container) -> m.ConfigMap | None:
+    def _validate_config_map(value: t.JsonValue) -> m.ConfigMap | None:
         """Validate arbitrary mapping input as ConfigMap."""
         if not isinstance(value, dict):
             return None
@@ -103,7 +103,7 @@ class FlextDbOracleServiceBase(s):
         return m.ConfigMap(root={})
 
     @staticmethod
-    def _parse_count_value(value: t.Container) -> int:
+    def _parse_count_value(value: t.JsonValue) -> int:
         """Parse row count value accepting int or numeric string."""
         if isinstance(value, int):
             return value
@@ -194,7 +194,7 @@ class FlextDbOracleServiceBase(s):
         connection: SAConnection,
         statement: TextClause,
         parameters: m.ConfigMap | None = None,
-    ) -> CursorResult[tuple[t.Container, ...]]:
+    ) -> CursorResult[tuple[t.JsonValue, ...]]:
         """Execute statement on SQL connection."""
         normalized_params = FlextDbOracleServiceBase._normalize_params(parameters)
         return connection.execute(statement, normalized_params.root)

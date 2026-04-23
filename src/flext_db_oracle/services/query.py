@@ -35,7 +35,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     def execute_many(
         self,
         sql: str,
-        params_list: Sequence[t.ContainerValueMapping | m.ConfigMap],
+        params_list: Sequence[t.JsonMapping | m.ConfigMap],
     ) -> p.Result[int]:
         """Execute SQL statement multiple times."""
         if not self.connected():
@@ -146,7 +146,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     def generate_query_hash(
         self,
         sql: str = "",
-        params: m.ConfigMap | t.ContainerValueMapping | None = None,
+        params: m.ConfigMap | t.JsonMapping | None = None,
     ) -> p.Result[str]:
         """Generate query hash - simplified."""
         typed_params = (
@@ -159,7 +159,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
 
     def _normalize_query_rows(
         self,
-        query_result: CursorResult[tuple[t.Container, ...]],
+        query_result: CursorResult[tuple[t.JsonValue, ...]],
     ) -> Sequence[m.Dict]:
         """Normalize SQLAlchemy query result rows into typed mapping models."""
         mapping_result = query_result.mappings()
@@ -170,7 +170,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         ]
         return result
 
-    def _normalize_row(self, row: t.ContainerValueMapping) -> m.Dict:
+    def _normalize_row(self, row: t.JsonMapping) -> m.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
         return m.Dict(root={str(key): value for key, value in row.items()})
 

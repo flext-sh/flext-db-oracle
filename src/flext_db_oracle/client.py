@@ -30,7 +30,7 @@ class FlextDbOracleClient(s):
 
     @staticmethod
     def _validate_config_map(
-        value: t.ContainerValueMapping | m.ConfigMap,
+        value: t.JsonMapping | m.ConfigMap,
     ) -> m.ConfigMap | None:
         """Validate generic mapping payload with Pydantic."""
         try:
@@ -41,7 +41,7 @@ class FlextDbOracleClient(s):
             return None
 
     @staticmethod
-    def _validate_general_list(value: t.Container) -> t.FlatContainerList | None:
+    def _validate_general_list(value: t.JsonValue) -> t.JsonList | None:
         """Validate list payload with Pydantic."""
         return t.FLAT_CONTAINER_LIST_ADAPTER.validate_python(value)
 
@@ -295,19 +295,19 @@ class FlextDbOracleClient(s):
         """
         try:
 
-            def adapt_schemas(raw_value: t.Container) -> Sequence[m.ConfigMap]:
+            def adapt_schemas(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:
                 schemas = FlextDbOracleClient._validate_general_list(raw_value)
                 if schemas is None:
                     return []
                 return [m.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
 
-            def adapt_tables(raw_value: t.Container) -> Sequence[m.ConfigMap]:
+            def adapt_tables(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:
                 tables = FlextDbOracleClient._validate_general_list(raw_value)
                 if tables is None:
                     return []
                 return [m.ConfigMap(root={"table": str(table)}) for table in tables]
 
-            def adapt_health(raw_value: t.Container) -> Sequence[m.ConfigMap]:
+            def adapt_health(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:
                 try:
                     health_map = t.CONTAINER_VALUE_MAPPING_ADAPTER.validate_python(
                         raw_value
@@ -325,7 +325,7 @@ class FlextDbOracleClient(s):
                 ]
 
             adaptation_strategies: Sequence[
-                tuple[str, Callable[[t.Container], Sequence[m.ConfigMap]]]
+                tuple[str, Callable[[t.JsonValue], Sequence[m.ConfigMap]]]
             ] = [
                 ("schemas", adapt_schemas),
                 ("tables", adapt_tables),
@@ -516,7 +516,7 @@ class FlextDbOracleClient(s):
             ] = [
                 ("table", self._format_as_table),
                 ("json", self._format_as_json),
-                ("plain", lambda data: p.Result[str].ok(str(data))),
+                ("plain", lambda data: r[str].ok(str(data))),
             ]
             for supported_format, formatter in formatter_strategies:
                 if format_type == supported_format:
@@ -579,7 +579,7 @@ class FlextDbOracleClient(s):
         if isinstance(raw_params, m.ConfigMap):
             params_map = raw_params
         else:
-            normalized_params: t.ContainerValueMapping
+            normalized_params: t.JsonMapping
             try:
                 normalized_params = t.CONTAINER_VALUE_MAPPING_ADAPTER.validate_python(
                     raw_params
@@ -589,7 +589,7 @@ class FlextDbOracleClient(s):
                     {},
                 )
             params_map = m.ConfigMap.model_validate({"root": normalized_params})
-        query_params: t.ContainerValueMapping = {
+        query_params: t.JsonMapping = {
             str(k): str(v) for k, v in params_map.root.items()
         }
         return self.current_connection.query(sql, query_params).map(

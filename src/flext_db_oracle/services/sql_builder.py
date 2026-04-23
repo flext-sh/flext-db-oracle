@@ -109,7 +109,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         self,
         table_name: str,
         columns: t.StrSequence | None = None,
-        conditions: m.ConfigMap | t.ContainerValueMapping | None = None,
+        conditions: m.ConfigMap | t.JsonMapping | None = None,
         schema_name: str | None = None,
     ) -> p.Result[str]:
         """Build SELECT query - simplified implementation."""
@@ -145,7 +145,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     def create_table_ddl(
         self,
         table_name: str,
-        columns: Sequence[m.DbOracle.Column | t.ContainerValueMapping],
+        columns: Sequence[m.DbOracle.Column | t.JsonMapping],
         schema: str | None = None,
     ) -> p.Result[str]:
         """Generate CREATE TABLE DDL - simplified."""

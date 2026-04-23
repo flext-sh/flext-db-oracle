@@ -93,7 +93,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(settings=settings)
-        conditions: t.ContainerValueMapping = {"id": 1, "name": "test"}
+        conditions: t.JsonMapping = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
         tm.ok(select_result)
         tm.that(select_result.value, has="WHERE")
@@ -109,7 +109,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(settings=settings)
-        conditions: t.ContainerValueMapping = {"id": 1, "status": "active"}
+        conditions: t.JsonMapping = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
         tm.ok(safe_result)
         sql = safe_result.value
@@ -149,7 +149,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(settings=settings)
-        singer_schema: dict[str, t.JsonValue] = {
+        singer_schema: t.JsonMapping = {
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
@@ -175,7 +175,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(settings=settings)
-        columns: Sequence[t.ContainerValueMapping] = [
+        columns: Sequence[t.JsonMapping] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",
@@ -373,7 +373,7 @@ class TestFlextDbOracleServicesBasic:
         )
         service = FlextDbOracleServices(settings=settings)
         sql = "SELECT * FROM users WHERE id = :id"
-        params: t.ContainerValueMapping = {"id": 123}
+        params: t.JsonMapping = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
         tm.ok(hash_result)
         tm.that(hash_result.value, is_=str)
@@ -927,7 +927,7 @@ class TestDirectCoverageBoostServicesServices:
                 result = method(*args)
                 tm.that(result, none=False)
                 tm.ok(result)
-                sql_content: t.Container = result.value
+                sql_content: t.JsonValue = result.value
                 sql_text: str
                 if isinstance(sql_content, tuple):
                     sql_text = str(sql_content)
@@ -1286,7 +1286,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(settings=settings)
-        conditions: t.ContainerValueMapping = {"id": 1, "name": "test"}
+        conditions: t.JsonMapping = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
         tm.ok(select_result)
         tm.that(select_result.value, has="WHERE")
@@ -1302,7 +1302,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(settings=settings)
-        conditions: t.ContainerValueMapping = {"id": 1, "status": "active"}
+        conditions: t.JsonMapping = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
         tm.ok(safe_result)
         sql = safe_result.value
@@ -1342,7 +1342,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(settings=settings)
-        singer_schema: dict[str, t.JsonValue] = {
+        singer_schema: t.JsonMapping = {
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
@@ -1368,7 +1368,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(settings=settings)
-        columns: Sequence[t.ContainerValueMapping] = [
+        columns: Sequence[t.JsonMapping] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",
@@ -1566,7 +1566,7 @@ class TestFlextDbOracleConnectionSimple:
         )
         service = FlextDbOracleServices(settings=settings)
         sql = "SELECT * FROM users WHERE id = :id"
-        params: t.ContainerValueMapping = {"id": 123}
+        params: t.JsonMapping = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
         tm.ok(hash_result)
         tm.that(hash_result.value, is_=str)
@@ -1622,9 +1622,9 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(settings=settings)
-        invalid_schema: dict[str, t.JsonValue] = {"properties": "not_a_dict"}
+        invalid_schema: t.JsonMapping = {"properties": "not_a_dict"}
         mapping_result = service.map_singer_schema(invalid_schema)
         tm.that(mapping_result.failure, eq=True)
-        missing_props_schema: dict[str, t.JsonValue] = {}
+        missing_props_schema: t.JsonMapping = {}
         mapping_result = service.map_singer_schema(missing_props_schema)
         tm.that(mapping_result.failure or not mapping_result.value, eq=True)

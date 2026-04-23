@@ -14,7 +14,7 @@ from __future__ import annotations
 from importlib.metadata import PackageMetadata, metadata
 from typing import TYPE_CHECKING
 
-from flext_core import FlextVersion
+from flext_core import FlextVersion, t
 
 if TYPE_CHECKING:
     from flext_core import t

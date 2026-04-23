@@ -23,7 +23,7 @@ from flext_db_oracle import (
 from tests import m, r, t, u
 
 
-def safe_get_first_value(data: t.MetadataValue) -> t.MetadataValue:
+def safe_get_first_value(data: t.JsonValue) -> t.JsonValue:
     """Safely get first value from various data structures."""
     if isinstance(data, list) and data:
         return data[0]
@@ -32,7 +32,7 @@ def safe_get_first_value(data: t.MetadataValue) -> t.MetadataValue:
     return data
 
 
-def _dict_first_value(row: m.Dict) -> t.MetadataValue:
+def _dict_first_value(row: m.Dict) -> t.JsonValue:
     """Get first value from a m.Dict RootModel."""
     root = row.root
     if root:
@@ -129,7 +129,7 @@ class TestRealOracleConnection:
             if create_result.failure:
                 msg = f"Table creation failed: {create_result.error}"
                 raise AssertionError(msg)
-            params_list: Sequence[t.ContainerValueMapping] = [
+            params_list: Sequence[t.JsonMapping] = [
                 {"id": 1, "name": "Test 1"},
                 {"id": 2, "name": "Test 2"},
                 {"id": 3, "name": "Test 3"},

@@ -380,7 +380,7 @@ class TestOutputFormatter:
         tm.that(output, has="item2")
 
     def test_format_list_output_dict_items(self) -> None:
-        """Test list output formatting with Mapping[str, t.Container] items."""
+        """Test list output formatting with t.JsonMapping items."""
         formatter = FlextDbOracleCli._OutputFormatter()
         items: Sequence[m.DbOracle.NamedItem] = [
             m.DbOracle.NamedItem(name="table1"),

@@ -87,7 +87,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
 
     @property
     def connection(self) -> FlextDbOracleServices | None:
-        """Get connection t.Container - public interface."""
+        """Get connection t.JsonValue - public interface."""
         return self._services if self._services.connected() else None
 
     @override
@@ -107,7 +107,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
 
     @classmethod
     def from_config(cls, settings: FlextDbOracleSettings) -> FlextDbOracleApi:
-        """Create API instance from an existing settings t.Container."""
+        """Create API instance from an existing settings t.JsonValue."""
         return cls(settings=settings)
 
     @classmethod
@@ -129,7 +129,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
 
     @staticmethod
     def _normalize_parameters(
-        parameters: t.ContainerValueMapping | None = None,
+        parameters: t.JsonMapping | None = None,
     ) -> p.Result[m.ConfigMap]:
         """Normalize query parameters into the canonical ConfigMap contract."""
         if parameters is None:
@@ -146,7 +146,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
     @classmethod
     def _normalize_parameters_list(
         cls,
-        parameters_list: Sequence[t.ContainerValueMapping],
+        parameters_list: Sequence[t.JsonMapping],
     ) -> p.Result[Sequence[m.ConfigMap]]:
         """Normalize bulk query parameters into canonical ConfigMap values."""
         normalized: list[m.ConfigMap] = []
@@ -227,7 +227,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
     def execute_many(
         self,
         sql: str,
-        params_list: Sequence[t.ContainerValueMapping],
+        params_list: Sequence[t.JsonMapping],
     ) -> p.Result[int]:
         """Execute a statement multiple times with different parameters."""
         self.logger.debug("Executing bulk statement", batch_size=len(params_list))
@@ -241,15 +241,15 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
     def execute_sql(
         self,
         sql: str,
-        parameters: t.ContainerValueMapping | None = None,
+        parameters: t.JsonMapping | None = None,
     ) -> p.Result[int]:
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
         return self.execute_statement(sql, parameters)
 
     def execute_statement(
         self,
-        sql: str | t.Container,
-        params: t.ContainerValueMapping | None = None,
+        sql: str | t.JsonValue,
+        params: t.JsonMapping | None = None,
     ) -> p.Result[int]:
         """Execute SQL statement directly and return affected rows."""
         sql_text = str(sql)
@@ -273,7 +273,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
         """Get database connection health status."""
         return self._services.fetch_connection_status()
 
-    def fetch_observability_metrics(self) -> p.Result[t.ContainerValueMapping]:
+    def fetch_observability_metrics(self) -> p.Result[t.JsonMapping]:
         """Get observability metrics for the connection."""
         return self._services.fetch_metrics().map(lambda metrics: metrics.model_dump())
 
@@ -339,7 +339,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
     def query(
         self,
         sql: str,
-        parameters: t.ContainerValueMapping | None = None,
+        parameters: t.JsonMapping | None = None,
     ) -> p.Result[Sequence[m.Dict]]:
         """Execute a SELECT query and return all results."""
         self.logger.debug("Executing query", query_length=len(sql))
@@ -353,7 +353,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
     def query_one(
         self,
         sql: str,
-        parameters: t.ContainerValueMapping | None = None,
+        parameters: t.JsonMapping | None = None,
     ) -> p.Result[m.Dict | None]:
         """Execute a SELECT query and return first result or None."""
         return self._normalize_parameters(parameters).flat_map(
@@ -377,7 +377,7 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
 
     def to_dict(
         self,
-        obj: t.ContainerValueMapping | None = None,
+        obj: t.JsonMapping | None = None,
     ) -> m.ConfigMap:
         """Serialize API state or explicit mapping into the canonical ConfigMap."""
         if obj is not None:
@@ -395,9 +395,9 @@ class FlextDbOracleApi(FlextDbOracleServiceBase):
             },
         )
 
-    def transaction(self) -> p.Result[t.ContainerValueMapping]:
+    def transaction(self) -> p.Result[t.JsonMapping]:
         """Get transaction status information."""
-        return r[t.ContainerValueMapping].ok(
+        return r[t.JsonMapping].ok(
             {
                 "connected": self._services.connected(),
                 "transaction_available": True,

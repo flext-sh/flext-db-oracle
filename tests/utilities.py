@@ -36,7 +36,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
             @classmethod
             def normalize_port_bindings(
                 cls,
-                value: t.Container | t.JsonMapping,
+                value: t.JsonValue | t.JsonMapping,
             ) -> t.StrMapping:
                 """Normalize Docker port bindings into a typed mapping."""
                 try:

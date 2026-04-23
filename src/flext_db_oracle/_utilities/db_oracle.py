@@ -5,7 +5,9 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import os
-from collections.abc import Mapping
+from collections.abc import (
+    Mapping,
+)
 from enum import StrEnum
 
 from sqlalchemy import (
@@ -88,12 +90,12 @@ class FlextDbOracleUtilitiesDbOracle:
     @classmethod
     def format_query_result(
         cls,
-        result: t.Container | t.JsonMapping | t.JsonList | m.BaseModel,
+        result: t.JsonValue | t.JsonMapping | t.JsonList | m.BaseModel,
         format_type: str = "table",
     ) -> p.Result[str]:
         """Format a query result to string or JSON."""
         if format_type == "json":
-            json_payload: t.MetadataValue = u.normalize_to_metadata(result)
+            json_payload: t.JsonValue = u.normalize_to_metadata(result)
             if isinstance(result, (list, tuple)):
                 rows_payload: list[t.JsonValue] = []
                 rows_are_mappings = True
@@ -101,7 +103,7 @@ class FlextDbOracleUtilitiesDbOracle:
                     if not isinstance(row, Mapping):
                         rows_are_mappings = False
                         break
-                    row_payload: dict[str, t.JsonValue] = {
+                    row_payload: t.JsonMapping = {
                         str(key): u.normalize_to_metadata(value)
                         for key, value in row.items()
                     }
@@ -128,7 +130,7 @@ class FlextDbOracleUtilitiesDbOracle:
     def generate_query_hash(
         cls,
         query: str,
-        params: t.ContainerValueMapping | None,
+        params: t.JsonMapping | None,
     ) -> p.Result[str]:
         """Generate a SHA-256 hash for a query and its parameters."""
         sorted_params = dict(sorted((params or {}).items()))
@@ -139,7 +141,7 @@ class FlextDbOracleUtilitiesDbOracle:
         return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
 
     @staticmethod
-    def _validate_config_map(value: t.Container) -> m.ConfigMap | None:
+    def _validate_config_map(value: t.JsonValue) -> m.ConfigMap | None:
         """Validate arbitrary mapping input as ConfigMap."""
         if not isinstance(value, dict):
             return None
@@ -156,7 +158,7 @@ class FlextDbOracleUtilitiesDbOracle:
         return m.ConfigMap(root={})
 
     @classmethod
-    def _parse_rowcount(cls, value: t.Container) -> int:
+    def _parse_rowcount(cls, value: t.JsonValue) -> int:
         """Parse strict integer rowcount via Pydantic."""
         if isinstance(value, int):
             return value
@@ -168,7 +170,7 @@ class FlextDbOracleUtilitiesDbOracle:
             return 0
 
     @classmethod
-    def _parse_count_value(cls, value: t.Container) -> int:
+    def _parse_count_value(cls, value: t.JsonValue) -> int:
         """Parse row count value accepting int or numeric string."""
         if isinstance(value, int):
             return value
@@ -218,7 +220,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @staticmethod
     def _sqlalchemy_text(statement: str) -> TextClause:
-        """Build SQL text t.Container."""
+        """Build SQL text t.JsonValue."""
         return text(statement)
 
     @staticmethod
@@ -251,7 +253,7 @@ class FlextDbOracleUtilitiesDbOracle:
         connection: SAConnection,
         statement: TextClause,
         parameters: m.ConfigMap | None = None,
-    ) -> CursorResult[tuple[t.Container, ...]]:
+    ) -> CursorResult[tuple[t.JsonValue, ...]]:
         """Execute statement on SQL connection."""
         normalized_params = cls.normalize_params(
             parameters,

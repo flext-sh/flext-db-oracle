@@ -174,7 +174,7 @@ class TestOracleE2E:
                 ("number", "NUMBER"),
                 ("boolean", "NUMBER(1)"),
                 ("array", "VARCHAR2(255)"),
-                ("t.Container", "VARCHAR2(255)"),
+                ("t.JsonValue", "VARCHAR2(255)"),
             ]
             for singer_type, expected_oracle_type in singer_types:
                 result = api.convert_singer_type(singer_type)
@@ -186,7 +186,7 @@ class TestOracleE2E:
                 assert expected_oracle_type in oracle_type, (
                     f"Expected {expected_oracle_type} in {oracle_type}"
                 )
-            singer_schema: dict[str, t.JsonValue] = {
+            singer_schema: t.JsonMapping = {
                 "properties": {
                     "id": {"type": "integer"},
                     "name": {"type": "string"},

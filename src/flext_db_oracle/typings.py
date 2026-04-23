@@ -42,95 +42,95 @@ class FlextDbOracleTypes(t):
         OracleDatabaseError: type[Exception] = oracledb.DatabaseError
         OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
-        type ConnectionConfiguration = t.ContainerValueMapping
-        type ConnectionPool = t.ContainerValueMapping
+        type ConnectionConfiguration = t.JsonMapping
+        type ConnectionPool = t.JsonMapping
         type ConnectionString = str
         type ConnectionParams = t.ConfigurationMapping
         type SslConfiguration = Mapping[
             str,
-            str | bool | t.ContainerValueMapping,
+            str | bool | t.JsonMapping,
         ]
         type AuthenticationConfig = Mapping[
             str,
-            str | t.ContainerValueMapping,
+            str | t.JsonMapping,
         ]
 
         type SqlQuery = str
-        type QueryParameters = t.ContainerValueMapping
-        type QueryResult = t.ContainerValueMapping
+        type QueryParameters = t.JsonMapping
+        type QueryResult = t.JsonMapping
         type QueryMetadata = Mapping[
             str,
-            str | int | t.ContainerValueMapping,
+            str | int | t.JsonMapping,
         ]
         type PreparedStatement = Mapping[
             str,
-            str | t.ContainerValueMapping,
+            str | t.JsonMapping,
         ]
         type QueryExecution = Mapping[
             str,
-            t.Scalar | t.ContainerValueMapping,
+            t.Scalar | t.JsonMapping,
         ]
 
         type TransactionConfiguration = t.ConfigurationMapping
         type TransactionState = Mapping[
             str,
-            str | bool | t.ContainerValueMapping,
+            str | bool | t.JsonMapping,
         ]
         type IsolationLevel = str
-        type TransactionBlock = Sequence[Mapping[str, str | t.ContainerValueMapping]]
+        type TransactionBlock = Sequence[Mapping[str, str | t.JsonMapping]]
         type SavepointConfig = t.HeaderMapping
         type RollbackConfig = Mapping[str, str | bool | t.StrSequence]
 
-        type SchemaDefinition = t.ContainerValueMapping
+        type SchemaDefinition = t.JsonMapping
         type TableDefinition = Mapping[
             str,
             str | Sequence[Mapping[str, str | bool | int]],
         ]
         type ColumnDefinition = Mapping[
             str,
-            t.Scalar | t.ContainerValueMapping,
+            t.Scalar | t.JsonMapping,
         ]
         type IndexDefinition = Mapping[
             str,
-            str | t.StrSequence | t.ContainerValueMapping,
+            str | t.StrSequence | t.JsonMapping,
         ]
         type ConstraintDefinition = Mapping[str, str | t.StrSequence | bool]
         type ViewDefinition = Mapping[
             str,
-            str | t.ContainerValueMapping,
+            str | t.JsonMapping,
         ]
 
         type SessionConfiguration = Mapping[
             str,
-            t.Scalar | t.ContainerValueMapping,
+            t.Scalar | t.JsonMapping,
         ]
         type SessionState = Mapping[
             str,
-            t.Container | t.ContainerValueMapping,
+            t.JsonValue | t.JsonMapping,
         ]
-        type SessionVariables = t.ContainerValueMapping
+        type SessionVariables = t.JsonMapping
         type SessionMetrics = t.ConfigValueMapping
         type SessionPooling = Mapping[
             str,
-            int | bool | str | t.ContainerValueMapping,
+            int | bool | str | t.JsonMapping,
         ]
         type SessionTimeout = t.HeaderMapping
 
         type PerformanceMetrics = Mapping[
             str,
-            t.Numeric | t.ContainerValueMapping,
+            t.Numeric | t.JsonMapping,
         ]
         type QueryPlan = Mapping[
             str,
-            str | int | Sequence[t.ContainerValueMapping],
+            str | int | Sequence[t.JsonMapping],
         ]
         type ExecutionStats = Mapping[
             str,
-            t.Numeric | str | t.ContainerValueMapping,
+            t.Numeric | str | t.JsonMapping,
         ]
         type IndexUsage = Mapping[
             str,
-            t.Scalar | t.ContainerValueMapping,
+            t.Scalar | t.JsonMapping,
         ]
         type CacheConfiguration = Mapping[str, int | str | bool]
         type OptimizationHints = Mapping[str, str | t.StrSequence]
@@ -138,31 +138,31 @@ class FlextDbOracleTypes(t):
         type UserPermissions = Mapping[str, t.StrSequence | t.BoolMapping]
         type RoleDefinition = Mapping[
             str,
-            str | t.StrSequence | t.ContainerValueMapping,
+            str | t.StrSequence | t.JsonMapping,
         ]
         type PrivilegeConfiguration = Mapping[
             str,
-            bool | t.StrSequence | t.ContainerValueMapping,
+            bool | t.StrSequence | t.JsonMapping,
         ]
         type AccessPolicy = Mapping[
             str,
-            str | bool | t.ContainerValueMapping,
+            str | bool | t.JsonMapping,
         ]
         type EncryptionConfig = Mapping[
             str,
-            str | bool | t.ContainerValueMapping,
+            str | bool | t.JsonMapping,
         ]
         type AuditConfiguration = Mapping[
             str,
-            bool | str | t.ContainerValueMapping,
+            bool | str | t.JsonMapping,
         ]
 
         type OracleDataType = str
         type PythonDataType = type
-        type TypeMapping = t.ContainerValueMapping
-        type DataConversion = t.ContainerValueMapping
+        type TypeMapping = t.JsonMapping
+        type DataConversion = t.JsonMapping
         type TypeValidation = Mapping[str, bool | str | t.StrSequence]
-        type NullHandling = Mapping[str, bool | t.Container]
+        type NullHandling = Mapping[str, bool | t.JsonValue]
 
         type ProjectType = Literal[
             "library",
@@ -181,18 +181,16 @@ class FlextDbOracleTypes(t):
             "sql-service",
             "data-connector",
         ]
-        type OracleProjectConfig = t.ContainerValueMapping
+        type OracleProjectConfig = t.JsonMapping
 
         type CliScalar = t.Scalar | None
         "CLI scalar type - Scalar value or None for optional CLI parameters."
 
-    CONTAINER_VALUE_ADAPTER: u.TypeAdapter[t.Container] = u.TypeAdapter(t.Container)
-    CONTAINER_VALUE_MAPPING_ADAPTER: u.TypeAdapter[t.ContainerValueMapping] = (
-        u.TypeAdapter(t.ContainerValueMapping)
+    CONTAINER_VALUE_ADAPTER: u.TypeAdapter[t.JsonValue] = u.TypeAdapter(t.JsonValue)
+    CONTAINER_VALUE_MAPPING_ADAPTER: u.TypeAdapter[t.JsonMapping] = u.TypeAdapter(
+        t.JsonMapping
     )
-    FLAT_CONTAINER_LIST_ADAPTER: u.TypeAdapter[t.FlatContainerList] = u.TypeAdapter(
-        t.FlatContainerList
-    )
+    FLAT_CONTAINER_LIST_ADAPTER: u.TypeAdapter[t.JsonList] = u.TypeAdapter(t.JsonList)
     STR_SEQUENCE_ADAPTER: u.TypeAdapter[t.StrSequence] = u.TypeAdapter(t.StrSequence)
 
 

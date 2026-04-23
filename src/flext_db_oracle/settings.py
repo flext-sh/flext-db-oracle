@@ -128,7 +128,7 @@ class FlextDbOracleSettings(FlextSettings):
     @classmethod
     def _parse_password(
         cls,
-        value: FlextDbOraclePassword | t.Container | None,
+        value: FlextDbOraclePassword | t.JsonValue | None,
     ) -> FlextDbOraclePassword | None:
         if value is None:
             return None
@@ -170,7 +170,7 @@ class FlextDbOracleSettings(FlextSettings):
     def resolve_environment_values(
         cls,
         prefix: str,
-    ) -> dict[str, t.Container]:
+    ) -> dict[str, t.JsonValue]:
         """Resolve non-null environment values for the requested Oracle prefix."""
         source = m.EnvSettingsSource(
             settings_cls=cls,

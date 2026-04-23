@@ -78,7 +78,7 @@ class Testc:
         tm.that(mappings["number"], eq="NUMBER")
         tm.that(mappings["boolean"], eq="NUMBER(1)")
         tm.that(mappings["array"], eq="CLOB")
-        tm.that(mappings["t.Container"], eq="CLOB")
+        tm.that(mappings["t.JsonValue"], eq="CLOB")
         tm.that(mappings["date-time"], eq="TIMESTAMP")
         tm.that(mappings["date"], eq="DATE")
 

@@ -12,7 +12,6 @@ from __future__ import annotations
 import os
 import sys
 from collections.abc import (
-    Mapping,
     Sequence,
 )
 from pathlib import Path
@@ -22,11 +21,11 @@ from flext_db_oracle import m, t, u
 MAX_OUTPUT_LINES = 3
 
 
-def _get_cli_examples() -> Sequence[Mapping[str, t.Container]]:
+def _get_cli_examples() -> Sequence[t.JsonMapping]:
     """Get CLI command examples - DRY pattern for example data.
 
     Returns:
-        Sequence[Mapping[str, t.Container]]: List of CLI command examples with metadata.
+        Sequence[t.JsonMapping]: List of CLI command examples with metadata.
 
     """
     return [
@@ -85,7 +84,7 @@ def _get_cli_examples() -> Sequence[Mapping[str, t.Container]]:
     ]
 
 
-def _run_example_command(example: Mapping[str, t.Container]) -> None:
+def _run_example_command(example: t.JsonMapping) -> None:
     """Run a single CLI example command - DRY pattern."""
     if example.get("env_required") and (not _check_oracle_env()):
         return

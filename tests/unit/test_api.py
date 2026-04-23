@@ -91,7 +91,7 @@ class TestFlextDbOracleApiRealFunctionality:
         config_obj = result["settings"]
         tm.that(config_obj, is_=dict)
         if isinstance(config_obj, dict):
-            config_dict: Mapping[str, t.Container | t.JsonValue] = config_obj
+            config_dict: t.JsonMapping = config_obj
         else:
             config_dict = {}
         tm.that(config_dict["host"], eq="127.0.0.1")
@@ -504,7 +504,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
     def test_map_singer_schema_method_real(self) -> None:
         """Test map_singer_schema method."""
-        test_schema: dict[str, t.JsonValue] = {
+        test_schema: t.JsonMapping = {
             "type": "object",
             "properties": {
                 "id": {"type": "integer"},
@@ -688,7 +688,7 @@ class TestApiModule:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_oracle_config() -> Mapping[str, t.Container]:
+        def create_test_oracle_config() -> t.JsonMapping:
             """Create test Oracle configuration data."""
             return {
                 "host": "localhost",
@@ -708,7 +708,7 @@ class TestApiModule:
             }
 
         @staticmethod
-        def create_test_schema_data() -> dict[str, t.JsonValue]:
+        def create_test_schema_data() -> t.JsonMapping:
             """Create test schema data."""
             return {
                 "table_name": "test_table",
@@ -1204,7 +1204,7 @@ class TestFlextDbOracleApiSafeMethods:
                 ),
                 eq=True,
             )
-        plugin: dict[str, t.JsonValue] = {
+        plugin: t.JsonMapping = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1310,7 +1310,7 @@ class TestFlextDbOracleApiSafeMethods:
             password="helper_pass",
         )
         api = FlextDbOracleApi(settings)
-        plugin: dict[str, t.JsonValue] = {
+        plugin: t.JsonMapping = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1494,7 +1494,7 @@ class TestFlextDbOracleApiWorking:
         tm.that(api_from_config, is_=FlextDbOracleApi)
 
     def test_dict_serialization(self) -> None:
-        """Test Mapping[str, t.Container] serialization methods."""
+        """Test t.JsonMapping serialization methods."""
         as_dict = self.api.to_dict()
         tm.that(as_dict, none=False)
 
@@ -1910,7 +1910,7 @@ class TestDirectCoverageBoostServices:
                 result = method(*raw_args)
                 tm.that(result, none=False)
                 tm.ok(result)
-                sql_content: t.Container = result.value
+                sql_content: t.JsonValue = result.value
                 sql_text: str
                 if isinstance(sql_content, tuple):
                     sql_text = str(sql_content)
