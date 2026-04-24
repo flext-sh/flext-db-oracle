@@ -314,7 +314,7 @@ class FlextDbOracleCli(s[str]):
 
     def execute_list_schemas(
         self,
-        host: str = "localhost",
+        host: str = c.LOCALHOST,
         port: int = c.DbOracle.Connection.DEFAULT_PORT,
         service_name: str = c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
         username: str = c.DbOracle.Connection.DEFAULT_USERNAME,
@@ -374,7 +374,7 @@ class FlextDbOracleCli(s[str]):
     def execute_list_tables(
         self,
         schema: str = "SYSTEM",
-        host: str = "localhost",
+        host: str = c.LOCALHOST,
         port: int = c.DbOracle.Connection.DEFAULT_PORT,
         service_name: str = c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
         username: str = c.DbOracle.Connection.DEFAULT_USERNAME,
@@ -434,7 +434,7 @@ class FlextDbOracleCli(s[str]):
     def execute_query(
         self,
         sql: str,
-        host: str = "localhost",
+        host: str = c.LOCALHOST,
         port: int = c.DbOracle.Connection.DEFAULT_PORT,
         service_name: str = c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
         username: str = c.DbOracle.Connection.DEFAULT_USERNAME,
