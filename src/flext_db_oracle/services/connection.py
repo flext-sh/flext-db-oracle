@@ -61,7 +61,8 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                     self._sqlalchemy_text("SELECT 1 FROM dual"),
                 )
             self.logger.info(f"Connected to Oracle database: {self.db_config.host}")
-            return r[Self].ok(self)
+            ok_result: p.Result[Self] = r.ok(self)
+            return ok_result
         except (
             t.DbOracle.OracleDatabaseError,
             t.DbOracle.OracleInterfaceError,
@@ -93,7 +94,8 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                         self.logger.info(
                             f"Connected to Oracle database: {self.db_config.host}",
                         )
-                        return r[Self].ok(self)
+                        nested_ok: p.Result[Self] = r.ok(self)
+                        return nested_ok
                     except (
                         t.DbOracle.OracleDatabaseError,
                         t.DbOracle.OracleInterfaceError,

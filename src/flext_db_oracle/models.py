@@ -182,9 +182,9 @@ class FlextDbOracleModels(m):
                 if not self.connected:
                     return False
                 age_seconds = float((datetime.now(UTC) - self.last_activity).seconds)
-                return (
+                return bool(
                     age_seconds
-                    <= c.DbOracle.OraclePerformance.CONNECTION_IDLE_TIMEOUT_SECONDS
+                    <= c.DbOracle.OraclePerformance.CONNECTION_IDLE_TIMEOUT_SECONDS,
                 )
 
             @property
@@ -318,12 +318,12 @@ class FlextDbOracleModels(m):
             @property
             def execution_time_seconds(self) -> float:
                 """Execution time in seconds."""
-                return self.execution_time_ms / 1000.0
+                return float(self.execution_time_ms / 1000.0)
 
             @property
             def has_results(self) -> bool:
                 """Whether query returned results."""
-                return self.row_count > 0
+                return bool(self.row_count > 0)
 
             @property
             def memory_usage_mb(self) -> float:
@@ -475,7 +475,7 @@ class FlextDbOracleModels(m):
 
             def __getitem__(self, key: str) -> str:
                 """Get mapped type for key."""
-                return self.mapping[key]
+                return str(self.mapping[key])
 
             def __len__(self) -> int:
                 """Get number of type mappings."""

@@ -163,9 +163,11 @@ class FlextDbOracleUtilitiesDbOracle:
         if isinstance(value, int):
             return value
         try:
-            return cls.StrictIntValue.model_validate(
-                value,
-            ).root
+            return int(
+                cls.StrictIntValue.model_validate(
+                    value,
+                ).root,
+            )
         except c.ValidationError:
             return 0
 
