@@ -11,7 +11,7 @@ from flext_tests import tm
 from tests import e
 
 
-class Teste:
+class TestsFlextDbOracleExceptions:
     """Test e functionality."""
 
     def test_exceptions_has_error_class(self) -> None:

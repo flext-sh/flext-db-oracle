@@ -33,7 +33,6 @@ def safe_get_first_value(data: t.JsonValue) -> t.JsonValue:
 
 
 def _dict_first_value(row: m.Dict) -> t.JsonValue:
-    """Get first value from a m.Dict RootModel."""
     root = row.root
     if root:
         val = next(iter(root.values()))
@@ -49,9 +48,7 @@ def _dict_first_value(row: m.Dict) -> t.JsonValue:
     return None
 
 
-class TestRealOracleConnection:
-    """Testes reais de conexão Oracle - SEM MOCKS."""
-
+class TestsFlextDbOracleOracleExample:
     def test_real_connection_connect_disconnect(
         self,
         real_oracle_config: FlextDbOracleSettings,
@@ -147,10 +144,6 @@ class TestRealOracleConnection:
             with contextlib.suppress(Exception):
                 connection.execute_statement("DROP TABLE temp_test_table")
             connection.disconnect()
-
-
-class TestRealOracleApi:
-    """Testes reais da API Oracle - SEM MOCKS."""
 
     def test_real_api_connect_context_manager(
         self,
@@ -325,10 +318,6 @@ class TestRealOracleApi:
             with contextlib.suppress(Exception):
                 drop_sql = f"DROP TABLE {table_name}"
                 connected_oracle_api.execute_sql(drop_sql)
-
-
-class TestRealOracleErrorHandling:
-    """Test real Oracle error handling scenarios."""
 
     def test_real_connection_invalid_credentials(self) -> None:
         """Test connection with invalid credentials."""

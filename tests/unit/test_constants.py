@@ -19,7 +19,7 @@ from tests import c, u
 
 
 @pytest.mark.unit_pure
-class Testc:
+class TestsFlextDbOracleConstantsUnit:
     """Comprehensive test c functionality and values."""
 
     def test_constants_inheritance(self) -> None:

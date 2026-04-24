@@ -27,7 +27,7 @@ from flext_db_oracle import (
 from tests import c, m, t
 
 
-class TestFlextDbOracleServicesBasic:
+class TestsFlextDbOracleServices:
     """Test basic FlextDbOracleServices functionality."""
 
     def test_service_creation(self) -> None:
@@ -392,10 +392,6 @@ class TestFlextDbOracleServicesBasic:
         select_result = service.build_select("test_table", ["email", "id"])
         tm.ok(select_result)
 
-
-class TestServiceErrorHandling:
-    """Test error handling in services."""
-
     def test_invalid_sql_identifier_rejection(self) -> None:
         """Test that invalid SQL identifiers are rejected."""
         settings = FlextDbOracleSettings(
@@ -422,10 +418,6 @@ class TestServiceErrorHandling:
         service = FlextDbOracleServices(settings=settings)
         select_result = service.build_select("TEST_TABLE", [])
         tm.ok(select_result)
-
-
-class TestFlextDbOracleServicesPlaceholderRemovals:
-    """Test removals of temporary placeholder logic."""
 
     @staticmethod
     def _make_service() -> FlextDbOracleServices:
@@ -529,13 +521,6 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         tm.that(service.fetch_plugin("").failure, eq=True)
         tm.that(service.unregister_plugin("").failure, eq=True)
 
-
-"Direct Coverage Boost Tests - Target specific missed lines.\n\nThis module directly calls internal functions to boost coverage from 41% toward ~100%.\nFocus on API (40%), CLI (21%), and other modules with lowest coverage.\n\n\n\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
-
-
-class TestDirectCoverageBoostAPIServices:
-    """Direct tests for API module missed lines (40% → higher)."""
-
     def test_api_connection_error_paths_571_610(self) -> None:
         """Test API connection error handling paths (lines 571-610)."""
         bad_config = FlextDbOracleSettings(
@@ -606,10 +591,6 @@ class TestDirectCoverageBoostAPIServices:
         finally:
             connected_api.disconnect()
 
-
-class TestDirectCoverageBoostConfigServices:
-    """Direct tests for Config module missed lines (46% → higher)."""
-
     def test_config_validation_edge_cases(self) -> None:
         """Test settings validation edge cases for missed lines."""
         test_configs = [
@@ -665,10 +646,6 @@ class TestDirectCoverageBoostConfigServices:
                 else:
                     os.environ[var] = original_value
 
-
-class TestDirectCoverageBoostConnectionServices:
-    """Direct tests for Connection module missed lines (54% → higher)."""
-
     def test_connection_edge_cases(
         self,
         real_oracle_config: FlextDbOracleSettings,
@@ -712,10 +689,6 @@ class TestDirectCoverageBoostConnectionServices:
                     assert result is not None or result is None  # any value accepted
             except (AttributeError, TypeError):
                 pass
-
-
-class TestDirectCoverageBoostTypesServices:
-    """Direct tests for Types module missed lines (35% → higher)."""
 
     def test_types_validation_comprehensive(self) -> None:
         """Test comprehensive type validation for missed lines."""
@@ -769,10 +742,6 @@ class TestDirectCoverageBoostTypesServices:
         )
         tm.that(column_with_default.default_value, eq="DEFAULT_VALUE")
 
-
-class TestDirectCoverageBoostObservabilityServices:
-    """Direct tests for Observability module missed lines (38% → higher)."""
-
     def test_observability_initialization_paths(self) -> None:
         """Test observability initialization paths."""
         try:
@@ -808,10 +777,6 @@ class TestDirectCoverageBoostObservabilityServices:
             tm.that(True, eq=True)
         finally:
             connected_api.disconnect()
-
-
-class TestDirectCoverageBoostServicesServices:
-    """Comprehensive Services coverage tests using flext_tests - target 100%."""
 
     def test_services_direct_imports_and_coverage(self) -> None:
         """Test direct services imports for coverage measurement."""
@@ -960,13 +925,6 @@ class TestDirectCoverageBoostServicesServices:
                 error_msg = str(e).lower()
                 if "error" not in error_msg and "fail" not in error_msg:
                     pytest.fail(f"Unexpected error type: {e}")
-
-
-"Test metadata management functionality with real code paths.\n\nThis module tests the metadata management functionality with real code paths\ninstead of mocks, following the user's requirement for real code testing.\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
-
-
-class TestFlextDbOracleMetadataManagerComprehensiveServices:
-    """Comprehensive tests for metadata manager using real code paths."""
 
     settings: FlextDbOracleSettings
     services: FlextDbOracleServices
@@ -1148,28 +1106,7 @@ class TestFlextDbOracleMetadataManagerComprehensiveServices:
         result_none_table = self.manager.fetch_tables(None)
         tm.that(not result_none_table.success, eq=True)
 
-
-"Simplified tests for FlextDbOracleServices connection functionality.\n\nThis module tests the connection functionality with real code paths,\nfocusing on the actual available methods and attributes.\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
-
-
-class TestFlextDbOracleConnectionSimple:
-    """Simplified tests for Oracle connection using real code paths."""
-
-    settings: FlextDbOracleSettings
     connection: FlextDbOracleServices
-
-    def setup_method(self) -> None:
-        """Setup test configuration."""
-        self.settings = FlextDbOracleSettings(
-            host="127.0.0.1",
-            port=19999,
-            name="TEST",
-            username="test",
-            password="test",
-            service_name="TEST",
-            timeout=1,
-        )
-        self.connection = FlextDbOracleServices(settings=self.settings)
 
     def test_connection_initialization(self) -> None:
         """Test connection initialization with real configuration."""
@@ -1204,10 +1141,6 @@ class TestFlextDbOracleConnectionSimple:
     def test_query_methods_exist(self) -> None:
         """Test that query methods exist."""
 
-    def test_connection_error_handling(self) -> None:
-        """Test connection error handling."""
-        self.connection.connect()
-
     def test_schema_operations_error_handling(self) -> None:
         """Test schema operations error handling when not connected."""
         self.connection.fetch_schemas()
@@ -1222,395 +1155,6 @@ class TestFlextDbOracleConnectionSimple:
     def test_ddl_operations(self) -> None:
         """Test DDL operations."""
         tm.that(callable(self.connection.build_create_index_statement), eq=True)
-
-    def test_service_creation(self) -> None:
-        """Test service can be created with configuration."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        tm.that(service, none=False)
-        tm.that(service.settings, eq=settings)
-
-    def test_service_initial_state(self) -> None:
-        """Test service initial state is correct."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        tm.that(not service.connected(), eq=True)
-
-    def test_service_connection_building(self) -> None:
-        """Test connection URL building."""
-        settings = FlextDbOracleSettings(
-            host="testhost",
-            port=1521,
-            service_name="TESTDB",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        result = service.test_connection()
-        tm.that(result.success or result.failure, eq=True)
-
-    def test_service_sql_builder_integration(self) -> None:
-        """Test service integrates with SQL builder correctly."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        select_result = service.build_select("TEST_TABLE", ["col1", "col2"])
-        tm.ok(select_result)
-        tm.that(select_result.value, has="SELECT")
-        tm.that(select_result.value, has="TEST_TABLE")
-
-    def test_service_query_building_with_conditions(self) -> None:
-        """Test query building with WHERE conditions."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        conditions: t.JsonMapping = {"id": 1, "name": "test"}
-        select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
-        tm.ok(select_result)
-        tm.that(select_result.value, has="WHERE")
-        tm.that(select_result.value, has="id = :id")
-
-    def test_service_safe_query_building(self) -> None:
-        """Test safe parameterized query building."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        conditions: t.JsonMapping = {"id": 1, "status": "active"}
-        safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
-        tm.ok(safe_result)
-        sql = safe_result.value
-        tm.that(sql, has="SELECT")
-        tm.that(sql, has="USERS")
-        tm.that(sql, has="id")
-        tm.that(sql, has="status")
-
-    def test_service_singer_type_conversion(self) -> None:
-        """Test Singer JSON Schema type conversion."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        tm.that(service.convert_singer_type("string").value, eq="VARCHAR2(4000)")
-        tm.that(service.convert_singer_type("integer").value, eq="NUMBER(38)")
-        tm.that(service.convert_singer_type("number").value, eq="NUMBER")
-        tm.that(service.convert_singer_type("boolean").value, eq="NUMBER(1)")
-        array_result = service.convert_singer_type(["string", "null"])
-        tm.ok(array_result)
-        tm.that(array_result.value, eq="VARCHAR2(4000)")
-        datetime_result = service.convert_singer_type("string", "date-time")
-        tm.ok(datetime_result)
-        tm.that(datetime_result.value, eq="TIMESTAMP")
-
-    def test_service_schema_mapping(self) -> None:
-        """Test Singer schema to Oracle mapping."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        singer_schema: t.JsonMapping = {
-            "properties": {
-                "id": {"type": "integer"},
-                "name": {"type": "string"},
-                "created_at": {"type": "string", "format": "date-time"},
-                "is_active": {"type": "boolean"},
-            },
-        }
-        mapping_result = service.map_singer_schema(singer_schema)
-        tm.ok(mapping_result)
-        mapping = mapping_result.value
-        tm.that(mapping["id"], eq="NUMBER(38)")
-        tm.that(mapping["name"], eq="VARCHAR2(4000)")
-        tm.that(mapping["created_at"], eq="TIMESTAMP")
-        tm.that(mapping["is_active"], eq="NUMBER(1)")
-
-    def test_service_ddl_generation(self) -> None:
-        """Test DDL statement generation."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        columns: Sequence[t.JsonMapping] = [
-            {
-                "name": "id",
-                "data_type": "NUMBER",
-                "nullable": False,
-                "primary_key": True,
-            },
-            {"name": "name", "data_type": "VARCHAR2(100)", "nullable": True},
-            {"name": "created_at", "data_type": "TIMESTAMP", "nullable": False},
-        ]
-        ddl_result = service.create_table_ddl("TEST_TABLE", columns)
-        tm.ok(ddl_result)
-        tm.that(ddl_result.value, has="CREATE TABLE")
-        tm.that(ddl_result.value, has="PRIMARY KEY")
-        tm.that(ddl_result.value, has="NOT NULL")
-
-    def test_service_insert_statement_building(self) -> None:
-        """Test INSERT statement building."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        columns = ["id", "name", "email"]
-        insert_result = service.build_insert_statement("USERS", columns)
-        tm.ok(insert_result)
-        tm.that(insert_result.value, has="INSERT INTO")
-        tm.that(insert_result.value, has="VALUES")
-        tm.that(insert_result.value, has=":id")
-        tm.that(insert_result.value, has=":name")
-
-    def test_service_update_statement_building(self) -> None:
-        """Test UPDATE statement building."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        set_columns = ["name", "email"]
-        where_columns = ["id"]
-        update_result = service.build_update_statement(
-            "USERS",
-            set_columns,
-            where_columns,
-        )
-        tm.ok(update_result)
-        tm.that(update_result.value, has="UPDATE")
-        tm.that(update_result.value, has="SET")
-        tm.that(update_result.value, has="WHERE")
-        tm.that(update_result.value, has="name=:name")
-
-    def test_service_delete_statement_building(self) -> None:
-        """Test DELETE statement building."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        where_columns = ["id", "status"]
-        delete_result = service.build_delete_statement("USERS", where_columns)
-        tm.ok(delete_result)
-        tm.that(delete_result.value, has="DELETE FROM")
-        tm.that(delete_result.value, has="WHERE")
-        tm.that(delete_result.value, has="id = :id")
-
-    def test_service_merge_statement_building(self) -> None:
-        """Test MERGE statement building."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        merge_config = MagicMock()
-        merge_config.target_table = "USERS"
-        merge_config.source_columns = ["id", "name", "email"]
-        merge_config.merge_keys = ["id"]
-        merge_config.schema_name = None
-        select_result = service.build_select("test_table", ["id", "name"])
-        tm.ok(select_result)
-
-    def test_service_index_statement_building(self) -> None:
-        """Test CREATE INDEX statement building."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        index_config = MagicMock()
-        index_config.index_name = "IDX_USERS_NAME"
-        index_config.table_name = "USERS"
-        index_config.columns = ["name", "email"]
-        index_config.schema_name = None
-        index_config.unique = False
-        index_config.tablespace = None
-        index_config.parallel = None
-        select_result = service.build_select("test_table", ["id", "name"])
-        tm.ok(select_result)
-
-    def test_service_metrics_tracking(self) -> None:
-        """Test metrics recording functionality."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        metric_result = service.record_metric("query_time", 150.5, {"table": "users"})
-        tm.ok(metric_result)
-        metrics_result = service.fetch_metrics()
-        tm.ok(metrics_result)
-        tm.that(metrics_result.value.status, has="with_observability")
-
-    def test_service_operation_tracking(self) -> None:
-        """Test operation tracking functionality."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        track_result = service.track_operation(
-            "SELECT",
-            25.0,
-            success=True,
-            metadata={"table": "users"},
-        )
-        tm.ok(track_result)
-        ops_result = service.fetch_operations()
-        tm.ok(ops_result)
-        tm.that(len(ops_result.value) > 0, eq=True)
-
-    def test_service_plugin_management(self) -> None:
-        """Test plugin registration and management."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        test_plugin = {"name": "test_plugin", "version": "1.0"}
-        register_result = service.register_plugin("test", test_plugin)
-        tm.ok(register_result)
-        get_result = service.fetch_plugin("test")
-        tm.ok(get_result)
-        tm.that(get_result.value, eq=test_plugin)
-        unregister_result = service.unregister_plugin("test")
-        tm.ok(unregister_result)
-        missing_result = service.fetch_plugin("missing")
-        tm.that(missing_result.failure, eq=True)
-
-    def test_service_health_check(self) -> None:
-        """Test health check functionality."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        health_result = service.health_check()
-        tm.ok(health_result)
-        tm.that(health_result.value.service, eq="oracle")
-        tm.that(bool(health_result.value.status), eq=True)
-        tm.that(bool(health_result.value.database), eq=True)
-
-    def test_service_query_hash_generation(self) -> None:
-        """Test query hash generation."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        sql = "SELECT * FROM users WHERE id = :id"
-        params: t.JsonMapping = {"id": 123}
-        hash_result = service.generate_query_hash(sql, params)
-        tm.ok(hash_result)
-        tm.that(hash_result.value, is_=str)
-        tm.that(bool(hash_result.value), eq=True)
-
-    def test_service_column_definition_building(self) -> None:
-        """Test column definition building for DDL."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        select_result = service.build_select("test_table", ["email", "id"])
-        tm.ok(select_result)
-
-    def test_invalid_sql_identifier_rejection(self) -> None:
-        """Test that invalid SQL identifiers are rejected."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        invalid_table = "table'; DROP TABLE users;--"
-        select_result = service.build_select(invalid_table, ["col1"])
-        tm.ok(select_result)
-
-    def test_empty_parameters_handling(self) -> None:
-        """Test handling of empty parameters."""
-        settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
-        )
-        service = FlextDbOracleServices(settings=settings)
-        select_result = service.build_select("TEST_TABLE", [])
-        tm.ok(select_result)
 
     def test_invalid_singer_schema_handling(self) -> None:
         """Test handling of invalid Singer schemas."""

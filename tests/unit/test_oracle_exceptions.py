@@ -18,7 +18,7 @@ from flext_db_oracle import (
 )
 
 
-class TestRealOracleExceptionsCore:
+class TestsFlextDbOracleOracleExceptions:
     """Teste real das exceções básicas Oracle - SEM MOCKS."""
 
     def test_real_authentication_error_scenario(self) -> None:
@@ -198,10 +198,6 @@ class TestRealOracleExceptionsCore:
         finally:
             connection.disconnect()
 
-
-class TestRealOracleExceptionsAdvanced:
-    """Teste real de exceções avançadas Oracle - SEM MOCKS."""
-
     def test_real_metadata_error_scenario(
         self,
         connected_oracle_api: FlextDbOracleApi | None,
@@ -301,10 +297,6 @@ class TestRealOracleExceptionsAdvanced:
                 )
             except (ValueError, TypeError):
                 pass
-
-
-class TestRealOracleExceptionHierarchy:
-    """Test real Oracle exception hierarchy and inheritance - SEM MOCKS."""
 
     def test_real_exception_inheritance(self) -> None:
         """Test that Oracle exceptions inherit properly from base Exception classes."""

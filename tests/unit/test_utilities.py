@@ -23,7 +23,7 @@ from tests import c, m, t, u
 
 
 @pytest.mark.unit_pure
-class Testu:
+class TestsFlextDbOracleUtilitiesUnit:
     """Test u functionality with comprehensive coverage."""
 
     def test_utilities_creation(self) -> None:

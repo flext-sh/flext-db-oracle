@@ -12,7 +12,7 @@ from flext_tests import tm
 from tests import t
 
 
-class TestFlextDbOracleTypes:
+class TestsFlextDbOracleTypingsUnit:
     """Test FlextDbOracleTypes functionality."""
 
     def test_types_access(self) -> None:

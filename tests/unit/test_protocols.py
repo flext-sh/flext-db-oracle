@@ -12,7 +12,7 @@ from flext_tests import tm
 from tests import p
 
 
-class TestFlextDbOracleProtocols:
+class TestsFlextDbOracleProtocolsUnit:
     """Test FlextDbOracleProtocols functionality."""
 
     def test_protocols_access(self) -> None:

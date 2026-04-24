@@ -11,7 +11,7 @@ from flext_db_oracle import FlextDbOracleSettings
 from tests import m
 
 
-class TestFlextDbOracleFields:
+class TestsFlextDbOracleFields:
     """Test m and FlextDbOracleSettings fields."""
 
     def test_host_field_exists(self) -> None:

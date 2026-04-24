@@ -20,7 +20,7 @@ from flext_db_oracle import (
 from tests import c, e, m, u
 
 
-class TestModuleImports:
+class TestsFlextDbOracleCoverageBaseline:
     """Test that all modules can be imported successfully."""
 
     def test_api_import(self) -> None:
@@ -47,10 +47,6 @@ class TestModuleImports:
     def test_utilities_import(self) -> None:
         """Test that utilities module imports correctly."""
         tm.that(u, none=False)
-
-
-class TestBasicModelCreation:
-    """Test basic model creation without database connections."""
 
     def test_oracle_config_creation(self) -> None:
         """Test Oracle configuration model creation."""
@@ -93,10 +89,6 @@ class TestBasicModelCreation:
         tm.that(column.data_type, eq="NUMBER")
         tm.that(column.nullable is False, eq=True)
         tm.that(column.default_value, eq="1")
-
-
-class TestFlextDbOracleServices:
-    """Test main Oracle database services class."""
 
     def test_service_creation(self) -> None:
         """Test service can be created with settings."""
@@ -151,10 +143,6 @@ class TestFlextDbOracleServices:
         tm.that(sql, has="FROM")
         tm.that(sql, has="USERS")
 
-
-class TestUtilities:
-    """Test utility functions."""
-
     def test_utilities_module_exists(self) -> None:
         """Test utilities module can be accessed."""
         tm.that(u, none=False)
@@ -162,20 +150,12 @@ class TestUtilities:
     def test_utilities_has_methods(self) -> None:
         """Test utilities has expected methods."""
 
-
-class TestConstants:
-    """Test constants module."""
-
     def test_constants_module_exists(self) -> None:
         """Test constants module can be accessed."""
         tm.that(c, none=False)
 
     def test_constants_has_validation(self) -> None:
         """Test constants has validation constants."""
-
-
-class TestExceptions:
-    """Test exceptions module."""
 
     def test_exceptions_module_exists(self) -> None:
         """Test exceptions module can be accessed."""

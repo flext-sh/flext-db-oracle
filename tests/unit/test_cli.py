@@ -28,7 +28,7 @@ from flext_db_oracle import (
 from tests import m, r, t, u
 
 
-class TestFlextDbOracleClientReal:
+class TestsFlextDbOracleCli:
     """Test FlextDbOracleClient class with REAL functionality - NO MOCKS."""
 
     def test_client_initialization_debug_mode(self) -> None:
@@ -171,10 +171,6 @@ class TestFlextDbOracleClientReal:
         tm.that(client.user_preferences["connection_timeout"], eq=60)
         tm.that(client.user_preferences["query_limit"], eq=1000)
 
-
-class TestFlextDbOracleClientIntegration:
-    """Integration tests using real Oracle database operations."""
-
     def test_client_with_real_config_creation(self) -> None:
         """Test client operations with real configuration objects."""
         settings = FlextDbOracleSettings(
@@ -198,10 +194,6 @@ class TestFlextDbOracleClientIntegration:
         tm.that(not result.success, eq=True)
         tm.that(result.error, is_=str)
 
-
-class TestFlextDbOracleCli:
-    """Test CLI service initialization and basic functionality."""
-
     def test_cli_service_initialization_success(self) -> None:
         """Test successful CLI service initialization."""
         cli_service = FlextDbOracleCli()
@@ -213,10 +205,6 @@ class TestFlextDbOracleCli:
         """Test basic CLI service initialization."""
         cli_service = FlextDbOracleCli()
         tm.that(cli_service, is_=FlextDbOracleCli)
-
-
-class TestOracleConnectionHelper:
-    """Test Oracle connection helper functionality."""
 
     def test_create_config_from_params_success(self) -> None:
         """Test successful settings creation from parameters."""
@@ -310,10 +298,6 @@ class TestOracleConnectionHelper:
             )
         tm.that(result.failure, eq=True)
         tm.that(str(result.error), has="Connection failed")
-
-
-class TestOutputFormatter:
-    """Test output formatter functionality."""
 
     def test_formatter_initialization_with_cli(self) -> None:
         """Test formatter initialization (static methods, no state)."""
@@ -425,10 +409,6 @@ class TestOutputFormatter:
         """Test message display functionality."""
         formatter = FlextDbOracleCli._OutputFormatter()
         formatter.display_message("Test message")
-
-
-class TestCliServiceOperations:
-    """Test CLI service operation methods."""
 
     def test_execute_health_check_success(self) -> None:
         """Test successful health check execution."""
@@ -674,10 +654,6 @@ class TestCliServiceOperations:
         tm.that(result.failure, eq=True)
         tm.that(str(result.error), has="SQL query cannot be empty")
 
-
-class TestYamlModule:
-    """Test YAML module protocol interface."""
-
     def test_yaml_module_protocol_interface(self) -> None:
         """Test that yaml dump produces valid YAML string."""
         data: dict[str, str] = {"test": "value"}
@@ -685,10 +661,6 @@ class TestYamlModule:
         tm.that(result, is_=str)
         tm.that(result, has="test")
         tm.that(result, has="value")
-
-
-class TestCLIRealFunctionality:
-    """Test CLI using real flext-cli API - NO MOCKS."""
 
     def test_cli_creation_and_basic_functionality(self) -> None:
         """Test CLI creation and basic functionality - REAL IMPLEMENTATION."""

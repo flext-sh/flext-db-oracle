@@ -12,7 +12,7 @@ from flext_tests import tm
 from flext_db_oracle import FlextDbOracleSettings
 
 
-class TestFlextDbOracleSettings:
+class TestsFlextDbOracleConfig:
     """Test FlextDbOracleSettings functionality."""
 
     def test_config_creation(self) -> None:

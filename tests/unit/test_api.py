@@ -33,7 +33,7 @@ from flext_db_oracle import (
 from tests import m, t, u
 
 
-class TestFlextDbOracleApiRealFunctionality:
+class TestsFlextDbOracleApi:
     """Comprehensive tests for Oracle API using ONLY real functionality - NO MOCKS."""
 
     settings: FlextDbOracleSettings
@@ -681,13 +681,6 @@ class TestFlextDbOracleApiRealFunctionality:
                 if res.error is not None:
                     tm.that(res.error, eq=True)
 
-
-"Unit tests for flext_db_oracle.api module.\n\nTests FlextDbOracleApi functionality with real implementations,\nno mocks or legacy patterns. Achieves near 100% coverage following FLEXT standards.\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
-
-
-class TestApiModule:
-    """Unified test class for api module functionality."""
-
     class _TestDataHelper:
         """Nested helper class for test data creation."""
 
@@ -1112,13 +1105,6 @@ class TestApiModule:
         for thread_result in results:
             assert isinstance(thread_result, r)
 
-
-"Tests for FlextDbOracleApi methods that work without Oracle connection.\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
-
-
-class TestFlextDbOracleApiSafeMethods:
-    """Test API methods that work without Oracle connection."""
-
     def test_api_class_methods_from_config(self) -> None:
         """Test API creation via from_config class method."""
         settings = FlextDbOracleSettings(
@@ -1326,13 +1312,6 @@ class TestFlextDbOracleApiSafeMethods:
         tm.that(get_result.success, eq=True)
         tm.that(get_result.value, eq=plugin)
 
-
-"Simple surgical tests for FlextDbOracleApi - targeting key uncovered lines.\n\nThis module provides targeted tests for specific uncovered lines in api.py\nwith minimal mocking to avoid Pydantic/framework conflicts.\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
-
-
-class TestApiSurgicalSimple:
-    """Simple surgical tests targeting key uncovered lines in FlextDbOracleApi."""
-
     def test_is_valid_with_valid_config(self) -> None:
         """Test valid method with valid settings values."""
         settings = FlextDbOracleSettings(
@@ -1453,28 +1432,6 @@ class TestApiSurgicalSimple:
         result = api._dispatch_enabled
         tm.that(result, is_=bool)
 
-
-"Working API tests using only real methods that exist and work.\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
-
-
-class TestFlextDbOracleApiWorking:
-    """Test FlextDbOracleApi using only methods that work without hanging."""
-
-    settings: FlextDbOracleSettings
-    api: FlextDbOracleApi
-
-    def setup_method(self) -> None:
-        """Setup test configuration."""
-        self.settings = FlextDbOracleSettings(
-            host="127.0.0.1",
-            port=19999,
-            service_name="TEST",
-            username="test_user",
-            password="test_password",
-            timeout=1,
-        )
-        self.api = FlextDbOracleApi(self.settings)
-
     def test_api_creation(self) -> None:
         """Test API can be created with valid settings."""
         tm.that(self.api, none=False)
@@ -1501,13 +1458,6 @@ class TestFlextDbOracleApiWorking:
         """Test t.JsonMapping serialization methods."""
         as_dict = self.api.to_dict()
         tm.that(as_dict, none=False)
-
-
-"Direct Coverage Boost Tests - Target specific missed lines.\n\nThis module directly calls internal functions to boost coverage from 41% toward ~100%.\nFocus on API (40%), CLI (21%), and other modules with lowest coverage.\n\n\n\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
-
-
-class TestDirectCoverageBoostAPI:
-    """Direct tests for API module missed lines (40% → higher)."""
 
     def test_api_connection_error_paths_571_610(self) -> None:
         """Test API connection error handling paths (lines 571-610)."""
@@ -1584,10 +1534,6 @@ class TestDirectCoverageBoostAPI:
         finally:
             connected_api.disconnect()
 
-
-class TestDirectCoverageBoostConfig:
-    """Direct tests for Config module missed lines (46% → higher)."""
-
     def test_config_validation_edge_cases(self) -> None:
         """Test settings validation edge cases for missed lines."""
         test_configs = [
@@ -1643,10 +1589,6 @@ class TestDirectCoverageBoostConfig:
                 else:
                     os.environ[var] = original_value
 
-
-class TestDirectCoverageBoostConnection:
-    """Direct tests for Connection module missed lines (54% → higher)."""
-
     def test_connection_edge_cases(
         self,
         real_oracle_config: FlextDbOracleSettings | None,
@@ -1691,10 +1633,6 @@ class TestDirectCoverageBoostConnection:
                     assert result is not None or result is None  # any value accepted
             except (AttributeError, TypeError):
                 pass
-
-
-class TestDirectCoverageBoostTypes:
-    """Direct tests for Types module missed lines (35% → higher)."""
 
     def test_types_validation_comprehensive(self) -> None:
         """Test comprehensive type validation for missed lines."""
@@ -1748,10 +1686,6 @@ class TestDirectCoverageBoostTypes:
         )
         tm.that(column_with_default.default_value, eq="DEFAULT_VALUE")
 
-
-class TestDirectCoverageBoostObservability:
-    """Direct tests for Observability module missed lines (38% → higher)."""
-
     def test_observability_initialization_paths(self) -> None:
         """Test observability initialization paths."""
         try:
@@ -1788,10 +1722,6 @@ class TestDirectCoverageBoostObservability:
             tm.that(True, eq=True)
         finally:
             connected_api.disconnect()
-
-
-class TestDirectCoverageBoostServices:
-    """Comprehensive Services coverage tests using flext_tests - target 100%."""
 
     def test_services_direct_imports_and_coverage(self) -> None:
         """Test direct services imports for coverage measurement."""

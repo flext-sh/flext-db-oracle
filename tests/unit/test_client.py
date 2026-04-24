@@ -11,7 +11,7 @@ from flext_tests import tm
 from flext_db_oracle import FlextDbOracleClient, FlextDbOracleSettings
 
 
-class TestFlextDbOracleClientRealFunctionality:
+class TestsFlextDbOracleClient:
     """Test FlextDbOracleClient with real functionality."""
 
     def test_client_creation(self) -> None:

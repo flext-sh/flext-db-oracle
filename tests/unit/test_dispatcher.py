@@ -16,7 +16,7 @@ from flext_db_oracle import (
 from tests import m
 
 
-class TestDispatcherSurgical:
+class TestsFlextDbOracleDispatcher:
     """Test FlextDbOracleDispatcher functionality."""
 
     def test_dispatcher_creation(self) -> None:

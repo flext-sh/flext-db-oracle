@@ -20,7 +20,7 @@ from tests import c, m
 
 
 @pytest.mark.unit_pure
-class Testm:
+class TestsFlextDbOracleModelsUnit:
     """Comprehensive test m functionality and validation."""
 
     def test_connection_status_creation_defaults(self) -> None:
@@ -434,10 +434,6 @@ class Testm:
                 tm.that(table.name, eq="dual")
                 tm.that(table.owner, eq="SYS")
                 tm.that(table.columns, empty=True)
-
-
-class TestFlextDbOracleSettingsModels:
-    """Comprehensive test FlextDbOracleSettings functionality."""
 
     def test_config_creation_defaults(self) -> None:
         """Test settings creation with defaults."""

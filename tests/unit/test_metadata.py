@@ -19,7 +19,7 @@ from flext_db_oracle import (
 from tests import m, t
 
 
-class TestFlextDbOracleMetadataManagerComprehensive:
+class TestsFlextDbOracleMetadata:
     """Comprehensive tests for metadata manager using real code paths."""
 
     settings: FlextDbOracleSettings
