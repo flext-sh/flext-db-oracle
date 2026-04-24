@@ -43,7 +43,7 @@ class FlextDbOracleClient(s):
     @staticmethod
     def _validate_general_list(value: t.JsonValue) -> t.JsonList | None:
         """Validate list payload with Pydantic."""
-        return t.FLAT_CONTAINER_LIST_ADAPTER.validate_python(value)
+        return t.json_list_adapter().validate_python(value)
 
     debug: bool = u.Field(
         False, description="Enable debug output", validate_default=True
@@ -309,9 +309,7 @@ class FlextDbOracleClient(s):
 
             def adapt_health(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:
                 try:
-                    health_map = t.CONTAINER_VALUE_MAPPING_ADAPTER.validate_python(
-                        raw_value
-                    )
+                    health_map = t.json_mapping_adapter().validate_python(raw_value)
                 except c.ValidationError:
                     return []
                 health = FlextDbOracleClient._validate_config_map(health_map)
@@ -378,7 +376,7 @@ class FlextDbOracleClient(s):
                 return r[m.ConfigMap].fail("No connection available")
             health_data = m.ConfigMap(
                 root={
-                    "connection_status": c.CommonStatus.ACTIVE
+                    "connection_status": "active"
                     if self.current_connection.connected()
                     else "inactive",
                     "host": self.current_connection.oracle_config.host,
@@ -581,11 +579,9 @@ class FlextDbOracleClient(s):
         else:
             normalized_params: t.JsonMapping
             try:
-                normalized_params = t.CONTAINER_VALUE_MAPPING_ADAPTER.validate_python(
-                    raw_params
-                )
+                normalized_params = t.json_mapping_adapter().validate_python(raw_params)
             except c.ValidationError:
-                normalized_params = t.CONTAINER_VALUE_MAPPING_ADAPTER.validate_python(
+                normalized_params = t.json_mapping_adapter().validate_python(
                     {},
                 )
             params_map = m.ConfigMap.model_validate({"root": normalized_params})

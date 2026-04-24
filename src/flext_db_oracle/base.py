@@ -133,7 +133,7 @@ class FlextDbOracleServiceBase(s):
     def _normalize_singer_type(value: str | t.StrSequence) -> str:
         """Normalize Singer type input to a single string value."""
         try:
-            values = t.STR_SEQUENCE_ADAPTER.validate_python(value)
+            values = t.str_sequence_adapter().validate_python(value)
         except c.ValidationError:
             return str(value)
         return values[0] if values else "string"

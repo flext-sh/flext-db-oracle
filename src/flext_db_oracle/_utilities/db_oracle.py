@@ -134,9 +134,14 @@ class FlextDbOracleUtilitiesDbOracle:
     ) -> p.Result[str]:
         """Generate a SHA-256 hash for a query and its parameters."""
         sorted_params = dict(sorted((params or {}).items()))
-        serialized = t.CONTAINER_VALUE_MAPPING_ADAPTER.dump_json(
-            sorted_params,
-        ).decode()
+        serialized = (
+            t
+            .json_mapping_adapter()
+            .dump_json(
+                sorted_params,
+            )
+            .decode()
+        )
         payload = f"{query}|{serialized}".encode()
         return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
 
@@ -196,7 +201,7 @@ class FlextDbOracleUtilitiesDbOracle:
     def _normalize_singer_type(cls, value: str | t.StrSequence) -> str:
         """Normalize Singer type input to a single string value."""
         try:
-            values = t.STR_SEQUENCE_ADAPTER.validate_python(
+            values = t.str_sequence_adapter().validate_python(
                 value,
             )
         except c.ValidationError:
