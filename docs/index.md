@@ -1,3 +1,11 @@
+<!-- TOC START -->
+- [Start Here](#start-here)
+- [Public Surface Summary](#public-surface-summary)
+- [Collection Rules (regras de coletas)](#collection-rules-regras-de-coletas)
+- [Quality Gates](#quality-gates)
+- [Governance Pointer](#governance-pointer)
+<!-- TOC END -->
+
 <!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
 
 # flext-db-oracle Documentation
@@ -18,7 +26,7 @@ This project portal is generated from `pyproject.toml`, package exports, and rea
 
 ## Public Surface Summary
 
-- Primary facades: `FlextDbOracleServicePlugin`, `FlextDbOracleConstants`, `FlextDbOracleServiceQuery`, `FlextDbOracleUtilities`, `FlextDbOracleTypes`, `FlextDbOraclePassword` (+16 more)
+- Primary facades: `FlextDbOracleUtilities`, `FlextDbOracleServiceSqlBuilder`, `FlextDbOracleApi`, `FlextDbOracleServiceConnection`, `FlextDbOracleTypes`, `FlextDbOracleExceptions` (+16 more)
 - Alias namespaces: `c`, `d`, `e`, `h`, `m`, `p`, `r`, `s`, `t`, `u`, `x`
 - Public symbol exports: `23`
 - Exported module shortcuts: `client`
