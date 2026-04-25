@@ -27,7 +27,7 @@ class OperationTestErrorE2E(Exception):
         self.error = error
 
 
-class TestOracleE2E:
+class TestsFlextDbOracleEOracle:
     """End-to-end tests for Oracle database operations."""
 
     @pytest.mark.e2e
