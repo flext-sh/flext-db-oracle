@@ -929,6 +929,7 @@ class TestsFlextDbOracleServices:
     settings: FlextDbOracleSettings
     services: FlextDbOracleServices
     manager: FlextDbOracleServices
+    connection: FlextDbOracleServices
 
     def setup_method(self) -> None:
         """Setup test configuration."""
@@ -941,6 +942,7 @@ class TestsFlextDbOracleServices:
         )
         self.services = FlextDbOracleServices(settings=self.settings)
         self.manager = self.services
+        self.connection = self.services
 
     def test_metadata_manager_initialization(self) -> None:
         """Test metadata manager initialization with real connection."""
@@ -1105,8 +1107,6 @@ class TestsFlextDbOracleServices:
         tm.that(not result_empty_schema.success, eq=True)
         result_none_table = self.manager.fetch_tables(None)
         tm.that(not result_none_table.success, eq=True)
-
-    connection: FlextDbOracleServices
 
     def test_connection_initialization(self) -> None:
         """Test connection initialization with real configuration."""
