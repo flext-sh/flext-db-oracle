@@ -1,9 +1,3 @@
-<!-- TOC START -->
-- [Source of Truth](#source-of-truth)
-- [Generated Pages](#generated-pages)
-- [Surface Summary](#surface-summary)
-<!-- TOC END -->
-
 <!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
 
 # flext-db-oracle API Reference
@@ -25,7 +19,7 @@ This section is generated from public exports and real docstrings.
 
 ## Surface Summary
 
-- Primary facades: `FlextDbOracleUtilities`, `FlextDbOracleServiceSqlBuilder`, `FlextDbOracleApi`, `FlextDbOracleServiceConnection`, `FlextDbOracleTypes`, `FlextDbOracleExceptions` (+16 more)
+- Primary facades: `FlextDbOracleExceptions`, `FlextDbOracleServiceSinger`, `FlextDbOracleServices`, `FlextDbOracleApi`, `FlextDbOracleDispatcher`, `FlextDbOraclePassword` (+16 more)
 - Generated module pages: `22`
 
 - [Back to project docs](../index.md)
