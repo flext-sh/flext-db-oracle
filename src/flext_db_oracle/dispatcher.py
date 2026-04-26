@@ -15,7 +15,6 @@ from collections.abc import (
 from typing import TYPE_CHECKING, override
 
 from flext_core import FlextContainer
-
 from flext_db_oracle import m, p, r, s, t
 
 if TYPE_CHECKING:

@@ -14,7 +14,6 @@ from typing import Annotated, ClassVar, Self, override
 from urllib.parse import parse_qs, unquote, urlparse
 
 from flext_core import FlextSettings
-
 from flext_db_oracle import FlextDbOraclePassword, c, m, p, r, t, u
 
 

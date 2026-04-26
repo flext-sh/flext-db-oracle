@@ -21,8 +21,8 @@ from datetime import UTC, datetime
 from typing import override
 
 from flext_cli import FlextCli
-from flext_core import s
 
+from flext_core import s
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleSettings,

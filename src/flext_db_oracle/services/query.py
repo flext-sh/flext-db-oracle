@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import hashlib
 from collections.abc import (
     Sequence,
 )
@@ -24,7 +23,6 @@ from sqlalchemy.exc import (
 )
 
 from flext_db_oracle import FlextDbOracleServiceBase, m, p, r, t
-from flext_db_oracle.base import FlextDbOracleServiceBase, __all__
 
 
 class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
@@ -144,20 +142,6 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         return self.execute_query(sql, params).map(
             lambda rows: rows[0] if rows else None,
         )
-
-    def generate_query_hash(
-        self,
-        sql: str = "",
-        params: m.ConfigMap | t.JsonMapping | None = None,
-    ) -> p.Result[str]:
-        """Generate query hash - simplified."""
-        typed_params = (
-            params
-            if isinstance(params, m.ConfigMap) or params is None
-            else m.ConfigMap(root=dict(params))
-        )
-        hash_input = f"{sql}_{typed_params!s}"
-        return r[str].ok(hashlib.sha256(hash_input.encode()).hexdigest()[:16])
 
     def _normalize_query_rows(
         self,

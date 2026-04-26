@@ -33,7 +33,6 @@ from flext_db_oracle import (
     r,
     t,
 )
-from flext_db_oracle.base import FlextDbOracleServiceBase, __all__
 
 
 class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):

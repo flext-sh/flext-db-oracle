@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import contextlib
 import time
 from collections.abc import (
     MutableMapping,
@@ -17,18 +16,14 @@ from collections.abc import (
     Sequence,
 )
 
-from flext_core import s
 from sqlalchemy import (
-    Connection as SAConnection,
     Engine as SAEngine,
-    TextClause,
-    create_engine,
 )
-from sqlalchemy.engine import CursorResult
 
+from flext_core import s
 from flext_db_oracle import (
     FlextDbOracleSettings,
-    c,
+    FlextDbOracleUtilitiesDbOracle,
     m,
     p,
     r,
@@ -37,7 +32,7 @@ from flext_db_oracle import (
 )
 
 
-class FlextDbOracleServiceBase(s):
+class FlextDbOracleServiceBase(FlextDbOracleUtilitiesDbOracle, s):
     """Base mixin providing static helpers and SQLAlchemy wrappers.
 
     All service mixins inherit from this base, which provides:
@@ -83,42 +78,6 @@ class FlextDbOracleServiceBase(s):
         """Check if the service has an active SQLAlchemy engine."""
         return self._engine is not None
 
-    @staticmethod
-    def _validate_config_map(value: t.JsonValue) -> m.ConfigMap | None:
-        """Validate arbitrary mapping input as ConfigMap."""
-        if not isinstance(value, dict):
-            return None
-        try:
-            return m.ConfigMap.model_validate({"root": value})
-        except c.ValidationError:
-            return None
-
-    @staticmethod
-    def _normalize_params(params: m.ConfigMap | None) -> m.ConfigMap:
-        """Normalize optional parameters into ConfigMap."""
-        if params is not None:
-            return params
-        return m.ConfigMap(root={})
-
-    @staticmethod
-    def _parse_count_value(value: t.JsonValue) -> int:
-        """Parse row count value accepting int or numeric string."""
-        if isinstance(value, int):
-            return value
-        if isinstance(value, str):
-            try:
-                return int(value)
-            except ValueError:
-                return 0
-        try:
-            validated = FlextDbOracleServiceBase._CountValue.model_validate(value).root
-        except c.ValidationError:
-            return 0
-        try:
-            return int(validated)
-        except (TypeError, ValueError):
-            return 0
-
     def _parse_count_from_rows(self, rows: Sequence[m.Dict]) -> int:
         """Parse COUNT(*) value from normalized query rows."""
         if not rows:
@@ -127,49 +86,6 @@ class FlextDbOracleServiceBase(s):
         if count_raw is None:
             return 0
         return self._parse_count_value(str(count_raw))
-
-    @staticmethod
-    def _normalize_singer_type(value: str | t.StrSequence) -> str:
-        """Normalize Singer type input to a single string value."""
-        try:
-            values = t.str_sequence_adapter().validate_python(value)
-        except c.ValidationError:
-            return str(value)
-        return values[0] if values else "string"
-
-    @staticmethod
-    def _sqlalchemy_create_engine(
-        url: str,
-        connect_timeout: int | None = None,
-    ) -> SAEngine:
-        """Create SQLAlchemy engine with optional connection timeout."""
-        connect_args: dict[str, int] = {}
-        if connect_timeout is not None:
-            connect_args["tcp_connect_timeout"] = connect_timeout
-        return create_engine(
-            url,
-            pool_pre_ping=True,
-            pool_recycle=3600,
-            echo=False,
-            connect_args=connect_args,
-        )
-
-    @staticmethod
-    def _engine_connect(engine: SAEngine) -> SAConnection:
-        """Open connection context manager from engine."""
-        return engine.connect()
-
-    @staticmethod
-    def _engine_begin(
-        engine: SAEngine,
-    ) -> contextlib.AbstractContextManager[SAConnection]:
-        """Open transaction context manager from engine."""
-        return engine.begin()
-
-    @staticmethod
-    def _engine_dispose(engine: SAEngine) -> None:
-        """Dispose engine resources."""
-        engine.dispose()
 
     def _get_current_timestamp(self) -> str:
         """Get current timestamp for operation tracking."""
@@ -181,16 +97,6 @@ class FlextDbOracleServiceBase(s):
         if engine is None or not self.connected():
             return r[SAEngine].fail("Not connected to database")
         return r[SAEngine].ok(engine)
-
-    @staticmethod
-    def _connection_execute(
-        connection: SAConnection,
-        statement: TextClause,
-        parameters: m.ConfigMap | None = None,
-    ) -> CursorResult[tuple[t.JsonValue, ...]]:
-        """Execute statement on SQL connection."""
-        normalized_params = FlextDbOracleServiceBase._normalize_params(parameters)
-        return connection.execute(statement, normalized_params.root)
 
     def execute_query(
         self,
