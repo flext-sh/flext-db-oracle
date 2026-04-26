@@ -15,6 +15,7 @@ from collections.abc import (
 )
 from typing import override
 
+from sqlalchemy import text
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.exc import (
     DatabaseError as SQLAlchemyDatabaseError,
@@ -23,6 +24,7 @@ from sqlalchemy.exc import (
 )
 
 from flext_db_oracle import FlextDbOracleServiceBase, m, p, r, t
+from flext_db_oracle.base import FlextDbOracleServiceBase, __all__
 
 
 class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
@@ -54,7 +56,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
                     )
                     result = self._connection_execute(
                         conn,
-                        self._sqlalchemy_text(sql),
+                        text(sql),
                         typed_params,
                     )
                     total_affected += max(result.rowcount, 0)
@@ -88,7 +90,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             with self._engine_connect(engine_result.value) as conn:
                 result = self._connection_execute(
                     conn,
-                    self._sqlalchemy_text(sql),
+                    text(sql),
                     params,
                 )
                 rows: Sequence[m.Dict] = self._normalize_query_rows(result)
@@ -117,7 +119,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             with self._engine_begin(engine_result.value) as conn:
                 result = self._connection_execute(
                     conn,
-                    self._sqlalchemy_text(sql),
+                    text(sql),
                     params,
                 )
                 rowcount = max(result.rowcount, 0)

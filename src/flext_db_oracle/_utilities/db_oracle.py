@@ -15,7 +15,6 @@ from sqlalchemy import (
     Engine as SAEngine,
     TextClause,
     create_engine,
-    text,
 )
 from sqlalchemy.engine import CursorResult
 
@@ -224,11 +223,6 @@ class FlextDbOracleUtilitiesDbOracle:
             echo=False,
             connect_args=connect_args,
         )
-
-    @staticmethod
-    def _sqlalchemy_text(statement: str) -> TextClause:
-        """Build SQL text t.JsonValue."""
-        return text(statement)
 
     @staticmethod
     def _engine_connect(engine: SAEngine) -> SAConnection:

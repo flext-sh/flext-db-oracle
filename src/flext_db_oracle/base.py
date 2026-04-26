@@ -23,7 +23,6 @@ from sqlalchemy import (
     Engine as SAEngine,
     TextClause,
     create_engine,
-    text,
 )
 from sqlalchemy.engine import CursorResult
 
@@ -154,11 +153,6 @@ class FlextDbOracleServiceBase(s):
             echo=False,
             connect_args=connect_args,
         )
-
-    @staticmethod
-    def _sqlalchemy_text(statement: str) -> TextClause:
-        """Build SQL text value."""
-        return text(statement)
 
     @staticmethod
     def _engine_connect(engine: SAEngine) -> SAConnection:

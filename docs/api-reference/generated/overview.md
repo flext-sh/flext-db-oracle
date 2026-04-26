@@ -7,9 +7,9 @@
 - Description: FLEXT DB Oracle - Enterprise Oracle Database Operations Library
 - Project class: `domain`
 - Keywords: `database`, `enterprise`, `flext`, `oracle`, `sql`, `typed`
-- Main facades: `FlextDbOracleExceptions`, `FlextDbOracleServiceSinger`, `FlextDbOracleServices`, `FlextDbOracleApi`, `FlextDbOracleDispatcher`, `FlextDbOraclePassword`, `FlextDbOracleServiceConnection`, `FlextDbOracleApiRuntime` (+14 more)
+- Main facades: `FlextDbOracleServices`, `FlextDbOracleUtilitiesDbOracle`, `FlextDbOracleModels`, `FlextDbOracleServicePlugin`, `FlextDbOracleServiceBase`, `FlextDbOracleCli`, `FlextDbOracleConstants`, `FlextDbOracleUtilities` (+14 more)
 - Alias exports: `c`, `d`, `e`, `h`, `m`, `p`, `r`, `s`, `t`, `u`, `x`
-- Public symbol exports: `FlextDbOracleExceptions`, `FlextDbOracleServiceSinger`, `FlextDbOracleServices`, `FlextDbOracleApi`, `FlextDbOracleDispatcher`, `FlextDbOraclePassword`, `FlextDbOracleServiceConnection`, `db_oracle`, `FlextDbOracleApiRuntime`, `FlextDbOracleServiceBase` (+13 more)
+- Public symbol exports: `FlextDbOracleServices`, `FlextDbOracleUtilitiesDbOracle`, `db_oracle`, `FlextDbOracleModels`, `FlextDbOracleServicePlugin`, `FlextDbOracleServiceBase`, `FlextDbOracleCli`, `FlextDbOracleConstants`, `FlextDbOracleUtilities`, `FlextDbOracleServiceSqlBuilder` (+13 more)
 - Exported module shortcuts: `client`
 - Generated module pages: `22`
 

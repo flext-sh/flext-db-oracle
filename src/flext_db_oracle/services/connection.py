@@ -17,7 +17,7 @@ from datetime import UTC, datetime
 from typing import Self
 from urllib.parse import quote_plus
 
-from sqlalchemy import Connection as SAConnection
+from sqlalchemy import Connection as SAConnection, text
 from sqlalchemy.exc import (
     DatabaseError as SQLAlchemyDatabaseError,
     OperationalError as SQLAlchemyOperationalError,
@@ -33,6 +33,7 @@ from flext_db_oracle import (
     r,
     t,
 )
+from flext_db_oracle.base import FlextDbOracleServiceBase, __all__
 
 
 class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
@@ -58,7 +59,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             with self._engine_connect(self._engine) as conn:
                 _ = self._connection_execute(
                     conn,
-                    self._sqlalchemy_text("SELECT 1 FROM dual"),
+                    text("SELECT 1 FROM dual"),
                 )
             self.logger.info(f"Connected to Oracle database: {self.db_config.host}")
             ok_result: p.Result[Self] = r.ok(self)
@@ -89,7 +90,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                         with self._engine_connect(self._engine) as conn:
                             _ = self._connection_execute(
                                 conn,
-                                self._sqlalchemy_text("SELECT 1 FROM dual"),
+                                text("SELECT 1 FROM dual"),
                             )
                         self.logger.info(
                             f"Connected to Oracle database: {self.db_config.host}",
@@ -186,7 +187,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             with self._engine_connect(engine_result.value) as conn:
                 _ = self._connection_execute(
                     conn,
-                    self._sqlalchemy_text("SELECT 1 FROM dual"),
+                    text("SELECT 1 FROM dual"),
                 )
             return r[bool].ok(True)
         except (

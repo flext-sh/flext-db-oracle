@@ -40,11 +40,6 @@ class FlextDbOracleClient(s):
         except c.ValidationError:
             return None
 
-    @staticmethod
-    def _validate_general_list(value: t.JsonValue) -> t.JsonList | None:
-        """Validate list payload with Pydantic."""
-        return t.json_list_adapter().validate_python(value)
-
     debug: bool = u.Field(
         False, description="Enable debug output", validate_default=True
     )
@@ -296,13 +291,13 @@ class FlextDbOracleClient(s):
         try:
 
             def adapt_schemas(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:
-                schemas = FlextDbOracleClient._validate_general_list(raw_value)
+                schemas = t.json_list_adapter().validate_python(raw_value)
                 if schemas is None:
                     return []
                 return [m.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
 
             def adapt_tables(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:
-                tables = FlextDbOracleClient._validate_general_list(raw_value)
+                tables = t.json_list_adapter().validate_python(raw_value)
                 if tables is None:
                     return []
                 return [m.ConfigMap(root={"table": str(table)}) for table in tables]
