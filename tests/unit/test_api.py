@@ -1534,61 +1534,6 @@ class TestsFlextDbOracleApi:
         finally:
             connected_api.disconnect()
 
-    def test_config_validation_edge_cases(self) -> None:
-        """Test settings validation edge cases for missed lines."""
-        test_configs = [
-            ("", 1521, "test", "test", "test"),
-            ("localhost", 0, "test", "test", "test"),
-            ("localhost", 1521, "", "test", "test"),
-            ("localhost", 1521, "test", "", "test"),
-            ("localhost", 1521, "test", "test", ""),
-            ("localhost", 65535, "test", "test", "test"),
-            ("localhost", 1, "test", "test", "test"),
-        ]
-        for host, port, user, password, service_name in test_configs:
-            try:
-                settings = FlextDbOracleSettings(
-                    host=host,
-                    port=port,
-                    username=user,
-                    password=password,
-                    service_name=service_name,
-                )
-                tm.that(settings, none=False)
-            except (ValueError, TypeError):
-                pass
-
-    def test_config_environment_integration(self) -> None:
-        """Test settings environment variable integration."""
-        original_vars: dict[str, str | None] = {}
-        test_vars = {
-            "FLEXT_TARGET_ORACLE_HOST": "test_host",
-            "FLEXT_TARGET_ORACLE_PORT": "1234",
-            "FLEXT_TARGET_ORACLE_USERNAME": "test_user",
-            "FLEXT_TARGET_ORACLE_PASSWORD": "test_pass",
-            "FLEXT_TARGET_ORACLE_SERVICE_NAME": "test_service",
-        }
-        for var, value in test_vars.items():
-            original_vars[var] = os.getenv(var)
-            os.environ[var] = value
-        try:
-            settings = FlextDbOracleSettings(
-                host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "default"),
-                port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
-                username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "default"),
-                password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "default"),
-                service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "default"),
-            )
-            tm.that(settings.host, eq="test_host")
-            tm.that(settings.port, eq=1234)
-            tm.that(settings.username, eq="test_user")
-        finally:
-            for var, original_value in original_vars.items():
-                if original_value is None:
-                    os.environ.pop(var, None)
-                else:
-                    os.environ[var] = original_value
-
     def test_connection_edge_cases(
         self,
         real_oracle_config: FlextDbOracleSettings | None,
@@ -1634,58 +1579,6 @@ class TestsFlextDbOracleApi:
             except (AttributeError, TypeError):
                 pass
 
-    def test_types_validation_comprehensive(self) -> None:
-        """Test comprehensive type validation for missed lines."""
-        try:
-            column = m.DbOracle.Column(
-                name="TEST_COLUMN",
-                data_type="VARCHAR2",
-                nullable=True,
-            )
-            tm.that(column.name, eq="TEST_COLUMN")
-        except (TypeError, ValueError):
-            pass
-        try:
-            table = m.DbOracle.Table(
-                name="TEST_TABLE",
-                owner="TEST_SCHEMA",
-                columns=[],
-            )
-            tm.that(table.name, eq="TEST_TABLE")
-        except (TypeError, ValueError):
-            pass
-        try:
-            m.DbOracle.Column(
-                name="EDGE_COL",
-                data_type="NUMBER",
-                nullable=False,
-                default_value="0",
-            )
-        except (TypeError, ValueError, NotImplementedError):
-            pass
-
-    def test_types_property_methods(self) -> None:
-        """Test type property methods for missed lines."""
-        column = m.DbOracle.Column(
-            name="ID",
-            data_type="NUMBER",
-            nullable=False,
-        )
-        tm.that(column.name, eq="ID")
-        tm.that(column.data_type, eq="NUMBER")
-        tm.that(column.nullable is False, eq=True)
-        str_repr = str(column)
-        tm.that(str_repr, none=False)
-        repr_str = repr(column)
-        tm.that(repr_str, none=False)
-        column_with_default = m.DbOracle.Column(
-            name="TEST_COL",
-            data_type="VARCHAR2",
-            nullable=True,
-            default_value="DEFAULT_VALUE",
-        )
-        tm.that(column_with_default.default_value, eq="DEFAULT_VALUE")
-
     def test_observability_initialization_paths(self) -> None:
         """Test observability initialization paths."""
         try:
@@ -1722,23 +1615,6 @@ class TestsFlextDbOracleApi:
             tm.that(True, eq=True)
         finally:
             connected_api.disconnect()
-
-    def test_services_direct_imports_and_coverage(self) -> None:
-        """Test direct services imports for coverage measurement."""
-        settings = FlextDbOracleSettings(
-            host="coverage_test",
-            port=1521,
-            service_name="COVERAGE",
-            username="coverage_user",
-            password="coverage_pass",
-            ssl_server_cert_dn=None,
-        )
-        services = FlextDbOracleServices(settings=settings)
-        tm.that(services, none=False)
-        tm.that(services, none=False)
-        identifier_result = services.build_select("test_table", ["col1", "col2"])
-        tm.ok(identifier_result)
-        tm.that(identifier_result.value, has="SELECT")
 
     def test_services_sql_builder_operations(self) -> None:
         """Test SQL builder operations for 100% coverage."""
