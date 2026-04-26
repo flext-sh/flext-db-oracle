@@ -1,0 +1,29 @@
+src/flext_db_oracle/base.py
+  afc29eb099521e6a 26,35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "f8d8113735181a8e927a1dec267d1903503e029d",
+  "prompts": {
+    "afc29eb099521e6a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "491e2c5e-762d-4a28-a137-abf6db4cc57c",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 111,
+      "accepted_lines": 2,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/7f1769af401ed5bf5cb7253213c4507aa3230da75da970120579b21f093cb919"
+    }
+  },
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
