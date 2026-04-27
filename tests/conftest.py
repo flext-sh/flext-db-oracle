@@ -183,7 +183,7 @@ def shared_oracle_container(docker_control: tk) -> str:
                 "Container %s is running and clean, no action needed",
                 container_name,
             )
-    resolved_port = u.DbOracle.Tests.resolve_oracle_test_port(
+    resolved_port = u.Tests.resolve_oracle_test_port(
         docker_control,
         container_name,
     )

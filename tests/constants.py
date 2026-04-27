@@ -8,18 +8,16 @@ from __future__ import annotations
 
 from flext_tests import FlextTestsConstants
 
-from flext_db_oracle import FlextDbOracleConstants
+from flext_db_oracle import c
 
 
-class TestsFlextDbOracleConstants(FlextTestsConstants, FlextDbOracleConstants):
+class TestsFlextDbOracleConstants(FlextTestsConstants, c):
     """Test constants for flext-db-oracle."""
 
-    class DbOracle(FlextDbOracleConstants.DbOracle):
-        """DbOracle domain test constants."""
-
-        class Tests(FlextTestsConstants.Tests):
-            """Test-specific constants."""
+    class Tests(FlextTestsConstants.Tests):
+        """Test-specific constants."""
 
 
 c = TestsFlextDbOracleConstants
+
 __all__: list[str] = ["TestsFlextDbOracleConstants", "c"]

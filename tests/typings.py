@@ -13,26 +13,24 @@ from collections.abc import (
 
 from flext_tests import FlextTestsTypes
 
-from flext_db_oracle import FlextDbOracleTypes, m, p
+from flext_db_oracle import t, m, p
 
 
-class TestsFlextDbOracleTypes(FlextTestsTypes, FlextDbOracleTypes):
+class TestsFlextDbOracleTypes(FlextTestsTypes, t):
     """Test type aliases for flext-db-oracle."""
 
-    class DbOracle(FlextDbOracleTypes.DbOracle):
-        """DbOracle domain test type aliases."""
 
-        class Tests:
-            """Test-specific type aliases."""
+    class Tests(FlextTestsTypes.Tests):
+        """Test-specific type aliases."""
 
-            type ApiCoverageReturn = (
-                bool
-                | m.ConfigMap
-                | p.Result[Mapping[str, FlextDbOracleTypes.FlatContainer]]
-                | p.Result[str]
-                | p.Result[FlextDbOracleTypes.StrSequence]
-            )
-            type ApiCoverageCallable = Callable[[], ApiCoverageReturn]
+        type ApiCoverageReturn = (
+            bool
+            | m.ConfigMap
+            | p.Result[Mapping[str, t.FlatContainer]]
+            | p.Result[str]
+            | p.Result[t.StrSequence]
+        )
+        type ApiCoverageCallable = Callable[[], ApiCoverageReturn]
 
 
 t = TestsFlextDbOracleTypes

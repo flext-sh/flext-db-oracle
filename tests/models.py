@@ -12,56 +12,54 @@ from collections.abc import (
 
 from flext_tests import FlextTestsModels
 
-from flext_db_oracle import FlextDbOracleModels
+from flext_db_oracle import m
 from tests import TestsFlextDbOracleTypes
 
 
-class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
+class TestsFlextDbOracleModels(FlextTestsModels, m):
     """Test models for flext-db-oracle."""
 
-    class DbOracle(FlextDbOracleModels.DbOracle):
-        """DbOracle domain test models."""
+    class Tests(FlextTestsModels.Tests):
+        """Test-specific models."""
 
-        class Tests:
-            """Test-specific models."""
+        class StubResult(m.DbOracle.DbOracleDomainModel):
+            """Minimal result stub for dynamic integration tests."""
 
-            class StubResult(FlextDbOracleModels.DbOracle.DbOracleDomainModel):
-                """Minimal result stub for dynamic integration tests."""
+            failure: bool = False
+            error: str = ""
 
-                failure: bool = False
-                error: str = ""
+        class StubPluginEntity(m.DbOracle.DbOracleDomainModel):
+            """Stub plugin entity compatible with service integration tests."""
 
-            class StubPluginEntity(FlextDbOracleModels.DbOracle.DbOracleDomainModel):
-                """Stub plugin entity compatible with service integration tests."""
+            name: str
+            plugin_version: str
+            description: str
+            author: str
+            plugin_type: str
+            metadata: Mapping[str, TestsFlextDbOracleTypes.FlatContainer]
 
-                name: str
-                plugin_version: str
-                description: str
-                author: str
-                plugin_type: str
-                metadata: Mapping[str, TestsFlextDbOracleTypes.FlatContainer]
-
-                @classmethod
-                def create(
-                    cls,
-                    *,
-                    name: str,
-                    plugin_version: str,
-                    description: str,
-                    author: str,
-                    plugin_type: str,
-                    metadata: Mapping[str, TestsFlextDbOracleTypes.FlatContainer],
-                ) -> TestsFlextDbOracleModels.DbOracle.Tests.StubPluginEntity:
-                    """Create a stub plugin entity with the expected plugin API shape."""
-                    return cls(
-                        name=name,
-                        plugin_version=plugin_version,
-                        description=description,
-                        author=author,
-                        plugin_type=plugin_type,
-                        metadata=metadata,
-                    )
+            @classmethod
+            def create(
+                cls,
+                *,
+                name: str,
+                plugin_version: str,
+                description: str,
+                author: str,
+                plugin_type: str,
+                metadata: Mapping[str, TestsFlextDbOracleTypes.FlatContainer],
+            ) -> TestsFlextDbOracleModels.Tests.StubPluginEntity:
+                """Create a stub plugin entity with the expected plugin API shape."""
+                return cls(
+                    name=name,
+                    plugin_version=plugin_version,
+                    description=description,
+                    author=author,
+                    plugin_type=plugin_type,
+                    metadata=metadata,
+                )
 
 
 m = TestsFlextDbOracleModels
+
 __all__: list[str] = ["TestsFlextDbOracleModels", "m"]
