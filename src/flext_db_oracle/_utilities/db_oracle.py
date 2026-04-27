@@ -60,7 +60,7 @@ class FlextDbOracleUtilitiesDbOracle:
     @staticmethod
     def dispatcher_enabled() -> bool:
         """Return True when dispatcher integration should be used."""
-        value = os.getenv(c.DbOracle.OracleEnvironment.ENV_ENABLE_DISPATCHER)
+        value = os.getenv(c.DbOracle.ENV_ENABLE_DISPATCHER)
         if value is None:
             return False
         return value.strip().lower() in {"1", "true", "yes", "on"}
@@ -70,9 +70,9 @@ class FlextDbOracleUtilitiesDbOracle:
         """Validate an Oracle identifier."""
         if not identifier:
             return r[bool].fail("Empty Oracle identifier")
-        if len(identifier) > c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH:
+        if len(identifier) > c.DbOracle.MAX_IDENTIFIER_LENGTH:
             return r[bool].fail("Oracle identifier too long")
-        if identifier.upper() in c.DbOracle.OracleValidation.ORACLE_RESERVED:
+        if identifier.upper() in c.DbOracle.ORACLE_RESERVED:
             return r[bool].fail("Oracle identifier is reserved word")
         return r[bool].ok(True)
 
@@ -83,7 +83,7 @@ class FlextDbOracleUtilitiesDbOracle:
             return r[str].fail("Empty Oracle identifier")
         if not identifier.replace("_", "").isalnum():
             return r[str].fail("Invalid Oracle identifier")
-        max_len = c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
+        max_len = c.DbOracle.MAX_IDENTIFIER_LENGTH
         return r[str].ok(identifier[:max_len])
 
     @classmethod

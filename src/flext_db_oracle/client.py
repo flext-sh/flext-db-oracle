@@ -54,8 +54,8 @@ class FlextDbOracleClient(s):
                 "default_output_format": "table",
                 "show_execution_time": "True",
                 "auto_confirm_operations": "False",
-                "connection_timeout": c.DbOracle.Connection.DEFAULT_CONNECTION_TIMEOUT,
-                "query_limit": c.DbOracle.Query.DEFAULT_QUERY_LIMIT,
+                "connection_timeout": c.DbOracle.DEFAULT_CONNECTION_TIMEOUT,
+                "query_limit": c.DbOracle.DEFAULT_QUERY_LIMIT,
             },
         ),
         description="User preference settings for CLI output",
@@ -292,14 +292,10 @@ class FlextDbOracleClient(s):
 
             def adapt_schemas(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:
                 schemas = t.json_list_adapter().validate_python(raw_value)
-                if schemas is None:
-                    return []
                 return [m.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
 
             def adapt_tables(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:
                 tables = t.json_list_adapter().validate_python(raw_value)
-                if tables is None:
-                    return []
                 return [m.ConfigMap(root={"table": str(table)}) for table in tables]
 
             def adapt_health(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:

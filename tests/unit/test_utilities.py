@@ -264,7 +264,7 @@ class TestsFlextDbOracleUtilitiesUnit:
 
     def test_escape_oracle_identifier_max_length(self) -> None:
         """Test identifier at max length is truncated to MAX_IDENTIFIER_LENGTH."""
-        max_len = c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
+        max_len = c.DbOracle.MAX_IDENTIFIER_LENGTH
         long_identifier = "a" * max_len
         result = u.DbOracle.escape_oracle_identifier(
             long_identifier,
@@ -275,9 +275,7 @@ class TestsFlextDbOracleUtilitiesUnit:
 
     def test_escape_oracle_identifier_too_long(self) -> None:
         """Test identifier exceeding max length."""
-        long_identifier = "a" * (
-            c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH + 1
-        )
+        long_identifier = "a" * (c.DbOracle.MAX_ORACLE_IDENTIFIER_LENGTH + 1)
         result = u.DbOracle.escape_oracle_identifier(
             long_identifier,
         )
@@ -392,7 +390,7 @@ class TestsFlextDbOracleUtilitiesUnit:
 
     def test_oracle_validation_validate_identifier_too_long(self) -> None:
         """Test identifier too long validation."""
-        long_identifier = "A" * (c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH + 1)
+        long_identifier = "A" * (c.DbOracle.MAX_IDENTIFIER_LENGTH + 1)
         result = u.DbOracle.validate_identifier(long_identifier)
         tm.that(result.failure, eq=True)
         tm.that(result.error is not None and "too long" in result.error, eq=True)

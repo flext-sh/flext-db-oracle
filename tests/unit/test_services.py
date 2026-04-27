@@ -524,7 +524,7 @@ class TestsFlextDbOracleServices:
     def test_api_connection_error_paths_571_610(self) -> None:
         """Test API connection error handling paths (lines 571-610)."""
         bad_config = FlextDbOracleSettings(
-            host=getattr(c.DbOracle.Platform, "LOOPBACK_IP"),
+            host=c.DbOracle.LOOPBACK_IP,
             port=9999,
             username="invalid",
             password="invalid",
@@ -911,10 +911,7 @@ class TestsFlextDbOracleServices:
                 elif method_name.startswith("build_delete"):
                     tm.that(
                         (
-                            getattr(
-                                c.DbOracle.Platform,
-                                "HTTP_METHOD_DELETE",
-                            )
+                            getattr(c, "HTTP_METHOD_DELETE", "DELETE")
                             in sql_text.upper()
                         ),
                         eq=True,

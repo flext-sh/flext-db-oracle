@@ -31,7 +31,7 @@ class TestsFlextDbOracleModelsUnit:
         tm.that(abs(status.connection_time - 0.0), lt=1e-9)
         tm.that(status.session_id, eq="")
         tm.that(status.host, eq="")
-        tm.that(status.port, eq=c.DbOracle.Connection.DEFAULT_PORT)
+        tm.that(status.port, eq=c.DbOracle.DEFAULT_PORT)
         tm.that(status.service_name, eq="")
         tm.that(status.username, eq="")
         tm.that(status.db_version, eq="")

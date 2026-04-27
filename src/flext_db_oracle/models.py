@@ -132,7 +132,7 @@ class FlextDbOracleModels(m):
             )
             host: str = u.Field("", description="Database host", validate_default=True)
             port: t.PortNumber = u.Field(
-                c.DbOracle.Connection.DEFAULT_PORT,
+                c.DbOracle.DEFAULT_PORT,
                 description="Database port",
                 validate_default=True,
             )
@@ -183,8 +183,7 @@ class FlextDbOracleModels(m):
                     return False
                 age_seconds = float((datetime.now(UTC) - self.last_activity).seconds)
                 return bool(
-                    age_seconds
-                    <= c.DbOracle.OraclePerformance.CONNECTION_IDLE_TIMEOUT_SECONDS,
+                    age_seconds <= c.DbOracle.CONNECTION_IDLE_TIMEOUT_SECONDS,
                 )
 
             @property
@@ -194,17 +193,14 @@ class FlextDbOracleModels(m):
                     return "No performance data"
                 if (
                     self.connection_time
-                    < c.DbOracle.OraclePerformance.CONNECTION_EXCELLENT_THRESHOLD_SECONDS
+                    < c.DbOracle.CONNECTION_EXCELLENT_THRESHOLD_SECONDS
                 ):
                     return f"Excellent ({self.connection_time:.3f}s)"
-                if (
-                    self.connection_time
-                    < c.DbOracle.OraclePerformance.CONNECTION_GOOD_THRESHOLD_SECONDS
-                ):
+                if self.connection_time < c.DbOracle.CONNECTION_GOOD_THRESHOLD_SECONDS:
                     return f"Good ({self.connection_time:.3f}s)"
                 if (
                     self.connection_time
-                    < c.DbOracle.OraclePerformance.CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS
+                    < c.DbOracle.CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS
                 ):
                     return f"Acceptable ({self.connection_time:.3f}s)"
                 return f"Slow ({self.connection_time:.3f}s)"
@@ -233,7 +229,7 @@ class FlextDbOracleModels(m):
             @u.field_serializer("error_message")
             def serialize_error_message(self, value: str) -> str:
                 """Truncate long error messages."""
-                max_error_length = c.DbOracle.Error.MAX_ERROR_MESSAGE_LENGTH
+                max_error_length = c.DbOracle.MAX_ERROR_MESSAGE_LENGTH
                 if len(value) > max_error_length:
                     return f"{value[:max_error_length]}... (truncated)"
                 return value
@@ -247,9 +243,7 @@ class FlextDbOracleModels(m):
                     msg = "Connected status requires host information"
                     raise ValueError(msg)
                 if self.connected and not (
-                    c.DbOracle.OracleNetwork.MIN_PORT
-                    <= self.port
-                    <= c.DbOracle.OracleNetwork.MAX_PORT
+                    c.DbOracle.MIN_PORT <= self.port <= c.DbOracle.MAX_PORT
                 ):
                     msg = f"Invalid port number: {self.port}"
                     raise ValueError(msg)
@@ -310,7 +304,7 @@ class FlextDbOracleModels(m):
                 return (
                     len(self.rows)
                     * len(self.columns)
-                    * c.DbOracle.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
+                    * c.DbOracle.DATA_SIZE_ESTIMATION_FACTOR
                     if self.rows
                     else 0
                 )
@@ -331,7 +325,7 @@ class FlextDbOracleModels(m):
                 data_size = (
                     len(self.rows)
                     * len(self.columns)
-                    * c.DbOracle.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
+                    * c.DbOracle.DATA_SIZE_ESTIMATION_FACTOR
                     if self.rows
                     else 0
                 )
@@ -341,7 +335,7 @@ class FlextDbOracleModels(m):
             def performance_rating(self) -> str:
                 """Query performance rating."""
                 result_acceptance_threshold_ms = (
-                    c.DbOracle.OraclePerformance.QUERY_ACCEPTABLE_THRESHOLD_MS + 500
+                    c.DbOracle.QUERY_ACCEPTABLE_THRESHOLD_MS + 500
                 )
                 if (
                     self.has_results
@@ -350,23 +344,18 @@ class FlextDbOracleModels(m):
                     return "Acceptable"
                 return (
                     "Excellent"
-                    if self.execution_time_ms
-                    < c.DbOracle.OraclePerformance.QUERY_EXCELLENT_THRESHOLD_MS
+                    if self.execution_time_ms < c.DbOracle.QUERY_EXCELLENT_THRESHOLD_MS
                     else "Good"
-                    if self.execution_time_ms
-                    < c.DbOracle.OraclePerformance.QUERY_GOOD_THRESHOLD_MS
+                    if self.execution_time_ms < c.DbOracle.QUERY_GOOD_THRESHOLD_MS
                     else "Acceptable"
-                    if self.execution_time_ms
-                    < c.DbOracle.OraclePerformance.QUERY_ACCEPTABLE_THRESHOLD_MS
+                    if self.execution_time_ms < c.DbOracle.QUERY_ACCEPTABLE_THRESHOLD_MS
                     else "Slow"
                 )
 
             @u.field_serializer("execution_time_ms", when_used="json")
             def serialize_execution_time(self, value: int) -> str:
                 """Format execution time with appropriate units."""
-                threshold = (
-                    c.DbOracle.OraclePerformance.MILLISECONDS_TO_SECONDS_THRESHOLD
-                )
+                threshold = c.DbOracle.MILLISECONDS_TO_SECONDS_THRESHOLD
                 return (
                     f"{value}ms" if value < threshold else f"{value / threshold:.2f}s"
                 )
@@ -623,22 +612,22 @@ class FlextDbOracleModels(m):
             """CLI connection parameters shared by execute_* methods."""
 
             host: str = u.Field(
-                c.DbOracle.OracleDefaults.DEFAULT_HOST,
+                c.DbOracle.DEFAULT_HOST,
                 description="Oracle database hostname",
                 validate_default=True,
             )
             port: int = u.Field(
-                c.DbOracle.Connection.DEFAULT_PORT,
+                c.DbOracle.DEFAULT_PORT,
                 description="Oracle database port",
                 validate_default=True,
             )
             service_name: str = u.Field(
-                c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
+                c.DbOracle.DEFAULT_SERVICE_NAME,
                 description="Oracle service name",
                 validate_default=True,
             )
             username: str = u.Field(
-                c.DbOracle.Connection.DEFAULT_USERNAME,
+                c.DbOracle.DEFAULT_USERNAME,
                 description="Oracle username",
                 validate_default=True,
             )
@@ -656,9 +645,11 @@ class FlextDbOracleModels(m):
         class ListTablesParams(ConnectionParams):
             """CLI parameters for execute_list_tables."""
 
-            schema: str = u.Field(
+            schema_name: str = u.Field(
                 "SYSTEM",
                 description="Schema to list tables from",
+                validation_alias="schema",
+                serialization_alias="schema",
                 validate_default=True,
             )
 
@@ -666,7 +657,7 @@ class FlextDbOracleModels(m):
             """CLI parameters for execute_health_check."""
 
             timeout: int = u.Field(
-                c.DbOracle.Connection.DEFAULT_TIMEOUT,
+                c.DbOracle.DEFAULT_TIMEOUT,
                 description="Connection timeout in seconds",
                 validate_default=True,
             )

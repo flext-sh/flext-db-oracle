@@ -24,7 +24,7 @@ class FlextDbOracleSettings(FlextSettings):
     _singleton_enabled: ClassVar[bool] = False
 
     model_config: ClassVar[m.SettingsConfigDict] = m.SettingsConfigDict(
-        env_prefix=c.DbOracle.OracleEnvironment.PREFIX_ORACLE,
+        env_prefix=c.DbOracle.PREFIX_ORACLE,
         case_sensitive=False,
         extra="ignore",
         validate_assignment=False,
@@ -32,12 +32,12 @@ class FlextDbOracleSettings(FlextSettings):
     )
 
     host: str = u.Field(
-        c.DbOracle.OracleDefaults.DEFAULT_HOST,
+        c.DbOracle.DEFAULT_HOST,
         description="Oracle database host address",
         validate_default=True,
     )
     port: t.PortNumber = u.Field(
-        c.DbOracle.Connection.DEFAULT_PORT,
+        c.DbOracle.DEFAULT_PORT,
         description="Oracle database listener port",
         validate_default=True,
     )
@@ -46,34 +46,34 @@ class FlextDbOracleSettings(FlextSettings):
         t.StringConstraints(
             strip_whitespace=True,
             to_upper=True,
-            max_length=c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH,
+            max_length=c.DbOracle.MAX_ORACLE_IDENTIFIER_LENGTH,
         ),
     ] = u.Field(
-        c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
+        c.DbOracle.DEFAULT_SERVICE_NAME,
         description="Oracle service name for connection",
         validate_default=True,
     )
     username: str = u.Field(
-        c.DbOracle.Connection.DEFAULT_USERNAME,
+        c.DbOracle.DEFAULT_USERNAME,
         description="Oracle database username",
         validate_default=True,
     )
-    password: FlextDbOraclePassword | None = u.Field(
+    password: FlextDbOraclePassword | str | None = u.Field(
         default_factory=lambda: FlextDbOraclePassword(""),
         description="Oracle database password",
     )
     timeout: t.PositiveInt = u.Field(
-        c.DbOracle.Connection.DEFAULT_TIMEOUT,
+        c.DbOracle.DEFAULT_TIMEOUT,
         description="Connection timeout in seconds",
         validate_default=True,
     )
     pool_min: t.PositiveInt = u.Field(
-        c.DbOracle.Connection.DEFAULT_POOL_MIN,
+        c.DbOracle.DEFAULT_POOL_MIN,
         description="Minimum connection pool size",
         validate_default=True,
     )
     pool_max: t.PositiveInt = u.Field(
-        c.DbOracle.Connection.DEFAULT_POOL_MAX,
+        c.DbOracle.DEFAULT_POOL_MAX,
         description="Maximum connection pool size",
         validate_default=True,
     )
@@ -83,7 +83,7 @@ class FlextDbOracleSettings(FlextSettings):
             t.StringConstraints(
                 strip_whitespace=True,
                 to_upper=True,
-                max_length=c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH,
+                max_length=c.DbOracle.MAX_ORACLE_IDENTIFIER_LENGTH,
             ),
         ]
         | None
@@ -91,7 +91,7 @@ class FlextDbOracleSettings(FlextSettings):
         None, description="Oracle SID for legacy connections", validate_default=True
     )
     name: str = u.Field(
-        c.DbOracle.Connection.DEFAULT_DATABASE_NAME,
+        c.DbOracle.DEFAULT_DATABASE_NAME,
         description="Oracle database name identifier",
         validation_alias="DATABASE_NAME",
         validate_default=True,
@@ -127,8 +127,8 @@ class FlextDbOracleSettings(FlextSettings):
     @classmethod
     def _parse_password(
         cls,
-        value: FlextDbOraclePassword | t.JsonValue | None,
-    ) -> FlextDbOraclePassword | None:
+        value: FlextDbOraclePassword | str | t.JsonValue | None,
+    ) -> FlextDbOraclePassword | str | None:
         if value is None:
             return None
         if isinstance(value, FlextDbOraclePassword):
@@ -145,22 +145,18 @@ class FlextDbOracleSettings(FlextSettings):
 
     def _enforce_business_rules(self) -> None:
         if not self.host.strip():
-            msg = c.DbOracle.ErrorMessages.HOST_EMPTY
+            msg = c.DbOracle.HOST_EMPTY
             raise ValueError(msg)
         if not self.username.strip():
-            msg = c.DbOracle.ErrorMessages.USERNAME_EMPTY
+            msg = c.DbOracle.USERNAME_EMPTY
             raise ValueError(msg)
         if not self.service_name.strip() and (self.sid is None or not self.sid.strip()):
             msg = "Either service_name or sid must be provided"
             raise ValueError(msg)
-        if not (
-            c.DbOracle.OracleNetwork.MIN_PORT
-            <= self.port
-            <= c.DbOracle.OracleNetwork.MAX_PORT
-        ):
-            msg = c.DbOracle.ErrorMessages.PORT_OUT_OF_RANGE.format(
-                min_port=c.DbOracle.OracleNetwork.MIN_PORT,
-                max_port=c.DbOracle.OracleNetwork.MAX_PORT,
+        if not (c.DbOracle.MIN_PORT <= self.port <= c.DbOracle.MAX_PORT):
+            msg = c.DbOracle.PORT_OUT_OF_RANGE.format(
+                min_port=c.DbOracle.MIN_PORT,
+                max_port=c.DbOracle.MAX_PORT,
                 port=self.port,
             )
             raise ValueError(msg)
@@ -177,25 +173,22 @@ class FlextDbOracleSettings(FlextSettings):
             case_sensitive=False,
         )
         values = {k: v for k, v in source().items() if v is not None}
-        for env_name, field_name in c.DbOracle.OracleEnvironment.ENV_MAPPING.items():
+        for env_name, field_name in c.DbOracle.ENV_MAPPING.items():
             if field_name in values or not env_name.startswith(prefix):
                 continue
             normalized_env_name = env_name.lower()
             if normalized_env_name in source.env_vars:
                 values[field_name] = source.env_vars[normalized_env_name]
-        if prefix == c.DbOracle.OracleEnvironment.PREFIX_ORACLE:
+        if prefix == c.DbOracle.PREFIX_ORACLE:
             flext_source = m.EnvSettingsSource(
                 settings_cls=cls,
-                env_prefix=c.DbOracle.OracleEnvironment.PREFIX_FLEXT_TARGET_ORACLE,
+                env_prefix=c.DbOracle.PREFIX_FLEXT_TARGET_ORACLE,
                 case_sensitive=False,
             )
             flext_values = {k: v for k, v in flext_source().items() if v is not None}
-            for (
-                env_name,
-                field_name,
-            ) in c.DbOracle.OracleEnvironment.ENV_MAPPING.items():
+            for env_name, field_name in c.DbOracle.ENV_MAPPING.items():
                 if field_name in flext_values or not env_name.startswith(
-                    c.DbOracle.OracleEnvironment.PREFIX_FLEXT_TARGET_ORACLE,
+                    c.DbOracle.PREFIX_FLEXT_TARGET_ORACLE,
                 ):
                     continue
                 normalized_env_name = env_name.lower()
@@ -226,15 +219,15 @@ class FlextDbOracleSettings(FlextSettings):
         parsed = urlparse(url)
         if parsed.scheme not in {"oracle", "oracle+oracledb"}:
             return r[FlextDbOracleSettings].fail("Invalid Oracle URL scheme")
-        host = parsed.hostname or c.DbOracle.OracleDefaults.DEFAULT_HOST
-        port = parsed.port or c.DbOracle.Connection.DEFAULT_PORT
+        host = parsed.hostname or c.DbOracle.DEFAULT_HOST
+        port = parsed.port or c.DbOracle.DEFAULT_PORT
         username = unquote(parsed.username) if parsed.username else ""
         password = unquote(parsed.password) if parsed.password else None
         query = parse_qs(parsed.query)
         service_name = (
             parsed.path.lstrip("/")
             or (query.get("service_name", [""])[0])
-            or c.DbOracle.Connection.DEFAULT_SERVICE_NAME
+            or c.DbOracle.DEFAULT_SERVICE_NAME
         )
         try:
             settings = cls.model_validate({

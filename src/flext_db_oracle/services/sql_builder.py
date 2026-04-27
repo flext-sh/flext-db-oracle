@@ -152,28 +152,30 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         col_defs: MutableSequence[str] = []
         primary_keys: MutableSequence[str] = []
         for col in columns:
-            if isinstance(col, m.DbOracle.Column):
-                name = col.name or c.IDENTIFIER_UNKNOWN
-                data_type = col.data_type or "VARCHAR2(255)"
-                nullable = "" if col.nullable else " NOT NULL"
-                if col.primary_key:
-                    primary_keys.append(name)
-            else:
-                name_value = col.get("name") or col.get("column_name")
-                data_type_value = col.get("data_type")
-                nullable_value = col.get("nullable", True)
-                name = (
-                    str(name_value) if name_value is not None else c.IDENTIFIER_UNKNOWN
+            column_model = (
+                col.model_copy(
+                    update={
+                        "name": col.name or c.IDENTIFIER_UNKNOWN,
+                        "data_type": col.data_type or "VARCHAR2(255)",
+                    }
                 )
-                data_type = (
-                    str(data_type_value)
-                    if data_type_value is not None
-                    else "VARCHAR2(255)"
-                )
-                nullable = "" if bool(nullable_value) else " NOT NULL"
-                if bool(col.get("primary_key", False)):
-                    primary_keys.append(name)
-            col_defs.append(f"{name} {data_type}{nullable}")
+                if isinstance(col, m.DbOracle.Column)
+                else m.DbOracle.Column.model_validate({
+                    "name": str(
+                        col.get("name")
+                        or col.get("column_name")
+                        or c.IDENTIFIER_UNKNOWN
+                    ),
+                    "data_type": str(col.get("data_type") or "VARCHAR2(255)"),
+                    "nullable": bool(col.get("nullable", True)),
+                    "primary_key": bool(col.get("primary_key", False)),
+                    "default_value": str(col.get("default_value") or ""),
+                })
+            )
+            if column_model.primary_key:
+                primary_keys.append(column_model.name)
+            nullable = "" if column_model.nullable else " NOT NULL"
+            col_defs.append(f"{column_model.name} {column_model.data_type}{nullable}")
         if primary_keys:
             col_defs.append(f"PRIMARY KEY ({', '.join(primary_keys)})")
         schema_prefix = f"{schema}." if schema else ""

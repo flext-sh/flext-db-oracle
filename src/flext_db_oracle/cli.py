@@ -55,10 +55,10 @@ class FlextDbOracleCli(s[str]):
 
         @staticmethod
         def create_config_from_params(
-            host: str = c.DbOracle.OracleDefaults.DEFAULT_HOST,
-            port: int = c.DbOracle.Connection.DEFAULT_PORT,
-            service_name: str = c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
-            username: str = c.DbOracle.OracleDefaults.DEFAULT_USERNAME,
+            host: str = c.DbOracle.DEFAULT_HOST,
+            port: int = c.DbOracle.DEFAULT_PORT,
+            service_name: str = c.DbOracle.DEFAULT_SERVICE_NAME,
+            username: str = c.DbOracle.DEFAULT_USERNAME,
             password: str | None = None,
         ) -> p.Result[FlextDbOracleSettings]:
             """Create Oracle configuration from parameters.
@@ -130,33 +130,37 @@ class FlextDbOracleCli(s[str]):
             r[str]: Formatted data.
 
             """
-            if output_format == "json":
-                match data:
-                    case m.DbOracle.OutputPayload() | m.DbOracle.HealthCheckReport():
-                        return r[str].ok(data.model_dump_json(indent=2))
-                    case _:
-                        adapter = u.TypeAdapter(type(data))
-                        return r[str].ok(adapter.dump_json(data, indent=2).decode())
-            if output_format == "yaml":
-                match data:
-                    case m.DbOracle.OutputPayload() | m.DbOracle.HealthCheckReport():
-                        return r[str].ok(
-                            u.Cli.yaml_dump_str(
+            formatted: str
+            match output_format:
+                case "json":
+                    match data:
+                        case (
+                            m.DbOracle.OutputPayload() | m.DbOracle.HealthCheckReport()
+                        ):
+                            formatted = data.model_dump_json(indent=2)
+                        case _:
+                            adapter = u.TypeAdapter(type(data))
+                            formatted = adapter.dump_json(data, indent=2).decode()
+                case "yaml":
+                    match data:
+                        case (
+                            m.DbOracle.OutputPayload() | m.DbOracle.HealthCheckReport()
+                        ):
+                            formatted = u.Cli.yaml_dump_str(
                                 data.model_dump(mode="python"),
-                            ),
-                        )
-                    case str() as text:
-                        return r[str].ok(u.Cli.yaml_dump_str(text))
-                    case [*_] as items:
-                        return r[str].ok(u.Cli.yaml_dump_str(items))
-                    case _:
-                        serializable: Mapping[str, t.Scalar] = {
-                            k: v for k, v in data.items() if v is not None
-                        }
-                        return r[str].ok(
-                            u.Cli.yaml_dump_str(serializable),
-                        )
-            return r[str].ok(str(data))
+                            )
+                        case str() as text:
+                            formatted = u.Cli.yaml_dump_str(text)
+                        case [*_] as items:
+                            formatted = u.Cli.yaml_dump_str(items)
+                        case _:
+                            serializable: Mapping[str, t.Scalar] = {
+                                k: v for k, v in data.items() if v is not None
+                            }
+                            formatted = u.Cli.yaml_dump_str(serializable)
+                case _:
+                    formatted = str(data)
+            return r[str].ok(formatted)
 
         @staticmethod
         def format_error_message(error: str) -> p.Result[str]:
@@ -302,9 +306,9 @@ class FlextDbOracleCli(s[str]):
     def execute_list_schemas(
         self,
         host: str = c.LOCALHOST,
-        port: int = c.DbOracle.Connection.DEFAULT_PORT,
-        service_name: str = c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
-        username: str = c.DbOracle.Connection.DEFAULT_USERNAME,
+        port: int = c.DbOracle.DEFAULT_PORT,
+        service_name: str = c.DbOracle.DEFAULT_SERVICE_NAME,
+        username: str = c.DbOracle.DEFAULT_USERNAME,
         password: str | None = None,
         output_format: str = "table",
     ) -> p.Result[str]:
@@ -362,9 +366,9 @@ class FlextDbOracleCli(s[str]):
         self,
         schema: str = "SYSTEM",
         host: str = c.LOCALHOST,
-        port: int = c.DbOracle.Connection.DEFAULT_PORT,
-        service_name: str = c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
-        username: str = c.DbOracle.Connection.DEFAULT_USERNAME,
+        port: int = c.DbOracle.DEFAULT_PORT,
+        service_name: str = c.DbOracle.DEFAULT_SERVICE_NAME,
+        username: str = c.DbOracle.DEFAULT_USERNAME,
         password: str | None = None,
         output_format: str = "table",
     ) -> p.Result[str]:
@@ -422,9 +426,9 @@ class FlextDbOracleCli(s[str]):
         self,
         sql: str,
         host: str = c.LOCALHOST,
-        port: int = c.DbOracle.Connection.DEFAULT_PORT,
-        service_name: str = c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
-        username: str = c.DbOracle.Connection.DEFAULT_USERNAME,
+        port: int = c.DbOracle.DEFAULT_PORT,
+        service_name: str = c.DbOracle.DEFAULT_SERVICE_NAME,
+        username: str = c.DbOracle.DEFAULT_USERNAME,
         password: str | None = None,
         output_format: str = "table",
     ) -> p.Result[str]:

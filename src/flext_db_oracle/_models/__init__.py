@@ -1,8 +1,15 @@
-"""Internal models package for flext-db-oracle.
-
-Hosts Pydantic ``BaseModel``/``RootModel`` subclasses per AGENTS.md §2.2 —
-each declaration lives under ``_models/<name>.py`` and is re-exported by
-the parent ``flext_db_oracle.__init__`` lazy map.
-"""
+# AUTO-GENERATED FILE — Regenerate with: make gen
+"""Models package."""
 
 from __future__ import annotations
+
+from flext_core.lazy import build_lazy_import_map, install_lazy_exports
+
+_LAZY_IMPORTS = build_lazy_import_map(
+    {
+        ".password": ("FlextDbOraclePassword",),
+    },
+)
+
+
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)

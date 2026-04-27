@@ -129,9 +129,12 @@ def _is_oracle_container_running() -> bool:
         status_result = docker_control.fetch_container_status("flext-oracle-db-test")
     except (ConnectionError, TimeoutError, OSError, RuntimeError):
         return False
-    return status_result.success and (
-        getattr(status_result.value, "status", None) == tk.ContainerStatus.RUNNING
+    if not status_result.success:
+        return False
+    container_status: tk.ContainerStatus | None = getattr(
+        status_result.value, "status", None
     )
+    return bool(container_status == tk.ContainerStatus.RUNNING)
 
 
 def _get_oracle_config_from_container() -> FlextDbOracleSettings | None:
@@ -145,15 +148,15 @@ def _get_oracle_config_from_container() -> FlextDbOracleSettings | None:
     service = os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB")
     username = os.getenv("TEST_ORACLE_USER", "flext_test")
     password = os.getenv("TEST_ORACLE_PASSWORD", "flext_test_password")
-    return FlextDbOracleSettings(
-        host=host,
-        port=int(port_text),
-        name=service,
-        username=username,
-        password=password,
-        service_name=service,
-        ssl_server_cert_dn=None,
-    )
+    return FlextDbOracleSettings.model_validate({
+        "host": host,
+        "port": int(port_text),
+        "name": service,
+        "username": username,
+        "password": password,
+        "service_name": service,
+        "ssl_server_cert_dn": None,
+    })
 
 
 @pytest.fixture(scope="session")
@@ -220,13 +223,13 @@ def connected_oracle_api(
 @pytest.fixture
 def mock_oracle_config() -> FlextDbOracleSettings:
     """Provide mock Oracle settings for tests."""
-    return FlextDbOracleSettings(
-        host="mock-host",
-        port=1521,
-        service_name="MOCK_SERVICE",
-        username="mock-user",
-        password="mock-pass",
-    )
+    return FlextDbOracleSettings.model_validate({
+        "host": "mock-host",
+        "port": 1521,
+        "service_name": "MOCK_SERVICE",
+        "username": "mock-user",
+        "password": "mock-pass",
+    })
 
 
 @pytest.fixture
@@ -236,30 +239,6 @@ def oracle_config(
 ) -> FlextDbOracleSettings:
     """Provide Oracle settings - real if available, mock otherwise."""
     return real_oracle_config if real_oracle_config is not None else mock_oracle_config
-
-
-@pytest.fixture
-def test_cleanup(
-    connected_oracle_api: FlextDbOracleApi | None,
-) -> None:
-    """Cleanup test data if Oracle is available."""
-    if connected_oracle_api is not None:
-        try:
-            cleanup_queries = [
-                "DROP TABLE test_table CASCADE",
-                "DROP TABLE flext_test_table CASCADE",
-                "DROP TABLE test_data_types CASCADE",
-                "DROP SEQUENCE test_seq CASCADE",
-                "DROP SEQUENCE flext_test_seq CASCADE",
-            ]
-            for query in cleanup_queries:
-                try:
-                    plsql_query = f"\n                    BEGIN\n                        EXECUTE IMMEDIATE '{query}';\n                    EXCEPTION\n                        WHEN OTHERS THEN\n                            NULL;\n                    END;\n                    "
-                    connected_oracle_api.execute_sql(plsql_query)
-                except (oracledb.Error, ConnectionError, OSError):
-                    pass
-        except (oracledb.Error, ConnectionError, OSError):
-            pass
 
 
 @pytest.fixture

@@ -74,9 +74,9 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         ) as e:
             local_host = self.db_config.host in {
                 "localhost",
-                c.DbOracle.Platform.LOCALHOST_IP,
+                c.DbOracle.LOOPBACK_IP,
             }
-            default_port = c.DbOracle.Connection.DEFAULT_PORT
+            default_port = c.DbOracle.DEFAULT_PORT
             if local_host and self.db_config.port != default_port:
                 self.db_config.port = default_port
                 retry_url_result = self._build_connection_url()

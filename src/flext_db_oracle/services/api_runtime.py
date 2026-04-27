@@ -291,7 +291,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
 
     def valid(self) -> bool:
         """Check if API configuration is valid."""
-        return self._oracle_config.port >= c.DbOracle.OracleNetwork.MIN_PORT and bool(
+        return self._oracle_config.port >= c.DbOracle.MIN_PORT and bool(
             self._oracle_config.service_name,
         )
 
