@@ -23,12 +23,11 @@ from tests import e, m, t
 class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):
     """Test utilities for flext-db-oracle."""
 
-
     class Tests(FlextTestsUtilities.Tests):
         """Test-specific utilities."""
 
-        _PORT_BINDINGS_ADAPTER: ClassVar[m.TypeAdapter[t.StrMapping]] = (
-            m.TypeAdapter(t.StrMapping)
+        _PORT_BINDINGS_ADAPTER: ClassVar[m.TypeAdapter[t.StrMapping]] = m.TypeAdapter(
+            t.StrMapping
         )
 
         @classmethod
@@ -85,10 +84,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):
                         raw_ports if isinstance(raw_ports, dict) else {},
                     )
                     for container_port, host_port in ports.items():
-                        if (
-                            container_port.startswith("1521")
-                            and host_port.isdigit()
-                        ):
+                        if container_port.startswith("1521") and host_port.isdigit():
                             return int(host_port)
                 time.sleep(2)
             return fallback_port

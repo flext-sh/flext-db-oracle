@@ -14,7 +14,6 @@ from flext_db_oracle import p
 class TestsFlextDbOracleProtocols(FlextTestsProtocols, p):
     """Test protocols for flext-db-oracle."""
 
-
     class Tests(FlextTestsProtocols.Tests):
         """Test-specific protocols."""
 

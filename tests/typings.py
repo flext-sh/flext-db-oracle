@@ -13,12 +13,11 @@ from collections.abc import (
 
 from flext_tests import FlextTestsTypes
 
-from flext_db_oracle import t, m, p
+from flext_db_oracle import m, p, t
 
 
 class TestsFlextDbOracleTypes(FlextTestsTypes, t):
     """Test type aliases for flext-db-oracle."""
-
 
     class Tests(FlextTestsTypes.Tests):
         """Test-specific type aliases."""
