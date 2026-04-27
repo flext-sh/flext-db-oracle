@@ -244,37 +244,24 @@ class FlextDbOracleCli(s[str]):
         return r[str].ok("Oracle CLI service ready")
 
     def execute_health_check(
-        self,
-        host: str = c.DbOracle.OracleDefaults.DEFAULT_HOST,
-        port: int = c.DbOracle.Connection.DEFAULT_PORT,
-        service_name: str = c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
-        username: str = c.DbOracle.Connection.DEFAULT_USERNAME,
-        password: str | None = None,
-        timeout: int = c.DbOracle.Connection.DEFAULT_TIMEOUT,
+        self, **kwargs: object
     ) -> p.Result[m.DbOracle.HealthCheckReport]:
         """Execute complete health check for Oracle database connection.
-
-        Args:
-        host: Oracle database hostname
-        port: Oracle database port
-        service_name: Oracle service name
-        username: Oracle username
-        password: Oracle password (required)
-        timeout: Connection timeout in seconds
 
         Returns:
         r[m.DbOracle.HealthCheckReport]: Health check results with status and timing
 
         """
+        params = m.DbOracle.HealthCheckParams.model_validate(kwargs)
         start_time = time.time()
         try:
             settings = FlextDbOracleSettings.model_validate({
-                "host": host,
-                "port": port,
-                "service_name": service_name,
-                "username": username,
-                "password": password,
-                "timeout": timeout,
+                "host": params.host,
+                "port": params.port,
+                "service_name": params.service_name,
+                "username": params.username,
+                "password": params.password,
+                "timeout": params.timeout,
             })
             api = FlextDbOracleApi(settings)
             health_result = api.fetch_health_status()
@@ -286,9 +273,9 @@ class FlextDbOracleCli(s[str]):
             health_data = health_result.value
             result = m.DbOracle.HealthCheckReport.model_validate({
                 "status": c.HealthStatus.HEALTHY.value,
-                "host": host,
-                "port": port,
-                "service_name": service_name,
+                "host": params.host,
+                "port": params.port,
+                "service_name": params.service_name,
                 "response_time_ms": round(elapsed_time * 1000, 2),
                 "details": health_data.model_dump(mode="json"),
                 "timestamp": datetime.now(UTC).isoformat(),
@@ -302,9 +289,9 @@ class FlextDbOracleCli(s[str]):
             elapsed_time = time.time() - start_time
             error_result = m.DbOracle.HealthCheckReport(
                 status=c.HealthStatus.UNHEALTHY.value,
-                host=host,
-                port=port,
-                service_name=service_name,
+                host=params.host,
+                port=params.port,
+                service_name=params.service_name,
                 response_time_ms=round(elapsed_time * 1000, 2),
                 details={},
                 error=str(e),
@@ -328,22 +315,22 @@ class FlextDbOracleCli(s[str]):
 
         """
         formatter = self._OutputFormatter
-        config_result = self._OracleConnectionHelper.create_config_from_params(
-            host,
-            port,
-            service_name,
-            username,
-            password,
-        )
-        if config_result.failure:
-            error_text = config_result.error or "Unknown configuration error"
+        try:
+            settings = FlextDbOracleSettings.model_validate({
+                "host": host,
+                "port": port,
+                "service_name": service_name,
+                "username": username,
+                "password": password,
+            })
+        except c.ValidationError as exc:
+            error_text = str(exc)
             error_msg = formatter.format_error_message(
-                f"Configuration failed: {error_text}",
+                f"Configuration failed: {error_text}"
             )
             if error_msg.success:
                 formatter.display_message(error_msg.value)
             return r[str].fail(error_text)
-        settings = config_result.value
         validation_result = self._OracleConnectionHelper.validate_connection(settings)
         if validation_result.failure:
             error_text = validation_result.error or "Unknown validation error"
@@ -388,22 +375,22 @@ class FlextDbOracleCli(s[str]):
 
         """
         formatter = self._OutputFormatter
-        config_result = self._OracleConnectionHelper.create_config_from_params(
-            host,
-            port,
-            service_name,
-            username,
-            password,
-        )
-        if config_result.failure:
-            error_text = config_result.error or "Unknown configuration error"
+        try:
+            settings = FlextDbOracleSettings.model_validate({
+                "host": host,
+                "port": port,
+                "service_name": service_name,
+                "username": username,
+                "password": password,
+            })
+        except c.ValidationError as exc:
+            error_text = str(exc)
             error_msg = formatter.format_error_message(
-                f"Configuration failed: {error_text}",
+                f"Configuration failed: {error_text}"
             )
             if error_msg.success:
                 formatter.display_message(error_msg.value)
             return r[str].fail(error_text)
-        settings = config_result.value
         validation_result = self._OracleConnectionHelper.validate_connection(settings)
         if validation_result.failure:
             error_text = validation_result.error or "Unknown validation error"
@@ -454,21 +441,19 @@ class FlextDbOracleCli(s[str]):
                 "SQL query cannot be empty",
                 "SQL query cannot be empty",
             )
-        config_result = self._OracleConnectionHelper.create_config_from_params(
-            host,
-            port,
-            service_name,
-            username,
-            password,
-        )
-        if config_result.failure:
-            error_text = config_result.error or "Unknown configuration error"
+        try:
+            settings = FlextDbOracleSettings.model_validate({
+                "host": host,
+                "port": port,
+                "service_name": service_name,
+                "username": username,
+                "password": password,
+            })
+        except c.ValidationError as exc:
+            error_text = str(exc)
             return self._handle_error_and_fail(
-                formatter,
-                error_text,
-                f"Configuration failed: {error_text}",
+                formatter, error_text, f"Configuration failed: {error_text}"
             )
-        settings = config_result.value
         validation_result = self._OracleConnectionHelper.validate_connection(settings)
         if validation_result.failure:
             error_text = validation_result.error or "Unknown validation error"
