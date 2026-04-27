@@ -23,6 +23,7 @@ from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleCli,
     FlextDbOracleClient,
+    FlextDbOraclePassword,
     FlextDbOracleSettings,
 )
 from tests import m, r, t, u
@@ -189,7 +190,9 @@ class TestsFlextDbOracleCli:
             settings.port,
             service_name,
             settings.username,
-            settings.password.get_secret_value() if settings.password else None,
+            settings.password.get_secret_value()
+            if isinstance(settings.password, FlextDbOraclePassword)
+            else settings.password,
         )
         tm.that(not result.success, eq=True)
         tm.that(result.error, is_=str)
@@ -222,7 +225,7 @@ class TestsFlextDbOracleCli:
         tm.that(settings.service_name, eq="TEST_SERVICE")
         tm.that(settings.username, eq="test_user")
         tm.that(settings.password, none=False)
-        if settings.password is not None:
+        if isinstance(settings.password, FlextDbOraclePassword):
             tm.that(settings.password.get_secret_value(), eq="test_password")
 
     def test_create_config_from_params_defaults(self) -> None:

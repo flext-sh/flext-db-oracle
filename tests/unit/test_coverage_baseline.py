@@ -14,6 +14,7 @@ from flext_tests import tm
 
 from flext_db_oracle import (
     FlextDbOracleApi,
+    FlextDbOraclePassword,
     FlextDbOracleServices,
     FlextDbOracleSettings,
 )
@@ -62,7 +63,7 @@ class TestsFlextDbOracleCoverageBaseline:
         tm.that(settings.service_name, eq="TEST")
         tm.that(settings.username, eq="testuser")
         tm.that(settings.password, none=False)
-        if settings.password is not None:
+        if isinstance(settings.password, FlextDbOraclePassword):
             tm.that(settings.password.get_secret_value(), eq="testpass")
 
     def test_oracle_config_with_ssl(self) -> None:
