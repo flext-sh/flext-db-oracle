@@ -24,7 +24,6 @@ if _t.TYPE_CHECKING:
     from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
     from flext_db_oracle.exceptions import FlextDbOracleExceptions, e
     from flext_db_oracle.models import FlextDbOracleModels, m
-    from flext_db_oracle.password import FlextDbOraclePassword
     from flext_db_oracle.protocols import FlextDbOracleProtocols, p
     from flext_db_oracle.services.api_runtime import FlextDbOracleApiRuntime
     from flext_db_oracle.services.connection import FlextDbOracleServiceConnection
@@ -78,7 +77,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "FlextDbOracleModels",
                 "m",
             ),
-            ".password": ("FlextDbOraclePassword",),
             ".protocols": (
                 "FlextDbOracleProtocols",
                 "p",
@@ -143,7 +141,6 @@ __all__: list[str] = [
     "FlextDbOracleDispatcher",
     "FlextDbOracleExceptions",
     "FlextDbOracleModels",
-    "FlextDbOraclePassword",
     "FlextDbOracleProtocols",
     "FlextDbOracleServiceBase",
     "FlextDbOracleServiceConnection",
