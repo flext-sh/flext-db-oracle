@@ -1,0 +1,26 @@
+tests/utilities.py
+  7f8dabdbc28465a6 29-30,87
+tests/typings.py
+  7f8dabdbc28465a6 16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "8ca9cea06c692b158300c6554d67e6153cca3568",
+  "prompts": {
+    "7f8dabdbc28465a6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6be116e4-c6d0-4712-993e-5282bb50c991",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 4,
+      "total_deletions": 10,
+      "accepted_lines": 4,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/39d23d8ae03c7642a9914155faa573b71fa8297ac528e6362342ade5d4dc912c"
+    }
+  }
+}
