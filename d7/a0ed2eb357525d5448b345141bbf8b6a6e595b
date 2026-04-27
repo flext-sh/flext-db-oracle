@@ -1,0 +1,14 @@
+examples/06_cli.py
+  h_9db9d35f50cf33 18,22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "d7a0ed2eb357525d5448b345141bbf8b6a6e595b",
+  "prompts": {},
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
