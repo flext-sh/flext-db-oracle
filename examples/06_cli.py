@@ -15,10 +15,11 @@ from collections.abc import (
     Sequence,
 )
 from pathlib import Path
+from typing import Final
 
 from flext_db_oracle import m, t, u
 
-MAX_OUTPUT_LINES = 3
+MAX_OUTPUT_LINES: Final[int] = 3
 
 
 def _get_cli_examples() -> Sequence[t.JsonMapping]:
