@@ -1,0 +1,14 @@
+docs/guides/configuration.md
+  h_9db9d35f50cf33 183
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "80fdf370a8b27ffb3cc26a18ffe00de7bf3739aa",
+  "prompts": {},
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
