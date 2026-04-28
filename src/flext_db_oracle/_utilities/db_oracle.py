@@ -5,9 +5,6 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import os
-from collections.abc import (
-    Mapping,
-)
 from enum import StrEnum
 
 from sqlalchemy import (
@@ -94,21 +91,7 @@ class FlextDbOracleUtilitiesDbOracle:
     ) -> p.Result[str]:
         """Format a query result to string or JSON."""
         if format_type == "json":
-            json_payload: t.JsonValue = u.normalize_to_metadata(result)
-            if isinstance(result, (list, tuple)):
-                rows_payload: list[t.MetadataMapping] = []
-                rows_are_mappings = True
-                for row in result:
-                    if not isinstance(row, Mapping):
-                        rows_are_mappings = False
-                        break
-                    row_payload: t.MetadataMapping = {
-                        str(key): u.normalize_to_metadata(value)
-                        for key, value in row.items()
-                    }
-                    rows_payload.append(row_payload)
-                if rows_are_mappings:
-                    json_payload = t.json_value_adapter().validate_python(rows_payload)
+            json_payload: t.JsonValue = u.normalize_to_json_value(result)
             return r[str].ok(
                 t
                 .json_value_adapter()

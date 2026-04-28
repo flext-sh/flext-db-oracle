@@ -13,7 +13,7 @@ from collections.abc import (
 from flext_tests import FlextTestsModels
 
 from flext_db_oracle import m
-from tests import TestsFlextDbOracleTypes
+from tests.typings import TestsFlextDbOracleTypes
 
 
 class TestsFlextDbOracleModels(FlextTestsModels, m):
