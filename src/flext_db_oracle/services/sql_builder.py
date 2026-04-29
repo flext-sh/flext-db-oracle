@@ -12,11 +12,16 @@ from __future__ import annotations
 import re
 from collections.abc import (
     Mapping,
-    MutableSequence,
     Sequence,
 )
+from typing import override
 
 from sqlalchemy import (
+    ClauseElement,
+    Column as sa_Column,
+    Index,
+    MetaData,
+    Table,
     bindparam,
     column,
     delete,
@@ -24,10 +29,13 @@ from sqlalchemy import (
     literal_column,
     select,
     table,
+    text,
     update,
 )
 from sqlalchemy.dialects.oracle import dialect as oracle_dialect
 from sqlalchemy.sql import quoted_name
+from sqlalchemy.sql.ddl import CreateIndex, CreateTable, DropTable
+from sqlalchemy.types import UserDefinedType
 
 from flext_db_oracle import (
     FlextDbOracleServiceBase,
@@ -40,6 +48,17 @@ from flext_db_oracle import (
 )
 
 
+class OracleRawType(UserDefinedType[str]):
+    """Preserve exact Oracle type strings in SQLAlchemy DDL."""
+
+    def __init__(self, spec: str) -> None:
+        self.spec = spec
+
+    @override
+    def get_col_spec(self, **_kw: object) -> str:
+        return self.spec
+
+
 class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     """Mixin providing SQL statement builders for FlextDbOracleServices.
 
@@ -47,6 +66,31 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     build_insert_statement, build_select, build_update_statement,
     create_table_ddl, drop_table_ddl.
     """
+
+    @staticmethod
+    def _normalize_identifier(name: str) -> str | quoted_name:
+        if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, name):
+            return quoted_name(name.upper(), quote=False)
+        return quoted_name(name, quote=True)
+
+    @staticmethod
+    def _compile_statement(statement: ClauseElement) -> str:
+        return re.sub(
+            r"\s+",
+            " ",
+            str(statement.compile(dialect=oracle_dialect())),
+        ).strip()
+
+    @classmethod
+    def _compile_statement_with_binds(
+        cls,
+        statement: ClauseElement,
+        bind_names: dict[str, str],
+    ) -> str:
+        sql = cls._compile_statement(statement)
+        for column_name, bind_name in bind_names.items():
+            sql = sql.replace(f":{bind_name}", f":{column_name}")
+        return sql
 
     def build_create_index_statement(self, config: t.JsonMapping) -> p.Result[str]:
         """Build Oracle CREATE INDEX statement from configuration."""
@@ -78,10 +122,31 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             )
             if not settings.columns:
                 return r[str].fail("Index definition requires at least one column")
-            schema_prefix = f"{settings.schema_name}." if settings.schema_name else ""
-            unique_prefix = "UNIQUE " if settings.unique else ""
-            columns = ", ".join(settings.columns)
-            sql = f"CREATE {unique_prefix}INDEX {settings.index_name} ON {schema_prefix}{settings.table_name} ({columns})"
+            table_name = self._normalize_identifier(settings.table_name)
+            schema_name = (
+                self._normalize_identifier(settings.schema_name)
+                if settings.schema_name
+                else None
+            )
+            metadata = MetaData()
+            table_object = Table(
+                table_name,
+                metadata,
+                *(
+                    sa_Column(
+                        self._normalize_identifier(column_name),
+                        OracleRawType("VARCHAR2(1)"),
+                    )
+                    for column_name in settings.columns
+                ),
+                schema=schema_name,
+            )
+            index = Index(
+                self._normalize_identifier(settings.index_name),
+                *(table_object.c[column_name] for column_name in settings.columns),
+                unique=settings.unique,
+            )
+            sql = self._compile_statement(CreateIndex(index))
             if settings.tablespace:
                 sql = f"{sql} TABLESPACE {settings.tablespace}"
             if settings.parallel > 1:
@@ -305,51 +370,72 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         columns: Sequence[m.DbOracle.Column | t.JsonMapping],
         schema: str | None = None,
     ) -> p.Result[str]:
-        """Generate CREATE TABLE DDL - simplified."""
-        col_defs: MutableSequence[str] = []
-        primary_keys: MutableSequence[str] = []
-        for col in columns:
-            column_model = (
-                col.model_copy(
-                    update={
-                        "name": col.name or c.IDENTIFIER_UNKNOWN,
-                        "data_type": col.data_type or "VARCHAR2(255)",
-                    }
-                )
-                if isinstance(col, m.DbOracle.Column)
-                else m.DbOracle.Column.model_validate({
-                    "name": str(
-                        col.get("name")
-                        or col.get("column_name")
-                        or c.IDENTIFIER_UNKNOWN
-                    ),
-                    "data_type": str(col.get("data_type") or "VARCHAR2(255)"),
-                    "nullable": bool(col.get("nullable", True)),
-                    "primary_key": bool(col.get("primary_key", False)),
-                    "default_value": str(col.get("default_value") or ""),
-                })
+        """Generate CREATE TABLE DDL through SQLAlchemy Oracle DDL compilation."""
+        try:
+            column_models: list[m.DbOracle.Column] = []
+            for col in columns:
+                if isinstance(col, m.DbOracle.Column):
+                    column_model = col.model_copy(
+                        update={
+                            "name": col.name or c.IDENTIFIER_UNKNOWN,
+                            "data_type": col.data_type or "VARCHAR2(255)",
+                        }
+                    )
+                else:
+                    column_model = m.DbOracle.Column.model_validate({
+                        "name": str(
+                            col.get("name")
+                            or col.get("column_name")
+                            or c.IDENTIFIER_UNKNOWN
+                        ),
+                        "data_type": str(col.get("data_type") or "VARCHAR2(255)"),
+                        "nullable": bool(col.get("nullable", True)),
+                        "primary_key": bool(col.get("primary_key", False)),
+                        "default_value": str(col.get("default_value") or ""),
+                    })
+                column_models.append(column_model)
+            normalized_table_name = self._normalize_identifier(table_name)
+            normalized_schema_name = (
+                self._normalize_identifier(schema) if schema else None
             )
-            column_name = (
-                column_model.name
-                if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, column_model.name)
-                else f'"{column_model.name}"'
+            metadata = MetaData()
+            table_object = Table(
+                normalized_table_name,
+                metadata,
+                *(
+                    sa_Column(
+                        self._normalize_identifier(column_model.name),
+                        OracleRawType(column_model.data_type),
+                        nullable=column_model.nullable,
+                        primary_key=column_model.primary_key,
+                        server_default=(
+                            text(column_model.default_value)
+                            if column_model.default_value
+                            else None
+                        ),
+                    )
+                    for column_model in column_models
+                ),
+                schema=normalized_schema_name,
             )
-            if column_model.primary_key:
-                primary_keys.append(column_name)
-            nullable = "" if column_model.nullable else " NOT NULL"
-            col_defs.append(f"{column_name} {column_model.data_type}{nullable}")
-        if primary_keys:
-            col_defs.append(f"PRIMARY KEY ({', '.join(primary_keys)})")
-        schema_prefix = f"{schema}." if schema else ""
-        ddl = f"CREATE TABLE {schema_prefix}{table_name} (\n  {', '.join(col_defs)}\n)"
-        return r[str].ok(ddl)
+            ddl = self._compile_statement(CreateTable(table_object))
+            return r[str].ok(ddl)
+        except c.ValidationError as e:
+            return r[str].fail(f"Invalid CREATE TABLE settings: {e}")
 
     def drop_table_ddl(
         self, table_name: str, schema: str | None = None
     ) -> p.Result[str]:
-        """Generate DROP TABLE DDL."""
-        schema_prefix = f"{schema}." if schema else ""
-        ddl = f"DROP TABLE {schema_prefix}{table_name}"
+        """Generate DROP TABLE DDL through SQLAlchemy Oracle DDL compilation."""
+        normalized_table_name = self._normalize_identifier(table_name)
+        normalized_schema_name = self._normalize_identifier(schema) if schema else None
+        metadata = MetaData()
+        table_object = Table(
+            normalized_table_name,
+            metadata,
+            schema=normalized_schema_name,
+        )
+        ddl = self._compile_statement(DropTable(table_object))
         return r[str].ok(ddl)
 
 
