@@ -9,18 +9,27 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import re
 from collections.abc import (
     Sequence,
 )
 
+from sqlalchemy import (
+    func,
+    select,
+    table,
+)
+from sqlalchemy.dialects.oracle import dialect as oracle_dialect
 from sqlalchemy.exc import (
     DatabaseError as SQLAlchemyDatabaseError,
     OperationalError as SQLAlchemyOperationalError,
     SQLAlchemyError,
 )
+from sqlalchemy.sql import quoted_name
 
 from flext_db_oracle import (
     FlextDbOracleServiceBase,
+    c,
     m,
     p,
     t,
@@ -169,11 +178,29 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         table_name: str,
         schema_name: str | None = None,
     ) -> p.Result[int]:
-        """Get row count - simplified."""
+        """Get row count through SQLAlchemy Core Oracle compilation."""
 
         def _fetch_count() -> int:
-            schema = f"{schema_name}." if schema_name else ""
-            sql = f"SELECT COUNT(*) as count FROM {schema}{table_name}"  # nosec B608
+            statement = select(func.count().label("count")).select_from(
+                table(
+                    table_name.upper()
+                    if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, table_name)
+                    else quoted_name(table_name, True),
+                    schema=(
+                        schema_name.upper()
+                        if schema_name
+                        and re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, schema_name)
+                        else quoted_name(schema_name, True)
+                        if schema_name
+                        else None
+                    ),
+                ),
+            )
+            sql = re.sub(
+                r"\s+",
+                " ",
+                str(statement.compile(dialect=oracle_dialect())),
+            ).strip()
             query_result = self.execute_query(sql)
             if query_result.failure:
                 raise RuntimeError(query_result.error or "Query execution failed")

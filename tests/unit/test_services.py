@@ -14,7 +14,10 @@ from collections.abc import (
     Sequence,
 )
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import (
+    MagicMock,
+    patch,
+)
 
 import pytest
 from flext_tests import tm
@@ -209,6 +212,28 @@ class TestsFlextDbOracleServices:
         tm.that(insert_result.value, has=":id")
         tm.that(insert_result.value, has=":name")
 
+    def test_service_insert_statement_preserves_public_bind_names_for_sdc_columns(
+        self,
+    ) -> None:
+        """Invalid Oracle identifiers should be quoted without quoting bind names."""
+        settings = FlextDbOracleSettings(
+            host="localhost",
+            port=1521,
+            service_name="TEST",
+            username="testuser",
+            password="testpass",
+        )
+        service = FlextDbOracleServices(settings=settings)
+        insert_result = service.build_insert_statement(
+            "USERS",
+            ["DATA", "_SDC_LOADED_AT"],
+            schema="TEST_SCHEMA",
+        )
+        tm.ok(insert_result)
+        tm.that(insert_result.value, has='"_SDC_LOADED_AT"')
+        tm.that(insert_result.value, has=":_SDC_LOADED_AT")
+        tm.that(':("_SDC_LOADED_AT"' not in insert_result.value, eq=True)
+
     def test_service_update_statement_building(self) -> None:
         """Test UPDATE statement building."""
         settings = FlextDbOracleSettings(
@@ -248,6 +273,39 @@ class TestsFlextDbOracleServices:
         tm.that(delete_result.value, has="DELETE FROM")
         tm.that(delete_result.value, has="WHERE")
         tm.that(delete_result.value, has="id = :id")
+
+    def test_service_fetch_table_row_count_builds_compiled_query(self) -> None:
+        """Row count should use a compiled COUNT(*) query instead of manual SQL."""
+        settings = FlextDbOracleSettings(
+            host="localhost",
+            port=1521,
+            service_name="TEST",
+            username="testuser",
+            password="testpass",
+        )
+        service = FlextDbOracleServices(settings=settings)
+        execute_result = SimpleNamespace(
+            failure=False,
+            error=None,
+            value=[SimpleNamespace(root={"count": 7})],
+        )
+        with patch.object(
+            FlextDbOracleServices,
+            "execute_query",
+            return_value=execute_result,
+        ) as mock_execute_query:
+            count_result = service.fetch_table_row_count(
+                "test_table",
+                "test_schema",
+            )
+
+        tm.ok(count_result)
+        tm.that(count_result.value, eq=7)
+        mock_execute_query.assert_called_once()
+        rendered_sql = str(mock_execute_query.call_args.args[0])
+        tm.that("COUNT(*)" in rendered_sql.upper(), eq=True)
+        tm.that("TEST_SCHEMA" in rendered_sql, eq=True)
+        tm.that("TEST_TABLE" in rendered_sql, eq=True)
 
     def test_service_merge_statement_building(self) -> None:
         """Test MERGE statement building."""

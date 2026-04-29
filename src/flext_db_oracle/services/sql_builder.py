@@ -16,6 +16,19 @@ from collections.abc import (
     Sequence,
 )
 
+from sqlalchemy import (
+    bindparam,
+    column,
+    delete,
+    insert,
+    literal_column,
+    select,
+    table,
+    update,
+)
+from sqlalchemy.dialects.oracle import dialect as oracle_dialect
+from sqlalchemy.sql import quoted_name
+
 from flext_db_oracle import (
     FlextDbOracleServiceBase,
     c,
@@ -83,10 +96,43 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         where_columns: t.StrSequence,
         schema: str | None = None,
     ) -> p.Result[str]:
-        """Build DELETE statement - simplified."""
-        wheres = " AND ".join(f"{col} = :{col}" for col in where_columns)
-        schema_prefix = f"{schema}." if schema else ""
-        sql = f"DELETE FROM {schema_prefix}{table_name} WHERE {wheres}"  # nosec B608
+        """Build DELETE statement through SQLAlchemy Core Oracle compilation."""
+        bind_names = {
+            column_name: f"bind_{index:04d}"
+            for index, column_name in enumerate(where_columns)
+        }
+        table_clause = table(
+            table_name.upper()
+            if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, table_name)
+            else quoted_name(table_name, True),
+            *(
+                column(
+                    column_name
+                    if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, column_name)
+                    else quoted_name(column_name, True),
+                )
+                for column_name in where_columns
+            ),
+            schema=(
+                schema.upper()
+                if schema and re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, schema)
+                else quoted_name(schema, True)
+                if schema
+                else None
+            ),
+        )
+        statement = delete(table_clause)
+        for column_name in where_columns:
+            statement = statement.where(
+                table_clause.c[column_name] == bindparam(bind_names[column_name]),
+            )
+        sql = re.sub(
+            r"\s+",
+            " ",
+            str(statement.compile(dialect=oracle_dialect())),
+        ).strip()
+        for column_name, bind_name in bind_names.items():
+            sql = sql.replace(f":{bind_name}", f":{column_name}")
         return r[str].ok(sql)
 
     def build_insert_statement(
@@ -96,25 +142,47 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         schema: str | None = None,
         returning_columns: t.StrSequence | None = None,
     ) -> p.Result[str]:
-        """Build INSERT statement - simplified."""
-        normalized_columns = [
-            column
-            if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, column)
-            else f'"{column}"'
-            for column in columns
-        ]
-        cols = ", ".join(normalized_columns)
-        vals = ", ".join(f":{col}" for col in columns)
-        schema_prefix = f"{schema}." if schema else ""
-        sql = f"INSERT INTO {schema_prefix}{table_name} ({cols}) VALUES ({vals})"  # nosec B608
+        """Build INSERT statement through SQLAlchemy Core Oracle compilation."""
+        statement_columns = tuple(dict.fromkeys([*columns, *(returning_columns or ())]))
+        bind_names = {
+            column_name: f"bind_{index:04d}"
+            for index, column_name in enumerate(columns)
+        }
+        table_clause = table(
+            table_name.upper()
+            if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, table_name)
+            else quoted_name(table_name, True),
+            *(
+                column(
+                    column_name
+                    if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, column_name)
+                    else quoted_name(column_name, True),
+                )
+                for column_name in statement_columns
+            ),
+            schema=(
+                schema.upper()
+                if schema and re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, schema)
+                else quoted_name(schema, True)
+                if schema
+                else None
+            ),
+        )
+        statement = insert(table_clause).values({
+            table_clause.c[column_name]: bindparam(bind_names[column_name])
+            for column_name in columns
+        })
         if returning_columns:
-            ret = ", ".join(
-                column
-                if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, column)
-                else f'"{column}"'
-                for column in returning_columns
+            statement = statement.returning(
+                *(table_clause.c[column_name] for column_name in returning_columns),
             )
-            sql += f" RETURNING {ret}"
+        sql = re.sub(
+            r"\s+",
+            " ",
+            str(statement.compile(dialect=oracle_dialect())),
+        ).strip()
+        for column_name, bind_name in bind_names.items():
+            sql = sql.replace(f":{bind_name}", f":{column_name}")
         return r[str].ok(sql)
 
     def build_select(
@@ -124,20 +192,61 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         conditions: m.ConfigMap | t.JsonMapping | None = None,
         schema_name: str | None = None,
     ) -> p.Result[str]:
-        """Build SELECT query - simplified implementation."""
+        """Build SELECT query through SQLAlchemy Core Oracle compilation."""
         typed_conditions = (
             conditions
             if isinstance(conditions, m.ConfigMap) or conditions is None
             else m.ConfigMap(root=dict(conditions))
         )
-        cols = ", ".join(columns) if columns else "*"
-        if typed_conditions and typed_conditions.root:
-            where_pairs = [f"{k} = :{k}" for k in typed_conditions.root]
-            where = f" WHERE {' AND '.join(where_pairs)}"
-        else:
-            where = ""
-        schema_prefix = f"{schema_name.upper()}." if schema_name else ""
-        sql = f"SELECT {cols} FROM {schema_prefix}{table_name.upper()}{where}"  # nosec B608
+        selected_columns = list(columns) if columns else []
+        condition_columns = tuple(typed_conditions.root) if typed_conditions else ()
+        statement_columns = tuple(
+            dict.fromkeys([*selected_columns, *condition_columns]),
+        )
+        bind_names = {
+            column_name: f"bind_{index:04d}"
+            for index, column_name in enumerate(condition_columns)
+        }
+        table_clause = table(
+            table_name.upper()
+            if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, table_name)
+            else quoted_name(table_name, True),
+            *(
+                column(
+                    column_name
+                    if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, column_name)
+                    else quoted_name(column_name, True),
+                )
+                for column_name in statement_columns
+            ),
+            schema=(
+                schema_name.upper()
+                if schema_name
+                and re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, schema_name)
+                else quoted_name(schema_name, True)
+                if schema_name
+                else None
+            ),
+        )
+        selected_column_clauses = [
+            table_clause.c[column_name] for column_name in selected_columns
+        ]
+        statement = (
+            select(*selected_column_clauses)
+            if selected_column_clauses
+            else select(literal_column("*"))
+        ).select_from(table_clause)
+        for column_name in condition_columns:
+            statement = statement.where(
+                table_clause.c[column_name] == bindparam(bind_names[column_name]),
+            )
+        sql = re.sub(
+            r"\s+",
+            " ",
+            str(statement.compile(dialect=oracle_dialect())),
+        ).strip()
+        for column_name, bind_name in bind_names.items():
+            sql = sql.replace(f":{bind_name}", f":{column_name}")
         return r[str].ok(sql)
 
     def build_update_statement(
@@ -147,11 +256,47 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         where_columns: t.StrSequence,
         schema: str | None = None,
     ) -> p.Result[str]:
-        """Build UPDATE statement - simplified."""
-        sets = ", ".join(f"{col}=:{col}" for col in set_columns)
-        wheres = " AND ".join(f"{col} = :{col}" for col in where_columns)
-        schema_prefix = f"{schema}." if schema else ""
-        sql = f"UPDATE {schema_prefix}{table_name} SET {sets} WHERE {wheres}"  # nosec B608
+        """Build UPDATE statement through SQLAlchemy Core Oracle compilation."""
+        statement_columns = tuple(dict.fromkeys([*set_columns, *where_columns]))
+        bind_names = {
+            column_name: f"bind_{index:04d}"
+            for index, column_name in enumerate(statement_columns)
+        }
+        table_clause = table(
+            table_name.upper()
+            if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, table_name)
+            else quoted_name(table_name, True),
+            *(
+                column(
+                    column_name
+                    if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, column_name)
+                    else quoted_name(column_name, True),
+                )
+                for column_name in statement_columns
+            ),
+            schema=(
+                schema.upper()
+                if schema and re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, schema)
+                else quoted_name(schema, True)
+                if schema
+                else None
+            ),
+        )
+        statement = update(table_clause).values({
+            table_clause.c[column_name]: bindparam(bind_names[column_name])
+            for column_name in set_columns
+        })
+        for column_name in where_columns:
+            statement = statement.where(
+                table_clause.c[column_name] == bindparam(bind_names[column_name]),
+            )
+        sql = re.sub(
+            r"\s+",
+            " ",
+            str(statement.compile(dialect=oracle_dialect())),
+        ).strip()
+        for column_name, bind_name in bind_names.items():
+            sql = sql.replace(f":{bind_name}", f":{column_name}")
         return r[str].ok(sql)
 
     def create_table_ddl(
