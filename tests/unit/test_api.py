@@ -93,7 +93,7 @@ class TestsFlextDbOracleApi:
         config_dict: dict[str, t.JsonValue] = {}
         if isinstance(config_obj, Mapping):
             for key, value in config_obj.items():
-                config_dict[str(key)] = (
+                config_dict[key] = (
                     value
                     if isinstance(value, (str, int, float, bool)) or value is None
                     else str(value)
@@ -807,7 +807,7 @@ class TestsFlextDbOracleApi:
             tm.that(isinstance(query_params, dict), eq=True)
             if not isinstance(query_params, dict):
                 pytest.fail("test query data must expose SQL params as a mapping")
-            params = {str(key): int(value) for key, value in query_params.items()}
+            params = dict(query_params.items())
             result: p.Result[int] = api.execute_sql(str(test_query["query"]), params)
             tm.that(result, is_=r)
 

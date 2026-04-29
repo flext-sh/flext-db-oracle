@@ -235,6 +235,7 @@ class FlextDbOracleCli(s[str]):
         """Module-level main entry point."""
         return 0 if cls.main().success else 1
 
+    @override
     def execute(
         self,
     ) -> p.Result[str]:
@@ -320,13 +321,15 @@ class FlextDbOracleCli(s[str]):
         """
         formatter = self._OutputFormatter
         try:
-            settings = FlextDbOracleSettings.model_validate({
+            settings_payload: dict[str, str | int] = {
                 "host": host,
                 "port": port,
                 "service_name": service_name,
                 "username": username,
-                "password": password,
-            })
+            }
+            if password is not None:
+                settings_payload["password"] = password
+            settings = FlextDbOracleSettings.model_validate(settings_payload)
         except c.ValidationError as exc:
             error_text = str(exc)
             error_msg = formatter.format_error_message(
@@ -380,13 +383,15 @@ class FlextDbOracleCli(s[str]):
         """
         formatter = self._OutputFormatter
         try:
-            settings = FlextDbOracleSettings.model_validate({
+            settings_payload: dict[str, str | int] = {
                 "host": host,
                 "port": port,
                 "service_name": service_name,
                 "username": username,
-                "password": password,
-            })
+            }
+            if password is not None:
+                settings_payload["password"] = password
+            settings = FlextDbOracleSettings.model_validate(settings_payload)
         except c.ValidationError as exc:
             error_text = str(exc)
             error_msg = formatter.format_error_message(
@@ -446,13 +451,15 @@ class FlextDbOracleCli(s[str]):
                 "SQL query cannot be empty",
             )
         try:
-            settings = FlextDbOracleSettings.model_validate({
+            settings_payload: dict[str, str | int] = {
                 "host": host,
                 "port": port,
                 "service_name": service_name,
                 "username": username,
-                "password": password,
-            })
+            }
+            if password is not None:
+                settings_payload["password"] = password
+            settings = FlextDbOracleSettings.model_validate(settings_payload)
         except c.ValidationError as exc:
             error_text = str(exc)
             return self._handle_error_and_fail(

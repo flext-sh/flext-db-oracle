@@ -200,13 +200,12 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         self.logger.info("Disconnecting from Oracle database")
         return self._services.disconnect()
 
+    @override
     def execute(
         self,
-    ) -> p.Result[FlextDbOracleSettings]:
+    ) -> p.Result[p.Base]:
         """Execute default domain service operation - return settings."""
-        return u.try_(lambda: self._oracle_config).map_error(
-            lambda e: f"API execution failed: {e}",
-        )
+        return r[p.Base].ok(self._oracle_config)
 
     def execute_many(
         self,

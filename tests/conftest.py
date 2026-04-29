@@ -21,7 +21,7 @@ import pytest
 from flext_tests import td, tk
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import t, u
+from tests import c, t, u
 
 
 @pytest.fixture
@@ -68,16 +68,19 @@ def pytest_configure(config: pytest.Config) -> None:
 def pytest_sessionstart(session: pytest.Session) -> None:
     """Cleanup dirty containers BEFORE test session starts."""
     try:
-        docker = tk(workspace_root=Path(__file__).resolve().parents[2])
+        container_name = "flext-oracle-db-test"
+        docker = tk.shared(
+            container_name,
+            workspace_root=Path(__file__).resolve().parents[2],
+        )
         dirty_containers = docker.dirty_containers
         if not dirty_containers:
             logger.debug("No dirty containers to clean")
             return
-        container_name = "flext-oracle-db-test"
         status_result = docker.fetch_container_status(container_name)
         if status_result.success:
             status = status_result.value
-            if status.status == docker.ContainerStatus.RUNNING:
+            if status.status == c.Tests.ContainerStatus.RUNNING:
                 docker.mark_container_clean(container_name)
                 logger.info(
                     "Container %s is healthy, cleared dirty state",
@@ -117,7 +120,10 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[None]) ->
             for err in oracle_service_errors
         )
         if is_service_failure:
-            docker = tk(workspace_root=Path(__file__).resolve().parents[2])
+            docker = tk.shared(
+                "flext-oracle-db-test",
+                workspace_root=Path(__file__).resolve().parents[2],
+            )
             docker.mark_container_dirty("flext-oracle-db-test")
             logger.error(
                 f"ORACLE SERVICE FAILURE detected in {item.nodeid}, container marked DIRTY for recreation: {exc_msg}",
@@ -129,60 +135,21 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[None]) ->
 @pytest.fixture(scope="session")
 def docker_control() -> tk:
     """Provide tk instance for container management."""
-    return tk(workspace_root=Path(__file__).resolve().parents[2])
+    return tk.shared(
+        "flext-oracle-db-test",
+        workspace_root=Path(__file__).resolve().parents[2],
+    )
 
 
 @pytest.fixture(scope="session")
 def shared_oracle_container(docker_control: tk) -> str:
     """Start and maintain flext-oracle-db-test container using same pattern as flext-ldap."""
     container_name = "flext-oracle-db-test"
-    container_settings = tk.SHARED_CONTAINERS.get(container_name)
-    if container_settings is None:
-        pytest.skip(f"Container {container_name} not found in SHARED_CONTAINERS")
-    compose_file_value = container_settings.get("compose_file")
-    if compose_file_value is None:
-        pytest.skip(f"Container {container_name} missing compose_file settings")
-    compose_file = str(compose_file_value)
-    if not compose_file.startswith("/"):
-        workspace_root = Path(__file__).resolve().parents[2]
-        compose_file = str(workspace_root / compose_file)
-    is_dirty = docker_control.container_dirty(container_name)
-    if is_dirty:
-        logger.info(
-            "Container %s is dirty, recreating with fresh volumes",
-            container_name,
+    ensure_result = docker_control.execute()
+    if ensure_result.failure:
+        pytest.skip(
+            f"Failed to start container {container_name}: {ensure_result.error}",
         )
-        cleanup_result = docker_control.cleanup_dirty_containers()
-        if cleanup_result.failure:
-            pytest.skip(
-                f"Failed to recreate dirty container {container_name}: {cleanup_result.error}",
-            )
-    else:
-        status = docker_control.fetch_container_status(container_name)
-        status_value = status.value if status.success else None
-        status_name = getattr(status_value, "status", None)
-        container_running = status.success and (
-            status_name == tk.ContainerStatus.RUNNING
-        )
-        if not container_running:
-            logger.info(
-                "Container %s is not running (but not dirty), starting...",
-                container_name,
-            )
-            service_name = str(container_settings.get("service", ""))
-            compose_result = docker_control.compose_up(
-                compose_file,
-                service=service_name or None,
-            )
-            if compose_result.failure:
-                pytest.skip(
-                    f"Failed to start container {container_name}: {compose_result.error}",
-                )
-        else:
-            logger.debug(
-                "Container %s is running and clean, no action needed",
-                container_name,
-            )
     resolved_port = u.Tests.resolve_oracle_test_port(
         docker_control,
         container_name,

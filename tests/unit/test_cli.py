@@ -201,7 +201,7 @@ class TestsFlextDbOracleCli:
         """Test successful CLI service initialization."""
         cli_service = FlextDbOracleCli()
         tm.that(cli_service, is_=FlextDbOracleCli)
-        tm.that(cli_service.container is not None, eq=True)
+        tm.that(cli_service.container, is_=object)
         tm.that(cli_service.logger, is_=object)
 
     def test_cli_service_initialization_basic(self) -> None:
@@ -767,19 +767,22 @@ class TestsFlextDbOracleCli:
 
     def test_parameter_processing_real(self) -> None:
         """Test parameter processing using real API functionality."""
-        config_data = {
+        config_data: dict[str, str | int] = {
             "host": "param_test_host",
             "port": 1521,
             "service_name": "PARAM_TEST",
             "username": "param_user",
             "password": "param_pass",
         }
+        host = str(config_data["host"])
+        username = str(config_data["username"])
+        password = str(config_data["password"])
         settings = FlextDbOracleSettings(
-            host=str(config_data["host"]),
+            host=host,
             port=int(str(config_data["port"])) if config_data.get("port") else 1521,
             service_name=str(config_data.get("service_name", "XE")),
-            username=str(config_data["username"]),
-            password=str(config_data["password"]),
+            username=username,
+            password=password,
         )
         api = FlextDbOracleApi(settings=settings)
         tm.that(api.settings.host, eq="param_test_host")

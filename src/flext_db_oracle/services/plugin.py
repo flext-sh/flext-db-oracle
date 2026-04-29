@@ -84,7 +84,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         metric_payload: t.JsonValue = value
         if tags is not None:
             normalized_tags: dict[str, t.JsonValue] = {
-                str(tag_name): u.normalize_to_metadata(tag_value)
+                tag_name: u.normalize_to_metadata(tag_value)
                 for tag_name, tag_value in tags.items()
             }
             metric_payload = {

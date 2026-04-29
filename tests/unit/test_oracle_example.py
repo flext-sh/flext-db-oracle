@@ -183,10 +183,7 @@ class TestsFlextDbOracleOracleExample:
         tm.that(len(schemas) > 0, eq=True)
         system_schemas = ["SYS", "SYSTEM", "FLEXT", "FLEXTTEST", "XDB"]
         tm.that(
-            any(
-                any(s in str(schema).upper() for s in system_schemas)
-                for schema in schemas
-            ),
+            any(any(s in schema.upper() for s in system_schemas) for schema in schemas),
             eq=True,
         )
 
@@ -203,7 +200,7 @@ class TestsFlextDbOracleOracleExample:
         tm.that(len(tables) >= 0, eq=True)
         expected_tables = ["EMPLOYEES", "DEPARTMENTS", "JOBS"]
         for table in expected_tables:
-            tm.that(any(table in str(t).upper() for t in tables), eq=True)
+            tm.that(any(table in t.upper() for t in tables), eq=True)
 
     def test_real_api_fetch_columns(
         self, connected_oracle_api: FlextDbOracleApi
@@ -305,7 +302,7 @@ class TestsFlextDbOracleOracleExample:
                 msg = f"Get tables failed: {tables_result.error}"
                 raise AssertionError(msg)
             tables_data = tables_result.value
-            table_names = [str(t).upper() for t in tables_data]
+            table_names = [t.upper() for t in tables_data]
             tm.that(table_names, has=table_name.upper())
             metadata_result = connected_oracle_api.fetch_tables(table_name)
             if metadata_result.failure:
@@ -313,7 +310,7 @@ class TestsFlextDbOracleOracleExample:
                 raise AssertionError(msg)
             metadata = metadata_result.value
             if metadata:
-                tm.that(str(metadata[0]).upper(), eq=table_name.upper())
+                tm.that(metadata[0].upper(), eq=table_name.upper())
         finally:
             with contextlib.suppress(Exception):
                 drop_sql = f"DROP TABLE {table_name}"

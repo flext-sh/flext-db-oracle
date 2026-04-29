@@ -17,7 +17,7 @@ from typing import ClassVar
 from flext_tests import FlextTestsUtilities, tk
 
 from flext_db_oracle import u
-from tests import e, m, t
+from tests import c, e, m, t
 
 
 class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):
@@ -68,7 +68,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):
                         ):
                             return env_port_int
             fallback_port = 1522
-            container_settings = tk.SHARED_CONTAINERS.get(container_name)
+            container_settings = c.Tests.SHARED_CONTAINERS.get(container_name)
             if container_settings is not None:
                 configured_port = container_settings.get("port")
                 if isinstance(configured_port, int):

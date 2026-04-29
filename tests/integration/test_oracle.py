@@ -152,7 +152,7 @@ class TestsFlextDbOracleOracle:
                 raise AssertionError(msg)
             tables = tables_result.value
             if tables:
-                table_name_str = str(tables[0])
+                table_name_str = tables[0]
                 columns_result = connected_api.fetch_columns(table_name_str)
                 if columns_result.failure:
                     msg = f"Get columns failed: {columns_result.error}"
@@ -250,7 +250,7 @@ class TestsFlextDbOracleOracle:
         schemas = schemas_result.value
         assert isinstance(schemas, list)
         assert schemas
-        schema_names: t.StrSequence = [str(s) for s in schemas]
+        schema_names: t.StrSequence = list(schemas)
         assert len(schema_names) > 0
 
     @pytest.mark.oracle

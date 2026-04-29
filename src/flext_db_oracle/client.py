@@ -165,13 +165,17 @@ class FlextDbOracleClient(s):
             actual_password: str | None = (
                 str(actual_password_raw) if actual_password_raw else None
             )
-            settings: FlextDbOracleSettings = FlextDbOracleSettings.model_validate({
+            settings_payload: dict[str, t.JsonPayload] = {
                 "host": actual_host,
                 "port": actual_port,
                 "service_name": actual_service_name,
                 "username": actual_username,
-                "password": actual_password,
-            })
+            }
+            if actual_password is not None:
+                settings_payload["password"] = actual_password
+            settings: FlextDbOracleSettings = FlextDbOracleSettings.model_validate(
+                settings_payload,
+            )
             api = FlextDbOracleApi(settings)
             connect_result: p.Result[FlextDbOracleApi] = api.connect()
             if connect_result.success:
@@ -204,14 +208,14 @@ class FlextDbOracleClient(s):
         return r[bool].ok(True)
 
     @override
-    def execute(self) -> p.Result[FlextDbOracleSettings]:
+    def execute(self) -> p.Result[p.Base]:
         """Execute the main domain operation for Oracle client.
 
         Returns:
-        r[FlextDbOracleSettings]: Success with settings or failure with error
+        r[p.Base]: Success with settings or failure with error
 
         """
-        return r[FlextDbOracleSettings].ok(self._oracle_config)
+        return r[p.Base].ok(self._oracle_config)
 
     def execute_query(
         self,
@@ -308,7 +312,7 @@ class FlextDbOracleClient(s):
                     return []
                 return [
                     m.ConfigMap.model_validate({
-                        "root": {"key": str(key), "value": str(value)},
+                        "root": {"key": key, "value": value},
                     })
                     for key, value in health.items()
                 ]
@@ -328,7 +332,7 @@ class FlextDbOracleClient(s):
                     return r[Sequence[m.ConfigMap]].ok(adapted_data)
             result = [
                 m.ConfigMap.model_validate({
-                    "root": {"key": str(key), "value": str(value)},
+                    "root": {"key": key, "value": value},
                 })
                 for key, value in data_root.items()
             ]
@@ -576,9 +580,9 @@ class FlextDbOracleClient(s):
                     {},
                 )
             params_map = m.ConfigMap.model_validate({"root": normalized_params})
-        query_params: t.JsonMapping = {
-            str(k): str(v) for k, v in params_map.root.items()
-        }
+        query_params: t.JsonMapping = t.json_mapping_adapter().validate_python(
+            params_map.root,
+        )
         return self.current_connection.query(sql, query_params).map(
             lambda rows: m.ConfigMap.model_validate(
                 {"root": {"row_count": len(rows)}},

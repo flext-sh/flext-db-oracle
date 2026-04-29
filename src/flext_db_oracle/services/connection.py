@@ -14,7 +14,7 @@ from collections.abc import (
 )
 from contextlib import contextmanager
 from datetime import UTC, datetime
-from typing import Self
+from typing import Self, override
 from urllib.parse import quote_plus
 
 from sqlalchemy import Connection as SAConnection, text
@@ -26,7 +26,6 @@ from sqlalchemy.exc import (
 
 from flext_db_oracle import (
     FlextDbOracleServiceBase,
-    FlextDbOracleSettings,
     c,
     m,
     p,
@@ -119,14 +118,15 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             self.logger.info("Disconnected from Oracle database")
         return r[bool].ok(True)
 
+    @override
     def execute(
         self,
-    ) -> p.Result[FlextDbOracleSettings]:
+    ) -> p.Result[p.Base]:
         """Execute main domain service operation - return settings."""
         test_result = self.test_connection()
         if test_result.success:
-            return r[FlextDbOracleSettings].ok(self.db_config)
-        return r[FlextDbOracleSettings].fail(
+            return r[p.Base].ok(self.db_config)
+        return r[p.Base].fail(
             test_result.error or "Connection test failed",
         )
 

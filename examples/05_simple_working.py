@@ -33,7 +33,7 @@ def demonstrate_real_functionality() -> None:
         logger.info(f"📋 Host: {settings.host}")
         logger.info(f"📋 Port: {settings.port}")
         logger.info(f"📋 Service: {settings.service_name}")
-        username_display = str(settings.username)[:3]
+        username_display = settings.username[:3]
         logger.info("📋 Username: %s***", username_display)
         if settings.host and settings.port > 0:
             logger.info("✅ Configuration is valid")

@@ -201,11 +201,11 @@ class TestsFlextDbOracleEOracle:
                 raise AssertionError(f"Schema mapping failed: {schema_result.error}")
             mapped_schema = schema_result.value
             assert "id" in mapped_schema
-            assert "NUMBER" in str(mapped_schema["id"])
+            assert "NUMBER" in mapped_schema["id"]
             assert "name" in mapped_schema
-            assert "VARCHAR2" in str(mapped_schema["name"])
+            assert "VARCHAR2" in mapped_schema["name"]
             assert "is_active" in mapped_schema
-            assert "NUMBER(1)" in str(mapped_schema["is_active"])
+            assert "NUMBER(1)" in mapped_schema["is_active"]
 
     @pytest.mark.e2e
     def test_configuration_from_environment_e2e(self) -> None:
