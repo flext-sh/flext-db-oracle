@@ -1,0 +1,14 @@
+src/flext_db_oracle/services/sql_builder.py
+  h_9db9d35f50cf33 17,20-23,37,51-60,70-93,125-146,148,373-376,383-384,394-398,401-418,421-423,429-437
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "b56076b73d7ced48481d574ee3911e620c046960",
+  "prompts": {},
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
