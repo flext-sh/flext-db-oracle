@@ -75,7 +75,7 @@ class TestsFlextDbOracleModelsUnit:
         status.connected = True
         status.error_message = ""
         tm.that(status.connection_age_seconds, gte=0)
-        tm.that(status.is_healthy, eq=True)
+        tm.that(status.healthy, eq=True)
         tm.that(status.connection_info, has="localhost")
         tm.that(status.connection_info, has="1521")
         tm.that(status.connection_info, has="XEPDB1")
@@ -375,7 +375,7 @@ class TestsFlextDbOracleModelsUnit:
             ),
             eq=True,
         )
-        tm.that(status.is_healthy, eq=True)
+        tm.that(status.healthy, eq=True)
         tm.that(
             (
                 "Excellent" in status.performance_info

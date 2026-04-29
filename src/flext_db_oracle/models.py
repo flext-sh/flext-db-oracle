@@ -152,6 +152,7 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
 
+            @u.computed_field(return_type=float)
             @property
             def connection_age_seconds(self) -> float:
                 """Connection age in seconds."""
@@ -159,6 +160,7 @@ class FlextDbOracleModels(m):
                     return (datetime.now(UTC) - self.last_activity).total_seconds()
                 return 0.0
 
+            @u.computed_field(return_type=str)
             @property
             def connection_info(self) -> str:
                 """Connection information summary."""
@@ -176,19 +178,18 @@ class FlextDbOracleModels(m):
                 ]
                 return ", ".join(parts) or "Connected"
 
+            @u.computed_field(return_type=bool)
             @property
-            def is_healthy(self) -> bool:
+            def healthy(self) -> bool:
                 """Connection health status."""
                 if not self.connected:
                     return False
-                age_seconds: float = (
-                    datetime.now(UTC) - self.last_activity
-                ).total_seconds()
                 idle_timeout_seconds: float = float(
                     c.DbOracle.CONNECTION_IDLE_TIMEOUT_SECONDS
                 )
-                return age_seconds <= idle_timeout_seconds
+                return self.connection_age_seconds <= idle_timeout_seconds
 
+            @u.computed_field(return_type=str)
             @property
             def performance_info(self) -> str:
                 """Connection performance information."""
@@ -208,6 +209,7 @@ class FlextDbOracleModels(m):
                     return f"Acceptable ({self.connection_time:.3f}s)"
                 return f"Slow ({self.connection_time:.3f}s)"
 
+            @u.computed_field(return_type=str)
             @property
             def status_description(self) -> str:
                 """Human-readable status description."""

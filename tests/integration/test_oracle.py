@@ -270,7 +270,7 @@ class TestsFlextDbOracleOracle:
         assert health_result.success, f"Health status failed: {health_result.error}"
         status = health_result.value
         assert status.connected is True
-        assert status.is_healthy is True
+        assert status.healthy is True
         assert status.status_description == "Connected"
         assert status.connection_age_seconds >= 0
         disconnect_result = connected_api.disconnect()

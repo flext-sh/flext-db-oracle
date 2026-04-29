@@ -134,7 +134,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         return (
             u
             .try_(lambda: dict(parameters))
-            .map(lambda normalized: m.ConfigMap.model_validate({"root": normalized}))
+            .map(lambda normalized: m.ConfigMap(root=normalized))
             .lash(
                 lambda error: r[m.ConfigMap].fail(f"Invalid query parameters: {error}")
             )

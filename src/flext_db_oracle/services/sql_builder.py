@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import re
 from collections.abc import (
     Mapping,
     MutableSequence,
@@ -96,12 +97,23 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         returning_columns: t.StrSequence | None = None,
     ) -> p.Result[str]:
         """Build INSERT statement - simplified."""
-        cols = ", ".join(columns)
+        normalized_columns = [
+            column
+            if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, column)
+            else f'"{column}"'
+            for column in columns
+        ]
+        cols = ", ".join(normalized_columns)
         vals = ", ".join(f":{col}" for col in columns)
         schema_prefix = f"{schema}." if schema else ""
         sql = f"INSERT INTO {schema_prefix}{table_name} ({cols}) VALUES ({vals})"  # nosec B608
         if returning_columns:
-            ret = ", ".join(returning_columns)
+            ret = ", ".join(
+                column
+                if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, column)
+                else f'"{column}"'
+                for column in returning_columns
+            )
             sql += f" RETURNING {ret}"
         return r[str].ok(sql)
 
@@ -172,10 +184,15 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
                     "default_value": str(col.get("default_value") or ""),
                 })
             )
+            column_name = (
+                column_model.name
+                if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, column_model.name)
+                else f'"{column_model.name}"'
+            )
             if column_model.primary_key:
-                primary_keys.append(column_model.name)
+                primary_keys.append(column_name)
             nullable = "" if column_model.nullable else " NOT NULL"
-            col_defs.append(f"{column_model.name} {column_model.data_type}{nullable}")
+            col_defs.append(f"{column_name} {column_model.data_type}{nullable}")
         if primary_keys:
             col_defs.append(f"PRIMARY KEY ({', '.join(primary_keys)})")
         schema_prefix = f"{schema}." if schema else ""
