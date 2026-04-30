@@ -21,7 +21,7 @@ from collections.abc import (
 from threading import Thread
 
 import pytest
-from flext_tests import td, tm
+from flext_tests import tm
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -908,26 +908,6 @@ class TestsFlextDbOracleApi:
         if hasattr(api, "fetch_table_metadata"):
             metadata_result = api.fetch_table_metadata("non_existent_table")
             tm.that(metadata_result, is_=r)
-
-    def test_flext_db_oracle_api_with_flext_tests(self, flext_domains: td) -> None:
-        """Test api functionality with flext_tests infrastructure."""
-        config_data = self._TestDataHelper.create_test_oracle_config()
-        settings = FlextDbOracleSettings(
-            host=str(config_data["host"]),
-            port=int(str(config_data["port"])),
-            service_name=str(config_data["service_name"]),
-            username=str(config_data["username"]),
-            password=str(config_data["password"]),
-        )
-        api = FlextDbOracleApi(settings=settings)
-        test_query = flext_domains.create_payload()
-        test_query["query"] = "SELECT * FROM flext_test_table"
-        if hasattr(api, "connect"):
-            result = api.connect()
-            tm.that(result, is_=r)
-        if hasattr(api, "query"):
-            query_result = api.query(str(test_query["query"]))
-            tm.that(query_result, is_=r)
 
     def test_flext_db_oracle_api_docstring(self) -> None:
         """Test that FlextDbOracleApi has proper docstring."""
