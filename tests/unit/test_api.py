@@ -696,7 +696,7 @@ class TestsFlextDbOracleApi:
             }
 
         @staticmethod
-        def create_test_query_data() -> Mapping[str, str | t.IntMapping | int]:
+        def create_test_query_data() -> t.MappingKV[str, str | t.IntMapping | int]:
             """Create test query data."""
             return {
                 "query": "SELECT * FROM test_table WHERE id = :id",

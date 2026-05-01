@@ -8,9 +8,7 @@ from __future__ import annotations
 
 from collections.abc import (
     Callable,
-    Mapping,
     MutableMapping,
-    Sequence,
 )
 from typing import TYPE_CHECKING, override
 
@@ -33,7 +31,7 @@ class FlextDbOracleDispatcher(s):
     def _create_connection_handlers(
         cls,
         services: FlextDbOracleServices,
-    ) -> Mapping[
+    ) -> t.MappingKV[
         type,
         tuple[
             Callable[[t.JsonValue], t.JsonValue],
@@ -100,7 +98,7 @@ class FlextDbOracleDispatcher(s):
     def _create_query_handlers(
         self,
         services: FlextDbOracleServices,
-    ) -> Mapping[
+    ) -> t.MappingKV[
         type,
         tuple[
             Callable[[t.JsonValue], t.JsonValue],
@@ -150,7 +148,9 @@ class FlextDbOracleDispatcher(s):
         def execute_many_handler(command: t.JsonValue) -> t.JsonValue:
             if isinstance(command, m.DbOracle.ExecuteManyCommand):
                 sql = command.sql
-                parameters_list: Sequence[t.JsonMapping] = list(command.parameters_list)
+                parameters_list: t.SequenceOf[t.JsonMapping] = list(
+                    command.parameters_list
+                )
             else:
                 sql = ""
                 parameters_list = []
@@ -175,7 +175,7 @@ class FlextDbOracleDispatcher(s):
     def _create_schema_handlers(
         self,
         services: FlextDbOracleServices,
-    ) -> Mapping[
+    ) -> t.MappingKV[
         type,
         tuple[
             Callable[[t.JsonValue], t.JsonValue],

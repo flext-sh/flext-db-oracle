@@ -143,7 +143,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     @classmethod
     def _normalize_parameters_list(
         cls,
-        parameters_list: Sequence[t.JsonMapping],
+        parameters_list: t.SequenceOf[t.JsonMapping],
     ) -> p.Result[Sequence[m.ConfigMap]]:
         """Normalize bulk query parameters into canonical ConfigMap values."""
         normalized: MutableSequence[m.ConfigMap] = []
@@ -210,7 +210,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     def execute_many(
         self,
         sql: str,
-        params_list: Sequence[t.JsonMapping],
+        params_list: t.SequenceOf[t.JsonMapping],
     ) -> p.Result[int]:
         """Execute a statement multiple times with different parameters."""
         self.logger.debug("Executing bulk statement", batch_size=len(params_list))
@@ -393,7 +393,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     def _convert_to_query_result(
         self,
         sql: str,
-        data: Sequence[m.Dict],
+        data: t.SequenceOf[m.Dict],
     ) -> m.DbOracle.QueryResult:
         """Convert raw query data to QueryResult model."""
         if not data:

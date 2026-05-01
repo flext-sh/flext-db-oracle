@@ -10,7 +10,6 @@ import os
 import time
 from collections.abc import (
     MutableMapping,
-    Sequence,
 )
 from typing import ClassVar
 
@@ -122,7 +121,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):
 
             def list_plugins(
                 self,
-            ) -> Sequence[m.Tests.StubPluginEntity]:
+            ) -> t.SequenceOf[m.Tests.StubPluginEntity]:
                 """Return all registered plugins."""
                 return list(self._registry.values())
 

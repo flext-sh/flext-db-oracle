@@ -10,9 +10,6 @@ a real Oracle database connection, using mocked connections and result data.
 from __future__ import annotations
 
 import os
-from collections.abc import (
-    Sequence,
-)
 from types import SimpleNamespace
 from unittest.mock import (
     MagicMock,
@@ -178,7 +175,7 @@ class TestsFlextDbOracleServices:
             password="testpass",
         )
         service = FlextDbOracleServices(settings=settings)
-        columns: Sequence[t.JsonMapping] = [
+        columns: t.SequenceOf[t.JsonMapping] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",
@@ -928,7 +925,7 @@ class TestsFlextDbOracleServices:
             ssl_server_cert_dn=None,
         )
         services = FlextDbOracleServices(settings=settings)
-        sql_test_cases: Sequence[SimpleNamespace] = [
+        sql_test_cases: t.SequenceOf[SimpleNamespace] = [
             SimpleNamespace(
                 method="build_select", args=("test_table", ["id", "name"], {"id": 1})
             ),

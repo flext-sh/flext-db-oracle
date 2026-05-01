@@ -12,7 +12,6 @@ from __future__ import annotations
 import re
 from collections.abc import (
     Mapping,
-    Sequence,
 )
 from typing import override
 
@@ -367,7 +366,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     def create_table_ddl(
         self,
         table_name: str,
-        columns: Sequence[m.DbOracle.Column | t.JsonMapping],
+        columns: t.SequenceOf[m.DbOracle.Column | t.JsonMapping],
         schema: str | None = None,
     ) -> p.Result[str]:
         """Generate CREATE TABLE DDL through SQLAlchemy Oracle DDL compilation."""

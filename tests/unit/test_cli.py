@@ -369,7 +369,7 @@ class TestsFlextDbOracleCli:
     def test_format_list_output_dict_items(self) -> None:
         """Test list output formatting with t.JsonMapping items."""
         formatter = FlextDbOracleCli._OutputFormatter()
-        items: Sequence[m.DbOracle.NamedItem] = [
+        items: t.SequenceOf[m.DbOracle.NamedItem] = [
             m.DbOracle.NamedItem(name="table1"),
             m.DbOracle.NamedItem(name="table2"),
             m.DbOracle.NamedItem(name="unnamed"),
@@ -602,7 +602,7 @@ class TestsFlextDbOracleCli:
     def test_execute_query_success(self) -> None:
         """Test successful query execution."""
         cli_service = FlextDbOracleCli()
-        mock_result: Sequence[m.Dict] = [
+        mock_result: t.SequenceOf[m.Dict] = [
             m.Dict(root={"id": 1, "name": "test"}),
             m.Dict(root={"id": 2, "name": "test2"}),
         ]

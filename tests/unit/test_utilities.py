@@ -9,7 +9,6 @@ from __future__ import annotations
 import contextlib
 from collections.abc import (
     Mapping,
-    Sequence,
 )
 
 import pytest
@@ -282,14 +281,14 @@ class TestsFlextDbOracleUtilitiesUnit:
         tm.ok(result)
 
     _JSON_RESULT_ADAPTER: m.TypeAdapter[
-        Sequence[Mapping[str, int | str | bool]]
-        | Sequence[t.StrMapping]
-        | Sequence[t.IntMapping]
+        t.SequenceOf[Mapping[str, int | str | bool]]
+        | t.SequenceOf[t.StrMapping]
+        | t.SequenceOf[t.IntMapping]
         | None
     ] = m.TypeAdapter(
-        Sequence[Mapping[str, int | str | bool]]
-        | Sequence[t.StrMapping]
-        | Sequence[t.IntMapping]
+        t.SequenceOf[Mapping[str, int | str | bool]]
+        | t.SequenceOf[t.StrMapping]
+        | t.SequenceOf[t.IntMapping]
         | None,
     )
 

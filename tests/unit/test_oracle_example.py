@@ -8,9 +8,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
-from collections.abc import (
-    Sequence,
-)
 
 import pytest
 from flext_tests import tm
@@ -126,7 +123,7 @@ class TestsFlextDbOracleOracleExample:
             if create_result.failure:
                 msg = f"Table creation failed: {create_result.error}"
                 raise AssertionError(msg)
-            params_list: Sequence[t.JsonMapping] = [
+            params_list: t.SequenceOf[t.JsonMapping] = [
                 {"id": 1, "name": "Test 1"},
                 {"id": 2, "name": "Test 2"},
                 {"id": 3, "name": "Test 3"},

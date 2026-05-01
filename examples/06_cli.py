@@ -11,9 +11,6 @@ from __future__ import annotations
 
 import os
 import sys
-from collections.abc import (
-    Sequence,
-)
 from pathlib import Path
 from typing import Final
 
@@ -22,11 +19,11 @@ from flext_db_oracle import m, t, u
 MAX_OUTPUT_LINES: Final[int] = 3
 
 
-def _get_cli_examples() -> Sequence[t.JsonMapping]:
+def _get_cli_examples() -> t.SequenceOf[t.JsonMapping]:
     """Get CLI command examples - DRY pattern for example data.
 
     Returns:
-        Sequence[t.JsonMapping]: List of CLI command examples with metadata.
+        t.SequenceOf[t.JsonMapping]: List of CLI command examples with metadata.
 
     """
     return [

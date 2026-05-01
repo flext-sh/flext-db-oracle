@@ -114,7 +114,7 @@ class FlextDbOracleProtocols(p):
             def execute_many(
                 self,
                 sql: str,
-                params_list: Sequence[t.JsonMapping],
+                params_list: t.SequenceOf[t.JsonMapping],
             ) -> p.Result[int]:
                 """Execute Oracle SQL statement with multiple parameter sets.
 
@@ -364,7 +364,7 @@ class FlextDbOracleProtocols(p):
             def create_table_ddl(
                 self,
                 table: str,
-                columns: Sequence[m.DbOracle.Column],
+                columns: t.SequenceOf[m.DbOracle.Column],
                 schema: str | None = None,
             ) -> p.Result[str]:
                 """Generate Oracle CREATE TABLE DDL.

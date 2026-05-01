@@ -10,10 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-    Sequence,
-)
 from datetime import UTC, datetime
 from types import MappingProxyType
 from typing import ClassVar
@@ -283,7 +279,7 @@ class FlextDbOracleModels(m):
                 default_factory=tuple,
                 description="Column names in result set",
             )
-            rows: Sequence[FlextDbOracleModels.DbOracle.RowData] = u.Field(
+            rows: t.SequenceOf[FlextDbOracleModels.DbOracle.RowData] = u.Field(
                 default_factory=lambda: list[FlextDbOracleModels.DbOracle.RowData](),
                 description="Typed row data from query result",
             )
@@ -440,11 +436,13 @@ class FlextDbOracleModels(m):
                 description="Oracle schema name",
                 validate_default=True,
             )
-            columns: Sequence[FlextDbOracleModels.DbOracle.ColumnMetadata] = u.Field(
-                default_factory=lambda: list[
-                    FlextDbOracleModels.DbOracle.ColumnMetadata
-                ](),
-                description="Column metadata for the table",
+            columns: t.SequenceOf[FlextDbOracleModels.DbOracle.ColumnMetadata] = (
+                u.Field(
+                    default_factory=lambda: list[
+                        FlextDbOracleModels.DbOracle.ColumnMetadata
+                    ](),
+                    description="Column metadata for the table",
+                )
             )
             primary_keys: t.StrSequence = u.Field(
                 default_factory=tuple,
@@ -495,7 +493,7 @@ class FlextDbOracleModels(m):
         class SingerSchema(m.Entity):
             """Singer schema container with typed properties."""
 
-            properties: Mapping[str, FlextDbOracleModels.DbOracle.SingerField] = (
+            properties: t.MappingKV[str, FlextDbOracleModels.DbOracle.SingerField] = (
                 u.Field(
                     default_factory=lambda: MappingProxyType({}),
                     description="Singer schema property definitions",
@@ -511,7 +509,7 @@ class FlextDbOracleModels(m):
                 description="Table owner or schema",
                 validate_default=True,
             )
-            columns: Sequence[FlextDbOracleModels.DbOracle.Column] = u.Field(
+            columns: t.SequenceOf[FlextDbOracleModels.DbOracle.Column] = u.Field(
                 default_factory=lambda: list[FlextDbOracleModels.DbOracle.Column](),
                 description="Column definitions for the table",
             )
@@ -566,7 +564,7 @@ class FlextDbOracleModels(m):
             """Schema metadata using flext-core Entity."""
 
             name: str = u.Field(description="Schema name")
-            tables: Sequence[FlextDbOracleModels.DbOracle.Table] = u.Field(
+            tables: t.SequenceOf[FlextDbOracleModels.DbOracle.Table] = u.Field(
                 default_factory=lambda: list[FlextDbOracleModels.DbOracle.Table](),
                 description="Tables within this schema",
             )
@@ -715,7 +713,7 @@ class FlextDbOracleModels(m):
             """Command to execute batch statements."""
 
             sql: str = u.Field(description="SQL statement for batch execution")
-            parameters_list: Sequence[t.JsonMapping] = u.Field(
+            parameters_list: t.SequenceOf[t.JsonMapping] = u.Field(
                 default_factory=lambda: list[t.JsonMapping](),
                 description="List of parameter sets for batch execution",
             )

@@ -294,15 +294,15 @@ class FlextDbOracleClient(s):
         """
         try:
 
-            def adapt_schemas(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:
+            def adapt_schemas(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
                 schemas = t.json_list_adapter().validate_python(raw_value)
                 return [m.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
 
-            def adapt_tables(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:
+            def adapt_tables(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
                 tables = t.json_list_adapter().validate_python(raw_value)
                 return [m.ConfigMap(root={"table": str(table)}) for table in tables]
 
-            def adapt_health(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:
+            def adapt_health(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
                 try:
                     health_map = t.json_mapping_adapter().validate_python(raw_value)
                 except c.ValidationError:
@@ -317,8 +317,8 @@ class FlextDbOracleClient(s):
                     for key, value in health.items()
                 ]
 
-            adaptation_strategies: Sequence[
-                tuple[str, Callable[[t.JsonValue], Sequence[m.ConfigMap]]]
+            adaptation_strategies: t.SequenceOf[
+                tuple[str, Callable[[t.JsonValue], t.SequenceOf[m.ConfigMap]]]
             ] = [
                 ("schemas", adapt_schemas),
                 ("tables", adapt_tables),
@@ -344,10 +344,10 @@ class FlextDbOracleClient(s):
         ) as e:
             return r[Sequence[m.ConfigMap]].fail(f"Data adaptation failed: {e}")
 
-    def _build_table_string(self, adapted_data: Sequence[m.ConfigMap]) -> str:
+    def _build_table_string(self, adapted_data: t.SequenceOf[m.ConfigMap]) -> str:
         """Build table string from adapted data."""
         headers: t.StrSequence = list(adapted_data[0].keys())
-        rows: Sequence[t.StrSequence] = [
+        rows: t.SequenceOf[t.StrSequence] = [
             [str(row[h]) for h in headers] for row in adapted_data
         ]
         result_str = f"{'|'.join(headers)}\n{'|'.join(['---'] * len(headers))}\n"
@@ -504,7 +504,7 @@ class FlextDbOracleClient(s):
 
         """
         try:
-            formatter_strategies: Sequence[
+            formatter_strategies: t.SequenceOf[
                 tuple[str, Callable[[m.ConfigMap], p.Result[str]]]
             ] = [
                 ("table", self._format_as_table),

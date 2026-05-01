@@ -13,9 +13,7 @@ from __future__ import annotations
 import sys
 import time
 from collections.abc import (
-    Mapping,
     MutableSequence,
-    Sequence,
 )
 from datetime import UTC, datetime
 from typing import override
@@ -119,7 +117,7 @@ class FlextDbOracleCli(s[str]):
         def format_data(
             data: m.DbOracle.OutputPayload
             | m.DbOracle.HealthCheckReport
-            | Mapping[str, t.DbOracle.CliScalar]
+            | t.MappingKV[str, t.DbOracle.CliScalar]
             | t.StrSequence
             | str,
             output_format: str,
@@ -154,7 +152,7 @@ class FlextDbOracleCli(s[str]):
                         case [*_] as items:
                             formatted = u.Cli.yaml_dump_str(items)
                         case _:
-                            serializable: Mapping[str, t.Scalar] = {
+                            serializable: t.MappingKV[str, t.Scalar] = {
                                 k: v for k, v in data.items() if v is not None
                             }
                             formatted = u.Cli.yaml_dump_str(serializable)
@@ -175,7 +173,7 @@ class FlextDbOracleCli(s[str]):
 
         @staticmethod
         def format_list_output(
-            items: t.StrSequence | Sequence[m.DbOracle.NamedItem],
+            items: t.StrSequence | t.SequenceOf[m.DbOracle.NamedItem],
             title: str,
             output_format: str = "table",
         ) -> p.Result[str]:

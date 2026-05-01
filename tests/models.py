@@ -6,14 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-)
-
 from flext_tests import FlextTestsModels
 
 from flext_db_oracle import m
-from tests.typings import TestsFlextDbOracleTypes
+from tests import t
 
 
 class TestsFlextDbOracleModels(FlextTestsModels, m):
@@ -36,7 +32,7 @@ class TestsFlextDbOracleModels(FlextTestsModels, m):
             description: str
             author: str
             plugin_type: str
-            metadata: Mapping[str, TestsFlextDbOracleTypes.FlatContainer]
+            metadata: t.MappingKV[str, t.FlatContainer]
 
 
 m = TestsFlextDbOracleModels
