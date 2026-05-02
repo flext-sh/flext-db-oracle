@@ -296,6 +296,30 @@ class FlextDbOracleCli(s[str]):
             )
             return r[m.DbOracle.HealthCheckReport].ok(error_result)
 
+    def _build_settings(
+        self,
+        host: str,
+        port: int,
+        service_name: str,
+        username: str,
+        password: str | None,
+    ) -> p.Result[FlextDbOracleSettings]:
+        """Build and validate Oracle settings from connection parameters."""
+        try:
+            payload: dict[str, str | int] = {
+                "host": host,
+                "port": port,
+                "service_name": service_name,
+                "username": username,
+            }
+            if password is not None:
+                payload["password"] = password
+            return r[FlextDbOracleSettings].ok(
+                FlextDbOracleSettings.model_validate(payload),
+            )
+        except c.ValidationError as exc:
+            return r[FlextDbOracleSettings].fail(str(exc))
+
     def execute_list_schemas(
         self,
         host: str = c.LOCALHOST,
@@ -312,41 +336,29 @@ class FlextDbOracleCli(s[str]):
 
         """
         formatter = self._OutputFormatter
-        try:
-            settings_payload: dict[str, str | int] = {
-                "host": host,
-                "port": port,
-                "service_name": service_name,
-                "username": username,
-            }
-            if password is not None:
-                settings_payload["password"] = password
-            settings = FlextDbOracleSettings.model_validate(settings_payload)
-        except c.ValidationError as exc:
-            error_text = str(exc)
-            error_msg = formatter.format_error_message(
-                f"Configuration failed: {error_text}"
+        settings_result = self._build_settings(
+            host, port, service_name, username, password
+        )
+        if settings_result.failure:
+            return self._handle_error_and_fail(
+                formatter,
+                settings_result.error or "",
+                f"Configuration failed: {settings_result.error or ''}",
             )
-            if error_msg.success:
-                formatter.display_message(error_msg.value)
-            return r[str].fail(error_text)
+        settings = settings_result.value
         validation_result = self._OracleConnectionHelper.validate_connection(settings)
         if validation_result.failure:
-            error_text = validation_result.error or "Unknown validation error"
-            error_msg = formatter.format_error_message(error_text)
-            if error_msg.success:
-                formatter.display_message(error_msg.value)
-            return r[str].fail(error_text)
+            return self._handle_error_and_fail(
+                formatter, validation_result.error or "Unknown validation error"
+            )
         api = FlextDbOracleApi(settings)
         schemas_result = api.fetch_schemas()
         if schemas_result.failure:
-            error_text = schemas_result.error or "Unknown schemas error"
-            error_msg = formatter.format_error_message(
-                f"Failed to get schemas: {error_text}",
+            return self._handle_error_and_fail(
+                formatter,
+                schemas_result.error or "Unknown schemas error",
+                f"Failed to get schemas: {schemas_result.error}",
             )
-            if error_msg.success:
-                formatter.display_message(error_msg.value)
-            return r[str].fail(error_text)
         schemas = schemas_result.value
         formatted_result = formatter.format_list_output(
             schemas,
@@ -374,41 +386,29 @@ class FlextDbOracleCli(s[str]):
 
         """
         formatter = self._OutputFormatter
-        try:
-            settings_payload: dict[str, str | int] = {
-                "host": host,
-                "port": port,
-                "service_name": service_name,
-                "username": username,
-            }
-            if password is not None:
-                settings_payload["password"] = password
-            settings = FlextDbOracleSettings.model_validate(settings_payload)
-        except c.ValidationError as exc:
-            error_text = str(exc)
-            error_msg = formatter.format_error_message(
-                f"Configuration failed: {error_text}"
+        settings_result = self._build_settings(
+            host, port, service_name, username, password
+        )
+        if settings_result.failure:
+            return self._handle_error_and_fail(
+                formatter,
+                settings_result.error or "",
+                f"Configuration failed: {settings_result.error or ''}",
             )
-            if error_msg.success:
-                formatter.display_message(error_msg.value)
-            return r[str].fail(error_text)
+        settings = settings_result.value
         validation_result = self._OracleConnectionHelper.validate_connection(settings)
         if validation_result.failure:
-            error_text = validation_result.error or "Unknown validation error"
-            error_msg = formatter.format_error_message(error_text)
-            if error_msg.success:
-                formatter.display_message(error_msg.value)
-            return r[str].fail(error_text)
+            return self._handle_error_and_fail(
+                formatter, validation_result.error or "Unknown validation error"
+            )
         api = FlextDbOracleApi(settings)
         tables_result = api.fetch_tables(schema)
         if tables_result.failure:
-            error_text = tables_result.error or "Unknown tables error"
-            error_msg = formatter.format_error_message(
-                f"Failed to get tables: {error_text}",
+            return self._handle_error_and_fail(
+                formatter,
+                tables_result.error or "Unknown tables error",
+                f"Failed to get tables: {tables_result.error}",
             )
-            if error_msg.success:
-                formatter.display_message(error_msg.value)
-            return r[str].fail(error_text)
         tables = tables_result.value
         formatted_result = formatter.format_list_output(
             tables,
@@ -442,25 +442,21 @@ class FlextDbOracleCli(s[str]):
                 "SQL query cannot be empty",
                 "SQL query cannot be empty",
             )
-        try:
-            settings_payload: dict[str, str | int] = {
-                "host": host,
-                "port": port,
-                "service_name": service_name,
-                "username": username,
-            }
-            if password is not None:
-                settings_payload["password"] = password
-            settings = FlextDbOracleSettings.model_validate(settings_payload)
-        except c.ValidationError as exc:
-            error_text = str(exc)
+        settings_result = self._build_settings(
+            host, port, service_name, username, password
+        )
+        if settings_result.failure:
             return self._handle_error_and_fail(
-                formatter, error_text, f"Configuration failed: {error_text}"
+                formatter,
+                settings_result.error or "",
+                f"Configuration failed: {settings_result.error or ''}",
             )
+        settings = settings_result.value
         validation_result = self._OracleConnectionHelper.validate_connection(settings)
         if validation_result.failure:
-            error_text = validation_result.error or "Unknown validation error"
-            return self._handle_error_and_fail(formatter, error_text, error_text)
+            return self._handle_error_and_fail(
+                formatter, validation_result.error or "Unknown validation error"
+            )
         api = FlextDbOracleApi(settings)
         query_result = api.query(sql)
         if query_result.failure:
