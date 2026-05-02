@@ -16,6 +16,15 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
 from flext_cli import c
+from oracledb import (
+    DatabaseError as _OracleDatabaseError,
+    InterfaceError as _OracleInterfaceError,
+)
+from sqlalchemy.exc import (
+    DatabaseError as _SQLAlchemyDatabaseError,
+    OperationalError as _SQLAlchemyOperationalError,
+    SQLAlchemyError as _SQLAlchemyError,
+)
 
 if TYPE_CHECKING:
     from flext_db_oracle import t
@@ -35,6 +44,24 @@ class FlextDbOracleConstants(c):
 
     class DbOracle:
         """Oracle domain constants namespace with flat SSOT members."""
+
+        EXC_DB_CONNECT: Final[tuple[type[Exception], ...]] = (
+            ConnectionError,
+            _OracleDatabaseError,
+            _OracleInterfaceError,
+        )
+        """Oracle DB connection boundary catch (oracledb library errors)."""
+
+        EXC_DB_BROAD: Final[tuple[type[Exception], ...]] = (
+            ConnectionError,
+            OSError,
+            _SQLAlchemyDatabaseError,
+            _SQLAlchemyError,
+            _SQLAlchemyOperationalError,
+            _OracleDatabaseError,
+            _OracleInterfaceError,
+        )
+        """Broad Oracle DB boundary catch including SQLAlchemy errors."""
 
         DEFAULT_CHARSET: Final[str] = "UTF8"
         DEFAULT_SERVICE_NAME: Final[str] = "XEPDB1"
