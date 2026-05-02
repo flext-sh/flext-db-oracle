@@ -54,7 +54,7 @@ class OracleRawType(UserDefinedType[str]):
         self.spec = spec
 
     @override
-    def get_col_spec(self, **_kw: object) -> str:
+    def get_col_spec(self, **_kw: p.AttributeProbe) -> str:
         return self.spec
 
 
@@ -142,7 +142,10 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             )
             index = Index(
                 self._normalize_identifier(settings.index_name),
-                *(table_object.c[column_name] for column_name in settings.columns),
+                *(
+                    table_object.c[self._normalize_identifier(column_name)]
+                    for column_name in settings.columns
+                ),
                 unique=settings.unique,
             )
             sql = self._compile_statement(CreateIndex(index))

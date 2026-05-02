@@ -469,9 +469,7 @@ class FlextDbOracleModels(m):
 
             def __getitem__(self, key: str) -> str:
                 """Get mapped type for key."""
-                mapped_value_raw: object = self.mapping[key]
-                mapped_value: str = str(mapped_value_raw)
-                return mapped_value
+                return self.mapping[key]
 
             def __len__(self) -> int:
                 """Get number of type mappings."""

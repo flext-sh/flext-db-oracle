@@ -501,7 +501,7 @@ class TestsFlextDbOracleServices:
         tm.that(
             (
                 result.value
-                == "CREATE UNIQUE INDEX IDX_USERS_EMAIL ON APP.USERS (email) TABLESPACE USERS_TS PARALLEL 2"
+                == "CREATE UNIQUE INDEX APP.IDX_USERS_EMAIL ON APP.USERS (EMAIL) TABLESPACE USERS_TS PARALLEL 2"
             ),
             eq=True,
         )

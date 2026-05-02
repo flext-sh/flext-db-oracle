@@ -245,7 +245,7 @@ class FlextDbOracleCli(s[str]):
         return r[str].ok("Oracle CLI service ready")
 
     def execute_health_check(
-        self, **kwargs: object
+        self, **kwargs: p.AttributeProbe
     ) -> p.Result[m.DbOracle.HealthCheckReport]:
         """Execute complete health check for Oracle database connection.
 
