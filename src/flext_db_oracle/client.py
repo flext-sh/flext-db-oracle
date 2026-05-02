@@ -107,7 +107,7 @@ class FlextDbOracleClient(s):
             t.DbOracle.OracleInterfaceError,
             ConnectionError,
         ) as e:
-            return r[str].fail(f"CLI command failed: {e}")
+            return r[str].fail_op("CLI command", e)
 
     def configure_preferences(self, **preferences: t.Scalar) -> p.Result[bool]:
         """Configure client preferences.
@@ -128,7 +128,7 @@ class FlextDbOracleClient(s):
             t.DbOracle.OracleInterfaceError,
             ConnectionError,
         ) as e:
-            return r[bool].fail(f"Preference configuration failed: {e}")
+            return r[bool].fail_op("Preference configuration", e)
 
     def connect_to_oracle(
         self,
@@ -342,7 +342,7 @@ class FlextDbOracleClient(s):
             t.DbOracle.OracleInterfaceError,
             ConnectionError,
         ) as e:
-            return r[Sequence[m.ConfigMap]].fail(f"Data adaptation failed: {e}")
+            return r[Sequence[m.ConfigMap]].fail_op("Data adaptation", e)
 
     def _build_table_string(self, adapted_data: t.SequenceOf[m.ConfigMap]) -> str:
         """Build table string from adapted data."""
@@ -386,7 +386,7 @@ class FlextDbOracleClient(s):
             t.DbOracle.OracleInterfaceError,
             ConnectionError,
         ) as e:
-            return r[m.ConfigMap].fail(f"Health check failed: {e}")
+            return r[m.ConfigMap].fail_op("Health check", e)
 
     def _execute_operation(
         self,
@@ -416,7 +416,7 @@ class FlextDbOracleClient(s):
             t.DbOracle.OracleInterfaceError,
             ConnectionError,
         ) as e:
-            return r[m.ConfigMap].fail(f"Operation failed: {e}")
+            return r[m.ConfigMap].fail_op("Operation", e)
 
     def _execute_with_chain(
         self,
@@ -491,7 +491,7 @@ class FlextDbOracleClient(s):
             t.DbOracle.OracleInterfaceError,
             ConnectionError,
         ) as e:
-            return r[str].fail(f"Table formatting failed: {e}")
+            return r[str].fail_op("Table formatting", e)
 
     def _get_formatter_strategy(
         self,
