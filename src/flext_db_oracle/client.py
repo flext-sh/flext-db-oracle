@@ -102,11 +102,7 @@ class FlextDbOracleClient(s):
                     unused_params=str(params),
                 )
             return r[str].fail(f"Unknown CLI operation: {operation}")
-        except (
-            t.DbOracle.OracleDatabaseError,
-            t.DbOracle.OracleInterfaceError,
-            ConnectionError,
-        ) as e:
+        except c.DbOracle.EXC_DB_CONNECT as e:
             return r[str].fail_op("CLI command", e)
 
     def configure_preferences(self, **preferences: t.Scalar) -> p.Result[bool]:
@@ -123,11 +119,7 @@ class FlextDbOracleClient(s):
                 preferences_info=str(preferences),
             )
             return r[bool].ok(True)
-        except (
-            t.DbOracle.OracleDatabaseError,
-            t.DbOracle.OracleInterfaceError,
-            ConnectionError,
-        ) as e:
+        except c.DbOracle.EXC_DB_CONNECT as e:
             return r[bool].fail_op("Preference configuration", e)
 
     def connect_to_oracle(
@@ -337,11 +329,7 @@ class FlextDbOracleClient(s):
                 for key, value in data_root.items()
             ]
             return r[Sequence[m.ConfigMap]].ok(result)
-        except (
-            t.DbOracle.OracleDatabaseError,
-            t.DbOracle.OracleInterfaceError,
-            ConnectionError,
-        ) as e:
+        except c.DbOracle.EXC_DB_CONNECT as e:
             return r[Sequence[m.ConfigMap]].fail_op("Data adaptation", e)
 
     def _build_table_string(self, adapted_data: t.SequenceOf[m.ConfigMap]) -> str:
@@ -381,11 +369,7 @@ class FlextDbOracleClient(s):
                 },
             )
             return r[m.ConfigMap].ok(health_data)
-        except (
-            t.DbOracle.OracleDatabaseError,
-            t.DbOracle.OracleInterfaceError,
-            ConnectionError,
-        ) as e:
+        except c.DbOracle.EXC_DB_CONNECT as e:
             return r[m.ConfigMap].fail_op("Health check", e)
 
     def _execute_operation(
@@ -411,11 +395,7 @@ class FlextDbOracleClient(s):
             if operation == "health_check":
                 return self._handle_health_check_operation()
             return r[m.ConfigMap].fail(f"Unknown operation: {operation}")
-        except (
-            t.DbOracle.OracleDatabaseError,
-            t.DbOracle.OracleInterfaceError,
-            ConnectionError,
-        ) as e:
+        except c.DbOracle.EXC_DB_CONNECT as e:
             return r[m.ConfigMap].fail_op("Operation", e)
 
     def _execute_with_chain(
@@ -518,11 +498,7 @@ class FlextDbOracleClient(s):
             return r[Callable[[m.ConfigMap], p.Result[str]]].fail(
                 f"Unsupported format: {format_type}",
             )
-        except (
-            t.DbOracle.OracleDatabaseError,
-            t.DbOracle.OracleInterfaceError,
-            ConnectionError,
-        ) as e:
+        except c.DbOracle.EXC_DB_CONNECT as e:
             return r[Callable[[m.ConfigMap], p.Result[str]]].fail(
                 f"Formatter strategy error: {e}",
             )

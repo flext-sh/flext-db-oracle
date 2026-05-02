@@ -282,11 +282,7 @@ class FlextDbOracleCli(s[str]):
                 "timestamp": datetime.now(UTC).isoformat(),
             })
             return r[m.DbOracle.HealthCheckReport].ok(result)
-        except (
-            t.DbOracle.OracleDatabaseError,
-            t.DbOracle.OracleInterfaceError,
-            ConnectionError,
-        ) as e:
+        except c.DbOracle.EXC_DB_CONNECT as e:
             elapsed_time = time.time() - start_time
             error_result = m.DbOracle.HealthCheckReport(
                 status=c.HealthStatus.UNHEALTHY.value,

@@ -18,11 +18,6 @@ from typing import Self, override
 from urllib.parse import quote_plus
 
 from sqlalchemy import Connection as SAConnection, text
-from sqlalchemy.exc import (
-    DatabaseError as SQLAlchemyDatabaseError,
-    OperationalError as SQLAlchemyOperationalError,
-    SQLAlchemyError,
-)
 
 from flext_db_oracle import (
     FlextDbOracleServiceBase,
@@ -30,7 +25,6 @@ from flext_db_oracle import (
     m,
     p,
     r,
-    t,
 )
 
 
@@ -62,15 +56,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             self.logger.info(f"Connected to Oracle database: {self.db_config.host}")
             ok_result: p.Result[Self] = r.ok(self)
             return ok_result
-        except (
-            t.DbOracle.OracleDatabaseError,
-            t.DbOracle.OracleInterfaceError,
-            ConnectionError,
-            SQLAlchemyDatabaseError,
-            SQLAlchemyOperationalError,
-            SQLAlchemyError,
-            OSError,
-        ) as e:
+        except c.DbOracle.EXC_DB_BROAD as e:
             local_host = self.db_config.host in {
                 "localhost",
                 c.DbOracle.LOOPBACK_IP,
@@ -95,15 +81,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                         )
                         nested_ok: p.Result[Self] = r.ok(self)
                         return nested_ok
-                    except (
-                        t.DbOracle.OracleDatabaseError,
-                        t.DbOracle.OracleInterfaceError,
-                        ConnectionError,
-                        SQLAlchemyDatabaseError,
-                        SQLAlchemyOperationalError,
-                        SQLAlchemyError,
-                        OSError,
-                    ):
+                    except c.DbOracle.EXC_DB_BROAD:
                         self._engine = None
             self._engine = None
             self.logger.exception("Oracle connection failed")
@@ -189,15 +167,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                     text("SELECT 1 FROM dual"),
                 )
             return r[bool].ok(True)
-        except (
-            t.DbOracle.OracleDatabaseError,
-            t.DbOracle.OracleInterfaceError,
-            ConnectionError,
-            SQLAlchemyDatabaseError,
-            SQLAlchemyOperationalError,
-            SQLAlchemyError,
-            OSError,
-        ) as e:
+        except c.DbOracle.EXC_DB_BROAD as e:
             return r[bool].fail_op("Connection test", e)
 
     def transaction(self) -> Generator[SAConnection]:
@@ -220,15 +190,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             base = f"oracle+oracledb://{self.db_config.username}:{encoded_password}@{self.db_config.host}:{self.db_config.port}"
             url = f"{base}/?service_name={service_name}"
             return r[str].ok(url)
-        except (
-            t.DbOracle.OracleDatabaseError,
-            t.DbOracle.OracleInterfaceError,
-            ConnectionError,
-            SQLAlchemyDatabaseError,
-            SQLAlchemyOperationalError,
-            SQLAlchemyError,
-            OSError,
-        ) as e:
+        except c.DbOracle.EXC_DB_BROAD as e:
             return r[str].fail(f"Failed to build connection URL: {e}")
 
 

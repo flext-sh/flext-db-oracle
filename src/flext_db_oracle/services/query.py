@@ -16,13 +16,8 @@ from typing import override
 
 from sqlalchemy import text
 from sqlalchemy.engine import CursorResult
-from sqlalchemy.exc import (
-    DatabaseError as SQLAlchemyDatabaseError,
-    OperationalError as SQLAlchemyOperationalError,
-    SQLAlchemyError,
-)
 
-from flext_db_oracle import FlextDbOracleServiceBase, m, p, r, t
+from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
 
 
 class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
@@ -59,15 +54,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
                     )
                     total_affected += max(result.rowcount, 0)
                 return r[int].ok(total_affected)
-        except (
-            t.DbOracle.OracleDatabaseError,
-            t.DbOracle.OracleInterfaceError,
-            ConnectionError,
-            SQLAlchemyDatabaseError,
-            SQLAlchemyOperationalError,
-            SQLAlchemyError,
-            OSError,
-        ) as e:
+        except c.DbOracle.EXC_DB_BROAD as e:
             return r[int].fail_op("Bulk execution", e)
 
     @override
@@ -93,15 +80,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
                 )
                 rows: t.SequenceOf[m.Dict] = self._normalize_query_rows(result)
                 return r[Sequence[m.Dict]].ok(rows)
-        except (
-            t.DbOracle.OracleDatabaseError,
-            t.DbOracle.OracleInterfaceError,
-            ConnectionError,
-            SQLAlchemyDatabaseError,
-            SQLAlchemyOperationalError,
-            SQLAlchemyError,
-            OSError,
-        ) as e:
+        except c.DbOracle.EXC_DB_BROAD as e:
             return r[Sequence[m.Dict]].fail_op("Query execution", e)
 
     def execute_statement(
@@ -122,15 +101,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
                 )
                 rowcount = max(result.rowcount, 0)
                 return r[int].ok(rowcount)
-        except (
-            t.DbOracle.OracleDatabaseError,
-            t.DbOracle.OracleInterfaceError,
-            ConnectionError,
-            SQLAlchemyDatabaseError,
-            SQLAlchemyOperationalError,
-            SQLAlchemyError,
-            OSError,
-        ) as e:
+        except c.DbOracle.EXC_DB_BROAD as e:
             return r[int].fail_op("Statement execution", e)
 
     def fetch_one(
