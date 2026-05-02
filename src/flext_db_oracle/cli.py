@@ -85,9 +85,7 @@ class FlextDbOracleCli(s[str]):
                 c.ValidationError,
                 ValueError,
             ) as e:
-                return r[FlextDbOracleSettings].fail(
-                    f"Configuration creation failed: {e}",
-                )
+                return r[FlextDbOracleSettings].fail_op("Configuration creation", e)
 
         @staticmethod
         def validate_connection(settings: FlextDbOracleSettings) -> p.Result[bool]:
@@ -101,7 +99,7 @@ class FlextDbOracleCli(s[str]):
             connect_result = new_api.connect()
             if connect_result.failure:
                 error_text = connect_result.error or "Unknown connection error"
-                return r[bool].fail(f"Connection failed: {error_text}")
+                return r[bool].fail_op("Connection", error_text)
             success = True
             return r[bool].ok(success)
 
@@ -269,8 +267,8 @@ class FlextDbOracleCli(s[str]):
             api = FlextDbOracleApi(settings)
             health_result = api.fetch_health_status()
             if health_result.failure:
-                return r[m.DbOracle.HealthCheckReport].fail(
-                    f"Health check failed: {health_result.error}",
+                return r[m.DbOracle.HealthCheckReport].fail_op(
+                    "Health check", health_result.error
                 )
             elapsed_time = time.time() - start_time
             health_data = health_result.value

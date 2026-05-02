@@ -182,8 +182,8 @@ class FlextDbOracleClient(s):
                 self.current_connection = api
                 self.logger.info("Oracle connection established successfully")
                 return r[FlextDbOracleApi].ok(api)
-            return r[FlextDbOracleApi].fail(
-                f"Oracle connection failed: {connect_result.error}",
+            return r[FlextDbOracleApi].fail_op(
+                "Oracle connection", connect_result.error
             )
         except (
             t.DbOracle.OracleDatabaseError,

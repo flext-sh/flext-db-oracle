@@ -198,7 +198,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             SQLAlchemyError,
             OSError,
         ) as e:
-            return r[bool].fail(f"Connection test failed: {e}")
+            return r[bool].fail_op("Connection test", e)
 
     def transaction(self) -> Generator[SAConnection]:
         """Get transaction context for database operations."""

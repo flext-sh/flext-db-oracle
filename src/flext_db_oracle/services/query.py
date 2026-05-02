@@ -68,7 +68,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             SQLAlchemyError,
             OSError,
         ) as e:
-            return r[int].fail(f"Bulk execution failed: {e}")
+            return r[int].fail_op("Bulk execution", e)
 
     @override
     def execute_query(
@@ -102,7 +102,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             SQLAlchemyError,
             OSError,
         ) as e:
-            return r[Sequence[m.Dict]].fail(f"Query execution failed: {e}")
+            return r[Sequence[m.Dict]].fail_op("Query execution", e)
 
     def execute_statement(
         self, sql: str, params: m.ConfigMap | None = None
@@ -131,7 +131,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             SQLAlchemyError,
             OSError,
         ) as e:
-            return r[int].fail(f"Statement execution failed: {e}")
+            return r[int].fail_op("Statement execution", e)
 
     def fetch_one(
         self,
