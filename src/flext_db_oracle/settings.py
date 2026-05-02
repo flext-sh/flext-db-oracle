@@ -210,7 +210,7 @@ class FlextDbOracleSettings(FlextSettings):
         try:
             values = cls.resolve_environment_values(prefix)
             return r[FlextDbOracleSettings].ok(cls.model_validate(values))
-        except (ValueError, TypeError) as e:
+        except c.EXC_TYPE_VALIDATION as e:
             return r[FlextDbOracleSettings].fail(f"Invalid environment settings: {e}")
 
     @classmethod

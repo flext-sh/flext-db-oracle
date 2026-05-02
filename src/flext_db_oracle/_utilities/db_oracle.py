@@ -173,7 +173,7 @@ class FlextDbOracleUtilitiesDbOracle:
             return 0
         try:
             return int(validated)
-        except (TypeError, ValueError):
+        except c.EXC_TYPE_VALIDATION:
             return 0
 
     @classmethod
