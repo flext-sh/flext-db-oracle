@@ -478,20 +478,21 @@ class FlextDbOracleClient(s):
         r[str]: Table formatted data or error.
 
         """
-        try:
-            return self._adapt_data_for_table(data).map(
+        return u.guard_result(
+            lambda: self._adapt_data_for_table(data).map(
                 lambda adapted_data: (
                     self._build_table_string(adapted_data)
                     if adapted_data
                     else str(adapted_data)
                 ),
-            )
-        except (
-            t.DbOracle.OracleDatabaseError,
-            t.DbOracle.OracleInterfaceError,
-            ConnectionError,
-        ) as e:
-            return r[str].fail_op("Table formatting", e)
+            ),
+            catch=(
+                t.DbOracle.OracleDatabaseError,
+                t.DbOracle.OracleInterfaceError,
+                ConnectionError,
+            ),
+            op_name="Table formatting",
+        )
 
     def _get_formatter_strategy(
         self,
