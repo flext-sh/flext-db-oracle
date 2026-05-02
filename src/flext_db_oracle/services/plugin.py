@@ -19,6 +19,7 @@ from sqlalchemy.exc import (
 
 from flext_db_oracle import (
     FlextDbOracleServiceBase,
+    e,
     m,
     p,
     r,
@@ -64,7 +65,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         if not name:
             return r[t.JsonPayload].fail("Plugin name is required")
         if name not in self._plugins:
-            return r[t.JsonPayload].fail(f"Plugin '{name}' not found")
+            return e.fail_not_found("Plugin", name, result_type=r[t.JsonPayload])
         return r[t.JsonPayload].ok(self._plugins[name])
 
     def list_plugins(self) -> p.Result[m.ConfigMap]:
@@ -145,7 +146,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         if not name:
             return r[bool].fail("Plugin name is required")
         if name not in self._plugins:
-            return r[bool].fail(f"Plugin '{name}' not found")
+            return e.fail_not_found("Plugin", name, result_type=r[bool])
         self._plugins.pop(name)
         return r[bool].ok(True)
 
