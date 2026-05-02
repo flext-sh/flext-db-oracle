@@ -74,7 +74,7 @@ class FlextDbOracleConstants(c):
         DEFAULT_POOL_MAX: Final[int] = 20
         DEFAULT_POOL_INCREMENT: Final[int] = 1
         DEFAULT_POOL_TIMEOUT: Final[int] = 60
-        DEFAULT_CONNECTION_TIMEOUT: Final[int] = 30
+        DEFAULT_CONNECTION_TIMEOUT: Final[int] = c.DEFAULT_TIMEOUT_SECONDS
         DEFAULT_HOST: Final[str] = c.LOCALHOST
         DEFAULT_ARRAY_SIZE: Final[int] = 100
         DEFAULT_QUERY_LIMIT: Final[int] = 1000
