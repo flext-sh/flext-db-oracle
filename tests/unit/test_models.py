@@ -336,21 +336,6 @@ class TestsFlextDbOracleModelsUnit:
         tm.that(settings.tablespace, eq="users_idx")
         tm.that(settings.parallel, eq=4)
 
-    def test_merge_statement_config_creation(self) -> None:
-        """Test MergeStatementConfig creation."""
-        settings = m.DbOracle.MergeStatementConfig(
-            target_table="users",
-            source_query="SELECT id, name FROM temp_users",
-            merge_conditions=["t.id = s.id"],
-            update_columns=["name"],
-            insert_columns=["id", "name"],
-        )
-        tm.that(settings.target_table, eq="users")
-        tm.that(settings.source_query, eq="SELECT id, name FROM temp_users")
-        tm.that(settings.merge_conditions, eq=["t.id = s.id"])
-        tm.that(settings.update_columns, eq=["name"])
-        tm.that(settings.insert_columns, eq=["id", "name"])
-
     def test_connection_status_real_oracle_integration(
         self,
         connected_oracle_api: FlextDbOracleApi | None,

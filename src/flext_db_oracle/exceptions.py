@@ -11,7 +11,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_core import e
-from flext_db_oracle import t
 
 
 class FlextDbOracleExceptions(e):
@@ -51,21 +50,6 @@ class FlextDbOracleExceptions(e):
             self.tns_error = tns_error
             self.connection_string = connection_string
 
-    class OracleMetadataError(e.OperationError):
-        """Oracle metadata error extending e.OperationError."""
-
-        def __init__(
-            self,
-            message: str,
-            *,
-            object_name: str | None = None,
-            object_type: str | None = None,
-        ) -> None:
-            """Initialize metadata error with t.JsonValue name and type metadata."""
-            super().__init__(message)
-            self.object_name = object_name
-            self.object_type = object_type
-
     class ProcessingError(e.OperationError):
         """Oracle processing error extending e.OperationError."""
 
@@ -80,21 +64,6 @@ class FlextDbOracleExceptions(e):
             super().__init__(message)
             self.operation_type = operation_type
             self.processing_stage = processing_stage
-
-    class OracleQueryError(e.OperationError):
-        """Oracle query error extending e.OperationError."""
-
-        def __init__(
-            self,
-            message: str,
-            *,
-            sql_text: str | None = None,
-            bind_variables: t.JsonMapping | None = None,
-        ) -> None:
-            """Initialize query error with SQL text and bind variables metadata."""
-            super().__init__(message)
-            self.sql_text = sql_text
-            self.bind_variables = bind_variables or {}
 
     class OracleTimeoutError(e.TimeoutError):
         """Oracle timeout error extending e.TimeoutError."""

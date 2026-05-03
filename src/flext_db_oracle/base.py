@@ -55,11 +55,6 @@ class FlextDbOracleServiceBase(FlextDbOracleUtilitiesDbOracle, s):
         default_factory=lambda: dict[str, t.JsonValue]()
     )
 
-    class _CountValue(m.RootModel[int | str]):
-        """Pydantic root model for count value (int or numeric string)."""
-
-        root: int | str
-
     def __init__(self, settings: FlextDbOracleSettings) -> None:
         """Initialize shared Oracle service state."""
         super().__init__()

@@ -590,23 +590,6 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
 
-        class MergeStatementConfig(m.Entity):
-            """Merge statement settings using flext-core Entity."""
-
-            target_table: str = u.Field(description="Target table for MERGE operation")
-            source_query: str = u.Field(description="Source query for MERGE data")
-            merge_conditions: t.StrSequence = u.Field(
-                description="Join conditions for MERGE matching"
-            )
-            update_columns: t.StrSequence = u.Field(
-                default_factory=tuple,
-                description="Columns to update on match",
-            )
-            insert_columns: t.StrSequence = u.Field(
-                default_factory=tuple,
-                description="Columns to insert on no match",
-            )
-
         class ConnectionParams(m.Entity):
             """CLI connection parameters shared by execute_* methods."""
 

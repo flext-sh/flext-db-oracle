@@ -28,7 +28,6 @@ if _t.TYPE_CHECKING:
     from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
     from flext_db_oracle.api import FlextDbOracleApi, db_oracle
     from flext_db_oracle.base import FlextDbOracleServiceBase
-    from flext_db_oracle.cli import FlextDbOracleCli
     from flext_db_oracle.client import FlextDbOracleClient, client
     from flext_db_oracle.constants import FlextDbOracleConstants, c
     from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
@@ -71,7 +70,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "db_oracle",
             ),
             ".base": ("FlextDbOracleServiceBase",),
-            ".cli": ("FlextDbOracleCli",),
             ".client": (
                 "FlextDbOracleClient",
                 "client",
@@ -147,7 +145,6 @@ install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
 __all__: list[str] = [
     "FlextDbOracleApi",
     "FlextDbOracleApiRuntime",
-    "FlextDbOracleCli",
     "FlextDbOracleClient",
     "FlextDbOracleConstants",
     "FlextDbOracleDispatcher",

@@ -14,7 +14,6 @@ from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleServices,
     FlextDbOracleSettings,
-    e,
 )
 
 
@@ -113,45 +112,6 @@ class TestsFlextDbOracleOracleExceptions:
         except (ValueError, TypeError, RuntimeError):
             pass
 
-    def test_real_query_error_scenario(
-        self,
-        real_oracle_config: FlextDbOracleSettings | None,
-    ) -> None:
-        """Test e.OracleQueryError with real invalid SQL."""
-        if real_oracle_config is None:
-            pytest.skip("Oracle real settings unavailable")
-        connection = FlextDbOracleServices(settings=real_oracle_config)
-        connect_result = connection.connect()
-        if connect_result.failure:
-            pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
-        try:
-            invalid_queries = [
-                "SELECT FROM",
-                "SELECT * FROM non_existent_table_12345",
-                "SELECT INVALID_FUNCTION()",
-                "INSERT INTO dual VALUES (1)",
-            ]
-            for invalid_sql in invalid_queries:
-                result = connection.execute_query(invalid_sql)
-                tm.fail(result)
-                error_msg = (result.error or "").lower()
-                tm.that(
-                    any(
-                        keyword in error_msg
-                        for keyword in [
-                            "ora-",
-                            "syntax",
-                            "invalid",
-                            "not exist",
-                            "table",
-                            "missing",
-                        ]
-                    ),
-                    eq=True,
-                )
-        finally:
-            connection.disconnect()
-
     def test_real_timeout_error_scenario(
         self,
         real_oracle_config: FlextDbOracleSettings | None,
@@ -197,25 +157,6 @@ class TestsFlextDbOracleOracleExceptions:
                 )
         finally:
             connection.disconnect()
-
-    def test_real_metadata_error_scenario(
-        self,
-        connected_oracle_api: FlextDbOracleApi | None,
-    ) -> None:
-        """Test e.OracleMetadataError with real metadata operations."""
-        if connected_oracle_api is None:
-            pytest.skip("Connected Oracle API unavailable")
-        invalid_schemas = ["NON_EXISTENT_SCHEMA_12345", "INVALID$SCHEMA", ""]
-        for invalid_schema in invalid_schemas:
-            if invalid_schema:
-                result = connected_oracle_api.fetch_tables(schema=invalid_schema)
-                tm.that(result.success or result.failure, eq=True)
-        columns_result = connected_oracle_api.fetch_columns("NON_EXISTENT_TABLE_12345")
-        if columns_result.failure:
-            msg = f"Get columns failed: {columns_result.error}"
-            raise AssertionError(msg)
-        tm.that(columns_result.value, is_=list)
-        tm.that(len(columns_result.value), eq=0)
 
     def test_real_processing_error_scenario(
         self,
@@ -301,20 +242,3 @@ class TestsFlextDbOracleOracleExceptions:
     def test_real_exception_inheritance(self) -> None:
         """Test that Oracle exceptions inherit properly from base Exception classes."""
         pass
-
-    def test_real_exception_instantiation(self) -> None:
-        """Test that Oracle exceptions can be instantiated with context."""
-        query_error = e.OracleQueryError("Invalid SQL syntax")
-        tm.that(str(query_error), has="Invalid SQL syntax")
-        metadata_error = e.OracleMetadataError("Schema not found")
-        tm.that(str(metadata_error), has="Schema not found")
-        base_error = e.Error("General Oracle error")
-        tm.that(str(base_error), has="General Oracle error")
-
-    def test_real_exception_context_handling(self) -> None:
-        """Test that Oracle exceptions handle context parameters properly."""
-        query_error = e.OracleQueryError("Query too complex")
-        error_str = str(query_error)
-        tm.that(error_str, has="Query too complex")
-        tm.that(error_str, is_=str)
-        tm.that(bool(error_str), eq=True)
