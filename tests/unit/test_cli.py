@@ -396,7 +396,8 @@ class TestsFlextDbOracleCli:
         data: dict[str, t.Scalar] = {"key": "value", "number": 42}
         result = formatter.format_data(data, "yaml")
         tm.ok(result)
-        parsed_data = u.Cli.yaml_parse(result.value).unwrap_or({})
+        empty_yaml: t.Cli.YamlDict = {}
+        parsed_data = u.Cli.yaml_parse(result.value).unwrap_or(empty_yaml)
         expected: dict[str, str | int] = {"key": "value", "number": 42}
         tm.that(parsed_data, eq=expected)
 

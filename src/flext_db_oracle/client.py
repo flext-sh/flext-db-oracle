@@ -275,6 +275,34 @@ class FlextDbOracleClient(s):
         )
         return self._format_and_display_result(operation_result, format_type)
 
+    @staticmethod
+    def _adapt_schemas(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
+        schemas = t.json_list_adapter().validate_python(raw_value)
+        return [m.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
+
+    @staticmethod
+    def _adapt_tables(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
+        tables = t.json_list_adapter().validate_python(raw_value)
+        return [m.ConfigMap(root={"table": str(table)}) for table in tables]
+
+    @staticmethod
+    def _adapt_health(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
+        result: t.SequenceOf[m.ConfigMap] = []
+        try:
+            health_map = t.json_mapping_adapter().validate_python(raw_value)
+        except c.ValidationError:
+            pass
+        else:
+            health = FlextDbOracleClient._validate_config_map(health_map)
+            if health is not None:
+                result = [
+                    m.ConfigMap.model_validate({
+                        "root": {"key": key, "value": value},
+                    })
+                    for key, value in health.items()
+                ]
+        return result
+
     def _adapt_data_for_table(
         self, data: m.ConfigMap
     ) -> p.Result[Sequence[m.ConfigMap]]:
@@ -285,52 +313,33 @@ class FlextDbOracleClient(s):
 
         """
         try:
-
-            def adapt_schemas(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
-                schemas = t.json_list_adapter().validate_python(raw_value)
-                return [m.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
-
-            def adapt_tables(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
-                tables = t.json_list_adapter().validate_python(raw_value)
-                return [m.ConfigMap(root={"table": str(table)}) for table in tables]
-
-            def adapt_health(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
-                try:
-                    health_map = t.json_mapping_adapter().validate_python(raw_value)
-                except c.ValidationError:
-                    return []
-                health = FlextDbOracleClient._validate_config_map(health_map)
-                if health is None:
-                    return []
-                return [
-                    m.ConfigMap.model_validate({
-                        "root": {"key": key, "value": value},
-                    })
-                    for key, value in health.items()
-                ]
-
+            data_root = data.root
             adaptation_strategies: t.SequenceOf[
                 tuple[str, Callable[[t.JsonValue], t.SequenceOf[m.ConfigMap]]]
             ] = [
-                ("schemas", adapt_schemas),
-                ("tables", adapt_tables),
-                ("health", adapt_health),
+                ("schemas", self._adapt_schemas),
+                ("tables", self._adapt_tables),
+                ("health", self._adapt_health),
             ]
-            data_root = data.root
+            adapted: t.SequenceOf[m.ConfigMap] | None = None
             for key, strategy in adaptation_strategies:
                 if key in data_root:
-                    raw_value = data_root[key]
-                    adapted_data = strategy(str(raw_value))
-                    return r[Sequence[m.ConfigMap]].ok(adapted_data)
-            result = [
-                m.ConfigMap.model_validate({
-                    "root": {"key": key, "value": value},
-                })
-                for key, value in data_root.items()
-            ]
-            return r[Sequence[m.ConfigMap]].ok(result)
+                    adapted = strategy(str(data_root[key]))
+                    break
+            result_data = (
+                adapted
+                if adapted is not None
+                else [
+                    m.ConfigMap.model_validate({
+                        "root": {"key": key, "value": value},
+                    })
+                    for key, value in data_root.items()
+                ]
+            )
+            result = r[Sequence[m.ConfigMap]].ok(result_data)
         except c.DbOracle.EXC_DB_CONNECT as e:
-            return r[Sequence[m.ConfigMap]].fail_op("Data adaptation", e)
+            result = r[Sequence[m.ConfigMap]].fail_op("Data adaptation", e)
+        return result
 
     def _build_table_string(self, adapted_data: t.SequenceOf[m.ConfigMap]) -> str:
         """Build table string from adapted data."""
