@@ -12,18 +12,14 @@ from __future__ import annotations
 import contextlib
 import os
 import socket
-import time
-from collections.abc import (
-    Generator,
-)
+from collections.abc import Generator
 from pathlib import Path
 
-import oracledb
 import pytest
 from flext_tests import tk
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import c, p, t, u
+from tests import c, p, u
 
 # Prevent unit tests from hanging on DNS resolution for fake hostnames.
 # Without this, socket operations to unresolvable hosts block indefinitely.
@@ -32,82 +28,10 @@ socket.setdefaulttimeout(2)
 logger: p.Logger = u.fetch_logger(__name__)
 
 
-def _workspace_root() -> Path:
-    return Path(__file__).resolve().parents[3]
-
-
-def _resolve_oracle_test_port(docker_control: tk, container_name: str) -> int:
-    env_port = os.getenv("TEST_ORACLE_PORT")
-    if env_port is not None and env_port.isdigit():
-        env_port_int = int(env_port)
-        status_result = docker_control.fetch_container_status(container_name)
-        status_value = status_result.value if status_result.success else None
-        ports: t.StrMapping = getattr(status_value, "ports", {}) or {}
-        if status_result.success:
-            for container_port, host_port in ports.items():
-                if (
-                    container_port.startswith("1521")
-                    and host_port.isdigit()
-                    and int(host_port) == env_port_int
-                ):
-                    return env_port_int
-    fallback_port = 1522
-    container_config = c.Tests.SHARED_CONTAINERS.get(container_name)
-    if container_config is not None:
-        configured_port = container_config.get("port")
-        if isinstance(configured_port, int):
-            fallback_port = configured_port
-    for _ in range(30):
-        status_result = docker_control.fetch_container_status(container_name)
-        status_value = status_result.value if status_result.success else None
-        ports = getattr(status_value, "ports", {}) or {}
-        if status_result.success:
-            for container_port, host_port in ports.items():
-                if container_port.startswith("1521") and host_port.isdigit():
-                    return int(host_port)
-        time.sleep(2)
-    return fallback_port
-
-
-def _wait_for_oracle_ready(port: int, max_wait_seconds: int = 300) -> bool:
-    waited_seconds = 0
-    while waited_seconds < max_wait_seconds:
-        try:
-            dsn = oracledb.makedsn("localhost", port, service_name="FLEXTDB")
-            connection = oracledb.connect(
-                user="flext_test",
-                password="flext_test_password",
-                dsn=dsn,
-            )
-            connection.close()
-            return True
-        except (oracledb.Error, ConnectionError, TimeoutError, OSError):
-            time.sleep(5)
-            waited_seconds += 5
-    return False
-
-
-def _ensure_shared_oracle_container() -> str | None:
-    container_name = "flext-oracle-db-test"
-    docker_control = tk.shared(container_name, workspace_root=_workspace_root())
-    ensure_result = docker_control.execute()
-    if ensure_result.failure:
-        return None
-    resolved_port = _resolve_oracle_test_port(docker_control, container_name)
-    os.environ["TEST_ORACLE_HOST"] = "localhost"
-    os.environ["TEST_ORACLE_PORT"] = str(resolved_port)
-    os.environ["TEST_ORACLE_SERVICE"] = "FLEXTDB"
-    os.environ["TEST_ORACLE_USER"] = "flext_test"
-    os.environ["TEST_ORACLE_PASSWORD"] = "flext_test_password"
-    if not _wait_for_oracle_ready(resolved_port):
-        return None
-    return container_name
-
-
 def _is_oracle_container_running() -> bool:
     """Check if Oracle container is running without heavy operations."""
     try:
-        docker_control = tk(workspace_root=_workspace_root())
+        docker_control = tk(workspace_root=Path(__file__).resolve().parents[3])
         status_result = docker_control.fetch_container_status("flext-oracle-db-test")
     except (ConnectionError, TimeoutError, OSError, RuntimeError):
         return False
@@ -139,32 +63,6 @@ def _get_oracle_config_from_container() -> FlextDbOracleSettings | None:
         "password": password,
         "service_name": service,
     })
-
-
-@pytest.fixture(scope="session")
-def shared_oracle_container() -> str | None:
-    """Return container name if running, None otherwise."""
-    return _ensure_shared_oracle_container()
-
-
-@pytest.fixture(scope="session")
-def ensure_shared_docker_container() -> None:
-    _ = _ensure_shared_oracle_container()
-
-
-@pytest.fixture(scope="session")
-def docker_control() -> tk | None:
-    """Provide Docker control if available."""
-    try:
-        return tk.shared("flext-oracle-db-test", workspace_root=_workspace_root())
-    except (ConnectionError, OSError, RuntimeError):
-        return None
-
-
-@pytest.fixture(scope="session")
-def oracle_container(shared_oracle_container: str | None) -> str | None:
-    """Return container name if available."""
-    return shared_oracle_container
 
 
 @pytest.fixture
@@ -200,27 +98,6 @@ def connected_oracle_api(
             connected_api.disconnect()
     else:
         pytest.skip("Oracle connection unavailable for connected fixture")
-
-
-@pytest.fixture
-def mock_oracle_config() -> FlextDbOracleSettings:
-    """Provide mock Oracle settings for tests."""
-    return FlextDbOracleSettings.model_validate({
-        "host": "mock-host",
-        "port": 1521,
-        "service_name": "MOCK_SERVICE",
-        "username": "mock-user",
-        "password": "mock-pass",
-    })
-
-
-@pytest.fixture
-def oracle_config(
-    real_oracle_config: FlextDbOracleSettings | None,
-    mock_oracle_config: FlextDbOracleSettings,
-) -> FlextDbOracleSettings:
-    """Provide Oracle settings - real if available, mock otherwise."""
-    return real_oracle_config if real_oracle_config is not None else mock_oracle_config
 
 
 @pytest.fixture
