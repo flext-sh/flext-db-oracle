@@ -509,9 +509,7 @@ class FlextDbOracleCli(s[str]):
                     result = (
                         r[str].ok("Health check completed successfully")
                         if health_result.success
-                        else r[str].fail(
-                            health_result.error or "Health check failed"
-                        )
+                        else r[str].fail(health_result.error or "Health check failed")
                     )
                 case "schemas":
                     result = self.execute_list_schemas()
