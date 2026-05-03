@@ -488,32 +488,47 @@ class FlextDbOracleCli(s[str]):
         r[str]: CLI execution result.
 
         """
-        if args is None:
-            args = sys.argv[1:]
-        if not args:
-            help_msg = "Oracle Database CLI - Enterprise Oracle operations.\n\nAvailable commands:\n health Check Oracle database health\n schemas List Oracle schemas\n tables List Oracle tables in a schema\n query Execute SQL query\n\nUse --help with any command for detailed options.\n"
+        effective_args = sys.argv[1:] if args is None else list(args)
+        if not effective_args:
+            help_msg = (
+                "Oracle Database CLI - Enterprise Oracle operations.\n\n"
+                "Available commands:\n"
+                " health Check Oracle database health\n"
+                " schemas List Oracle schemas\n"
+                " tables List Oracle tables in a schema\n"
+                " query Execute SQL query\n\n"
+                "Use --help with any command for detailed options.\n"
+            )
             self._OutputFormatter.display_message(help_msg)
-            return r[str].ok("Help displayed")
-        command = args[0].lower()
-        if command == "health":
-            health_result = self.execute_health_check()
-            if health_result.success:
-                return r[str].ok("Health check completed successfully")
-            return r[str].fail(health_result.error or "Health check failed")
-        if command == "schemas":
-            return self.execute_list_schemas()
-        if command == "tables":
-            return self.execute_list_tables()
-        if command == "query":
-            min_query_args = 2
-            if len(args) < min_query_args:
-                error_msg = "SQL query is required for query command"
-                self._OutputFormatter.display_message(f"{error_msg}")
-                return r[str].fail(error_msg)
-            return self.execute_query(args[1])
-        error_msg = f"Unknown command: {command}"
-        self._OutputFormatter.display_message(f"{error_msg}")
-        return r[str].fail(error_msg)
+            result = r[str].ok("Help displayed")
+        else:
+            command = effective_args[0].lower()
+            match command:
+                case "health":
+                    health_result = self.execute_health_check()
+                    result = (
+                        r[str].ok("Health check completed successfully")
+                        if health_result.success
+                        else r[str].fail(
+                            health_result.error or "Health check failed"
+                        )
+                    )
+                case "schemas":
+                    result = self.execute_list_schemas()
+                case "tables":
+                    result = self.execute_list_tables()
+                case "query":
+                    if len(effective_args) < 2:
+                        error_msg = "SQL query is required for query command"
+                        self._OutputFormatter.display_message(error_msg)
+                        result = r[str].fail(error_msg)
+                    else:
+                        result = self.execute_query(effective_args[1])
+                case _:
+                    error_msg = f"Unknown command: {command}"
+                    self._OutputFormatter.display_message(error_msg)
+                    result = r[str].fail(error_msg)
+        return result
 
     def _handle_error_and_fail(
         self,
