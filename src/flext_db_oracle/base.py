@@ -32,7 +32,7 @@ from flext_db_oracle import (
 )
 
 
-class FlextDbOracleServiceBase(FlextDbOracleUtilitiesDbOracle, s):
+class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
     """Base mixin providing static helpers and SQLAlchemy wrappers.
 
     All service mixins inherit from this base, which provides:
