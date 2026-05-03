@@ -85,12 +85,6 @@ class FlextDbOracleModels(m):
             data_type: str
             nullable: bool = True
 
-        class SingerSchemaField(DbOracleDomainModel):
-            """Typed singer schema field."""
-
-            name: str
-            definition: FlextDbOracleModels.DbOracle.SingerField
-
         class ConnectionStatus(m.Entity, m.FlexibleModel):
             """Connection status using flext-core Entity."""
 
@@ -644,17 +638,6 @@ class FlextDbOracleModels(m):
             output_format: str = u.Field(
                 "table",
                 description="Output format (table, json, csv)",
-                validate_default=True,
-            )
-
-        class ListTablesParams(ConnectionParams):
-            """CLI parameters for execute_list_tables."""
-
-            schema_name: str = u.Field(
-                "SYSTEM",
-                description="Schema to list tables from",
-                validation_alias="schema",
-                serialization_alias="schema",
                 validate_default=True,
             )
 
