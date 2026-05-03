@@ -518,7 +518,8 @@ class FlextDbOracleCli(s[str]):
                 case "tables":
                     result = self.execute_list_tables()
                 case "query":
-                    if len(effective_args) < 2:
+                    min_query_args = 2
+                    if len(effective_args) < min_query_args:
                         error_msg = "SQL query is required for query command"
                         self._OutputFormatter.display_message(error_msg)
                         result = r[str].fail(error_msg)
