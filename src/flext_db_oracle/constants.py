@@ -82,7 +82,6 @@ class FlextDbOracleConstants(c):
         DEFAULT_BATCH_SIZE: Final[int] = c.DEFAULT_SIZE
         DEFAULT_COMMIT_SIZE: Final[int] = 1000
         DEFAULT_POOL_RECYCLE: Final[int] = 3600
-        DEFAULT_SLOW_QUERY_THRESHOLD: Final[float] = 2.0
         DEFAULT_LISTENER_PORT: Final[int] = DEFAULT_PORT
         DEFAULT_SSL_PORT: Final[int] = 2484
 
