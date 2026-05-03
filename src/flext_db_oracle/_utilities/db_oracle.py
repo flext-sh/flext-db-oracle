@@ -158,19 +158,22 @@ class FlextDbOracleUtilitiesDbOracle:
     @classmethod
     def _parse_count_value(cls, value: t.JsonValue) -> int:
         """Parse row count value accepting int or numeric string."""
+        result: int
         if isinstance(value, int):
-            return value
-        if isinstance(value, str):
+            result = value
+        elif isinstance(value, str):
             try:
-                return int(value)
+                result = int(value)
             except ValueError:
-                return 0
-        try:
-            return int(cls.CountValue.model_validate(value).root)
-        except c.ValidationError:
-            return 0
-        except c.EXC_TYPE_VALIDATION:
-            return 0
+                result = 0
+        else:
+            try:
+                result = int(cls.CountValue.model_validate(value).root)
+            except c.ValidationError:
+                result = 0
+            except c.EXC_TYPE_VALIDATION:
+                result = 0
+        return result
 
     @classmethod
     def _normalize_singer_type(cls, value: str | t.StrSequence) -> str:
