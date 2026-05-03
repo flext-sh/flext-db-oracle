@@ -142,12 +142,14 @@ class FlextDbOracleClient(s):
             actual_service_name = service_name or self.oracle_config.service_name
             actual_username = username or self.oracle_config.username
             actual_password_raw = password or self.oracle_config.password
-            if not actual_host:
-                return r[FlextDbOracleApi].fail("Oracle host is required")
-            if not actual_username:
-                return r[FlextDbOracleApi].fail("Oracle username is required")
-            if not actual_password_raw:
-                return r[FlextDbOracleApi].fail("Oracle password is required")
+            validations: list[tuple[bool, str]] = [
+                (not actual_host, "Oracle host is required"),
+                (not actual_username, "Oracle username is required"),
+                (not actual_password_raw, "Oracle password is required"),
+            ]
+            for failed, msg in validations:
+                if failed:
+                    return r[FlextDbOracleApi].fail(msg)
             self.logger.info(
                 "Connecting to Oracle at %s:%s/%s",
                 actual_host,
@@ -395,15 +397,17 @@ class FlextDbOracleClient(s):
         if not self.current_connection:
             return r[m.ConfigMap].fail("No active connection")
         try:
-            if operation == "list_schemas":
-                return self._handle_list_schemas_operation()
-            if operation == "list_tables":
-                return self._handle_list_tables_operation(**params)
-            if operation == "query":
-                return self._handle_query_operation(**params)
-            if operation == "health_check":
-                return self._handle_health_check_operation()
-            return r[m.ConfigMap].fail(f"Unknown operation: {operation}")
+            match operation:
+                case "list_schemas":
+                    return self._handle_list_schemas_operation()
+                case "list_tables":
+                    return self._handle_list_tables_operation(**params)
+                case "query":
+                    return self._handle_query_operation(**params)
+                case "health_check":
+                    return self._handle_health_check_operation()
+                case _:
+                    return r[m.ConfigMap].fail(f"Unknown operation: {operation}")
         except c.DbOracle.EXC_DB_CONNECT as e:
             return r[m.ConfigMap].fail_op("Operation", e)
 
