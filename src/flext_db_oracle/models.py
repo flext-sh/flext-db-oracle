@@ -41,35 +41,6 @@ class FlextDbOracleModels(m):
                 extra="forbid",
             )
 
-        class NamedItem(DbOracleDomainModel):
-            """Named item payload for list formatting."""
-
-            name: str = ""
-
-        class OutputPayload(DbOracleDomainModel):
-            """Structured output payload for formatter rendering."""
-
-            title: str = ""
-            items: t.StrSequence = u.Field(
-                default_factory=tuple,
-                description="List of named items for display",
-            )
-
-        class HealthCheckReport(DbOracleDomainModel):
-            """Health-check result payload for CLI reporting."""
-
-            status: str = c.HealthStatus.UNKNOWN.value
-            host: str = ""
-            port: t.NonNegativeInt = 0
-            service_name: str = ""
-            response_time_ms: t.NonNegativeFloat = 0.0
-            details: t.JsonMapping = u.Field(
-                default_factory=lambda: MappingProxyType({}),
-                description="Health check detail key-value pairs",
-            )
-            error: str | None = None
-            timestamp: str = ""
-
         class RowData(DbOracleDomainModel):
             """Typed row payload for query results."""
 
@@ -621,15 +592,6 @@ class FlextDbOracleModels(m):
             output_format: str = u.Field(
                 "table",
                 description="Output format (table, json, csv)",
-                validate_default=True,
-            )
-
-        class HealthCheckParams(ConnectionParams):
-            """CLI parameters for execute_health_check."""
-
-            timeout: int = u.Field(
-                c.DbOracle.DEFAULT_TIMEOUT,
-                description="Connection timeout in seconds",
                 validate_default=True,
             )
 
