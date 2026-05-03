@@ -167,7 +167,9 @@ class FlextDbOracleUtilitiesDbOracle:
                 return 0
         try:
             return int(cls.CountValue.model_validate(value).root)
-        except (c.ValidationError, c.EXC_TYPE_VALIDATION):
+        except c.ValidationError:
+            return 0
+        except c.EXC_TYPE_VALIDATION:
             return 0
 
     @classmethod

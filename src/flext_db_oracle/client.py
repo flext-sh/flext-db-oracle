@@ -394,22 +394,25 @@ class FlextDbOracleClient(s):
         r[m.ConfigMap]: Operation result or error.
 
         """
+        result: p.Result[m.ConfigMap]
         if not self.current_connection:
-            return r[m.ConfigMap].fail("No active connection")
-        try:
-            match operation:
-                case "list_schemas":
-                    return self._handle_list_schemas_operation()
-                case "list_tables":
-                    return self._handle_list_tables_operation(**params)
-                case "query":
-                    return self._handle_query_operation(**params)
-                case "health_check":
-                    return self._handle_health_check_operation()
-                case _:
-                    return r[m.ConfigMap].fail(f"Unknown operation: {operation}")
-        except c.DbOracle.EXC_DB_CONNECT as e:
-            return r[m.ConfigMap].fail_op("Operation", e)
+            result = r[m.ConfigMap].fail("No active connection")
+        else:
+            try:
+                match operation:
+                    case "list_schemas":
+                        result = self._handle_list_schemas_operation()
+                    case "list_tables":
+                        result = self._handle_list_tables_operation(**params)
+                    case "query":
+                        result = self._handle_query_operation(**params)
+                    case "health_check":
+                        result = self._handle_health_check_operation()
+                    case _:
+                        result = r[m.ConfigMap].fail(f"Unknown operation: {operation}")
+            except c.DbOracle.EXC_DB_CONNECT as e:
+                result = r[m.ConfigMap].fail_op("Operation", e)
+        return result
 
     def _execute_with_chain(
         self,
