@@ -24,6 +24,8 @@ if _t.TYPE_CHECKING:
     from tests.typings import TestsFlextDbOracleTypes, t
     from tests.unit.exceptions import FlextDbOracleTestExceptions
     from tests.unit.test_api import TestsFlextDbOracleApi
+    from tests.unit.test_cli import TestsFlextDbOracleCli
+    from tests.unit.test_client import TestsFlextDbOracleClient
     from tests.unit.test_config import TestsFlextDbOracleConfig
     from tests.unit.test_constants import TestsFlextDbOracleConstantsUnit
     from tests.unit.test_coverage_baseline import TestsFlextDbOracleCoverageBaseline
@@ -71,6 +73,8 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ),
             ".unit.exceptions": ("FlextDbOracleTestExceptions",),
             ".unit.test_api": ("TestsFlextDbOracleApi",),
+            ".unit.test_cli": ("TestsFlextDbOracleCli",),
+            ".unit.test_client": ("TestsFlextDbOracleClient",),
             ".unit.test_config": ("TestsFlextDbOracleConfig",),
             ".unit.test_constants": ("TestsFlextDbOracleConstantsUnit",),
             ".unit.test_coverage_baseline": ("TestsFlextDbOracleCoverageBaseline",),
@@ -136,6 +140,8 @@ __all__: list[str] = [
     "OperationTestError",
     "OperationTestErrorE2E",
     "TestsFlextDbOracleApi",
+    "TestsFlextDbOracleCli",
+    "TestsFlextDbOracleClient",
     "TestsFlextDbOracleConfig",
     "TestsFlextDbOracleConstants",
     "TestsFlextDbOracleConstantsUnit",
