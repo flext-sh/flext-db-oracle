@@ -10,56 +10,22 @@ from __future__ import annotations
 import contextlib
 import os
 import time
-from collections.abc import (
-    Callable,
-    Generator,
-)
+from collections.abc import Generator
 from pathlib import Path
 
 import oracledb
 import pytest
-from flext_tests import td, tk
+from flext_tests import tk
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import c, t, u
 
-
-@pytest.fixture
-def db_oracle_settings(
-    settings_factory: Callable[..., FlextDbOracleSettings],
-) -> FlextDbOracleSettings:
-    """Provide clean FlextDbOracleSettings for tests."""
-    return settings_factory(FlextDbOracleSettings)
-
-
 logger = u.fetch_logger(__name__)
-
-
-class OperationTestError(Exception):
-    """Custom exception for test operations to avoid TRY003 lint warnings."""
-
-    def __init__(self, operation: str, error: str) -> None:
-        """Initialize with operation name and error details."""
-        super().__init__(f"{operation} failed: {error}")
-        self.operation = operation
-        self.error = error
 
 
 def pytest_configure(config: pytest.Config) -> None:
     """Configure pytest with Oracle container for ALL tests."""
-    config.addinivalue_line("markers", "oracle: Oracle database integration tests")
-    config.addinivalue_line(
-        "markers",
-        "unit_pure: Pure unit tests with no external dependencies",
-    )
-    config.addinivalue_line(
-        "markers",
-        "unit_integration: Unit tests that can use real Oracle when available",
-    )
-    config.addinivalue_line(
-        "markers",
-        "slow: Slow-running tests that should be run separately",
-    )
+    _ = config
     os.environ["SKIP_E2E_TESTS"] = "false"
     os.environ["ORACLE_INTEGRATION_TESTS"] = "1"
     os.environ["USE_REAL_ORACLE"] = "true"
@@ -67,6 +33,7 @@ def pytest_configure(config: pytest.Config) -> None:
 
 def pytest_sessionstart(session: pytest.Session) -> None:
     """Cleanup dirty containers BEFORE test session starts."""
+    _ = session
     try:
         container_name = "flext-oracle-db-test"
         docker = tk.shared(
@@ -143,7 +110,7 @@ def docker_control() -> tk:
 
 @pytest.fixture(scope="session")
 def shared_oracle_container(docker_control: tk) -> str:
-    """Start and maintain flext-oracle-db-test container using same pattern as flext-ldap."""
+    """Start and maintain flext-oracle-db-test container."""
     container_name = "flext-oracle-db-test"
     ensure_result = docker_control.execute()
     if ensure_result.failure:
@@ -186,20 +153,8 @@ def shared_oracle_container(docker_control: tk) -> str:
 
 @pytest.fixture(scope="session")
 def oracle_container(shared_oracle_container: str) -> str:
-    """Provide Oracle container name for all tests.
-
-    This fixture ensures the Oracle container is running and provides its name.
-    """
+    """Provide Oracle container name for all tests."""
     return shared_oracle_container
-
-
-@pytest.fixture(scope="session")
-def ensure_shared_docker_container(shared_oracle_container: str) -> None:
-    """Ensure shared Docker container is started for tests that need it.
-
-    Request this fixture explicitly in tests or conftest that need Oracle.
-    """
-    _ = shared_oracle_container
 
 
 @pytest.fixture
@@ -258,78 +213,9 @@ def connected_oracle_api(
 
 
 @pytest.fixture
-def flext_domains() -> td:
-    """Provide td instance for domain-based testing."""
-    return td()
-
-
-@pytest.fixture
-def mock_oracle_settings() -> FlextDbOracleSettings:
-    """Provide mock Oracle settings for tests when real Oracle is not available."""
-    return FlextDbOracleSettings(
-        host="mock-host",
-        port=1521,
-        service_name="mock-service",
-        username="mock-user",
-        password="mock-pass",
-    )
-
-
-@pytest.fixture
-def oracle_settings(
-    real_oracle_settings: FlextDbOracleSettings | None,
-    mock_oracle_settings: FlextDbOracleSettings,
-) -> FlextDbOracleSettings:
-    """Provide Oracle settings - real if available, mock otherwise."""
-    return (
-        real_oracle_settings
-        if real_oracle_settings is not None
-        else mock_oracle_settings
-    )
-
-
-@pytest.fixture
 def oracle_available(connected_oracle_api: FlextDbOracleApi | None) -> bool:
     """Check if Oracle is available for testing."""
     return connected_oracle_api is not None
-
-
-@pytest.fixture
-def test_cleanup(connected_oracle_api: FlextDbOracleApi | None) -> Generator[None]:
-    """Ensure test idempotency by cleaning up test data before and after tests."""
-    if connected_oracle_api is not None:
-        try:
-            cleanup_queries = [
-                "DROP TABLE test_table CASCADE",
-                "DROP TABLE flext_test_table CASCADE",
-                "DROP TABLE test_data_types CASCADE",
-                "DROP SEQUENCE test_seq CASCADE",
-                "DROP SEQUENCE flext_test_seq CASCADE",
-            ]
-            for query in cleanup_queries:
-                try:
-                    plsql_query = f"\n                    BEGIN\n                        EXECUTE IMMEDIATE '{query}';\n                    EXCEPTION\n                        WHEN OTHERS THEN\n                            NULL; -- Ignore errors\n                    END;\n                    "
-                    connected_oracle_api.execute_statement(plsql_query)
-                except (oracledb.Error, ConnectionError, OSError):
-                    pass
-        except (oracledb.Error, ConnectionError, OSError):
-            pass
-    yield
-    if connected_oracle_api is not None:
-        try:
-            post_cleanup_queries = [
-                "DROP TABLE temp_test_table CASCADE",
-                "DROP TABLE session_test_table CASCADE",
-                "DROP TABLE test_oracle_escape CASCADE",
-            ]
-            for query in post_cleanup_queries:
-                try:
-                    plsql_query = f"\n                    BEGIN\n                        EXECUTE IMMEDIATE '{query}';\n                    EXCEPTION\n                        WHEN OTHERS THEN\n                            NULL; -- Ignore errors\n                    END;\n                    "
-                    connected_oracle_api.execute_statement(plsql_query)
-                except (oracledb.Error, ConnectionError, OSError):
-                    pass
-        except (oracledb.Error, ConnectionError, OSError):
-            pass
 
 
 @pytest.fixture

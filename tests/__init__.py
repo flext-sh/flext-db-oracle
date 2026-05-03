@@ -15,7 +15,6 @@ if _t.TYPE_CHECKING:
     from flext_tests import td, tf, tk, tm, tv
 
     from flext_db_oracle import d, e, h, r, s, x
-    from tests.conftest import OperationTestError
     from tests.constants import TestsFlextDbOracleConstants, c
     from tests.e2e.test_oracle import OperationTestErrorE2E, TestsFlextDbOracleEOracle
     from tests.integration.test_oracle import TestsFlextDbOracleOracle
@@ -49,7 +48,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
     ),
     build_lazy_import_map(
         {
-            ".conftest": ("OperationTestError",),
             ".constants": (
                 "TestsFlextDbOracleConstants",
                 "c",
@@ -137,7 +135,6 @@ install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
 
 __all__: list[str] = [
     "FlextDbOracleTestExceptions",
-    "OperationTestError",
     "OperationTestErrorE2E",
     "TestsFlextDbOracleApi",
     "TestsFlextDbOracleCli",
