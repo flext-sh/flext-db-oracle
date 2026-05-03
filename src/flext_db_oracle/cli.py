@@ -437,49 +437,59 @@ class FlextDbOracleCli(s[str]):
         """
         formatter = self._OutputFormatter
         if not sql.strip():
-            return self._handle_error_and_fail(
+            result = self._handle_error_and_fail(
                 formatter,
                 "SQL query cannot be empty",
                 "SQL query cannot be empty",
             )
-        settings_result = self._build_settings(
-            host, port, service_name, username, password
-        )
-        if settings_result.failure:
-            return self._handle_error_and_fail(
-                formatter,
-                settings_result.error or "",
-                f"Configuration failed: {settings_result.error or ''}",
+        else:
+            settings_result = self._build_settings(
+                host, port, service_name, username, password
             )
-        settings = settings_result.value
-        validation_result = self._OracleConnectionHelper.validate_connection(settings)
-        if validation_result.failure:
-            return self._handle_error_and_fail(
-                formatter, validation_result.error or "Unknown validation error"
-            )
-        api = FlextDbOracleApi(settings)
-        query_result = api.query(sql)
-        if query_result.failure:
-            error_text = query_result.error or "Unknown query error"
-            return self._handle_error_and_fail(
-                formatter,
-                error_text,
-                f"Query failed: {error_text}",
-            )
-        result = query_result.value
-        row_count = len(result)
-        success_msg = formatter.format_success_message(
-            f"Query executed successfully. Rows: {row_count}",
-        )
-        if success_msg.success:
-            formatter.display_message(success_msg.value)
-        formatted_result = formatter.format_data(
-            {"rows": "row_count", "result": "result"},
-            output_format,
-        )
-        if formatted_result.success:
-            return r[str].ok(formatted_result.value)
-        return r[str].ok(f"Query executed successfully with {row_count} rows")
+            if settings_result.failure:
+                result = self._handle_error_and_fail(
+                    formatter,
+                    settings_result.error or "",
+                    f"Configuration failed: {settings_result.error or ''}",
+                )
+            else:
+                settings = settings_result.value
+                validation_result = self._OracleConnectionHelper.validate_connection(
+                    settings
+                )
+                if validation_result.failure:
+                    result = self._handle_error_and_fail(
+                        formatter, validation_result.error or "Unknown validation error"
+                    )
+                else:
+                    api = FlextDbOracleApi(settings)
+                    query_result = api.query(sql)
+                    if query_result.failure:
+                        error_text = query_result.error or "Unknown query error"
+                        result = self._handle_error_and_fail(
+                            formatter,
+                            error_text,
+                            f"Query failed: {error_text}",
+                        )
+                    else:
+                        result_data = query_result.value
+                        row_count = len(result_data)
+                        success_msg = formatter.format_success_message(
+                            f"Query executed successfully. Rows: {row_count}",
+                        )
+                        if success_msg.success:
+                            formatter.display_message(success_msg.value)
+                        formatted_result = formatter.format_data(
+                            {"rows": "row_count", "result": "result"},
+                            output_format,
+                        )
+                        if formatted_result.success:
+                            result = r[str].ok(formatted_result.value)
+                        else:
+                            result = r[str].ok(
+                                f"Query executed successfully with {row_count} rows"
+                            )
+        return result
 
     def run_cli(self, args: t.StrSequence | None = None) -> p.Result[str]:
         """Run CLI with command line arguments simulation.
