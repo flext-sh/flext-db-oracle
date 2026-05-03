@@ -561,40 +561,6 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
 
-        class ConnectionParams(m.Entity):
-            """CLI connection parameters shared by execute_* methods."""
-
-            host: str = u.Field(
-                c.DbOracle.DEFAULT_HOST,
-                description="Oracle database hostname",
-                validate_default=True,
-            )
-            port: int = u.Field(
-                c.DbOracle.DEFAULT_PORT,
-                description="Oracle database port",
-                validate_default=True,
-            )
-            service_name: str = u.Field(
-                c.DbOracle.DEFAULT_SERVICE_NAME,
-                description="Oracle service name",
-                validate_default=True,
-            )
-            username: str = u.Field(
-                c.DbOracle.DEFAULT_USERNAME,
-                description="Oracle username",
-                validate_default=True,
-            )
-            password: str | None = u.Field(
-                None,
-                description="Oracle password",
-                validate_default=True,
-            )
-            output_format: str = u.Field(
-                "table",
-                description="Output format (table, json, csv)",
-                validate_default=True,
-            )
-
         # Command classes for dispatcher integration
         class ConnectCommand(m.Entity):
             """Command to establish Oracle connection."""
