@@ -11,9 +11,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import re
 from enum import StrEnum, unique
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, ClassVar, Final
 
 from flext_cli import c
 from oracledb import (
@@ -136,8 +137,24 @@ class FlextDbOracleConstants(c):
         LOOPBACK_IP: Final[str] = "127.0.0.1"
 
         ORACLE_IDENTIFIER_PATTERN: Final[str] = "^[A-Z][A-Z0-9_$#]*$"
+        ORACLE_IDENTIFIER_RE: ClassVar[re.Pattern[str]] = re.compile(
+            ORACLE_IDENTIFIER_PATTERN
+        )
         IDENTIFIER_PATTERN: Final[str] = "^[A-Za-z][A-Za-z0-9_$#]*$"
+        IDENTIFIER_RE: ClassVar[re.Pattern[str]] = re.compile(IDENTIFIER_PATTERN)
         SCHEMA_PATTERN: Final[str] = IDENTIFIER_PATTERN
+        SCHEMA_RE: ClassVar[re.Pattern[str]] = IDENTIFIER_RE
+        WHITESPACE_RE: ClassVar[re.Pattern[str]] = re.compile(r"\s+")
+
+        @staticmethod
+        def collapse_whitespace(value: str) -> str:
+            r"""Replace any whitespace run with a single space.
+
+            Sole sanctioned ``re.sub`` entry-point for the Oracle SQL
+            builder (``_compile_statement`` and friends previously called
+            ``re.sub(r"\s+", " ", ...)`` directly).
+            """
+            return FlextDbOracleConstants.DbOracle.WHITESPACE_RE.sub(" ", value)
 
         HOST_EMPTY: Final[str] = "Host cannot be empty"
         USERNAME_EMPTY: Final[str] = "Username cannot be empty"

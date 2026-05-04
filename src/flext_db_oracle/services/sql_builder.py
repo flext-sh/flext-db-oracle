@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import re
 from collections.abc import (
     Mapping,
 )
@@ -68,15 +67,13 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
     @staticmethod
     def _normalize_identifier(name: str) -> str | quoted_name:
-        if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, name):
+        if c.DbOracle.IDENTIFIER_RE.fullmatch(name):
             return quoted_name(name.upper(), quote=False)
         return quoted_name(name, quote=True)
 
     @staticmethod
     def _compile_statement(statement: ClauseElement) -> str:
-        return re.sub(
-            r"\s+",
-            " ",
+        return c.DbOracle.collapse_whitespace(
             str(statement.compile(dialect=oracle_dialect())),
         ).strip()
 
@@ -170,19 +167,19 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         }
         table_clause = table(
             table_name.upper()
-            if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, table_name)
+            if c.DbOracle.IDENTIFIER_RE.fullmatch(table_name)
             else quoted_name(table_name, True),
             *(
                 column(
                     column_name
-                    if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, column_name)
+                    if c.DbOracle.IDENTIFIER_RE.fullmatch(column_name)
                     else quoted_name(column_name, True),
                 )
                 for column_name in where_columns
             ),
             schema=(
                 schema.upper()
-                if schema and re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, schema)
+                if schema and c.DbOracle.IDENTIFIER_RE.fullmatch(schema)
                 else quoted_name(schema, True)
                 if schema
                 else None
@@ -193,9 +190,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             statement = statement.where(
                 table_clause.c[column_name] == bindparam(bind_names[column_name]),
             )
-        sql = re.sub(
-            r"\s+",
-            " ",
+        sql = c.DbOracle.collapse_whitespace(
             str(statement.compile(dialect=oracle_dialect())),
         ).strip()
         for column_name, bind_name in bind_names.items():
@@ -217,19 +212,19 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         }
         table_clause = table(
             table_name.upper()
-            if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, table_name)
+            if c.DbOracle.IDENTIFIER_RE.fullmatch(table_name)
             else quoted_name(table_name, True),
             *(
                 column(
                     column_name
-                    if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, column_name)
+                    if c.DbOracle.IDENTIFIER_RE.fullmatch(column_name)
                     else quoted_name(column_name, True),
                 )
                 for column_name in statement_columns
             ),
             schema=(
                 schema.upper()
-                if schema and re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, schema)
+                if schema and c.DbOracle.IDENTIFIER_RE.fullmatch(schema)
                 else quoted_name(schema, True)
                 if schema
                 else None
@@ -243,9 +238,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             statement = statement.returning(
                 *(table_clause.c[column_name] for column_name in returning_columns),
             )
-        sql = re.sub(
-            r"\s+",
-            " ",
+        sql = c.DbOracle.collapse_whitespace(
             str(statement.compile(dialect=oracle_dialect())),
         ).strip()
         for column_name, bind_name in bind_names.items():
@@ -276,12 +269,12 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         }
         table_clause = table(
             table_name.upper()
-            if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, table_name)
+            if c.DbOracle.IDENTIFIER_RE.fullmatch(table_name)
             else quoted_name(table_name, True),
             *(
                 column(
                     column_name
-                    if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, column_name)
+                    if c.DbOracle.IDENTIFIER_RE.fullmatch(column_name)
                     else quoted_name(column_name, True),
                 )
                 for column_name in statement_columns
@@ -289,7 +282,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             schema=(
                 schema_name.upper()
                 if schema_name
-                and re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, schema_name)
+                and c.DbOracle.IDENTIFIER_RE.fullmatch(schema_name)
                 else quoted_name(schema_name, True)
                 if schema_name
                 else None
@@ -307,9 +300,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             statement = statement.where(
                 table_clause.c[column_name] == bindparam(bind_names[column_name]),
             )
-        sql = re.sub(
-            r"\s+",
-            " ",
+        sql = c.DbOracle.collapse_whitespace(
             str(statement.compile(dialect=oracle_dialect())),
         ).strip()
         for column_name, bind_name in bind_names.items():
@@ -331,19 +322,19 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         }
         table_clause = table(
             table_name.upper()
-            if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, table_name)
+            if c.DbOracle.IDENTIFIER_RE.fullmatch(table_name)
             else quoted_name(table_name, True),
             *(
                 column(
                     column_name
-                    if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, column_name)
+                    if c.DbOracle.IDENTIFIER_RE.fullmatch(column_name)
                     else quoted_name(column_name, True),
                 )
                 for column_name in statement_columns
             ),
             schema=(
                 schema.upper()
-                if schema and re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, schema)
+                if schema and c.DbOracle.IDENTIFIER_RE.fullmatch(schema)
                 else quoted_name(schema, True)
                 if schema
                 else None
@@ -357,9 +348,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             statement = statement.where(
                 table_clause.c[column_name] == bindparam(bind_names[column_name]),
             )
-        sql = re.sub(
-            r"\s+",
-            " ",
+        sql = c.DbOracle.collapse_whitespace(
             str(statement.compile(dialect=oracle_dialect())),
         ).strip()
         for column_name, bind_name in bind_names.items():

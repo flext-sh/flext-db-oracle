@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import re
 from collections.abc import (
     Sequence,
 )
@@ -184,21 +183,19 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             statement = select(func.count().label("count")).select_from(
                 table(
                     table_name.upper()
-                    if re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, table_name)
+                    if c.DbOracle.IDENTIFIER_RE.fullmatch(table_name)
                     else quoted_name(table_name, True),
                     schema=(
                         schema_name.upper()
                         if schema_name
-                        and re.fullmatch(c.DbOracle.IDENTIFIER_PATTERN, schema_name)
+                        and c.DbOracle.IDENTIFIER_RE.fullmatch(schema_name)
                         else quoted_name(schema_name, True)
                         if schema_name
                         else None
                     ),
                 ),
             )
-            sql = re.sub(
-                r"\s+",
-                " ",
+            sql = c.DbOracle.collapse_whitespace(
                 str(statement.compile(dialect=oracle_dialect())),
             ).strip()
             query_result = self.execute_query(sql)
