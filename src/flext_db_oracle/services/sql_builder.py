@@ -281,8 +281,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             ),
             schema=(
                 schema_name.upper()
-                if schema_name
-                and c.DbOracle.IDENTIFIER_RE.fullmatch(schema_name)
+                if schema_name and c.DbOracle.IDENTIFIER_RE.fullmatch(schema_name)
                 else quoted_name(schema_name, True)
                 if schema_name
                 else None
