@@ -137,14 +137,14 @@ class FlextDbOracleConstants(c):
         LOOPBACK_IP: Final[str] = "127.0.0.1"
 
         ORACLE_IDENTIFIER_PATTERN: Final[str] = "^[A-Z][A-Z0-9_$#]*$"
-        ORACLE_IDENTIFIER_RE: ClassVar[re.Pattern[str]] = re.compile(
+        ORACLE_IDENTIFIER_RE: ClassVar[t.RegexPattern] = re.compile(
             ORACLE_IDENTIFIER_PATTERN
         )
         IDENTIFIER_PATTERN: Final[str] = "^[A-Za-z][A-Za-z0-9_$#]*$"
-        IDENTIFIER_RE: ClassVar[re.Pattern[str]] = re.compile(IDENTIFIER_PATTERN)
+        IDENTIFIER_RE: ClassVar[t.RegexPattern] = re.compile(IDENTIFIER_PATTERN)
         SCHEMA_PATTERN: Final[str] = IDENTIFIER_PATTERN
-        SCHEMA_RE: ClassVar[re.Pattern[str]] = IDENTIFIER_RE
-        WHITESPACE_RE: ClassVar[re.Pattern[str]] = re.compile(r"\s+")
+        SCHEMA_RE: ClassVar[t.RegexPattern] = IDENTIFIER_RE
+        WHITESPACE_RE: ClassVar[t.RegexPattern] = re.compile(r"\s+")
 
         @staticmethod
         def collapse_whitespace(value: str) -> str:
