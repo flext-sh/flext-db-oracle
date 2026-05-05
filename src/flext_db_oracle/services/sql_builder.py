@@ -73,9 +73,10 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
     @staticmethod
     def _compile_statement(statement: ClauseElement) -> str:
-        return c.DbOracle.collapse_whitespace(
+        compiled: str = c.DbOracle.collapse_whitespace(
             str(statement.compile(dialect=oracle_dialect())),
         ).strip()
+        return compiled
 
     @classmethod
     def _compile_statement_with_binds(

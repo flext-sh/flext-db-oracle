@@ -154,7 +154,10 @@ class FlextDbOracleConstants(c):
             builder (``_compile_statement`` and friends previously called
             ``re.sub(r"\s+", " ", ...)`` directly).
             """
-            return FlextDbOracleConstants.DbOracle.WHITESPACE_RE.sub(" ", value)
+            collapsed: str = FlextDbOracleConstants.DbOracle.WHITESPACE_RE.sub(
+                " ", value
+            )
+            return collapsed
 
         HOST_EMPTY: Final[str] = "Host cannot be empty"
         USERNAME_EMPTY: Final[str] = "Username cannot be empty"

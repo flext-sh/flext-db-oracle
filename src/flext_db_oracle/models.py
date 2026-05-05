@@ -434,7 +434,8 @@ class FlextDbOracleModels(m):
 
             def __getitem__(self, key: str) -> str:
                 """Get mapped type for key."""
-                return self.mapping[key]
+                value: str = self.mapping[key]
+                return value
 
             def __len__(self) -> int:
                 """Get number of type mappings."""
