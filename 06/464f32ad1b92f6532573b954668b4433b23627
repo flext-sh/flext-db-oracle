@@ -1,0 +1,24 @@
+pyproject.toml
+  31ee9137f8909d3e 24-27,29,705-715
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "06464f32ad1b92f6532573b954668b4433b23627",
+  "prompts": {
+    "31ee9137f8909d3e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cbeb61c6-cd2e-4000-9bed-dcd82a916aec",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 16,
+      "overriden_lines": 7,
+      "messages_url": "https://usegitai.com/cas/498b831f27c91c43a60169f41f11d5b05789e8f61ae5d1c228df2ce5e7d6704b"
+    }
+  }
+}
