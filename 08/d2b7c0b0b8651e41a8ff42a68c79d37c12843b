@@ -1,0 +1,33 @@
+src/flext_db_oracle/constants.py
+  h_5cf852cc46bf92 305,310,319,329,344,351
+  s_552d8e4891a938::t_a54d1250b00a93 29
+src/flext_db_oracle/typings.py
+  s_552d8e4891a938::t_a54d1250b00a93 11
+src/flext_db_oracle/services/query.py
+  h_5cf852cc46bf92 132
+src/flext_db_oracle/dispatcher.py
+  h_5cf852cc46bf92 13,25-26,74
+src/flext_db_oracle/client.py
+  h_5cf852cc46bf92 600
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "08d2b7c0b0b8651e41a8ff42a68c79d37c12843b",
+  "prompts": {},
+  "humans": {
+    "h_5cf852cc46bf92": {
+      "author": "FLEXT Bot <team@flext.sh>"
+    }
+  },
+  "sessions": {
+    "s_552d8e4891a938": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "35c0040b-2ae9-466e-90aa-7721509e1e19",
+        "model": "unknown"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>"
+    }
+  }
+}
