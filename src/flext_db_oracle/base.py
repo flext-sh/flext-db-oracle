@@ -51,9 +51,7 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
     _plugins: MutableMapping[str, t.JsonPayload] = u.PrivateAttr(
         default_factory=lambda: dict[str, t.JsonPayload]()
     )
-    _metrics: t.MutableJsonMapping = u.PrivateAttr(
-        default_factory=lambda: dict[str, t.JsonValue]()
-    )
+    _metrics: t.MutableJsonMapping = u.PrivateAttr(default_factory=dict)
 
     def __init__(self, settings: FlextDbOracleSettings) -> None:
         """Initialize shared Oracle service state."""

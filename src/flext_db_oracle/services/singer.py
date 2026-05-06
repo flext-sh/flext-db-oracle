@@ -52,7 +52,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
         singer_schema: m.DbOracle.SingerSchema | t.JsonMapping,
     ) -> p.Result[m.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified."""
-        raw_properties: dict[str, t.JsonValue] = {}
+        raw_properties: t.JsonDict = {}
         if isinstance(singer_schema, m.DbOracle.SingerSchema):
             schema_model = singer_schema
         else:

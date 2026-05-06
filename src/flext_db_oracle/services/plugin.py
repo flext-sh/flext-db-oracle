@@ -84,7 +84,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
             return r[bool].fail("Metric name is required")
         metric_payload: t.JsonValue = value
         if tags is not None:
-            normalized_tags: dict[str, t.JsonValue] = {
+            normalized_tags: t.JsonDict = {
                 tag_name: u.normalize_to_metadata(tag_value)
                 for tag_name, tag_value in tags.items()
             }

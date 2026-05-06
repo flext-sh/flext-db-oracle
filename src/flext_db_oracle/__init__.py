@@ -23,7 +23,6 @@ from flext_db_oracle.__version__ import (
 
 if _t.TYPE_CHECKING:
     from flext_cli import d, h, r, s, x
-
     from flext_db_oracle._models.password import FlextDbOraclePassword
     from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
     from flext_db_oracle.api import FlextDbOracleApi, db_oracle

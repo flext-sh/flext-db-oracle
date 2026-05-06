@@ -163,10 +163,7 @@ class FlextDbOracleSettings(FlextSettingsBase, BaseSettings):
             raise ValueError(msg)
 
     @classmethod
-    def resolve_environment_values(
-        cls,
-        prefix: str,
-    ) -> dict[str, t.JsonValue]:
+    def resolve_environment_values(cls, prefix: str) -> t.JsonDict:
         """Resolve non-null environment values for the requested Oracle prefix."""
         source = m.EnvSettingsSource(
             settings_cls=cls,
