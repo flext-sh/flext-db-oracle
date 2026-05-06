@@ -597,4 +597,4 @@ class FlextDbOracleClient(s):
 
 
 client = FlextDbOracleClient
-__all__: t.StrSequence = ["FlextDbOracleClient", "client"]
+__all__: t.StrSequence = ("FlextDbOracleClient", "client")

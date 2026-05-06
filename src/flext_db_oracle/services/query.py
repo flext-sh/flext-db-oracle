@@ -129,7 +129,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
 
     def _normalize_row(self, row: t.JsonMapping) -> m.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
-        return m.Dict(root=dict(row.items()))
+        return m.Dict(root=t.json_dict_adapter().validate_python(row))
 
 
 __all__: list[str] = ["FlextDbOracleServiceQuery"]

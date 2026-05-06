@@ -10,7 +10,7 @@ from collections.abc import (
     Callable,
     MutableMapping,
 )
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING, ClassVar, override
 
 from flext_core import FlextContainer
 from flext_db_oracle import m, p, r, s, t
@@ -21,6 +21,8 @@ if TYPE_CHECKING:
 
 class FlextDbOracleDispatcher(s):
     """Unified Oracle Database Dispatcher with integrated command classes."""
+
+    _container_type: ClassVar[p.ContainerType] = FlextContainer
 
     @override
     def execute(self) -> p.Result[None]:
@@ -69,7 +71,7 @@ class FlextDbOracleDispatcher(s):
         _bus: t.JsonValue | None = None,
     ) -> p.Dispatcher:
         """Create a dispatcher instance wired to Oracle services."""
-        dispatcher = FlextContainer.shared().dispatcher().unwrap()
+        dispatcher = cls._container_type.shared().dispatcher().unwrap()
         function_map: MutableMapping[
             type,
             tuple[

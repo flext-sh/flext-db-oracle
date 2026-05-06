@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import oracledb
+
 from flext_cli import t
 
 

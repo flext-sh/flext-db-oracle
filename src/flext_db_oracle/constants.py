@@ -16,7 +16,6 @@ from enum import StrEnum, unique
 from types import MappingProxyType
 from typing import TYPE_CHECKING, ClassVar, Final
 
-from flext_cli import c
 from oracledb import (
     DatabaseError as _OracleDatabaseError,
     InterfaceError as _OracleInterfaceError,
@@ -26,6 +25,8 @@ from sqlalchemy.exc import (
     OperationalError as _SQLAlchemyOperationalError,
     SQLAlchemyError as _SQLAlchemyError,
 )
+
+from flext_cli import c
 
 if TYPE_CHECKING:
     from flext_db_oracle import t
@@ -301,12 +302,12 @@ class FlextDbOracleConstants(c):
             REPEATABLE_READ = "REPEATABLE_READ"
             SERIALIZABLE = "SERIALIZABLE"
 
-        CONNECTION_TYPE_LITERAL: Final[tuple[str, ...]] = (
+        CONNECTION_TYPE_LITERAL: Final[t.StrSequence] = (
             ConnectionType.SERVICE_NAME.value,
             ConnectionType.SID.value,
             ConnectionType.TNS.value,
         )
-        QUERY_TYPE_LITERAL: Final[tuple[str, ...]] = (
+        QUERY_TYPE_LITERAL: Final[t.StrSequence] = (
             QueryType.SELECT.value,
             QueryType.INSERT.value,
             QueryType.UPDATE.value,
@@ -315,7 +316,7 @@ class FlextDbOracleConstants(c):
             QueryType.DROP.value,
             QueryType.ALTER.value,
         )
-        DATA_TYPE_LITERAL: Final[tuple[str, ...]] = (
+        DATA_TYPE_LITERAL: Final[t.StrSequence] = (
             DataType.VARCHAR2.value,
             DataType.NUMBER.value,
             DataType.DATE.value,
@@ -325,7 +326,7 @@ class FlextDbOracleConstants(c):
             DataType.CHAR.value,
             DataType.RAW.value,
         )
-        ISOLATION_LEVEL_LITERAL: Final[tuple[str, ...]] = (
+        ISOLATION_LEVEL_LITERAL: Final[t.StrSequence] = (
             IsolationLevel.READ_UNCOMMITTED.value,
             IsolationLevel.READ_COMMITTED.value,
             IsolationLevel.REPEATABLE_READ.value,
@@ -340,14 +341,14 @@ class FlextDbOracleConstants(c):
         VALID_ISOLATION_LEVELS: Final[frozenset[str]] = frozenset(
             ISOLATION_LEVEL_LITERAL
         )
-        SYSTEM_USERS: Final[tuple[str, ...]] = (
+        SYSTEM_USERS: Final[t.StrSequence] = (
             "SYS",
             "SYSTEM",
             "XDB",
             "DBSNMP",
             "OUTLN",
         )
-        DEFAULT_SCHEMAS: Final[tuple[str, ...]] = (
+        DEFAULT_SCHEMAS: Final[t.StrSequence] = (
             "SYSTEM",
             "SYS",
             "PUBLIC",

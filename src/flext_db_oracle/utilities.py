@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from flext_cli import u
-
 from flext_db_oracle import FlextDbOracleUtilitiesDbOracle
 
 
