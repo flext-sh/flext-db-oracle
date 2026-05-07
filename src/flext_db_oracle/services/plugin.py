@@ -116,9 +116,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
             metadata_value = (
                 metadata
                 if isinstance(metadata, m.ConfigMap)
-                else m.ConfigMap.model_validate({
-                    "root": dict(metadata) if metadata else {},
-                })
+                else m.ConfigMap.model_validate(metadata or {})
             )
             operation = m.DbOracle.OperationRecord(
                 operation_type=operation_type,

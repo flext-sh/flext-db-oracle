@@ -45,7 +45,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
                     typed_params = (
                         params
                         if isinstance(params, m.ConfigMap)
-                        else m.ConfigMap(root=dict(params))
+                        else m.ConfigMap.model_validate(params)
                     )
                     result = self._connection_execute(
                         conn,

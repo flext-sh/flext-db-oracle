@@ -10,10 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Callable,
-    Sequence,
-)
+from collections.abc import Callable, Sequence
 from typing import override
 
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
@@ -27,18 +24,6 @@ class FlextDbOracleClient(s):
     This client provides command-line interface operations for Oracle Database
     management using the flext-db-oracle foundation API with full flext-core integration.
     """
-
-    @staticmethod
-    def _validate_config_map(
-        value: t.JsonMapping | m.ConfigMap,
-    ) -> m.ConfigMap | None:
-        """Validate generic mapping payload with Pydantic."""
-        try:
-            if isinstance(value, m.ConfigMap):
-                return value
-            return m.ConfigMap(root=dict(value))
-        except c.ValidationError:
-            return None
 
     debug: bool = u.Field(
         False, description="Enable debug output", validate_default=True
@@ -222,11 +207,7 @@ class FlextDbOracleClient(s):
         r[str]: Formatted query results or error.
 
         """
-        query_params: m.ConfigMap = (
-            m.ConfigMap(root=dict(params))
-            if params is not None
-            else m.ConfigMap(root={})
-        )
+        query_params = m.ConfigMap.model_validate(params or {})
         operation_result = self._execute_with_chain(
             "query",
             sql=sql,
@@ -289,21 +270,13 @@ class FlextDbOracleClient(s):
 
     @staticmethod
     def _adapt_health(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
-        result: t.SequenceOf[m.ConfigMap] = []
-        try:
-            health_map = t.json_mapping_adapter().validate_python(raw_value)
-        except c.ValidationError:
-            pass
-        else:
-            health = FlextDbOracleClient._validate_config_map(health_map)
-            if health is not None:
-                result = [
-                    m.ConfigMap.model_validate({
-                        "root": {"key": key, "value": value},
-                    })
-                    for key, value in health.items()
-                ]
-        return result
+        health = u.DbOracle.validate_config_map(raw_value)
+        if health is None:
+            return []
+        return [
+            m.ConfigMap.model_validate({"root": {"key": key, "value": value}})
+            for key, value in health.items()
+        ]
 
     def _adapt_data_for_table(
         self, data: m.ConfigMap

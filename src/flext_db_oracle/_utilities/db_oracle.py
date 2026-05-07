@@ -5,6 +5,7 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import os
+from collections.abc import Mapping
 from enum import StrEnum
 
 from sqlalchemy import (
@@ -128,12 +129,12 @@ class FlextDbOracleUtilitiesDbOracle:
         return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
 
     @staticmethod
-    def _validate_config_map(value: t.JsonValue) -> m.ConfigMap | None:
+    def validate_config_map(value: t.JsonValue | t.JsonMapping) -> m.ConfigMap | None:
         """Validate arbitrary mapping input as ConfigMap."""
-        if not isinstance(value, dict):
+        if not isinstance(value, Mapping):
             return None
         try:
-            return m.ConfigMap.model_validate({"root": value})
+            return m.ConfigMap.model_validate({"root": dict(value)})
         except c.ValidationError:
             return None
 

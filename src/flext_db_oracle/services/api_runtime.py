@@ -363,7 +363,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     ) -> m.ConfigMap:
         """Serialize API state or explicit mapping into the canonical ConfigMap."""
         if obj is not None:
-            return m.ConfigMap(root=dict(obj))
+            return m.ConfigMap.model_validate(obj)
         return m.ConfigMap(
             root={
                 "settings": self.oracle_config.model_dump(

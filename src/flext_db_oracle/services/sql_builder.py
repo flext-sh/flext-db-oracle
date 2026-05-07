@@ -42,7 +42,6 @@ from flext_db_oracle import (
     p,
     r,
     t,
-    u,
 )
 
 
@@ -94,29 +93,10 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         try:
             if not isinstance(config, Mapping):
                 return r[str].fail("Invalid CREATE INDEX settings payload")
-            raw_columns = config.get("columns", [])
-            columns_list: t.StrSequence = (
-                [str(col) for col in raw_columns]
-                if isinstance(raw_columns, list)
-                else []
-            )
-            raw_parallel = config.get("parallel", 1)
-            parallel_value = u.to_int(
-                raw_parallel if raw_parallel is not None else 1,
-                default=1,
-            )
-            payload = {
-                "table_name": str(config.get("table_name", "")),
-                "index_name": str(config.get("index_name", "")),
-                "columns": columns_list,
-                "unique": bool(config.get("unique", False)),
-                "schema_name": str(config.get("schema_name", "")),
-                "tablespace": str(config.get("tablespace", "")),
-                "parallel": parallel_value,
-            }
-            settings = m.DbOracle.CreateIndexConfig.model_validate(
-                payload,
-            )
+            # Pydantic 2 owns field-by-field coercion (str/bool/int/StrSequence) —
+            # no manual payload construction or per-field isinstance/str()/bool()
+            # gymnastics needed.
+            settings = m.DbOracle.CreateIndexConfig.model_validate(config)
             if not settings.columns:
                 return r[str].fail("Index definition requires at least one column")
             table_name = self._normalize_identifier(settings.table_name)
@@ -257,7 +237,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         typed_conditions = (
             conditions
             if isinstance(conditions, m.ConfigMap) or conditions is None
-            else m.ConfigMap(root=dict(conditions))
+            else m.ConfigMap.model_validate(conditions)
         )
         selected_columns = list(columns) if columns else []
         condition_columns = tuple(typed_conditions.root) if typed_conditions else ()

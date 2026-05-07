@@ -95,7 +95,7 @@ class TestsFlextDbOracleApi:
             for key, value in config_obj.items():
                 config_dict[key] = (
                     value
-                    if isinstance(value, (str, int, float, bool)) or value is None
+                    if isinstance(value, t.PRIMITIVES_TYPES) or value is None
                     else str(value)
                 )
         tm.that(config_dict["host"], eq="127.0.0.1")
