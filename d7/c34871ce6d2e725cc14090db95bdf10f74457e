@@ -1,0 +1,14 @@
+src/flext_db_oracle/settings.py
+  h_5cf852cc46bf92 20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "d7c34871ce6d2e725cc14090db95bdf10f74457e",
+  "prompts": {},
+  "humans": {
+    "h_5cf852cc46bf92": {
+      "author": "FLEXT Bot <team@flext.sh>"
+    }
+  }
+}
