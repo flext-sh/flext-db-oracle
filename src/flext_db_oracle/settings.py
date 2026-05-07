@@ -13,13 +13,11 @@ from __future__ import annotations
 from typing import Annotated, ClassVar, Self, override
 from urllib.parse import parse_qs, unquote, urlparse
 
-from pydantic_settings import BaseSettings
-
 from flext_core import FlextSettingsBase
 from flext_db_oracle import FlextDbOraclePassword, c, m, p, r, t, u
 
 
-class FlextDbOracleSettings(FlextSettingsBase, BaseSettings):
+class FlextDbOracleSettings(FlextSettingsBase):
     """Oracle settings contract consumed by API, client, and services."""
 
     _singleton_enabled: ClassVar[bool] = False
