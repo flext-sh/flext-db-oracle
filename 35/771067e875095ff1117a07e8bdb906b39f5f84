@@ -1,0 +1,55 @@
+src/flext_db_oracle/services/api_runtime.py
+  h_5cf852cc46bf92 366
+src/flext_db_oracle/services/sql_builder.py
+  h_5cf852cc46bf92 240
+  s_b15aa8dbf80823::t_7c40a86171a6cf 96-99
+src/flext_db_oracle/_utilities/db_oracle.py
+  h_5cf852cc46bf92 132
+  s_0290f35b98ef0c::t_62da7a331e41a4 8,134,137
+tests/unit/test_api.py
+  h_5cf852cc46bf92 98
+src/flext_db_oracle/services/plugin.py
+  s_552d8e4891a938::t_f2fb3d76e7dc56 119
+src/flext_db_oracle/client.py
+  h_5cf852cc46bf92 210,273
+  s_0290f35b98ef0c::t_62da7a331e41a4 13,274-279
+src/flext_db_oracle/services/query.py
+  h_5cf852cc46bf92 48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "35771067e875095ff1117a07e8bdb906b39f5f84",
+  "prompts": {},
+  "humans": {
+    "h_5cf852cc46bf92": {
+      "author": "FLEXT Bot <team@flext.sh>"
+    }
+  },
+  "sessions": {
+    "s_0290f35b98ef0c": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "0c4cc853-563f-48ad-a39a-f49b587090b8",
+        "model": "unknown"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>"
+    },
+    "s_552d8e4891a938": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "35c0040b-2ae9-466e-90aa-7721509e1e19",
+        "model": "unknown"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>"
+    },
+    "s_b15aa8dbf80823": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d896ab0f-dd16-4dca-9ad4-b3d924a501e7",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>"
+    }
+  }
+}
