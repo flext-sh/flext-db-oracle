@@ -1,0 +1,39 @@
+tests/unit/test_constants.py
+  s_36545bba6ab72e::t_34a351ad3d381d 312
+tests/base.py
+  s_a80af81a9410d1::t_0bbb993e39f31e 1-30
+tests/unit/test_utilities.py
+  s_36545bba6ab72e::t_76d6c5e311f497 221-222
+  s_36545bba6ab72e::t_9d82fde90ef53c 188,190-194
+  s_36545bba6ab72e::t_bef221ed7dce71 10,15,23-34,37-38,43-44,52-54,58-64,68-70,79-82,86-87,94-96,100-102,108,114,120-131,134,138,142-174,179,183-187,189,195-196,198-200,202-204,206,223-237,248,255,267-271,283-284
+  s_36545bba6ab72e::t_1c2c146a225b6a 109
+  s_36545bba6ab72e::t_308d988c4621a7 214
+tests/unit/test_cli.py
+  s_36545bba6ab72e::t_d535cdf0a6eee9 16,27-28,46,61-66,70,73,75-77,80,82-85,97-98,100-106,121,125,130,139,157-161,165,167,169,174,176,183-192,199-211,215-222,226,228,230-231,233-240,244-251,255-258,262-269,278-286,289-293,295,297,299-301,303,305-319,327-334,336-341
+tests/settings.py
+  s_a80af81a9410d1::t_0bbb993e39f31e 1-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "280315056a2a8da2aa4ab33e75ee92415e6a4423",
+  "prompts": {},
+  "sessions": {
+    "s_36545bba6ab72e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0a8b3dbc-0a89-4859-9d52-cbe459d2edb4",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>"
+    },
+    "s_a80af81a9410d1": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "84754499-5978-4e17-a700-27b4a6a58505",
+        "model": "unknown"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>"
+    }
+  }
+}
