@@ -14,12 +14,14 @@ from flext_core.lazy import (
 if _t.TYPE_CHECKING:
     from flext_tests import td, tf, tk, tm, tv
 
-    from flext_db_oracle import d, e, h, r, s, x
+    from flext_db_oracle import d, e, h, r, x
+    from tests.base import TestsFlextDbOracleServiceBase, s
     from tests.constants import TestsFlextDbOracleConstants, c
     from tests.e2e.test_oracle import OperationTestErrorE2E, TestsFlextDbOracleEOracle
     from tests.integration.test_oracle import TestsFlextDbOracleOracle
     from tests.models import TestsFlextDbOracleModels, m
     from tests.protocols import TestsFlextDbOracleProtocols, p
+    from tests.settings import TestsFlextDbOracleSettings
     from tests.typings import TestsFlextDbOracleTypes, t
     from tests.unit.exceptions import FlextDbOracleTestExceptions
     from tests.unit.test_api import TestsFlextDbOracleApi
@@ -48,6 +50,10 @@ _LAZY_IMPORTS = merge_lazy_imports(
     ),
     build_lazy_import_map(
         {
+            ".base": (
+                "TestsFlextDbOracleServiceBase",
+                "s",
+            ),
             ".constants": (
                 "TestsFlextDbOracleConstants",
                 "c",
@@ -65,6 +71,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "TestsFlextDbOracleProtocols",
                 "p",
             ),
+            ".settings": ("TestsFlextDbOracleSettings",),
             ".typings": (
                 "TestsFlextDbOracleTypes",
                 "t",
@@ -96,7 +103,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "e",
                 "h",
                 "r",
-                "s",
                 "x",
             ),
             "flext_tests": (
@@ -155,7 +161,9 @@ __all__: list[str] = [
     "TestsFlextDbOracleOracleExceptions",
     "TestsFlextDbOracleProtocols",
     "TestsFlextDbOracleProtocolsUnit",
+    "TestsFlextDbOracleServiceBase",
     "TestsFlextDbOracleServices",
+    "TestsFlextDbOracleSettings",
     "TestsFlextDbOracleTypes",
     "TestsFlextDbOracleTypingsUnit",
     "TestsFlextDbOracleUtilities",

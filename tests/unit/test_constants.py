@@ -309,10 +309,4 @@ class TestsFlextDbOracleConstantsUnit:
         for word in test_words:
             tm.that(reserved, has=word)
         for word in test_words[:3]:
-            result = u.DbOracle.validate_identifier(word)
-            tm.that(result.failure, eq=True)
-            assert result.error is not None
-            tm.that(
-                "reserved word" in result.error,
-                eq=True,
-            )
+            tm.fail(u.DbOracle.validate_identifier(word), has="reserved word")
