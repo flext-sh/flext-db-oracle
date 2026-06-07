@@ -171,7 +171,7 @@ graph TB
 **Exports**: 14 main classes and version information
 **Pattern**: Selective imports to maintain clean public interface
 
-```python
+```python notest
 # Key exports
 __all__: list[str] = [
     "FlextDbOracleApi",  # Main API
@@ -208,7 +208,7 @@ __all__: list[str] = [
 
 **Key Methods**:
 
-```python
+```python notest
 def connect(self, settings: OracleConfig) -> p.Result[Connection]
 def execute_query(self, sql: str, params: t.JsonMapping = None) -> p.Result[QueryResult]
 def get_schema_info(self, schema: str) -> p.Result[SchemaInfo]

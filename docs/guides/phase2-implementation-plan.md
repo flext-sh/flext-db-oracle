@@ -119,7 +119,7 @@ ______________________________________________________________________
 
 #### Implementation Approach
 
-```python
+```python notest
 # Current (BROKEN)
 self._formatters = SimpleNamespace(
     table=lambda data: data,  # PLACEHOLDER
@@ -173,7 +173,7 @@ ______________________________________________________________________
 
 #### Current Broken Implementation
 
-```python
+```python notest
 # client.py:60-74 - PLACEHOLDER CODE
 self._formatters = SimpleNamespace(
     table=lambda data, headers=None: SimpleNamespace(
@@ -190,7 +190,7 @@ self._formatters = SimpleNamespace(
 
 #### Target Functional Implementation
 
-```python
+```python notest
 # Planned Rich integration
 from rich.table import Table
 from rich.console import Console

@@ -248,7 +248,7 @@ All tests must pass these quality standards:
 
 ### **Test Naming Conventions**
 
-```python
+```python notest
 # Test naming pattern: test_<method>_<scenario>_<expected_result>
 def test_connect_with_valid_config_returns_success():
     """Test successful connection with valid configuration."""

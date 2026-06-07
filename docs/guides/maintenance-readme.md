@@ -395,7 +395,7 @@ make docs DOCS_PHASE=audit | grep "broken_link\|forbidden_term"
 
 ### Adding New Validation Rules
 
-```python
+```python notest
 # Extend DocumentationAuditor class
 def _validate_custom_rule(self, content: str) -> List[Dict[str, t.JsonValue]]:
     """Implement custom validation logic."""
@@ -415,7 +415,7 @@ def _validate_custom_rule(self, content: str) -> List[Dict[str, t.JsonValue]]:
 
 ### Custom Quality Metrics
 
-```python
+```python notest
 # Add to maintenance_config.yaml
 custom_rules:
   project_specific:
@@ -432,7 +432,7 @@ custom_rules:
 
 ### Extending Reports
 
-```python
+```python notest
 # Add custom report sections
 def generate_custom_report_section(self, results: List[AuditResult]) -> str:
     """Generate custom report content."""

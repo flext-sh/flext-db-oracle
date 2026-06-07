@@ -114,7 +114,7 @@ def test_connection_with_mocked_engine(mock_create_engine):
 
 ### **Domain Logic Testing**
 
-```python
+```python notest
 def test_config_validation_with_invalid_host():
     """Test configuration validation fails with empty host."""
     # Arrange

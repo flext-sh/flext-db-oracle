@@ -25,7 +25,7 @@ export ORACLE_PASSWORD="Oracle123"
 
 ### Code Configuration
 
-```python
+```python notest
 from flext_db_oracle import FlextDbOracleApi
 from flext_db_oracle import FlextDbOracleModels
 
@@ -57,7 +57,7 @@ api = FlextDbOracleApi(settings)
 
 ## Testing Connection
 
-```python
+```python notest
 # Test connection
 result = api.test_connection()
 if result.success:

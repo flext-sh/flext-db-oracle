@@ -42,7 +42,7 @@ make setup
 
 ## Quick Connection Test
 
-```python
+```python notest
 from flext_db_oracle import FlextDbOracleApi, OracleConfig
 
 # Configure Oracle connection
@@ -69,7 +69,7 @@ else:
 
 ### Query Execution
 
-```python
+```python notest
 # Execute SELECT query with parameters
 result = api.query(
     "SELECT table_name FROM user_tables WHERE rownum <= :limit", {"limit": 5}
@@ -84,7 +84,7 @@ if result.success:
 
 ### Schema Operations
 
-```python
+```python notest
 # List available schemas
 schemas_result = api.get_schemas()
 if schemas_result.success:
@@ -135,7 +135,7 @@ export FLEXT_TARGET_ORACLE_PASSWORD="Oracle123"
 
 ### Configuration from Environment
 
-```python
+```python notest
 from flext_db_oracle import FlextDbOracleApi
 
 # Load configuration from environment variables

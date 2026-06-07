@@ -15,7 +15,7 @@ FLEXT ecosystem integration patterns for flext-db-oracle.
 
 ## FLEXT Core Integration
 
-```python
+```python notest
 from flext_core import FlextBus
 from flext_core import FlextSettings
 from flext_core import FlextConstants
@@ -69,7 +69,7 @@ Uses FlextDbOracleApi for Oracle SQL transformations.
 
 Integrates with flext-cli but uses SimpleNamespace placeholders:
 
-```python
+```python notest
 from flext_db_oracle import FlextDbOracleCliService
 
 cli = FlextDbOracleCliService()
@@ -78,7 +78,7 @@ result = cli.execute_health_check()
 
 ## Connection Patterns
 
-```python
+```python notest
 # Environment-based configuration
 api = FlextDbOracleApi.from_env()
 
