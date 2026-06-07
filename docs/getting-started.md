@@ -135,7 +135,7 @@ export FLEXT_TARGET_ORACLE_PASSWORD="Oracle123"
 
 ### Configuration from Environment
 
-```python notest
+```python
 from flext_db_oracle import FlextDbOracleApi
 
 # Load configuration from environment variables

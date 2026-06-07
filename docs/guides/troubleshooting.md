@@ -115,7 +115,7 @@ poetry install
 
 ### r
 
-```python notest
+```python
 # Debug import issues
 import sys
 
@@ -312,7 +312,7 @@ if result.failure:
 
 **Enable debug logging:**
 
-```python notest
+```python
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -354,7 +354,7 @@ LdifMigrationException: Server compatibility error
 
 **Check server configuration:**
 
-```python notest
+```python
 from flext_ldif import FlextLdifSettings
 
 settings = FlextLdifSettings(
@@ -394,7 +394,7 @@ else:
 
 #### Problem: Slow processing
 
-```python notest
+```python
 # Symptoms
 # - High memory usage
 # - Slow response times
@@ -427,7 +427,7 @@ profile_memory()
 
 **Optimize batch size:**
 
-```python notest
+```python
 from flext_ldif import FlextLdifSettings
 
 # Reduce batch size for memory-constrained environments
@@ -805,7 +805,7 @@ def process(data: dict) -> ProcessedData:
 
 1. **Test Thoroughly**
 
-   ```python notest
+   ```python
    def test_process_data():
        # Test success case
        result = process_data({"key": "value"})

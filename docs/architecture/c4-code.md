@@ -171,7 +171,7 @@ graph TB
 **Exports**: 14 main classes and version information
 **Pattern**: Selective imports to maintain clean public interface
 
-```python notest
+```python
 # Key exports
 __all__: list[str] = [
     "FlextDbOracleApi",  # Main API
