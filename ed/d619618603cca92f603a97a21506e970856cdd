@@ -1,0 +1,29 @@
+tests/unit/test_utilities.py
+  s_73cbfc60e45e37::t_793d0e9b987b7e 239,257,273
+  s_73cbfc60e45e37::t_078b05c0ac6e7b 19
+tests/integration/test_oracle.py
+  s_73cbfc60e45e37::t_078b05c0ac6e7b 31
+tests/unit/test_constants.py
+  s_73cbfc60e45e37::t_078b05c0ac6e7b 21
+  s_73cbfc60e45e37::t_793d0e9b987b7e 204,222,241,259,277,298
+pyproject.toml
+  s_73cbfc60e45e37::t_6da34e23af0d88 415
+tests/unit/test_models.py
+  s_73cbfc60e45e37::t_078b05c0ac6e7b 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "edd619618603cca92f603a97a21506e970856cdd",
+  "prompts": {},
+  "sessions": {
+    "s_73cbfc60e45e37": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "80f2c44c-f1f2-49a0-8035-ccac60ac602b",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Zed <hi@zed.dev>"
+    }
+  }
+}
