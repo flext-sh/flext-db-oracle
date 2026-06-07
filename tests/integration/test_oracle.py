@@ -28,7 +28,7 @@ def mock_oracle_config() -> FlextDbOracleSettings:
     )
 
 
-@pytest.mark.unit_pure
+@pytest.mark.integration
 class TestsFlextDbOracleOracle:
     """Integration tests for Oracle database operations using REAL Oracle connectivity."""
 

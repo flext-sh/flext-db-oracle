@@ -412,6 +412,7 @@ markers = [
   "e2e: end-to-end integration tests",
   "edge_cases: edge case tests",
   "integration: integration tests",
+  "oracle: tests requiring a live Oracle database",
   "performance: performance and benchmark tests",
   "resilience: resilience tests",
   "slow: slow-running tests",

@@ -16,7 +16,7 @@ from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import c, m, t, u
 
 
-@pytest.mark.unit_pure
+@pytest.mark.unit
 class TestsFlextDbOracleUtilitiesUnit:
     """Test u functionality with comprehensive coverage."""
 
@@ -236,7 +236,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         """Invalid identifiers fail with matching diagnostic."""
         tm.fail(u.DbOracle.validate_identifier(identifier), has=error_substring)
 
-    @pytest.mark.unit_integration
+    @pytest.mark.unit
     def test_real_oracle_escape_identifier_integration(
         self,
         connected_oracle_api: FlextDbOracleApi | None,
@@ -254,7 +254,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         table_exists = "already exists" in error_msg or "ora-00955" in error_msg
         tm.that(result.success or table_exists, eq=True)
 
-    @pytest.mark.unit_integration
+    @pytest.mark.unit
     def test_real_oracle_query_hash_consistency(
         self,
         connected_oracle_api: FlextDbOracleApi | None,
@@ -270,7 +270,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         tm.that(h1, eq=h2)
         tm.that(h1, ne=h3)
 
-    @pytest.mark.unit_integration
+    @pytest.mark.unit
     def test_real_oracle_format_sql_integration(
         self,
         connected_oracle_api: FlextDbOracleApi | None,

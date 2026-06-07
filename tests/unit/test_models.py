@@ -19,7 +19,7 @@ from flext_db_oracle import (
 from tests import c, m
 
 
-@pytest.mark.unit_pure
+@pytest.mark.unit
 class TestsFlextDbOracleModelsUnit:
     """Comprehensive test m functionality and validation."""
 

@@ -18,7 +18,7 @@ from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import c, u
 
 
-@pytest.mark.unit_pure
+@pytest.mark.unit
 class TestsFlextDbOracleConstantsUnit:
     """Comprehensive test c functionality and values."""
 
@@ -201,7 +201,7 @@ class TestsFlextDbOracleConstantsUnit:
         settings_on = FlextDbOracleSettings.model_validate({"enable_dispatcher": True})
         tm.that(settings_on.enable_dispatcher, eq=True)
 
-    @pytest.mark.unit_integration
+    @pytest.mark.unit
     def test_oracle_constants_real_connection_validation(
         self,
         connected_oracle_api: FlextDbOracleApi | None,
@@ -219,7 +219,7 @@ class TestsFlextDbOracleConstantsUnit:
         result = connected_oracle_api.query(dual_query)
         tm.ok(result)
 
-    @pytest.mark.unit_integration
+    @pytest.mark.unit
     def test_oracle_constants_default_values_real_validation(
         self,
         connected_oracle_api: FlextDbOracleApi | None,
@@ -238,7 +238,7 @@ class TestsFlextDbOracleConstantsUnit:
             eq=True,
         )
 
-    @pytest.mark.unit_integration
+    @pytest.mark.unit
     def test_oracle_data_types_real_validation(
         self,
         connected_oracle_api: FlextDbOracleApi | None,
@@ -256,7 +256,7 @@ class TestsFlextDbOracleConstantsUnit:
             eq=True,
         )
 
-    @pytest.mark.unit_integration
+    @pytest.mark.unit
     def test_oracle_validation_constants_real_usage(
         self,
         connected_oracle_api: FlextDbOracleApi | None,
@@ -274,7 +274,7 @@ class TestsFlextDbOracleConstantsUnit:
         max_varchar = c.DbOracle.MAX_VARCHAR_LENGTH
         tm.that(max_varchar, eq=4000)
 
-    @pytest.mark.unit_integration
+    @pytest.mark.unit
     def test_oracle_performance_constants_real_timing(
         self,
         connected_oracle_api: FlextDbOracleApi | None,
@@ -295,7 +295,7 @@ class TestsFlextDbOracleConstantsUnit:
         elif execution_ms < c.DbOracle.QUERY_ACCEPTABLE_THRESHOLD_MS:
             tm.that(execution_ms, lt=2000)
 
-    @pytest.mark.unit_integration
+    @pytest.mark.unit
     def test_oracle_reserved_words_real_validation(
         self,
         connected_oracle_api: FlextDbOracleApi | None,
