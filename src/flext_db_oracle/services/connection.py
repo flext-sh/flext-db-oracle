@@ -13,7 +13,6 @@ from collections.abc import (
     Generator,
 )
 from contextlib import contextmanager
-from datetime import UTC, datetime
 from typing import Self, override
 from urllib.parse import quote_plus
 
@@ -25,6 +24,7 @@ from flext_db_oracle import (
     m,
     p,
     r,
+    u,
 )
 
 
@@ -120,7 +120,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
 
     def fetch_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
         """Get connection status - simplified."""
-        now = datetime.now(UTC)
+        now = u.now()
         return r[m.DbOracle.ConnectionStatus].ok(
             m.DbOracle.ConnectionStatus(
                 connected=self.connected(),
