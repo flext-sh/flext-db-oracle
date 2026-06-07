@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import types
 from collections.abc import Mapping, MutableSequence, Sequence
-from datetime import UTC, datetime
 from typing import Self, override
 
 from flext_db_oracle import (
@@ -403,7 +402,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
                 rows=[],
                 row_count=0,
                 unique_id="",
-                created_at=datetime.now(UTC),
+                created_at=u.now(),
                 domain_events=[],
                 result_data=[],
                 query_hash="",
@@ -423,7 +422,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
             rows=rows,
             row_count=len(data),
             unique_id="",
-            created_at=datetime.now(UTC),
+            created_at=u.now(),
             domain_events=[],
             result_data=[],
             query_hash="",
