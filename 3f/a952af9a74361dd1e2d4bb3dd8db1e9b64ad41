@@ -1,0 +1,25 @@
+docs/guides/configuration.md
+  s_73cbfc60e45e37::t_3fde333e6a63db 144,164
+docs/guides/troubleshooting.md
+  s_73cbfc60e45e37::t_3fde333e6a63db 118,315,357,397,430,808
+docs/architecture/c4-code.md
+  s_73cbfc60e45e37::t_3fde333e6a63db 174
+docs/getting-started.md
+  s_73cbfc60e45e37::t_3fde333e6a63db 138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "3fa952af9a74361dd1e2d4bb3dd8db1e9b64ad41",
+  "prompts": {},
+  "sessions": {
+    "s_73cbfc60e45e37": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "80f2c44c-f1f2-49a0-8035-ccac60ac602b",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Zed <hi@zed.dev>"
+    }
+  }
+}
