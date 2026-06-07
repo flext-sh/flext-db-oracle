@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime
 from types import MappingProxyType
 from typing import ClassVar
 
@@ -66,7 +66,7 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
             last_check: datetime = u.Field(
-                default_factory=lambda: datetime.now(UTC),
+                default_factory=lambda: u.now(),
                 description="Timestamp of last connection check",
             )
             error_message: str = u.Field(
@@ -82,7 +82,7 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
             last_activity: datetime = u.Field(
-                default_factory=lambda: datetime.now(UTC),
+                default_factory=lambda: u.now(),
                 description="Timestamp of last database activity",
             )
             session_id: str = u.Field(
@@ -117,7 +117,7 @@ class FlextDbOracleModels(m):
             def connection_age_seconds(self) -> float:
                 """Connection age in seconds."""
                 if self.connected:
-                    return (datetime.now(UTC) - self.last_activity).total_seconds()
+                    return (u.now() - self.last_activity).total_seconds()
                 return 0.0
 
             @u.computed_field(return_type=str)
