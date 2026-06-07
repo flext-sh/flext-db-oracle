@@ -1,0 +1,21 @@
+src/flext_db_oracle/models.py
+  s_9942ef7a89ba9a::t_e722e5ff427c1d 69,85
+  s_9942ef7a89ba9a::t_67d93cb309bfaf 120
+  s_9942ef7a89ba9a::t_501d4f5611b541 13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "78b0633a145b2f1548498786c8bc9989c8e2da59",
+  "prompts": {},
+  "sessions": {
+    "s_9942ef7a89ba9a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "84fb5cb9-a1bd-4654-9339-7a49b63e96d1",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Zed <hi@zed.dev>"
+    }
+  }
+}
