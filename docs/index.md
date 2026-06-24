@@ -2,7 +2,7 @@
 
 # flext-db-oracle Documentation
 
-- Version: `unknown`
+- Version: `0.12.0-dev`
 - Project class: `domain`
 - Package: `flext_db_oracle`
 - Description: FLEXT DB Oracle - Enterprise Oracle Database Operations Library
