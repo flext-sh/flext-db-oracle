@@ -1,24 +1,5 @@
 # Troubleshooting
 
-<!-- TOC START -->
-- [Connection Issues](#connection-issues)
-  - ["Connection failed"](#connection-failed)
-  - ["Invalid username/password"](#invalid-usernamepassword)
-  - ["Service name not found"](#service-name-not-found)
-- [CLI Issues](#cli-issues)
-  - [SimpleNamespace placeholders](#simplenamespace-placeholders)
-- [Installation Issues](#installation-issues)
-  - ["No module named 'oracledb'"](#no-module-named-oracledb)
-  - ["ImportError: r"](#importerror-r)
-- [Performance Issues](#performance-issues)
-  - [Slow queries](#slow-queries)
-- [Missing Features](#missing-features)
-  - [No support](#no-support)
-  - [No DataFrame support](#no-dataframe-support)
-- [Testing](#testing)
-  - [Oracle XE container](#oracle-xe-container)
-<!-- TOC END -->
-
 Common issues and solutions for flext-db-oracle.
 
 ## Connection Issues
@@ -52,7 +33,7 @@ Check service_name parameter matches Oracle database configuration.
 
 CLI formatter and interactions use placeholder implementations:
 
-```python notest
+```python
 # client.py lines 60-67 contain SimpleNamespace placeholders
 self.formatter = SimpleNamespace()
 self.interactions = SimpleNamespace()

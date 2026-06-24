@@ -1,23 +1,5 @@
 # Getting Started with flext-db-oracle
 
-<!-- TOC START -->
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Quick Connection Test](#quick-connection-test)
-- [Basic Operations](#basic-operations)
-  - [Query Execution](#query-execution)
-  - [Schema Operations](#schema-operations)
-- [Oracle XE Development Container](#oracle-xe-development-container)
-- [Configuration Options](#configuration-options)
-  - [Environment Variables](#environment-variables)
-  - [Configuration from Environment](#configuration-from-environment)
-- [CLI Interface](#cli-interface)
-- [Current Capabilities](#current-capabilities)
-- [Next Steps](#next-steps)
-- [Need Help](#need-help)
-- [Related Documentation](#related-documentation)
-<!-- TOC END -->
-
 Oracle Database integration for the FLEXT ecosystem - get connected in 5 minutes.
 
 ## Prerequisites
@@ -42,7 +24,7 @@ make setup
 
 ## Quick Connection Test
 
-```python notest
+```python
 from flext_db_oracle import FlextDbOracleApi, OracleConfig
 
 # Configure Oracle connection
@@ -69,7 +51,7 @@ else:
 
 ### Query Execution
 
-```python notest
+```python
 # Execute SELECT query with parameters
 result = api.query(
     "SELECT table_name FROM user_tables WHERE rownum <= :limit", {"limit": 5}
@@ -84,7 +66,7 @@ if result.success:
 
 ### Schema Operations
 
-```python notest
+```python
 # List available schemas
 schemas_result = api.get_schemas()
 if schemas_result.success:

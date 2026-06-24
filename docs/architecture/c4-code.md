@@ -1,31 +1,5 @@
 # C4 Code Diagram - flext-db-oracle Implementation
 
-<!-- TOC START -->
-- [Code Structure Overview](#code-structure-overview)
-- [Code Module Details](#code-module-details)
-  - [Entry Points](#entry-points)
-  - [Core API Layer](#core-api-layer)
-  - [Service Layer](#service-layer)
-  - [Domain Model Layer](#domain-model-layer)
-  - [Infrastructure Layer](#infrastructure-layer)
-  - [Supporting Modules](#supporting-modules)
-- [Code Quality Metrics](#code-quality-metrics)
-  - [Size and Complexity](#size-and-complexity)
-  - [Type Safety Coverage](#type-safety-coverage)
-  - [Code Quality Standards](#code-quality-standards)
-- [Test Infrastructure](#test-infrastructure)
-  - [Test Organization](#test-organization)
-  - [Test Coverage Areas](#test-coverage-areas)
-  - [Test Quality Metrics](#test-quality-metrics)
-- [Code Evolution and Maintenance](#code-evolution-and-maintenance)
-  - [Current Development Phase](#current-development-phase)
-  - [Code Maintenance Practices](#code-maintenance-practices)
-- [Performance Characteristics](#performance-characteristics)
-  - [Memory and CPU Usage](#memory-and-cpu-usage)
-  - [Scalability Metrics](#scalability-metrics)
-  - [Optimization Opportunities](#optimization-opportunities)
-<!-- TOC END -->
-
 **Code-Level Architecture for Oracle Database Integration**
 
 ## Code Structure Overview
@@ -208,7 +182,7 @@ __all__: list[str] = [
 
 **Key Methods**:
 
-```python notest
+```python
 def connect(self, settings: OracleConfig) -> p.Result[Connection]
 def execute_query(self, sql: str, params: t.JsonMapping = None) -> p.Result[QueryResult]
 def get_schema_info(self, schema: str) -> p.Result[SchemaInfo]

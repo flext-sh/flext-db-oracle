@@ -1,34 +1,5 @@
 # Architecture Overview
 
-<!-- TOC START -->
-- [Architecture Principles](#architecture-principles)
-  - [Clean Architecture Layers](#clean-architecture-layers)
-  - [FLEXT Pattern Integration](#flext-pattern-integration)
-- [Module Architecture](#module-architecture)
-  - [Core Components](#core-components)
-  - [Data Flow Architecture](#data-flow-architecture)
-- [Domain-Driven Design](#domain-driven-design)
-  - [Bounded Context](#bounded-context)
-  - [Aggregates](#aggregates)
-- [Error Handling Strategy](#error-handling-strategy)
-  - [r Pattern](#r-pattern)
-  - [Exception Hierarchy](#exception-hierarchy)
-- [Technology Stack](#technology-stack)
-  - [Current Implementation](#current-implementation)
-  - [Technology Gaps (2025 Standards)](#technology-gaps-2025-standards)
-- [Connection Management](#connection-management)
-  - [SQLAlchemy Integration](#sqlalchemy-integration)
-  - [Pool Configuration](#pool-configuration)
-- [Plugin Architecture](#plugin-architecture)
-  - [Extension Points](#extension-points)
-- [Quality Architecture](#quality-architecture)
-  - [Testing Strategy](#testing-strategy)
-  - [Development Standards](#development-standards)
-- [Future Architecture Evolution](#future-architecture-evolution)
-  - [Planned Improvements](#planned-improvements)
-- [Related Documentation](#related-documentation)
-<!-- TOC END -->
-
 Clean Architecture implementation for Oracle Database integration in the FLEXT ecosystem.
 
 ## Architecture Principles
@@ -136,7 +107,7 @@ graph TB
 
 All operations use r for railway-oriented programming:
 
-```python notest
+```python
 from flext_core import FlextBus
 from flext_core import FlextSettings
 from flext_core import FlextConstants
@@ -173,7 +144,7 @@ def query_operation() -> p.Result[List[Dict]]:
 
 ### Exception Hierarchy
 
-```python notest
+```python
 FlextDbOracleException (base)
 ├── ConnectionException
 ├── QueryException
@@ -217,7 +188,7 @@ FlextDbOracleException (base)
 
 ### SQLAlchemy Integration
 
-```python notest
+```python
 # Connection string format
 oracle+oracledb://username:password@host:port/service_name
 
@@ -246,7 +217,7 @@ engine = create_engine(
 
 ### Extension Points
 
-```python notest
+```python
 class OraclePlugin(ABC):
     @abstractmethod
     def validate_query(self, sql: str) -> p.Result[str]:

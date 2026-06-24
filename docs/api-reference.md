@@ -1,24 +1,10 @@
 # API Reference
 
-<!-- TOC START -->
-- [Core Imports](#core-imports)
-- [FlextDbOracleApi](#flextdboracleapi)
-  - [Connection Methods](#connection-methods)
-  - [Query Methods](#query-methods)
-  - [Schema Methods](#schema-methods)
-  - [Configuration Methods](#configuration-methods)
-- [OracleConfig](#oracleconfig)
-- [CLI Interface](#cli-interface)
-- [Error Handling](#error-handling)
-- [Limitations](#limitations)
-- [Related Documentation](#related-documentation)
-<!-- TOC END -->
-
 Oracle Database integration API for FLEXT ecosystem - version 0.9.9.
 
 ## Core Imports
 
-```python notest
+```python
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels, OracleConfig
 ```
 
@@ -28,7 +14,7 @@ Oracle database interface providing 36 methods for connection management, query 
 
 ### Connection Methods
 
-```python notest
+```python
 api = FlextDbOracleApi(settings)
 
 # Test connection
@@ -46,7 +32,7 @@ status = api.is_connected() -> bool
 
 ### Query Methods
 
-```python notest
+```python
 # Execute SELECT queries
 result = api.query(sql, parameters=None) -> p.Result[Sequence[m.Dict]]
 
@@ -62,7 +48,7 @@ result = api.execute_many(sql, parameters_list) -> p.Result[int]
 
 ### Schema Methods
 
-```python notest
+```python
 # Get available schemas
 result = api.get_schemas() -> p.Result[t.StringList]
 
@@ -78,7 +64,7 @@ result = api.get_table_metadata(table, schema=None) -> p.Result[m.Dict]
 
 ### Configuration Methods
 
-```python notest
+```python
 # Create from environment variables
 result = FlextDbOracleApi.from_env() -> p.Result[FlextDbOracleApi]
 
@@ -93,7 +79,7 @@ settings = api.settings -> OracleConfig
 
 Configuration for Oracle database connections.
 
-```python notest
+```python
 from flext_db_oracle import FlextDbOracleModels
 
 settings = FlextDbOracleModels.OracleConfig(
@@ -112,7 +98,7 @@ config_result = FlextDbOracleModels.OracleConfig.from_env()
 
 Command-line interface with SimpleNamespace placeholders.
 
-```python notest
+```python
 from flext_db_oracle import FlextDbOracleCliService
 
 cli = FlextDbOracleCliService()
@@ -123,7 +109,7 @@ result = cli.execute_health_check()
 
 All methods return r for type-safe error handling.
 
-```python notest
+```python
 result = api.query("SELECT 1 FROM DUAL")
 if result.success:
     data = result.value

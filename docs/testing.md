@@ -1,30 +1,5 @@
 # Testing Plan & Strategy - flext-db-oracle v0.9.0
 
-<!-- TOC START -->
-- [📊 Testing Overview](#testing-overview)
-  - [Test Infrastructure Status](#test-infrastructure-status)
-- [🚨 Current Test Issues & Blockers](#current-test-issues-blockers)
-  - [Critical Test Failures](#critical-test-failures)
-  - [Resolution Strategy](#resolution-strategy)
-- [📊 Current Test Results & Issues](#current-test-results-issues)
-  - [Test Execution Status (2026-04-14)](#test-execution-status-2026-04-14)
-  - [Test Quality Metrics](#test-quality-metrics)
-- [🚀 Testing Strategy & Best Practices](#testing-strategy-best-practices)
-  - [1. Railway Pattern Testing](#1-railway-pattern-testing)
-  - [2. Fixture-Based Testing](#2-fixture-based-testing)
-  - [3. Parametrized Testing](#3-parametrized-testing)
-  - [4. Mock Strategy](#4-mock-strategy)
-- [📊 Current Test Results & Issues](#current-test-results-issues)
-  - [Test Execution Status](#test-execution-status)
-  - [CI/CD Integration](#cicd-integration)
-- [🎯 Testing Roadmap](#testing-roadmap)
-  - [Phase 2 Priorities](#phase-2-priorities)
-  - [Established Practices](#established-practices)
-- [📈 Testing Quality Metrics](#testing-quality-metrics)
-  - [Targets](#targets)
-- [🔍 Maintenance](#maintenance)
-<!-- TOC END -->
-
 **Last Updated**: 2026-04-14 | **Coverage Target**: 100% | **Test Files**: 30 | **Current Status**: Issues Detected
 
 ## 📊 Testing Overview
@@ -129,7 +104,7 @@ ______________________________________________________________________
 
 #### Test r Operations
 
-```python notest
+```python
 def test_flext_result_success_path(flext_db_oracle_api):
     """Test successful operation returns r.ok()."""
     result = flext_db_oracle_api.connect(valid_config)
@@ -149,7 +124,7 @@ def test_flext_result_error_path(flext_db_oracle_api):
 
 #### Comprehensive Test Fixtures
 
-```python notest
+```python
 @pytest.fixture(scope="session")
 def oracle_container():
     """Provides Oracle XE 21c container for integration tests."""
@@ -174,7 +149,7 @@ def flext_db_oracle_api(oracle_config) -> FlextDbOracleApi:
 
 #### Test Multiple Scenarios
 
-```python notest
+```python
 @pytest.mark.parametrize(
     "sql_query,expected_result",
     [
@@ -194,7 +169,7 @@ def test_sql_query_validation(flext_db_oracle_api, sql_query, expected_result):
 
 #### Minimal Mocking Approach
 
-```python notest
+```python
 # Prefer real implementations over mocks
 def test_real_connection_pool():
     """Test with actual connection pool (preferred)."""

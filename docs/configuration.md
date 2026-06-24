@@ -1,14 +1,5 @@
 # Configuration
 
-<!-- TOC START -->
-- [Basic Configuration](#basic-configuration)
-  - [Environment Variables](#environment-variables)
-  - [Code Configuration](#code-configuration)
-- [Connection Parameters](#connection-parameters)
-- [Testing Connection](#testing-connection)
-- [CLI Configuration](#cli-configuration)
-<!-- TOC END -->
-
 Oracle database connection configuration for flext-db-oracle.
 
 ## Basic Configuration
@@ -25,7 +16,7 @@ export ORACLE_PASSWORD="Oracle123"
 
 ### Code Configuration
 
-```python notest
+```python
 from flext_db_oracle import FlextDbOracleApi
 from flext_db_oracle import FlextDbOracleModels
 
@@ -57,7 +48,7 @@ api = FlextDbOracleApi(settings)
 
 ## Testing Connection
 
-```python notest
+```python
 # Test connection
 result = api.test_connection()
 if result.success:

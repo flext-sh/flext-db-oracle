@@ -1,51 +1,5 @@
 # Documentation Maintenance & Quality Assurance
 
-<!-- TOC START -->
-- [📊 System Overview](#system-overview)
-  - [Current Documentation Health](#current-documentation-health)
-  - [Quick Health Check](#quick-health-check)
-- [🚀 Quick Start](#quick-start)
-  - [Automated Maintenance](#automated-maintenance)
-  - [Manual Operation](#manual-operation)
-- [📋 Maintenance Framework](#maintenance-framework)
-  - [Core Components](#core-components)
-  - [Configuration System](#configuration-system)
-- [📈 Quality Metrics & KPIs](#quality-metrics-kpis)
-  - [Health Score Components](#health-score-components)
-  - [Key Performance Indicators](#key-performance-indicators)
-- [🔧 Integration & Automation](#integration-automation)
-  - [CI/CD Pipeline Integration](#cicd-pipeline-integration)
-  - [Pre-commit Hook Integration](#pre-commit-hook-integration)
-  - [Project Management Integration](#project-management-integration)
-- [📋 Maintenance Procedures](#maintenance-procedures)
-  - [Daily Maintenance (Automated)](#daily-maintenance-automated)
-  - [Weekly Review Process](#weekly-review-process)
-  - [Monthly Comprehensive Review](#monthly-comprehensive-review)
-- [🚨 Issue Classification & Response](#issue-classification-response)
-  - [Severity Levels](#severity-levels)
-  - [Common Issues & Solutions](#common-issues-solutions)
-- [🛠️ Customization & Extension](#customization-extension)
-  - [Adding New Validation Rules](#adding-new-validation-rules)
-  - [Custom Quality Metrics](#custom-quality-metrics)
-  - [Extending Reports](#extending-reports)
-- [📊 Monitoring & Analytics](#monitoring-analytics)
-  - [Real-time Dashboards](#real-time-dashboards)
-  - [Automated Notifications](#automated-notifications)
-- [🎯 Best Practices](#best-practices)
-  - [Documentation Standards](#documentation-standards)
-  - [Quality Assurance](#quality-assurance)
-- [🔍 Troubleshooting](#troubleshooting)
-  - [Common Issues](#common-issues)
-- [📈 Success Metrics](#success-metrics)
-  - [Quality Improvements Tracked](#quality-improvements-tracked)
-  - [Process Efficiency](#process-efficiency)
-- [📚 Resources](#resources)
-- [🤝 Contributing](#contributing)
-  - [Adding New Validation Rules](#adding-new-validation-rules)
-  - [Improving Reports](#improving-reports)
-  - [System Extensions](#system-extensions)
-<!-- TOC END -->
-
 **Automated documentation maintenance system for flext-db-oracle with comprehensive quality assurance, validation, and continuous improvement.**
 
 [![Documentation Health](https://img.shields.io/badge/docs-health-83.4%25-orange)](docs/reports/)
@@ -395,7 +349,7 @@ make docs DOCS_PHASE=audit | grep "broken_link\|forbidden_term"
 
 ### Adding New Validation Rules
 
-```python notest
+```python
 # Extend DocumentationAuditor class
 def _validate_custom_rule(self, content: str) -> List[Dict[str, t.JsonValue]]:
     """Implement custom validation logic."""
@@ -415,7 +369,7 @@ def _validate_custom_rule(self, content: str) -> List[Dict[str, t.JsonValue]]:
 
 ### Custom Quality Metrics
 
-```python notest
+```python
 # Add to maintenance_config.yaml
 custom_rules:
   project_specific:
@@ -432,7 +386,7 @@ custom_rules:
 
 ### Extending Reports
 
-```python notest
+```python
 # Add custom report sections
 def generate_custom_report_section(self, results: List[AuditResult]) -> str:
     """Generate custom report content."""

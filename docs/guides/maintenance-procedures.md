@@ -1,41 +1,5 @@
 # Documentation Maintenance Procedures
 
-<!-- TOC START -->
-- [Overview](#overview)
-- [Maintenance Framework](#maintenance-framework)
-  - [Automated Maintenance System](#automated-maintenance-system)
-  - [Key Components](#key-components)
-- [Daily Maintenance Procedures](#daily-maintenance-procedures)
-  - [Automated Quality Checks](#automated-quality-checks)
-  - [Quality Gates](#quality-gates)
-- [Weekly Maintenance Tasks](#weekly-maintenance-tasks)
-  - [Content Review and Updates](#content-review-and-updates)
-  - [Quality Improvement](#quality-improvement)
-- [Monthly Comprehensive Review](#monthly-comprehensive-review)
-  - [Documentation Audit](#documentation-audit)
-  - [Quality Metrics Review](#quality-metrics-review)
-- [Emergency Maintenance](#emergency-maintenance)
-  - [Critical Issue Response](#critical-issue-response)
-  - [System Failure Recovery](#system-failure-recovery)
-- [Configuration Management](#configuration-management)
-  - [Maintenance Configuration](#maintenance-configuration)
-  - [Customization Guidelines](#customization-guidelines)
-- [Team Collaboration](#team-collaboration)
-  - [Review Process](#review-process)
-  - [Communication Channels](#communication-channels)
-- [Tool Integration](#tool-integration)
-  - [Development Workflow Integration](#development-workflow-integration)
-  - [External Tool Integration](#external-tool-integration)
-- [Best Practices](#best-practices)
-  - [Documentation Standards](#documentation-standards)
-  - [Quality Assurance](#quality-assurance)
-- [Troubleshooting](#troubleshooting)
-  - [Common Issues](#common-issues)
-- [Success Metrics](#success-metrics)
-  - [Quality Metrics](#quality-metrics)
-  - [Process Metrics](#process-metrics)
-<!-- TOC END -->
-
 **Comprehensive maintenance framework for flext-db-oracle documentation quality assurance.**
 
 ## Overview

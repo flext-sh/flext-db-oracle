@@ -1,21 +1,10 @@
 # Integration
 
-<!-- TOC START -->
-- [FLEXT Core Integration](#flext-core-integration)
-- [Singer Ecosystem](#singer-ecosystem)
-  - [flext-tap-oracle](#flext-tap-oracle)
-  - [flext-target-oracle](#flext-target-oracle)
-  - [flext-dbt-oracle](#flext-dbt-oracle)
-- [CLI Integration](#cli-integration)
-- [Connection Patterns](#connection-patterns)
-- [Available Operations](#available-operations)
-<!-- TOC END -->
-
 FLEXT ecosystem integration patterns for flext-db-oracle.
 
 ## FLEXT Core Integration
 
-```python notest
+```python
 from flext_core import FlextBus
 from flext_core import FlextSettings
 from flext_core import FlextConstants
@@ -69,7 +58,7 @@ Uses FlextDbOracleApi for Oracle SQL transformations.
 
 Integrates with flext-cli but uses SimpleNamespace placeholders:
 
-```python notest
+```python
 from flext_db_oracle import FlextDbOracleCliService
 
 cli = FlextDbOracleCliService()
@@ -78,7 +67,7 @@ result = cli.execute_health_check()
 
 ## Connection Patterns
 
-```python notest
+```python
 # Environment-based configuration
 api = FlextDbOracleApi.from_env()
 
