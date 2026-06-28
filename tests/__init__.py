@@ -12,36 +12,88 @@ from flext_core.lazy import (
 )
 
 if _t.TYPE_CHECKING:
-    from flext_tests import td, tf, tk, tm, tv
+    from flext_tests import td as td, tf as tf, tk as tk, tv as tv
 
-    from flext_db_oracle import d, e, h, r, x
-    from tests.base import TestsFlextDbOracleServiceBase, s
-    from tests.constants import TestsFlextDbOracleConstants, c
-    from tests.e2e.test_oracle import OperationTestErrorE2E, TestsFlextDbOracleEOracle
-    from tests.integration.test_oracle import TestsFlextDbOracleOracle
-    from tests.models import TestsFlextDbOracleModels, m
-    from tests.protocols import TestsFlextDbOracleProtocols, p
-    from tests.settings import TestsFlextDbOracleSettings
-    from tests.typings import TestsFlextDbOracleTypes, t
-    from tests.unit.exceptions import FlextDbOracleTestExceptions
-    from tests.unit.test_api import TestsFlextDbOracleApi
-    from tests.unit.test_cli import TestsFlextDbOracleCli
-    from tests.unit.test_client import TestsFlextDbOracleClient
-    from tests.unit.test_config import TestsFlextDbOracleConfig
-    from tests.unit.test_constants import TestsFlextDbOracleConstantsUnit
-    from tests.unit.test_coverage_baseline import TestsFlextDbOracleCoverageBaseline
-    from tests.unit.test_dispatcher import TestsFlextDbOracleDispatcher
-    from tests.unit.test_exceptions import TestsFlextDbOracleExceptions
-    from tests.unit.test_fields import TestsFlextDbOracleFields
-    from tests.unit.test_metadata import TestsFlextDbOracleMetadata
-    from tests.unit.test_models import TestsFlextDbOracleModelsUnit
-    from tests.unit.test_oracle_example import TestsFlextDbOracleOracleExample
-    from tests.unit.test_oracle_exceptions import TestsFlextDbOracleOracleExceptions
-    from tests.unit.test_protocols import TestsFlextDbOracleProtocolsUnit
-    from tests.unit.test_services import TestsFlextDbOracleServices
-    from tests.unit.test_typings import TestsFlextDbOracleTypingsUnit
-    from tests.unit.test_utilities import TestsFlextDbOracleUtilitiesUnit
-    from tests.utilities import TestsFlextDbOracleUtilities, u
+    from flext_db_oracle import d as d, e as e, h as h, r as r, x as x
+    from tests.base import (
+        TestsFlextDbOracleServiceBase as TestsFlextDbOracleServiceBase,
+        s as s,
+    )
+    from tests.constants import (
+        TestsFlextDbOracleConstants as TestsFlextDbOracleConstants,
+        c as c,
+    )
+    from tests.e2e.test_oracle import (
+        OperationTestErrorE2E as OperationTestErrorE2E,
+        TestsFlextDbOracleEOracle as TestsFlextDbOracleEOracle,
+    )
+    from tests.integration.test_oracle import (
+        TestsFlextDbOracleOracle as TestsFlextDbOracleOracle,
+    )
+    from tests.models import (
+        TestsFlextDbOracleModels as TestsFlextDbOracleModels,
+        m as m,
+    )
+    from tests.protocols import (
+        TestsFlextDbOracleProtocols as TestsFlextDbOracleProtocols,
+        p as p,
+    )
+    from tests.settings import TestsFlextDbOracleSettings as TestsFlextDbOracleSettings
+    from tests.typings import TestsFlextDbOracleTypes as TestsFlextDbOracleTypes, t as t
+    from tests.unit.exceptions import (
+        FlextDbOracleTestExceptions as FlextDbOracleTestExceptions,
+    )
+    from tests.unit.test_api import TestsFlextDbOracleApi as TestsFlextDbOracleApi
+    from tests.unit.test_cli import TestsFlextDbOracleCli as TestsFlextDbOracleCli
+    from tests.unit.test_client import (
+        TestsFlextDbOracleClient as TestsFlextDbOracleClient,
+    )
+    from tests.unit.test_config import (
+        TestsFlextDbOracleConfig as TestsFlextDbOracleConfig,
+    )
+    from tests.unit.test_constants import (
+        TestsFlextDbOracleConstantsUnit as TestsFlextDbOracleConstantsUnit,
+    )
+    from tests.unit.test_coverage_baseline import (
+        TestsFlextDbOracleCoverageBaseline as TestsFlextDbOracleCoverageBaseline,
+    )
+    from tests.unit.test_dispatcher import (
+        TestsFlextDbOracleDispatcher as TestsFlextDbOracleDispatcher,
+    )
+    from tests.unit.test_exceptions import (
+        TestsFlextDbOracleExceptions as TestsFlextDbOracleExceptions,
+    )
+    from tests.unit.test_fields import (
+        TestsFlextDbOracleFields as TestsFlextDbOracleFields,
+    )
+    from tests.unit.test_metadata import (
+        TestsFlextDbOracleMetadata as TestsFlextDbOracleMetadata,
+    )
+    from tests.unit.test_models import (
+        TestsFlextDbOracleModelsUnit as TestsFlextDbOracleModelsUnit,
+    )
+    from tests.unit.test_oracle_example import (
+        TestsFlextDbOracleOracleExample as TestsFlextDbOracleOracleExample,
+    )
+    from tests.unit.test_oracle_exceptions import (
+        TestsFlextDbOracleOracleExceptions as TestsFlextDbOracleOracleExceptions,
+    )
+    from tests.unit.test_protocols import (
+        TestsFlextDbOracleProtocolsUnit as TestsFlextDbOracleProtocolsUnit,
+    )
+    from tests.unit.test_services import (
+        TestsFlextDbOracleServices as TestsFlextDbOracleServices,
+    )
+    from tests.unit.test_typings import (
+        TestsFlextDbOracleTypingsUnit as TestsFlextDbOracleTypingsUnit,
+    )
+    from tests.unit.test_utilities import (
+        TestsFlextDbOracleUtilitiesUnit as TestsFlextDbOracleUtilitiesUnit,
+    )
+    from tests.utilities import (
+        TestsFlextDbOracleUtilities as TestsFlextDbOracleUtilities,
+        u as u,
+    )
 _LAZY_IMPORTS = merge_lazy_imports(
     (
         ".e2e",
@@ -109,7 +161,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "td",
                 "tf",
                 "tk",
-                "tm",
                 "tv",
             ),
         },
@@ -180,7 +231,6 @@ __all__: list[str] = [
     "td",
     "tf",
     "tk",
-    "tm",
     "tv",
     "u",
     "x",
