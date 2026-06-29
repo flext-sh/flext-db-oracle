@@ -39,7 +39,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         if engine_result.failure:
             return r[int].fail(engine_result.error or "Failed to get database engine")
         try:
-            with self._engine_connect(engine_result.value) as conn:
+            with self._engine_begin(engine_result.value) as conn:
                 total_affected = 0
                 for params in params_list:
                     typed_params = (

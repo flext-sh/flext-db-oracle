@@ -197,6 +197,78 @@ def oracle_api(
     return FlextDbOracleApi(settings=real_oracle_settings)
 
 
+def _assert_oracle_success(result: t.JsonValue, operation: str) -> None:
+    """Raise with a clear setup error when an Oracle operation fails."""
+    success = getattr(result, "success", False)
+    if not success:
+        error = getattr(result, "error", "")
+        raise AssertionError(f"{operation} failed: {error}")
+
+
+def _user_tables(api: FlextDbOracleApi) -> set[str]:
+    """Return tables visible in the connected Oracle test schema."""
+    result = api.oracle_services.execute_query(
+        'SELECT table_name AS "table_name" FROM user_tables',
+    )
+    _assert_oracle_success(result, "List Oracle test tables")
+    return {str(row.root["table_name"]).upper() for row in result.value}
+
+
+def _ensure_table(api: FlextDbOracleApi, table_name: str, ddl: str) -> None:
+    """Create one test table when absent."""
+    if table_name.upper() in _user_tables(api):
+        return
+    result = api.execute_statement(ddl)
+    _assert_oracle_success(result, f"Create {table_name}")
+
+
+def _ensure_seed_row(api: FlextDbOracleApi, table_name: str, insert_sql: str) -> None:
+    """Insert one seed row when a sample table is empty."""
+    count_result = api.oracle_services.execute_query(
+        f'SELECT COUNT(*) AS "count" FROM {table_name}',
+    )
+    _assert_oracle_success(count_result, f"Count {table_name}")
+    row_count = int(str(count_result.value[0].root["count"]))
+    if row_count > 0:
+        return
+    insert_result = api.execute_statement(insert_sql)
+    _assert_oracle_success(insert_result, f"Seed {table_name}")
+
+
+def _ensure_hr_sample_tables(api: FlextDbOracleApi) -> None:
+    """Provision minimal HR sample tables required by real API examples."""
+    _ensure_table(
+        api,
+        "DEPARTMENTS",
+        "CREATE TABLE departments (department_id NUMBER PRIMARY KEY, department_name VARCHAR2(100))",
+    )
+    _ensure_table(
+        api,
+        "JOBS",
+        "CREATE TABLE jobs (job_id VARCHAR2(20) PRIMARY KEY, job_title VARCHAR2(100))",
+    )
+    _ensure_table(
+        api,
+        "EMPLOYEES",
+        "CREATE TABLE employees (employee_id NUMBER PRIMARY KEY, first_name VARCHAR2(50), last_name VARCHAR2(50), email VARCHAR2(100), department_id NUMBER, job_id VARCHAR2(20))",
+    )
+    _ensure_seed_row(
+        api,
+        "DEPARTMENTS",
+        "INSERT INTO departments (department_id, department_name) VALUES (10, 'Engineering')",
+    )
+    _ensure_seed_row(
+        api,
+        "JOBS",
+        "INSERT INTO jobs (job_id, job_title) VALUES ('DEV', 'Developer')",
+    )
+    _ensure_seed_row(
+        api,
+        "EMPLOYEES",
+        "INSERT INTO employees (employee_id, first_name, last_name, email, department_id, job_id) VALUES (1, 'Ada', 'Lovelace', 'ada@example.com', 10, 'DEV')",
+    )
+
+
 @pytest.fixture
 def connected_oracle_api(
     oracle_api: FlextDbOracleApi,
@@ -205,6 +277,7 @@ def connected_oracle_api(
     connect_result = oracle_api.connect()
     if connect_result.success:
         connected_api = connect_result.value
+        _ensure_hr_sample_tables(connected_api)
         yield connected_api
         with contextlib.suppress(Exception):
             connected_api.disconnect()
