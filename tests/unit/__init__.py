@@ -29,8 +29,30 @@ _LAZY_IMPORTS = build_lazy_import_map(
         ".test_services": ("TestsFlextDbOracleServices",),
         ".test_typings": ("TestsFlextDbOracleTypingsUnit",),
         ".test_utilities": ("TestsFlextDbOracleUtilitiesUnit",),
+        "flext_tests": (
+            "c",
+            "d",
+            "h",
+            "m",
+            "p",
+            "r",
+            "s",
+            "t",
+            "td",
+            "tf",
+            "tk",
+            "tm",
+            "tv",
+            "u",
+            "x",
+        ),
     },
 )
 
 
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)
+install_lazy_exports(
+    __name__,
+    globals(),
+    _LAZY_IMPORTS,
+    publish_all=False,
+)

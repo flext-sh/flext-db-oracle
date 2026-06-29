@@ -23,13 +23,13 @@ from sqlalchemy import (
 from flext_core import s
 from flext_db_oracle import (
     FlextDbOracleSettings,
-    FlextDbOracleUtilitiesDbOracle,
     m,
     p,
     r,
     t,
     u,
 )
+from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
 
 
 class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):

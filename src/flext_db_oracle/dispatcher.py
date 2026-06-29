@@ -16,7 +16,7 @@ from flext_core import FlextContainer
 from flext_db_oracle import m, p, r, s, t
 
 if TYPE_CHECKING:
-    from flext_db_oracle import FlextDbOracleServices
+    from flext_db_oracle.services.facade import FlextDbOracleServices
 
 
 class FlextDbOracleDispatcher(s):
