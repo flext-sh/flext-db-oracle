@@ -18,7 +18,7 @@ import pytest
 from flext_tests import tk
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import c, t, u
+from tests import c, p, t, u
 
 logger = u.fetch_logger(__name__)
 
@@ -35,36 +35,38 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     """Cleanup dirty containers BEFORE test session starts."""
     _ = session
     try:
-        container_name = "flext-oracle-db-test"
-        docker = tk.shared(
-            container_name,
-            workspace_root=Path(__file__).resolve().parents[2],
-        )
-        dirty_containers = docker.dirty_containers
-        if not dirty_containers:
-            logger.debug("No dirty containers to clean")
-            return
-        status_result = docker.fetch_container_status(container_name)
-        if status_result.success:
-            status = status_result.value
-            if status.status == c.Tests.ContainerStatus.RUNNING:
-                docker.mark_container_clean(container_name)
-                logger.info(
-                    "Container %s is healthy, cleared dirty state",
-                    container_name,
-                )
-                return
-        cleanup_result = docker.cleanup_dirty_containers()
-        if cleanup_result.failure:
-            logger.warning(f"Dirty container cleanup failed: {cleanup_result.error}")
-        else:
-            cleaned = cleanup_result.value
-            if cleaned:
-                logger.info(f"Recreated dirty containers: {', '.join(cleaned)}")
-            else:
-                logger.debug("No dirty containers to clean")
+        _cleanup_dirty_oracle_container()
     except (ConnectionError, TimeoutError, OSError, RuntimeError) as e:
         logger.warning(f"Docker cleanup skipped (unavailable): {e}")
+
+
+def _cleanup_dirty_oracle_container() -> None:
+    """Cleanup dirty Oracle test containers before the session starts."""
+    container_name = "flext-oracle-db-test"
+    docker = tk.shared(
+        container_name,
+        workspace_root=Path(__file__).resolve().parents[2],
+    )
+    dirty_containers = docker.dirty_containers
+    if not dirty_containers:
+        logger.debug("No dirty containers to clean")
+        return
+    status_result = docker.fetch_container_status(container_name)
+    if status_result.success and status_result.value.status == (
+        c.Tests.ContainerStatus.RUNNING
+    ):
+        docker.mark_container_clean(container_name)
+        logger.info("Container %s is healthy, cleared dirty state", container_name)
+        return
+    cleanup_result = docker.cleanup_dirty_containers()
+    if cleanup_result.failure:
+        logger.warning(f"Dirty container cleanup failed: {cleanup_result.error}")
+        return
+    cleaned = cleanup_result.value
+    if cleaned:
+        logger.info(f"Recreated dirty containers: {', '.join(cleaned)}")
+        return
+    logger.debug("No dirty containers to clean")
 
 
 def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[None]) -> None:
@@ -72,31 +74,43 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[None]) ->
     if call.excinfo is None:
         return
     try:
-        exc_type = call.excinfo.type
-        exc_msg = str(call.excinfo.value).lower()
-        oracle_service_errors = [
-            "ora-",
-            "connection refused",
-            "connection reset by peer",
-            "broken pipe",
-            "database not available",
-            "tns:",
-        ]
-        is_service_failure = any(
-            err in str(exc_type).lower() or err in exc_msg
-            for err in oracle_service_errors
-        )
-        if is_service_failure:
-            docker = tk.shared(
-                "flext-oracle-db-test",
-                workspace_root=Path(__file__).resolve().parents[2],
-            )
-            docker.mark_container_dirty("flext-oracle-db-test")
-            logger.error(
-                f"ORACLE SERVICE FAILURE detected in {item.nodeid}, container marked DIRTY for recreation: {exc_msg}",
-            )
+        _mark_dirty_on_oracle_service_failure(item, call)
     except (ConnectionError, TimeoutError, OSError, RuntimeError):
         pass
+
+
+def _mark_dirty_on_oracle_service_failure(
+    item: pytest.Item,
+    call: pytest.CallInfo[None],
+) -> None:
+    """Mark the shared Oracle container dirty when an Oracle service error occurs."""
+    if call.excinfo is None:
+        return
+    exc_type = call.excinfo.type
+    exc_msg = str(call.excinfo.value).lower()
+    oracle_service_errors = (
+        "ora-",
+        "connection refused",
+        "connection reset by peer",
+        "broken pipe",
+        "database not available",
+        "tns:",
+    )
+    is_service_failure = any(
+        err in str(exc_type).lower() or err in exc_msg for err in oracle_service_errors
+    )
+    if not is_service_failure:
+        return
+    docker = tk.shared(
+        "flext-oracle-db-test",
+        workspace_root=Path(__file__).resolve().parents[2],
+    )
+    docker.mark_container_dirty("flext-oracle-db-test")
+    logger.error(
+        "ORACLE SERVICE FAILURE detected in %s, container marked DIRTY for recreation: %s",
+        item.nodeid,
+        exc_msg,
+    )
 
 
 @pytest.fixture(scope="session")
@@ -197,11 +211,13 @@ def oracle_api(
     return FlextDbOracleApi(settings=real_oracle_settings)
 
 
-def _assert_oracle_success(result: t.JsonValue, operation: str) -> None:
+def _assert_oracle_success[TResult](
+    result: p.Result[TResult],
+    operation: str,
+) -> None:
     """Raise with a clear setup error when an Oracle operation fails."""
-    success = getattr(result, "success", False)
-    if not success:
-        error = getattr(result, "error", "")
+    if result.failure:
+        error = result.error or ""
         raise AssertionError(f"{operation} failed: {error}")
 
 
@@ -222,21 +238,18 @@ def _ensure_table(api: FlextDbOracleApi, table_name: str, ddl: str) -> None:
     _assert_oracle_success(result, f"Create {table_name}")
 
 
-def _ensure_seed_row(api: FlextDbOracleApi, table_name: str, insert_sql: str) -> None:
-    """Insert one seed row when a sample table is empty."""
-    count_result = api.oracle_services.execute_query(
-        f'SELECT COUNT(*) AS "count" FROM {table_name}',
-    )
-    _assert_oracle_success(count_result, f"Count {table_name}")
-    row_count = int(str(count_result.value[0].root["count"]))
-    if row_count > 0:
-        return
+def _seed_row(api: FlextDbOracleApi, table_name: str, insert_sql: str) -> None:
+    """Execute one seed statement for a freshly prepared sample table."""
     insert_result = api.execute_statement(insert_sql)
     _assert_oracle_success(insert_result, f"Seed {table_name}")
 
 
 def _ensure_hr_sample_tables(api: FlextDbOracleApi) -> None:
-    """Provision minimal HR sample tables required by real API examples."""
+    """Provision minimal HR sample tables required by real API examples.
+
+    Tables are truncated before seeding so concurrent or repeated test runs
+    never see duplicate-key violations from leftover rows.
+    """
     _ensure_table(
         api,
         "DEPARTMENTS",
@@ -252,20 +265,23 @@ def _ensure_hr_sample_tables(api: FlextDbOracleApi) -> None:
         "EMPLOYEES",
         "CREATE TABLE employees (employee_id NUMBER PRIMARY KEY, first_name VARCHAR2(50), last_name VARCHAR2(50), email VARCHAR2(100), department_id NUMBER, job_id VARCHAR2(20))",
     )
-    _ensure_seed_row(
+    for table_name in ("DEPARTMENTS", "JOBS", "EMPLOYEES"):
+        truncate_result = api.execute_statement(f"TRUNCATE TABLE {table_name}")
+        _assert_oracle_success(truncate_result, f"Truncate {table_name}")
+    _seed_row(
         api,
         "DEPARTMENTS",
         "INSERT INTO departments (department_id, department_name) VALUES (10, 'Engineering')",
     )
-    _ensure_seed_row(
+    _seed_row(
         api,
         "JOBS",
         "INSERT INTO jobs (job_id, job_title) VALUES ('DEV', 'Developer')",
     )
-    _ensure_seed_row(
+    _seed_row(
         api,
         "EMPLOYEES",
-        "INSERT INTO employees (employee_id, first_name, last_name, email, department_id, job_id) VALUES (1, 'Ada', 'Lovelace', 'ada@example.com', 10, 'DEV')",
+        "INSERT INTO employees (employee_id, first_name, last_name, email) VALUES (1, 'Ada', 'Lovelace', 'ada@example.com')",
     )
 
 
