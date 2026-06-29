@@ -21,10 +21,12 @@ from flext_tests import tm
 
 from flext_db_oracle import (
     FlextDbOracleApi,
-    FlextDbOracleServices,
     FlextDbOracleSettings,
 )
-from tests import c, m, t
+from flext_db_oracle.services.facade import FlextDbOracleServices
+from tests.constants import c
+from tests.models import m
+from tests.typings import t
 
 
 class TestsFlextDbOracleServices:

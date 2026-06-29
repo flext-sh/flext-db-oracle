@@ -10,14 +10,16 @@ from __future__ import annotations
 import contextlib
 
 import pytest
-from flext_tests import tm
+from flext_tests import r, tm
 
 from flext_db_oracle import (
     FlextDbOracleApi,
-    FlextDbOracleServices,
     FlextDbOracleSettings,
 )
-from tests import m, r, t, u
+from flext_db_oracle.services.facade import FlextDbOracleServices
+from tests.models import m
+from tests.typings import t
+from tests.utilities import u
 
 
 def safe_get_first_value(data: t.JsonValue) -> t.JsonValue:

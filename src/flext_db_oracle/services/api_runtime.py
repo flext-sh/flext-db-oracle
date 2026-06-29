@@ -6,7 +6,17 @@ import types
 from collections.abc import Mapping, MutableSequence, Sequence
 from typing import Self, override
 
-from flext_db_oracle import FlextDbOracleDispatcher, FlextDbOracleServiceBase, FlextDbOracleSettings, c, m, p, r, t, u
+from flext_db_oracle import (
+    FlextDbOracleDispatcher,
+    FlextDbOracleServiceBase,
+    FlextDbOracleSettings,
+    c,
+    m,
+    p,
+    r,
+    t,
+    u,
+)
 from flext_db_oracle.services.facade import FlextDbOracleServices
 
 

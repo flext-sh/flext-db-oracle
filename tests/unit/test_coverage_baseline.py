@@ -10,15 +10,17 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_tests import tm
+from flext_tests import e, tm
 
 from flext_db_oracle import (
     FlextDbOracleApi,
-    FlextDbOraclePassword,
-    FlextDbOracleServices,
     FlextDbOracleSettings,
 )
-from tests import c, e, m, u
+from flext_db_oracle._models.password import FlextDbOraclePassword
+from flext_db_oracle.services.facade import FlextDbOracleServices
+from tests.constants import c
+from tests.models import m
+from tests.utilities import u
 
 
 class TestsFlextDbOracleCoverageBaseline:

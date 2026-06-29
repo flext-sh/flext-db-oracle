@@ -15,7 +15,7 @@ import os
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import t
+from tests.typings import t
 
 
 class OperationTestErrorE2E(Exception):

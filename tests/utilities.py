@@ -13,10 +13,12 @@ from collections.abc import (
 )
 from typing import ClassVar
 
-from flext_tests import FlextTestsUtilities, tk
+from flext_tests import FlextTestsUtilities, e, tk
 
 from flext_db_oracle import u
-from tests import c, e, m, t
+from tests.constants import c
+from tests.models import m
+from tests.typings import t
 
 
 class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):

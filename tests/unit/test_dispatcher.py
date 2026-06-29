@@ -10,10 +10,10 @@ from flext_tests import tm
 
 from flext_db_oracle import (
     FlextDbOracleDispatcher,
-    FlextDbOracleServices,
     FlextDbOracleSettings,
 )
-from tests import m
+from flext_db_oracle.services.facade import FlextDbOracleServices
+from tests.models import m
 
 
 class TestsFlextDbOracleDispatcher:

@@ -19,7 +19,9 @@ import pytest
 from flext_tests import tk
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import c, p, u
+from tests.constants import c
+from tests.protocols import p
+from tests.utilities import u
 
 # Prevent unit tests from hanging on DNS resolution for fake hostnames.
 # Without this, socket operations to unresolvable hosts block indefinitely.

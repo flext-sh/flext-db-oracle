@@ -16,7 +16,8 @@ from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleSettings,
 )
-from tests import c, m
+from tests.constants import c
+from tests.models import m
 
 
 @pytest.mark.unit

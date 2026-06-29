@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from flext_tests import tm
 
-from tests import e
+from flext_db_oracle.exceptions import e
 
 
 class TestsFlextDbOracleExceptions:

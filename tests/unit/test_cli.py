@@ -14,15 +14,16 @@ from __future__ import annotations
 import os
 
 import pytest
-from flext_tests import tm
+from flext_tests import r, tm
 
 from flext_db_oracle import (
     FlextDbOracleApi,
-    FlextDbOracleClient,
-    FlextDbOraclePassword,
     FlextDbOracleSettings,
 )
-from tests import r, t, u
+from flext_db_oracle._models.password import FlextDbOraclePassword
+from flext_db_oracle.client import FlextDbOracleClient
+from tests.typings import t
+from tests.utilities import u
 
 _NO_CONNECTION_ERROR = "No active Oracle connection"
 

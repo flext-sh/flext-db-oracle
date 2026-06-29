@@ -15,7 +15,8 @@ import pytest
 from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import c, u
+from tests.constants import c
+from tests.utilities import u
 
 
 @pytest.mark.unit

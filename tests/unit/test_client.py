@@ -8,7 +8,8 @@ from __future__ import annotations
 
 from flext_tests import tm
 
-from flext_db_oracle import FlextDbOracleClient, FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleSettings
+from flext_db_oracle.client import FlextDbOracleClient
 
 
 class TestsFlextDbOracleClient:

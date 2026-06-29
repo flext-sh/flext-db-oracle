@@ -9,7 +9,7 @@ from __future__ import annotations
 from flext_tests import FlextTestsModels
 
 from flext_db_oracle import m
-from tests import t
+from tests.typings import t
 
 
 class TestsFlextDbOracleModels(FlextTestsModels, m):
