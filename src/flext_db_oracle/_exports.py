@@ -11,11 +11,7 @@ _LOCAL_LAZY_IMPORTS = {
 }
 
 FLEXT_DB_ORACLE_LAZY_IMPORTS = merge_lazy_imports(
-    (
-        "._models",
-        "._utilities",
-        ".services",
-    ),
+    (".services",),
     _LOCAL_LAZY_IMPORTS,
     exclude_names=(
         "cleanup_submodule_namespace",

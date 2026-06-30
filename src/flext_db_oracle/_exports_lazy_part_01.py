@@ -7,8 +7,8 @@ from flext_core.lazy import build_lazy_import_map
 
 FLEXT_DB_ORACLE_LAZY_IMPORTS_PART_01 = build_lazy_import_map(
     {
-        "._models.password": ("FlextDbOraclePassword",),
-        "._utilities.db_oracle": ("FlextDbOracleUtilitiesDbOracle",),
+        "._models": ("_models",),
+        "._utilities": ("_utilities",),
         ".api": (
             "FlextDbOracleApi",
             "db_oracle",
