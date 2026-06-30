@@ -274,17 +274,50 @@ def _ensure_hr_sample_tables(api: FlextDbOracleApi) -> None:
     _seed_row(
         api,
         "DEPARTMENTS",
-        "INSERT INTO departments (department_id, department_name) VALUES (10, 'Engineering')",
+        """
+        MERGE INTO departments target
+        USING (SELECT 10 department_id, 'Engineering' department_name FROM dual) source
+        ON (target.department_id = source.department_id)
+        WHEN MATCHED THEN UPDATE SET target.department_name = source.department_name
+        WHEN NOT MATCHED THEN INSERT (department_id, department_name)
+        VALUES (source.department_id, source.department_name)
+        """,
     )
     _seed_row(
         api,
         "JOBS",
-        "INSERT INTO jobs (job_id, job_title) VALUES ('DEV', 'Developer')",
+        """
+        MERGE INTO jobs target
+        USING (SELECT 'DEV' job_id, 'Developer' job_title FROM dual) source
+        ON (target.job_id = source.job_id)
+        WHEN MATCHED THEN UPDATE SET target.job_title = source.job_title
+        WHEN NOT MATCHED THEN INSERT (job_id, job_title)
+        VALUES (source.job_id, source.job_title)
+        """,
     )
     _seed_row(
         api,
         "EMPLOYEES",
-        "INSERT INTO employees (employee_id, first_name, last_name, email) VALUES (1, 'Ada', 'Lovelace', 'ada@example.com')",
+        """
+        MERGE INTO employees target
+        USING (
+            SELECT 1 employee_id, 'Ada' first_name, 'Lovelace' last_name,
+                   'ada@example.com' email
+            FROM dual
+        ) source
+        ON (target.employee_id = source.employee_id)
+        WHEN MATCHED THEN UPDATE SET
+            target.first_name = source.first_name,
+            target.last_name = source.last_name,
+            target.email = source.email
+        WHEN NOT MATCHED THEN INSERT (employee_id, first_name, last_name, email)
+        VALUES (
+            source.employee_id,
+            source.first_name,
+            source.last_name,
+            source.email
+        )
+        """,
     )
 
 

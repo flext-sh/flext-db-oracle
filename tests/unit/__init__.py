@@ -8,10 +8,7 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 _LAZY_IMPORTS = build_lazy_import_map(
     {
         ".conftest": ("conftest",),
-        ".exceptions": (
-            "FlextDbOracleTestExceptions",
-            "e",
-        ),
+        ".exceptions": ("FlextDbOracleTestExceptions",),
         ".test_api": ("TestsFlextDbOracleApi",),
         ".test_cli": ("TestsFlextDbOracleCli",),
         ".test_client": ("TestsFlextDbOracleClient",),
@@ -32,6 +29,7 @@ _LAZY_IMPORTS = build_lazy_import_map(
         "flext_tests": (
             "c",
             "d",
+            "e",
             "h",
             "m",
             "p",

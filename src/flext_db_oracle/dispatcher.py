@@ -12,14 +12,14 @@ from collections.abc import (
 )
 from typing import TYPE_CHECKING, ClassVar, override
 
-from flext_core import FlextContainer
-from flext_db_oracle import m, p, r, s, t
+from flext_core import FlextContainer, FlextService
+from flext_db_oracle import m, p, r, t
 
 if TYPE_CHECKING:
     from flext_db_oracle.services.facade import FlextDbOracleServices
 
 
-class FlextDbOracleDispatcher(s):
+class FlextDbOracleDispatcher(FlextService):
     """Unified Oracle Database Dispatcher with integrated command classes."""
 
     _container_type: ClassVar[p.ContainerType] = FlextContainer
