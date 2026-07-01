@@ -16,6 +16,7 @@ TESTS_FLEXT_DB_ORACLE_LAZY_IMPORTS_PART_02 = build_lazy_import_map(
         ".unit": ("unit",),
         ".utilities": ("u",),
         "flext_tests": (
+            "e",
             "h",
             "r",
             "td",

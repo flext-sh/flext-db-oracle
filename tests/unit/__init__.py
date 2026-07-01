@@ -13,6 +13,7 @@ _LAZY_IMPORTS = build_lazy_import_map(
         ".test_cli": ("TestsFlextDbOracleCli",),
         ".test_client": ("TestsFlextDbOracleClient",),
         ".test_config": ("TestsFlextDbOracleConfig",),
+        ".test_conftest_constants": ("TestsFlextDbOracleConftestConstants",),
         ".test_constants": ("TestsFlextDbOracleConstantsUnit",),
         ".test_coverage_baseline": ("TestsFlextDbOracleCoverageBaseline",),
         ".test_dispatcher": ("TestsFlextDbOracleDispatcher",),
