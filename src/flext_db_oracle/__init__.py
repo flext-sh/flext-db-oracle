@@ -17,7 +17,6 @@ from flext_db_oracle.__version__ import (
 )
 from flext_db_oracle._exports import FLEXT_DB_ORACLE_LAZY_IMPORTS
 
-
 _LAZY_IMPORTS = FLEXT_DB_ORACLE_LAZY_IMPORTS
 
 
@@ -57,7 +56,6 @@ _PUBLIC_EXPORTS: tuple[str, ...] = (
     "FlextDbOracleSettings",
     "FlextDbOracleTypes",
     "FlextDbOracleUtilities",
-
     "db_oracle",
     "__author__",
     "__author_email__",
