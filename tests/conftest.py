@@ -25,6 +25,8 @@ from tests.utilities import u
 
 logger = u.fetch_logger(__name__)
 
+_ORACLE_CONTAINER_NAME = "flext-oracle-db-test"
+
 
 def pytest_configure(config: pytest.Config) -> None:
     """Configure pytest with Oracle container for ALL tests."""
@@ -45,7 +47,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
 
 def _cleanup_dirty_oracle_container() -> None:
     """Cleanup dirty Oracle test containers before the session starts."""
-    container_name = "flext-oracle-db-test"
+    container_name = _ORACLE_CONTAINER_NAME
     docker = tk.shared(
         container_name,
         workspace_root=Path(__file__).resolve().parents[2],
@@ -105,10 +107,10 @@ def _mark_dirty_on_oracle_service_failure(
     if not is_service_failure:
         return
     docker = tk.shared(
-        "flext-oracle-db-test",
+        _ORACLE_CONTAINER_NAME,
         workspace_root=Path(__file__).resolve().parents[2],
     )
-    docker.mark_container_dirty("flext-oracle-db-test")
+    docker.mark_container_dirty(_ORACLE_CONTAINER_NAME)
     logger.error(
         "ORACLE SERVICE FAILURE detected in %s, container marked DIRTY for recreation: %s",
         item.nodeid,
@@ -120,7 +122,7 @@ def _mark_dirty_on_oracle_service_failure(
 def docker_control() -> tk:
     """Provide tk instance for container management."""
     return tk.shared(
-        "flext-oracle-db-test",
+        _ORACLE_CONTAINER_NAME,
         workspace_root=Path(__file__).resolve().parents[2],
     )
 
@@ -128,7 +130,7 @@ def docker_control() -> tk:
 @pytest.fixture(scope="session")
 def shared_oracle_container(docker_control: tk) -> str:
     """Start and maintain flext-oracle-db-test container."""
-    container_name = "flext-oracle-db-test"
+    container_name = _ORACLE_CONTAINER_NAME
     ensure_result = docker_control.execute()
     if ensure_result.failure:
         pytest.skip(
