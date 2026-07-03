@@ -5,9 +5,11 @@ from __future__ import annotations
 
 from flext_core.lazy import merge_lazy_imports
 from flext_db_oracle._exports_lazy_part_01 import FLEXT_DB_ORACLE_LAZY_IMPORTS_PART_01
+from flext_db_oracle._exports_lazy_part_02 import FLEXT_DB_ORACLE_LAZY_IMPORTS_PART_02
 
 _LOCAL_LAZY_IMPORTS = {
     **FLEXT_DB_ORACLE_LAZY_IMPORTS_PART_01,
+    **FLEXT_DB_ORACLE_LAZY_IMPORTS_PART_02,
 }
 
 FLEXT_DB_ORACLE_LAZY_IMPORTS = merge_lazy_imports(
