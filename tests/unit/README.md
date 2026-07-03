@@ -95,7 +95,7 @@ pytest tests/unit/ -x --tb=short
 
 ### **Mock-Based Testing**
 
-```python
+```text
 @patch("flext_db_oracle.connection.create_engine")
 def test_connection_with_mocked_engine(mock_create_engine):
     """Test connection creation with mocked SQLAlchemy engine."""
@@ -104,7 +104,7 @@ def test_connection_with_mocked_engine(mock_create_engine):
     mock_create_engine.return_value = mock_engine
 
     # Act
-    connection = FlextDbOracleConnection(config)
+    connection = FlextDbOracleConnection(settings)
     result = connection.connect()
 
     # Assert
@@ -114,11 +114,11 @@ def test_connection_with_mocked_engine(mock_create_engine):
 
 ### **Domain Logic Testing**
 
-```python
+```python notest
 def test_config_validation_with_invalid_host():
     """Test configuration validation fails with empty host."""
     # Arrange
-    config = FlextDbOracleSettings(
+    settings = FlextDbOracleSettings(
         host="",  # Invalid empty host
         port=1521,
         username="test_user",
@@ -127,7 +127,7 @@ def test_config_validation_with_invalid_host():
     )
 
     # Act
-    result = config.validate_domain_rules()
+    result = settings.validate_domain_rules()
 
     # Assert
     assert result.is_failure

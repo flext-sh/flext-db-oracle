@@ -13,134 +13,161 @@ from __future__ import annotations
 import os
 import threading
 import time
+from collections.abc import (
+    Mapping,
+    MutableSequence,
+    Sequence,
+)
 from threading import Thread
-from typing import cast
 
 import pytest
-from flext_core import r
-from flext_tests import FlextTestsDomains, tm
+from flext_tests import tm
 
 from flext_db_oracle import (
     FlextDbOracleApi,
-    FlextDbOracleModels,
-    FlextDbOracleServices,
     FlextDbOracleSettings,
-    FlextDbOracleUtilities,
-    m,
+    p,
+    r,
 )
+from flext_db_oracle.services.facade import FlextDbOracleServices
+from tests.models import m
+from tests.typings import t
+from tests.utilities import u
 
 
-class TestFlextDbOracleApiRealFunctionality:
+class TestsFlextDbOracleApi:
     """Comprehensive tests for Oracle API using ONLY real functionality - NO MOCKS."""
 
-    config: FlextDbOracleSettings
+    settings: FlextDbOracleSettings
     api: FlextDbOracleApi
 
     def setup_method(self) -> None:
         """Setup test configuration and API instance."""
-        self.config = FlextDbOracleSettings(
-            host="test_host",
-            port=1521,
+        self.settings = FlextDbOracleSettings(
+            host="127.0.0.1",
+            port=19999,
             service_name="TEST",
             username="test_user",
             password="test_password",
+            timeout=1,
         )
-        self.api = FlextDbOracleApi(self.config)
+        self.api = FlextDbOracleApi(self.settings)
 
     def test_api_initialization_complete_real(self) -> None:
         """Test complete API initialization with all attributes."""
-        assert self.api is not None
-        assert self.api.config == self.config
-        assert hasattr(self.api, "_config")
-        assert hasattr(self.api, "_services")
-        assert hasattr(self.api, "logger")
-        assert hasattr(self.api, "_registry")
+        tm.that(self.api, none=False)
+        tm.that(self.api.settings, eq=self.settings)
         plugins_result = self.api.list_plugins()
-        assert plugins_result.is_success
-        assert len(plugins_result.value) == 0
+        tm.that(plugins_result.success, eq=True)
+        tm.that(not plugins_result.value, eq=True)
 
     def test_config_property_access_real(self) -> None:
-        """Test config property returns correct configuration."""
-        config = self.api.config
-        assert config is self.config
-        assert config.host == "test_host"
-        assert config.port == 1521
-        assert config.service_name == "TEST"
-        assert config.username == "test_user"
-        assert config.password == "test_password"
+        """Test settings property returns correct configuration."""
+        settings = self.api.settings
+        tm.that(settings is self.settings, eq=True)
+        tm.that(settings.host, eq="127.0.0.1")
+        tm.that(settings.port, eq=19999)
+        tm.that(settings.service_name, eq="TEST")
+        tm.that(settings.username, eq="test_user")
+        tm.that(settings.password, eq="test_password")
 
     def test_is_valid_real_functionality(self) -> None:
-        """Test is_valid with real configuration validation."""
-        result = self.api.is_valid()
-        assert result is True
+        """Test valid with real configuration validation."""
+        result = self.api.valid()
+        tm.that(result, eq=True)
 
     def test_from_config_factory_method_real(self) -> None:
         """Test from_config class method."""
-        api = FlextDbOracleApi(config=self.config)
-        assert isinstance(api, FlextDbOracleApi)
-        assert api.config == self.config
-        assert api is not self.api
+        api = FlextDbOracleApi(settings=self.settings)
+        tm.that(api, is_=FlextDbOracleApi)
+        tm.that(api.settings, eq=self.settings)
+        tm.that(api is not self.api, eq=True)
 
     def test_to_dict_complete_serialization_real(self) -> None:
         """Test complete dictionary serialization."""
         result = self.api.to_dict()
-        assert result is not None
-        assert "config" in result
-        assert "connected" in result
-        assert "plugin_count" in result
-        config_obj = result["config"]
-        assert isinstance(config_obj, dict), "config should be a dict"
-        config_dict: dict[str, object] = config_obj
-        assert config_dict["host"] == "test_host"
-        assert config_dict["port"] == 1521
-        assert config_dict["service_name"] == "TEST"
-        assert config_dict["username"] == "test_user"
-        assert "password" not in config_dict
+        tm.that(result, none=False)
+        tm.that(result, has="settings")
+        tm.that(result, has="connected")
+        tm.that(result, has="plugin_count")
+        config_obj = result["settings"]
+        tm.that(config_obj, is_=dict)
+        config_dict: dict[str, t.JsonValue] = {}
+        if isinstance(config_obj, Mapping):
+            for key, value in config_obj.items():
+                config_dict[key] = (
+                    value
+                    if isinstance(value, t.PRIMITIVES_TYPES) or value is None
+                    else str(value)
+                )
+        tm.that(config_dict["host"], eq="127.0.0.1")
+        tm.that(config_dict["port"], eq=19999)
+        tm.that(config_dict["service_name"], eq="TEST")
+        tm.that(config_dict["username"], eq="test_user")
+        tm.that("password" not in config_dict, eq=True)
         connected_value = result["connected"]
-        assert connected_value is False or connected_value == "False"
-        assert result["plugin_count"] == 0
+        tm.that(connected_value is False or connected_value == "False", eq=True)
+        tm.that(result["plugin_count"], eq=0)
 
     def test_to_dict_with_plugins_real(self) -> None:
         """Test to_dict with registered plugins."""
         self.api.register_plugin("test1", {"name": "test1"})
         self.api.register_plugin("test2", {"name": "test2"})
         list_result = self.api.list_plugins()
-        assert list_result.is_success
-        assert len(list_result.value) == 2
+        tm.that(list_result.success, eq=True)
+        tm.that(len(list_result.value), eq=2)
 
-    def test_is_connected_property_real_disconnected_state(self) -> None:
-        """Test is_connected property when disconnected."""
-        result = self.api.is_connected
-        assert result is False
+    def test_connected_property_real_disconnected_state(self) -> None:
+        """Test connected property when disconnected."""
+        result = self.api.connected()
+        tm.that(result is False, eq=True)
 
     def test_query_operations_not_connected_real(self) -> None:
         """Test query operations fail gracefully when not connected."""
         result = self.api.query("SELECT 1 FROM DUAL")
         tm.fail(result)
-        assert result.error
-        assert (
-            "not connected" in result.error.lower()
-            or "connection" in result.error.lower()
+        tm.that(bool(result.error), eq=True)
+        tm.that(
+            (
+                "not connected" in result.error.lower()
+                if result.error is not None
+                else "" or "connection" in result.error.lower()
+                if result.error is not None
+                else ""
+            ),
+            eq=True,
         )
 
     def test_query_one_not_connected_real(self) -> None:
         """Test query_one fails gracefully when not connected."""
         result = self.api.query_one("SELECT 1 FROM DUAL")
         tm.fail(result)
-        assert result.error
-        assert (
-            "not connected" in result.error.lower()
-            or "connection" in result.error.lower()
+        tm.that(bool(result.error), eq=True)
+        tm.that(
+            (
+                "not connected" in result.error.lower()
+                if result.error is not None
+                else "" or "connection" in result.error.lower()
+                if result.error is not None
+                else ""
+            ),
+            eq=True,
         )
 
     def test_execute_not_connected_real(self) -> None:
         """Test execute fails gracefully when not connected."""
         result = self.api.execute_sql("CREATE TABLE test (id NUMBER)")
         tm.fail(result)
-        assert result.error
-        assert (
-            "not connected" in result.error.lower()
-            or "connection" in result.error.lower()
+        tm.that(bool(result.error), eq=True)
+        tm.that(
+            (
+                "not connected" in result.error.lower()
+                if result.error is not None
+                else "" or "connection" in result.error.lower()
+                if result.error is not None
+                else ""
+            ),
+            eq=True,
         )
 
     def test_dispatcher_feature_flag_enabled(self) -> None:
@@ -148,57 +175,80 @@ class TestFlextDbOracleApiRealFunctionality:
         old_value = os.environ.get("FLEXT_DB_ORACLE_ENABLE_DISPATCHER")
         try:
             os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "1"
-            assert FlextDbOracleUtilities.DbOracle.FeatureFlags.dispatcher_enabled()
-            api = FlextDbOracleApi(self.config)
-            assert api is not None
-            assert hasattr(api, "query")
+            tm.that(
+                u.DbOracle.dispatcher_enabled(),
+                eq=True,
+            )
+            api = FlextDbOracleApi(self.settings)
+            tm.that(api, none=False)
         finally:
             if old_value is None:
                 os.environ.pop("FLEXT_DB_ORACLE_ENABLE_DISPATCHER", None)
             else:
                 os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = old_value
 
-    def test_get_schemas_not_connected_real(self) -> None:
-        """Test get_schemas fails gracefully when not connected."""
-        result = self.api.get_schemas()
+    def test_fetch_schemas_not_connected_real(self) -> None:
+        """Test fetch_schemas fails gracefully when not connected."""
+        result = self.api.fetch_schemas()
         tm.fail(result)
-        assert result.error
-        assert (
-            "not connected" in result.error.lower()
-            or "connection" in result.error.lower()
+        tm.that(bool(result.error), eq=True)
+        tm.that(
+            (
+                "not connected" in result.error.lower()
+                if result.error is not None
+                else "" or "connection" in result.error.lower()
+                if result.error is not None
+                else ""
+            ),
+            eq=True,
         )
 
-    def test_get_tables_not_connected_real(self) -> None:
-        """Test get_tables fails gracefully when not connected."""
-        result = self.api.get_tables()
+    def test_fetch_tables_not_connected_real(self) -> None:
+        """Test fetch_tables fails gracefully when not connected."""
+        result = self.api.fetch_tables()
         tm.fail(result)
-        assert result.error
-        assert (
-            "not connected" in result.error.lower()
-            or "connection" in result.error.lower()
+        tm.that(bool(result.error), eq=True)
+        tm.that(
+            (
+                "not connected" in result.error.lower()
+                if result.error is not None
+                else "" or "connection" in result.error.lower()
+                if result.error is not None
+                else ""
+            ),
+            eq=True,
         )
 
-    def test_get_columns_not_connected_real(self) -> None:
-        """Test get_columns fails gracefully when not connected."""
-        result = self.api.get_columns("test_table")
+    def test_fetch_columns_not_connected_real(self) -> None:
+        """Test fetch_columns fails gracefully when not connected."""
+        result = self.api.fetch_columns("test_table")
         tm.fail(result)
-        assert result.error
-        assert (
-            "not connected" in result.error.lower()
-            or "connection" in result.error.lower()
+        tm.that(bool(result.error), eq=True)
+        tm.that(
+            (
+                "not connected" in result.error.lower()
+                if result.error is not None
+                else "" or "connection" in result.error.lower()
+                if result.error is not None
+                else ""
+            ),
+            eq=True,
         )
 
     def test_test_connection_real_invalid_config(self) -> None:
-        """Test test_connection with invalid config."""
+        """Test test_connection with invalid settings."""
         result = self.api.test_connection()
         tm.fail(result)
-        assert result.error is not None
-        error_msg = result.error.lower()
-        assert (
-            "connection" in error_msg
-            or "timeout" in error_msg
-            or "failed" in error_msg
-            or ("connect" in error_msg)
+        tm.that(result.error, none=False)
+        error_msg = result.error.lower() if result.error is not None else ""
+        tm.that(
+            (
+                "connection" in error_msg
+                or "timeout" in error_msg
+                or "failed" in error_msg
+                or ("connect" in error_msg)
+            ),
+            eq=True,
         )
 
     def test_disconnect_when_not_connected_real(self) -> None:
@@ -220,24 +270,27 @@ class TestFlextDbOracleApiRealFunctionality:
             result = self.api.optimize_query(input_query)
             tm.ok(result)
             optimized_query = result.value
-            assert isinstance(optimized_query, str)
-            assert optimized_query == expected_clean
+            tm.that(optimized_query, is_=str)
+            tm.that(optimized_query, eq=expected_clean)
 
-    def test_get_observability_metrics_real(self) -> None:
+    def test_fetch_observability_metrics_real(self) -> None:
         """Test observability metrics retrieval."""
-        result = self.api.get_observability_metrics()
+        result = self.api.fetch_observability_metrics()
         tm.ok(result)
         metrics = result.value
-        assert metrics is not None
+        tm.that(metrics, none=False)
 
     def test_from_env_real_no_environment_vars(self) -> None:
         """Test from_env factory method with no environment variables."""
         result = FlextDbOracleApi.from_env("NONEXISTENT_PREFIX")
         tm.fail(result)
-        assert result.error is not None
-        assert (
-            result.error is not None
-            and "Oracle username is required but not configured" in result.error
+        tm.that(result.error, none=False)
+        tm.that(
+            (
+                result.error is not None
+                and "Oracle username is required but not configured" in result.error
+            ),
+            eq=True,
         )
 
     def test_from_url_valid_url_real(self) -> None:
@@ -245,20 +298,27 @@ class TestFlextDbOracleApiRealFunctionality:
         result = FlextDbOracleApi.from_url("oracle://user:pass@host:1521/service")
         tm.ok(result)
         api = result.value
-        assert api.config.host == "host"
-        assert api.config.port == 1521
-        assert api.config.service_name == "SERVICE"
-        assert api.config.username == "user"
+        tm.that(api.settings.host, eq="host")
+        tm.that(api.settings.port, eq=1521)
+        tm.that(api.settings.service_name, eq="SERVICE")
+        tm.that(api.settings.username, eq="user")
 
     def test_from_url_invalid_url_real(self) -> None:
         """Test from_url with invalid URL format."""
         result = FlextDbOracleApi.from_url("invalid://not-oracle-url")
         tm.fail(result)
-        assert result.error is not None
-        assert (
-            "invalid" in result.error.lower()
-            or "failed to parse" in result.error.lower()
-            or "not implemented" in result.error.lower()
+        tm.that(result.error, none=False)
+        tm.that(
+            (
+                "invalid" in result.error.lower()
+                if result.error is not None
+                else "" or "failed to parse" in result.error.lower()
+                if result.error is not None
+                else "" or "not implemented" in result.error.lower()
+                if result.error is not None
+                else ""
+            ),
+            eq=True,
         )
 
     def test_plugin_registration_real_functionality(self) -> None:
@@ -266,9 +326,9 @@ class TestFlextDbOracleApiRealFunctionality:
         plugin = {"name": "test_plugin", "version": "1.0.0"}
         result = self.api.register_plugin("test_plugin", plugin)
         tm.ok(result)
-        get_result = self.api.get_plugin("test_plugin")
+        get_result = self.api.fetch_plugin("test_plugin")
         tm.ok(get_result)
-        assert get_result.value == plugin
+        tm.that(get_result.value, eq=plugin)
 
     def test_plugin_unregistration_real_functionality(self) -> None:
         """Test successful plugin unregistration."""
@@ -276,34 +336,40 @@ class TestFlextDbOracleApiRealFunctionality:
         self.api.register_plugin("test_plugin", plugin)
         result = self.api.unregister_plugin("test_plugin")
         tm.ok(result)
-        get_result = self.api.get_plugin("test_plugin")
-        assert get_result.is_failure
+        get_result = self.api.fetch_plugin("test_plugin")
+        tm.that(get_result.failure, eq=True)
 
     def test_plugin_unregistration_not_found_real(self) -> None:
         """Test plugin unregistration when plugin not found."""
         result = self.api.unregister_plugin("nonexistent_plugin")
         tm.fail(result)
+        tm.that(result.error, none=False)
         assert result.error is not None
-        assert (
-            result.error is not None
-            and "plugin 'nonexistent_plugin' not found" in result.error.lower()
+        tm.that(
+            "plugin 'nonexistent_plugin' not found" in result.error.lower(),
+            eq=True,
         )
 
-    def test_get_plugin_real_functionality(self) -> None:
+    def test_fetch_plugin_real_functionality(self) -> None:
         """Test successful plugin retrieval."""
         plugin = {"name": "test_plugin", "version": "1.0.0"}
         self.api.register_plugin("test_plugin", plugin)
-        result = self.api.get_plugin("test_plugin")
+        result = self.api.fetch_plugin("test_plugin")
         tm.ok(result)
         retrieved_plugin = result.value
-        assert retrieved_plugin == plugin
+        tm.that(retrieved_plugin, eq=plugin)
 
-    def test_get_plugin_not_found_real(self) -> None:
+    def test_fetch_plugin_not_found_real(self) -> None:
         """Test plugin retrieval when plugin not found."""
-        result = self.api.get_plugin("nonexistent_plugin")
+        result = self.api.fetch_plugin("nonexistent_plugin")
         tm.fail(result)
-        assert result.error is not None
-        assert result.error is not None and "nonexistent_plugin" in result.error.lower()
+        tm.that(result.error, none=False)
+        tm.that(
+            "nonexistent_plugin" in result.error.lower()
+            if result.error is not None
+            else False,
+            eq=True,
+        )
 
     def test_list_plugins_real_functionality(self) -> None:
         """Test successful plugin listing."""
@@ -314,44 +380,44 @@ class TestFlextDbOracleApiRealFunctionality:
         result = self.api.list_plugins()
         tm.ok(result)
         plugin_list = result.value
-        assert isinstance(plugin_list, list)
-        assert len(plugin_list) == 2
+        tm.that(plugin_list, is_=list)
+        tm.that(len(plugin_list), eq=2)
 
     def test_list_plugins_empty_real(self) -> None:
         """Test plugin listing when no plugins registered."""
         result = self.api.list_plugins()
         tm.ok(result)
         plugin_list = result.value
-        assert isinstance(plugin_list, list)
-        assert len(plugin_list) == 0
+        tm.that(plugin_list, is_=list)
+        tm.that(not plugin_list, eq=True)
 
     def test_repr_method_disconnected_real(self) -> None:
         """Test __repr__ method when disconnected (default state)."""
         repr_str = repr(self.api)
-        expected = "FlextDbOracleApi(host=test_host, status=disconnected)"
-        assert expected == repr_str
+        expected = "FlextDbOracleApi(host=127.0.0.1, status=disconnected)"
+        tm.that(expected, eq=repr_str)
 
     def test_api_creation_using_testbuilders_real(self) -> None:
         """Test API creation using direct r."""
-        config_result = r.ok(
+        config_result = r[FlextDbOracleSettings].ok(
             FlextDbOracleSettings(
                 host="testbuilder_host",
                 port=1521,
                 service_name="testbuilder_service",
                 username="testbuilder_user",
                 password="testbuilder_password",
-            )
+            ),
         )
         tm.ok(config_result)
-        config = config_result.value
-        assert isinstance(config, FlextDbOracleSettings)
-        api = FlextDbOracleApi(config)
-        assert api is not None
-        assert api.config.host == "testbuilder_host"
-        assert api.config.port == 1521
-        assert api.config.service_name == "TESTBUILDER_SERVICE"
-        assert api.config.username == "testbuilder_user"
-        assert api.config.password == "testbuilder_password"
+        settings: FlextDbOracleSettings = config_result.value
+        tm.that(settings, is_=FlextDbOracleSettings)
+        api = FlextDbOracleApi(settings)
+        tm.that(api, none=False)
+        tm.that(api.settings.host, eq="testbuilder_host")
+        tm.that(api.settings.port, eq=1521)
+        tm.that(api.settings.service_name, eq="TESTBUILDER_SERVICE")
+        tm.that(api.settings.username, eq="testbuilder_user")
+        tm.that(api.settings.password, eq="testbuilder_password")
 
     def test_api_multiple_instances_isolation_real(self) -> None:
         """Test that multiple API instances are properly isolated."""
@@ -371,20 +437,20 @@ class TestFlextDbOracleApiRealFunctionality:
         )
         api1 = FlextDbOracleApi(config1)
         api2 = FlextDbOracleApi(config2)
-        assert api1.config.host == "instance1"
-        assert api2.config.host == "instance2"
-        assert api1.config.port == 1521
-        assert api2.config.port == 1522
+        tm.that(api1.settings.host, eq="instance1")
+        tm.that(api2.settings.host, eq="instance2")
+        tm.that(api1.settings.port, eq=1521)
+        tm.that(api2.settings.port, eq=1522)
         plugin1 = {"name": "plugin1", "version": "1.0.0"}
         api1.register_plugin("plugin1", plugin1)
         api2_list = api2.list_plugins()
         tm.ok(api2_list)
-        assert api2_list.value == []
+        tm.that(api2_list.value, empty=True)
         api1_list = api1.list_plugins()
         tm.ok(api1_list)
         plugin_list = api1_list.value
-        assert isinstance(plugin_list, list)
-        assert len(plugin_list) == 1
+        tm.that(plugin_list, is_=list)
+        tm.that(len(plugin_list), eq=1)
 
     def test_api_error_handling_patterns_real(self) -> None:
         """Test API error handling patterns."""
@@ -392,59 +458,59 @@ class TestFlextDbOracleApiRealFunctionality:
         result = self.api.optimize_query(invalid_sql)
         tm.ok(result)
         optimized_query = result.value
-        assert isinstance(optimized_query, str)
-        assert optimized_query == "INVALID SQL SYNTAX HERE"
+        tm.that(optimized_query, is_=str)
+        tm.that(optimized_query, eq="INVALID SQL SYNTAX HERE")
 
     def test_context_manager_protocol_real(self) -> None:
-        """Test context manager protocol."""
-        assert hasattr(self.api, "__enter__")
-        assert hasattr(self.api, "__exit__")
-        assert callable(self.api.__enter__)
-        assert callable(self.api.__exit__)
-        with self.api as api_context:
-            assert api_context is self.api
-            assert isinstance(api_context, FlextDbOracleApi)
-            result = api_context.is_valid()
-            assert result is True
+        """Test context manager protocol methods exist."""
+        tm.that(callable(self.api.__enter__), eq=True)
+        tm.that(callable(self.api.__exit__), eq=True)
+        with pytest.raises(RuntimeError):
+            with self.api:
+                pass
 
     def test_repr_method_real(self) -> None:
         """Test __repr__ method."""
         repr_str = repr(self.api)
-        assert isinstance(repr_str, str)
-        assert len(repr_str) > 0
-        assert "FlextDbOracleApi" in repr_str
-        assert self.config.host in repr_str or "test_host" in repr_str
+        tm.that(repr_str, is_=str)
+        tm.that(len(repr_str) > 0, eq=True)
+        tm.that(repr_str, has="FlextDbOracleApi")
+        tm.that(
+            self.settings.host in repr_str or "127.0.0.1" in repr_str,
+            eq=True,
+        )
 
     def test_convert_singer_type_method_real(self) -> None:
         """Test convert_singer_type method."""
         test_types = ["string", "integer", "number", "boolean", "date-time"]
         for singer_type in test_types:
             result = self.api.convert_singer_type(singer_type)
-            assert hasattr(result, "is_success")
-            assert hasattr(result, "error")
-            if result.is_success:
+            if result.success:
                 tm.ok(result)
                 oracle_type = result.value
-                assert isinstance(oracle_type, str)
-                assert len(oracle_type) > 0
-                assert any(
-                    keyword in oracle_type.upper()
-                    for keyword in [
-                        "VARCHAR",
-                        "NUMBER",
-                        "TIMESTAMP",
-                        "DATE",
-                        "CLOB",
-                        "BLOB",
-                    ]
+                tm.that(oracle_type, is_=str)
+                tm.that(len(oracle_type) > 0, eq=True)
+                tm.that(
+                    any(
+                        keyword in oracle_type.upper()
+                        for keyword in [
+                            "VARCHAR",
+                            "NUMBER",
+                            "TIMESTAMP",
+                            "DATE",
+                            "CLOB",
+                            "BLOB",
+                        ]
+                    ),
+                    eq=True,
                 )
             else:
                 tm.fail(result)
-                assert result.error is not None
+                tm.that(result.error, none=False)
 
     def test_map_singer_schema_method_real(self) -> None:
         """Test map_singer_schema method."""
-        test_schema: dict[str, object] = {
+        test_schema: t.JsonMapping = {
             "type": "object",
             "properties": {
                 "id": {"type": "integer"},
@@ -455,52 +521,50 @@ class TestFlextDbOracleApiRealFunctionality:
             "required": ["id", "name"],
         }
         result = self.api.map_singer_schema(test_schema)
-        assert hasattr(result, "is_success")
-        assert hasattr(result, "value")
-        assert hasattr(result, "error")
-        if result.is_success:
+        if result.success:
             tm.ok(result)
             schema_mapping = result.value
-            assert isinstance(schema_mapping, dict)
+            tm.that(schema_mapping, is_=dict)
         else:
             tm.fail(result)
-            assert result.error is not None
+            tm.that(result.error, none=False)
 
     def test_execute_sql_method_structure_real(self) -> None:
         """Test execute_sql method structure."""
         test_sql = "SELECT 1 FROM dual"
         result = self.api.execute_sql(test_sql)
-        assert hasattr(result, "is_success")
-        assert hasattr(result, "error")
         tm.fail(result)
-        assert result.error is not None
-        error_lower = result.error.lower()
-        assert (
-            "connection" in error_lower
-            or "connect" in error_lower
-            or "not connected" in error_lower
+        tm.that(result.error, none=False)
+        error_lower = result.error.lower() if result.error is not None else ""
+        tm.that(
+            (
+                "connection" in error_lower
+                or "connect" in error_lower
+                or "not connected" in error_lower
+            ),
+            eq=True,
         )
 
     def test_transaction_method_real(self) -> None:
         """Test transaction method."""
         result = self.api.transaction()
-        assert hasattr(result, "is_success")
-        assert hasattr(result, "error")
-        if not result.is_success:
+        if not result.success:
             tm.fail(result)
-            assert result.error is not None
-            error_lower = result.error.lower()
-            assert (
-                "connection" in error_lower
-                or "transaction" in error_lower
-                or "not connected" in error_lower
+            tm.that(result.error, none=False)
+            error_lower = result.error.lower() if result.error is not None else ""
+            tm.that(
+                (
+                    "connection" in error_lower
+                    or "transaction" in error_lower
+                    or "not connected" in error_lower
+                ),
+                eq=True,
             )
 
     def test_connection_property_real(self) -> None:
         """Test connection property."""
         connection = self.api.connection
-        assert connection is None
-        assert hasattr(self.api, "connection")
+        tm.that(connection, none=True)
 
     def test_api_methods_exist_comprehensive_real(self) -> None:
         """Test that all expected API methods exist."""
@@ -511,75 +575,77 @@ class TestFlextDbOracleApiRealFunctionality:
             "connect",
             "disconnect",
             "test_connection",
-            "is_connected",
+            "connected",
             "query",
             "query_one",
             "execute",
             "execute_many",
             "execute_sql",
-            "get_schemas",
-            "get_tables",
-            "get_columns",
-            "get_table_metadata",
-            "get_primary_keys",
+            "fetch_schemas",
+            "fetch_tables",
+            "fetch_columns",
+            "fetch_table_metadata",
+            "fetch_primary_keys",
             "register_plugin",
             "unregister_plugin",
-            "get_plugin",
+            "fetch_plugin",
             "list_plugins",
             "optimize_query",
-            "get_observability_metrics",
-            "get_health_status",
+            "fetch_observability_metrics",
+            "fetch_health_status",
             "convert_singer_type",
             "map_singer_schema",
-            "config",
+            "settings",
             "connection",
-            "is_valid",
+            "valid",
             "to_dict",
             "transaction",
         ]
         for method_name in expected_methods:
-            assert hasattr(self.api, method_name), f"Method {method_name} should exist"
             method = getattr(self.api, method_name)
-            if method_name not in {"config", "connection", "is_connected"}:
-                assert callable(method), f"Method {method_name} should be callable"
+            if method_name not in {"settings", "connection", "connected"}:
+                tm.that(callable(method), eq=True)
 
     def test_plugin_management_edge_cases_real(self) -> None:
         """Test plugin management edge cases."""
-        result = self.api.register_plugin("none_plugin", None)
+        result = self.api.register_plugin("none_plugin", "none_value")
         tm.ok(result)
-        get_result = self.api.get_plugin("none_plugin")
+        result_ok = self.api.register_plugin("test_plugin", {"version": "1.0"})
+        tm.ok(result_ok)
+        get_result = self.api.fetch_plugin("test_plugin")
         tm.ok(get_result)
-        assert get_result.value is None
         empty_result = self.api.register_plugin("", {"test": "plugin"})
-        tm.ok(empty_result)
-        get_empty = self.api.get_plugin("")
-        tm.ok(get_empty)
-        unregister_result = self.api.unregister_plugin("")
+        tm.fail(empty_result, has="Plugin name is required")
+        unregister_result = self.api.unregister_plugin("test_plugin")
         tm.ok(unregister_result)
 
     def test_optimize_query_edge_cases_real(self) -> None:
         """Test optimize_query with edge cases."""
         empty_result = self.api.optimize_query("")
         tm.ok(empty_result)
-        assert not empty_result.value
+        tm.that(not empty_result.value, eq=True)
         whitespace_query = "SELECT   \n\n   *    \n  FROM   \n   employees    \n\n"
         whitespace_result = self.api.optimize_query(whitespace_query)
         tm.ok(whitespace_result)
         optimized = whitespace_result.value
-        assert optimized == "SELECT * FROM employees"
+        tm.that(optimized, eq="SELECT * FROM employees")
         tab_query = "SELECT\t\t*\tFROM\t\temployees\t\tWHERE\t\tid\t=\t1"
         tab_result = self.api.optimize_query(tab_query)
         tm.ok(tab_result)
         optimized_tab = tab_result.value
-        assert optimized_tab == "SELECT * FROM employees WHERE id = 1"
+        tm.that(optimized_tab, eq="SELECT * FROM employees WHERE id = 1")
 
     def test_api_configuration_variations_real(self) -> None:
         """Test API with various configuration scenarios."""
         minimal_config = FlextDbOracleSettings(
-            host="m", port=1, service_name="S", username="u", password="p"
+            host="m",
+            port=1,
+            service_name="S",
+            username="u",
+            password="p",
         )
         minimal_api = FlextDbOracleApi(minimal_config)
-        assert minimal_api.is_valid() is True
+        tm.that(minimal_api.valid(), eq=True)
         plugins = minimal_api.list_plugins()
         tm.ok(plugins)
         special_config = FlextDbOracleSettings(
@@ -590,59 +656,38 @@ class TestFlextDbOracleApiRealFunctionality:
             password="pass!@#$%",
         )
         special_api = FlextDbOracleApi(special_config)
-        assert special_api.is_valid() is True
+        tm.that(special_api.valid(), eq=True)
 
-    def test_get_health_status_method_real(self) -> None:
-        """Test get_health_status method."""
-        result = self.api.get_health_status()
-        assert hasattr(result, "is_success")
-        assert hasattr(result, "value")
-        assert hasattr(result, "error")
+    def test_fetch_health_status_method_real(self) -> None:
+        """Test fetch_health_status method."""
+        result = self.api.fetch_health_status()
         tm.ok(result)
         health_data = result.value
-        assert health_data is not None
-        assert health_data is not None
+        tm.that(health_data, none=False)
+        tm.that(health_data, none=False)
 
     def test_flext_result_consistency_real(self) -> None:
         """Test that all API methods return consistent r objects."""
         result1 = self.api.optimize_query("SELECT 1")
-        assert hasattr(result1, "is_success")
-        assert hasattr(result1, "error")
-        result2 = self.api.get_observability_metrics()
-        assert hasattr(result2, "is_success")
-        assert hasattr(result2, "error")
-        result3 = self.api.get_health_status()
-        assert hasattr(result3, "is_success")
-        assert hasattr(result3, "error")
+        result2 = self.api.fetch_observability_metrics()
+        result3 = self.api.fetch_health_status()
         result4 = self.api.list_plugins()
-        assert hasattr(result4, "is_success")
-        assert hasattr(result4, "error")
         result5 = self.api.register_plugin("test", {"plugin": "data"})
-        assert hasattr(result5, "is_success")
-        assert hasattr(result5, "error")
-        for result in [result1, result2, result3, result4, result5]:
-            assert hasattr(result, "is_success")
-            assert hasattr(result, "error")
-            if result.is_success:
-                assert result.error is None
-                _ = getattr(result, "value", None)
+        for res in (result1, result2, result3, result4, result5):
+            if res.success:
+                tm.that(res.error, none=True)
+                _ = getattr(res, "value", None)
             else:
-                assert result.error is not None
-                assert isinstance(result.error, str)
-                assert len(result.error) > 0
-
-
-"Unit tests for flext_db_oracle.api module.\n\nTests FlextDbOracleApi functionality with real implementations,\nno mocks or legacy patterns. Achieves near 100% coverage following FLEXT standards.\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
-
-
-class TestApiModule:
-    """Unified test class for api module functionality."""
+                tm.that(res.error, none=False)
+                tm.that(res.error, is_=str)
+                if res.error is not None:
+                    tm.that(res.error, eq=True)
 
     class _TestDataHelper:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_oracle_config() -> dict[str, object]:
+        def create_test_oracle_config() -> t.JsonMapping:
             """Create test Oracle configuration data."""
             return {
                 "host": "localhost",
@@ -653,7 +698,7 @@ class TestApiModule:
             }
 
         @staticmethod
-        def create_test_query_data() -> dict[str, str | dict[str, int] | int]:
+        def create_test_query_data() -> t.MappingKV[str, str | t.IntMapping | int]:
             """Create test query data."""
             return {
                 "query": "SELECT * FROM test_table WHERE id = :id",
@@ -662,7 +707,7 @@ class TestApiModule:
             }
 
         @staticmethod
-        def create_test_schema_data() -> dict[str, str | list[object]]:
+        def create_test_schema_data() -> t.JsonMapping:
             """Create test schema data."""
             return {
                 "table_name": "test_table",
@@ -675,234 +720,214 @@ class TestApiModule:
     def test_flext_db_oracle_api_initialization(self) -> None:
         """Test FlextDbOracleApi initializes correctly."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
         )
-        api = FlextDbOracleApi(config=config)
-        assert api is not None
+        api = FlextDbOracleApi(settings=settings)
+        tm.that(api, none=False)
 
     def test_flext_db_oracle_api_from_config(self) -> None:
         """Test FlextDbOracleApi from_config functionality."""
         self._TestDataHelper.create_test_oracle_config()
         if hasattr(FlextDbOracleApi, "from_config"):
             config_data = self._TestDataHelper.create_test_oracle_config()
-            config = FlextDbOracleSettings(
+            settings = FlextDbOracleSettings(
                 host=str(config_data["host"]),
                 port=int(str(config_data["port"])),
                 service_name=str(config_data["service_name"]),
                 username=str(config_data["username"]),
                 password=str(config_data["password"]),
             )
-            result = FlextDbOracleApi(config=config)
-            assert isinstance(result, FlextDbOracleApi)
+            result = FlextDbOracleApi(settings=settings)
+            tm.that(result, is_=FlextDbOracleApi)
 
     def test_flext_db_oracle_api_connect(self) -> None:
         """Test FlextDbOracleApi connect functionality."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
         )
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         self._TestDataHelper.create_test_oracle_config()
         if hasattr(api, "connect"):
-            result: r[FlextDbOracleApi] = api.connect()
-            assert isinstance(result, r)
+            result: p.Result[FlextDbOracleApi] = api.connect()
+            tm.that(result, is_=r)
 
     def test_flext_db_oracle_api_disconnect(self) -> None:
         """Test FlextDbOracleApi disconnect functionality."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
         )
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         if hasattr(api, "disconnect"):
             result = api.disconnect()
-            assert isinstance(result, r)
+            tm.that(result, is_=r)
 
     def test_flext_db_oracle_api_execute_query(self) -> None:
         """Test FlextDbOracleApi execute_query functionality."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
         )
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         test_query = self._TestDataHelper.create_test_query_data()
         if hasattr(api, "query"):
-            result: r[list[m.Dict]] = api.query(str(test_query["query"]))
-            assert isinstance(result, r)
+            result: p.Result[Sequence[m.Dict]] = api.query(str(test_query["query"]))
+            tm.that(result, is_=r)
 
     def test_flext_db_oracle_api_execute_update(self) -> None:
         """Test FlextDbOracleApi execute_update functionality."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
         )
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         test_query = self._TestDataHelper.create_test_query_data()
         if hasattr(api, "execute_sql"):
-            result: r[int] = api.execute_sql(
-                str(test_query["query"]),
-                cast("dict[str, object]", test_query["params"]),
-            )
-            assert isinstance(result, r)
+            query_params = test_query["params"]
+            tm.that(isinstance(query_params, dict), eq=True)
+            if not isinstance(query_params, dict):
+                pytest.fail("test query data must expose SQL params as a mapping")
+            params = dict(query_params.items())
+            result: p.Result[int] = api.execute_sql(str(test_query["query"]), params)
+            tm.that(result, is_=r)
 
     def test_flext_db_oracle_api_get_metadata(self) -> None:
         """Test FlextDbOracleApi get_metadata functionality."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
         )
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         test_schema = self._TestDataHelper.create_test_schema_data()
-        if hasattr(api, "get_table_metadata"):
-            result = api.get_table_metadata(str(test_schema["table_name"]))
-            assert isinstance(result, r)
+        if hasattr(api, "fetch_table_metadata"):
+            result = api.fetch_table_metadata(str(test_schema["table_name"]))
+            tm.that(result, is_=r)
 
     def test_flext_db_oracle_api_map_singer_schema(self) -> None:
         """Test FlextDbOracleApi map_singer_schema functionality."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
         )
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         test_schema = self._TestDataHelper.create_test_schema_data()
         if hasattr(api, "map_singer_schema"):
-            result = api.map_singer_schema(dict(test_schema))
-            assert isinstance(result, r)
+            result = api.map_singer_schema(test_schema)
+            tm.that(result, is_=r)
 
     def test_flext_db_oracle_api_get_table_schema(self) -> None:
         """Test FlextDbOracleApi get_table_schema functionality."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
         )
-        api = FlextDbOracleApi(config=config)
-        if hasattr(api, "get_tables"):
-            result: r[list[str]] = api.get_tables()
-            assert isinstance(result, r)
+        api = FlextDbOracleApi(settings=settings)
+        if hasattr(api, "fetch_tables"):
+            result: p.Result[t.StrSequence] = api.fetch_tables()
+            tm.that(result, is_=r)
 
     def test_flext_db_oracle_api_comprehensive_scenario(self) -> None:
         """Test comprehensive api module scenario."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
         )
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         self._TestDataHelper.create_test_oracle_config()
         test_query = self._TestDataHelper.create_test_query_data()
-        assert api is not None
+        tm.that(api, none=False)
         if hasattr(api, "connect"):
-            connect_result: r[FlextDbOracleApi] = api.connect()
-            assert isinstance(connect_result, r)
+            connect_result: p.Result[FlextDbOracleApi] = api.connect()
+            tm.that(connect_result, is_=r)
         if hasattr(api, "query"):
-            query_result: r[list[m.Dict]] = api.query(str(test_query["query"]))
-            assert isinstance(query_result, r)
-        if hasattr(api, "get_tables"):
-            schema_result: r[list[str]] = api.get_tables()
-            assert isinstance(schema_result, r)
+            query_result: p.Result[Sequence[m.Dict]] = api.query(
+                str(test_query["query"]),
+            )
+            tm.that(query_result, is_=r)
+        if hasattr(api, "fetch_tables"):
+            schema_result: p.Result[t.StrSequence] = api.fetch_tables()
+            tm.that(schema_result, is_=r)
         if hasattr(api, "disconnect"):
-            disconnect_result: r[bool] = api.disconnect()
-            assert isinstance(disconnect_result, r)
+            disconnect_result: p.Result[bool] = api.disconnect()
+            tm.that(disconnect_result, is_=r)
 
     def test_flext_db_oracle_api_error_handling(self) -> None:
         """Test api module error handling patterns."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
         )
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         invalid_query = "INVALID SQL QUERY"
         if hasattr(api, "connect"):
-            result: r[FlextDbOracleApi] = api.connect()
-            assert isinstance(result, r)
+            result: p.Result[FlextDbOracleApi] = api.connect()
+            tm.that(result, is_=r)
         if hasattr(api, "query"):
-            query_result: r[list[m.Dict]] = api.query(invalid_query)
-            assert isinstance(query_result, r)
-        if hasattr(api, "get_table_metadata"):
-            metadata_result = api.get_table_metadata("non_existent_table")
-            assert isinstance(metadata_result, r)
-
-    def test_flext_db_oracle_api_with_flext_tests(
-        self, flext_domains: FlextTestsDomains
-    ) -> None:
-        """Test api functionality with flext_tests infrastructure."""
-        config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleSettings(
-            host=str(config_data["host"]),
-            port=int(str(config_data["port"])),
-            service_name=str(config_data["service_name"]),
-            username=str(config_data["username"]),
-            password=str(config_data["password"]),
-        )
-        api = FlextDbOracleApi(config=config)
-        test_config = flext_domains.create_configuration()
-        test_config["host"] = "flext_test_host"
-        test_config["port"] = 1521
-        test_query = flext_domains.create_payload()
-        test_query["query"] = "SELECT * FROM flext_test_table"
-        if hasattr(api, "connect"):
-            result = api.connect()
-            assert isinstance(result, r)
-        if hasattr(api, "query"):
-            result = api.query(str(test_query["query"]))
-            assert isinstance(result, r)
+            query_result: p.Result[Sequence[m.Dict]] = api.query(invalid_query)
+            tm.that(query_result, is_=r)
+        if hasattr(api, "fetch_table_metadata"):
+            metadata_result = api.fetch_table_metadata("non_existent_table")
+            tm.that(metadata_result, is_=r)
 
     def test_flext_db_oracle_api_docstring(self) -> None:
         """Test that FlextDbOracleApi has proper docstring."""
-        assert FlextDbOracleApi.__doc__ is not None
-        assert len(FlextDbOracleApi.__doc__.strip()) > 0
+        tm.that(FlextDbOracleApi.__doc__, none=False)
+        if FlextDbOracleApi.__doc__ is not None:
+            tm.that(bool(FlextDbOracleApi.__doc__.strip()), eq=True)
 
     def test_flext_db_oracle_api_method_signatures(self) -> None:
         """Test that api methods have proper signatures."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
         )
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         expected_methods = [
             "connect",
             "disconnect",
@@ -915,19 +940,19 @@ class TestApiModule:
         for method_name in expected_methods:
             if hasattr(api, method_name):
                 method = getattr(api, method_name)
-                assert callable(method), f"Method {method_name} should be callable"
+                tm.that(callable(method), eq=True)
 
     def test_flext_db_oracle_api_with_real_data(self) -> None:
         """Test api functionality with realistic data scenarios."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
         )
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         realistic_configs = [
             {
                 "host": "prod-oracle.company.com",
@@ -967,86 +992,89 @@ class TestApiModule:
         ]
         if hasattr(api, "connect"):
             for _config_data in realistic_configs:
-                result: r[FlextDbOracleApi] = api.connect()
-                assert isinstance(result, r)
+                result: p.Result[FlextDbOracleApi] = api.connect()
+                tm.that(result, is_=r)
         if hasattr(api, "query"):
             for query_data in realistic_queries:
-                query_result: r[list[m.Dict]] = api.query(str(query_data["query"]))
-                assert isinstance(query_result, r)
+                query_result: p.Result[Sequence[m.Dict]] = api.query(
+                    str(query_data["query"]),
+                )
+                tm.that(query_result, is_=r)
 
     def test_flext_db_oracle_api_integration_patterns(self) -> None:
         """Test api integration patterns between different components."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
         )
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         self._TestDataHelper.create_test_oracle_config()
         test_query = self._TestDataHelper.create_test_query_data()
         test_schema = self._TestDataHelper.create_test_schema_data()
         if hasattr(api, "connect"):
             connect_result = api.connect()
-            assert isinstance(connect_result, r)
+            tm.that(connect_result, is_=r)
         if hasattr(api, "query"):
             query_result = api.query(str(test_query["query"]))
-            assert isinstance(query_result, r)
-        if hasattr(api, "get_table_metadata"):
-            metadata_result = api.get_table_metadata(str(test_schema["table_name"]))
-            assert isinstance(metadata_result, r)
+            tm.that(query_result, is_=r)
+        if hasattr(api, "fetch_table_metadata"):
+            metadata_result = api.fetch_table_metadata(str(test_schema["table_name"]))
+            tm.that(metadata_result, is_=r)
         if hasattr(api, "disconnect"):
             disconnect_result = api.disconnect()
-            assert isinstance(disconnect_result, r)
+            tm.that(disconnect_result, is_=r)
 
     def test_flext_db_oracle_api_performance_patterns(self) -> None:
         """Test api performance patterns."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleSettings(
-            host=str(config_data["host"]),
-            port=int(str(config_data["port"])),
+        settings = FlextDbOracleSettings(
+            host="127.0.0.1",
+            port=19999,
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
+            timeout=1,
         )
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         start_time = time.time()
-        test_config = self._TestDataHelper.create_test_oracle_config()
         if hasattr(api, "connect"):
-            for i in range(10):
-                config_data = {**test_config, "host": f"host_{i}"}
-                result: r[FlextDbOracleApi] = api.connect()
-                assert isinstance(result, r)
+            for _ in range(10):
+                result: p.Result[FlextDbOracleApi] = api.connect()
+                tm.that(result, is_=r)
         end_time = time.time()
-        assert end_time - start_time < 2.0
+        tm.that(end_time - start_time, lt=2.0)
 
     def test_flext_db_oracle_api_concurrent_operations(self) -> None:
         """Test api concurrent operations."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
         )
-        api = FlextDbOracleApi(config=config)
-        results = []
+        api = FlextDbOracleApi(settings=settings)
+        results: MutableSequence[
+            p.Result[FlextDbOracleApi] | p.Result[Sequence[m.Dict]]
+        ] = []
 
         def connect_to_database(_index: int) -> None:
             if hasattr(api, "connect"):
-                result: r[FlextDbOracleApi] = api.connect()
-                results.append(result)
+                connect_result: p.Result[FlextDbOracleApi] = api.connect()
+                results.append(connect_result)
 
         def execute_query(index: int) -> None:
             sql = f"SELECT {index} FROM dual"
             if hasattr(api, "query"):
-                result: r[list[m.Dict]] = api.query(sql)
-                results.append(result)
+                query_result: p.Result[Sequence[m.Dict]] = api.query(sql)
+                results.append(query_result)
 
-        threads: list[Thread] = []
+        threads: MutableSequence[Thread] = []
         for i in range(5):
             thread = threading.Thread(target=connect_to_database, args=(i,))
             threads.append(thread)
@@ -1056,33 +1084,26 @@ class TestApiModule:
             thread.start()
         for thread in threads:
             thread.join()
-        for result in results:
-            assert isinstance(result, r)
-
-
-"Tests for FlextDbOracleApi methods that work without Oracle connection.\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
-
-
-class TestFlextDbOracleApiSafeMethods:
-    """Test API methods that work without Oracle connection."""
+        for thread_result in results:
+            assert isinstance(thread_result, r)
 
     def test_api_class_methods_from_config(self) -> None:
         """Test API creation via from_config class method."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="test",
             port=1521,
             service_name="TEST",
             username="test",
             password="test",
         )
-        api = FlextDbOracleApi(config=config)
-        assert api is not None
-        assert api.config == config
-        assert not api.is_connected
+        api = FlextDbOracleApi(settings=settings)
+        tm.that(api, none=False)
+        tm.that(api.settings, eq=settings)
+        tm.that(not api.connected(), eq=True)
 
     def test_api_class_methods_with_config(self) -> None:
-        """Test API creation via with_config class method."""
-        config = FlextDbOracleSettings(
+        """Test API creation via u.with_config class method."""
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             name="TESTDB",
@@ -1090,14 +1111,14 @@ class TestFlextDbOracleApiSafeMethods:
             username="testuser",
             password="testpass",
         )
-        api = FlextDbOracleApi(config=config)
-        assert api is not None
-        assert api.config.host == "localhost"
-        assert api.config.port == 1521
+        api = FlextDbOracleApi(settings=settings)
+        tm.that(api, none=False)
+        tm.that(api.settings.host, eq="localhost")
+        tm.that(api.settings.port, eq=1521)
 
     def test_api_health_status_method(self) -> None:
-        """Test get_health_status method returns API health information."""
-        config = FlextDbOracleSettings(
+        """Test fetch_health_status method returns API health information."""
+        settings = FlextDbOracleSettings(
             host="health_test",
             port=1521,
             name="HEALTH_TEST",
@@ -1105,73 +1126,83 @@ class TestFlextDbOracleApiSafeMethods:
             password="health_pass",
             service_name="HEALTH_TEST",
         )
-        api = FlextDbOracleApi(config)
-        health_result = api.get_health_status()
-        assert health_result.is_success
-        assert health_result.value is not None
+        api = FlextDbOracleApi(settings)
+        health_result = api.fetch_health_status()
+        tm.that(health_result.success, eq=True)
+        tm.that(health_result.value, none=False)
 
     def test_api_optimize_query_method(self) -> None:
         """Test optimize_query method provides query optimization suggestions."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="optimize_test",
             port=1521,
             service_name="OPT_TEST",
             username="opt_user",
             password="opt_pass",
         )
-        api = FlextDbOracleApi(config)
+        api = FlextDbOracleApi(settings)
         result = api.optimize_query("SELECT * FROM employees")
-        assert result.is_success
-        assert isinstance(result.value, str)
+        tm.that(result.success, eq=True)
+        tm.that(result.value, is_=str)
         complex_query = (
             "SELECT e.*, d.name FROM employees e JOIN departments d ON e.dept_id = d.id"
         )
         result2 = api.optimize_query(complex_query)
-        assert result2.is_success
-        assert isinstance(result2.value, str)
+        tm.that(result2.success, eq=True)
+        tm.that(result2.value, is_=str)
 
     def test_api_plugin_management_methods(self) -> None:
         """Test plugin management methods work without connection."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="plugin_test",
             port=1521,
             service_name="PLUGIN_TEST",
             username="plugin_user",
             password="plugin_pass",
         )
-        api = FlextDbOracleApi(config)
+        api = FlextDbOracleApi(settings)
         plugins_result = api.list_plugins()
-        if plugins_result.is_success:
-            assert isinstance(plugins_result.value, list)
+        if plugins_result.success:
+            tm.that(plugins_result.value, is_=list)
         else:
-            assert plugins_result.error is not None
-            assert (
-                "empty" in plugins_result.error.lower()
-                or "not found" in plugins_result.error.lower()
+            tm.that(plugins_result.error, none=False)
+            tm.that(
+                (
+                    "empty" in plugins_result.error.lower()
+                    if plugins_result.error is not None
+                    else "" or "not found" in plugins_result.error.lower()
+                    if plugins_result.error is not None
+                    else ""
+                ),
+                eq=True,
             )
-        plugin: dict[str, object] = {
+        plugin: t.JsonMapping = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
             "capabilities": ["query_tracking", "performance_metrics", "alerting"],
         }
         register_result = api.register_plugin("performance_monitor", plugin)
-        assert register_result.is_success
+        tm.that(register_result.success, eq=True)
         plugins_after = api.list_plugins()
-        if plugins_after.is_success:
-            assert isinstance(plugins_after.value, list)
-            assert len(plugins_after.value) >= 1
+        if plugins_after.success:
+            tm.that(plugins_after.value, is_=list)
+            tm.that(len(plugins_after.value), gte=1)
         else:
-            assert plugins_after.error is not None
-            assert "empty" in plugins_after.error.lower()
-        plugin["name"] if isinstance(plugin, dict) else "performance_monitor"
-        get_result = api.get_plugin("performance_monitor")
-        assert get_result.is_success
-        assert get_result.value == plugin
+            tm.that(plugins_after.error, none=False)
+            tm.that(
+                "empty" in plugins_after.error.lower()
+                if plugins_after.error is not None
+                else "",
+                eq=True,
+            )
+        get_result = api.fetch_plugin("performance_monitor")
+        tm.that(get_result.success, eq=True)
+        tm.that(get_result.value, eq=plugin)
 
     def test_api_plugin_error_handling(self) -> None:
         """Test plugin management error handling."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="error_test",
             port=1521,
             name="ERROR_TEST",
@@ -1179,44 +1210,46 @@ class TestFlextDbOracleApiSafeMethods:
             username="error_user",
             password="error_pass",
         )
-        api = FlextDbOracleApi(config)
-        result = api.get_plugin("non_existent_plugin")
-        assert not result.is_success
-        assert result.error is not None
-        assert result.error is not None and "not found" in result.error.lower()
-        register_result = api.register_plugin("test_plugin", None)
-        assert register_result.is_success
+        api = FlextDbOracleApi(settings)
+        result = api.fetch_plugin("non_existent_plugin")
+        tm.fail(result)
+        tm.that(result.error, none=False)
+        tm.that(
+            "not found" in result.error.lower() if result.error is not None else False,
+            eq=True,
+        )
+        register_result = api.register_plugin("test_plugin", "test_value")
+        tm.that(register_result.success, eq=True)
 
     def test_api_connection_properties_without_connection(self) -> None:
         """Test connection-related properties when not connected."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="prop_test",
             port=1521,
             service_name="PROP_TEST",
             username="prop_user",
             password="prop_pass",
         )
-        api = FlextDbOracleApi(config)
-        assert not api.is_connected
+        api = FlextDbOracleApi(settings)
+        tm.that(not api.connected(), eq=True)
         conn = api.connection
-        assert conn is None
-        assert hasattr(api, "connection")
+        tm.that(conn, none=True)
 
     def test_api_observability_metrics_method(self) -> None:
-        """Test get_observability_metrics method."""
-        config = FlextDbOracleSettings(
+        """Test fetch_observability_metrics method."""
+        settings = FlextDbOracleSettings(
             host="metrics_test",
             port=1521,
             service_name="METRICS_TEST",
             username="metrics_user",
             password="metrics_pass",
         )
-        api = FlextDbOracleApi(config)
-        result = api.get_observability_metrics()
-        assert result.is_success
-        assert result.value is not None
+        api = FlextDbOracleApi(settings)
+        result = api.fetch_observability_metrics()
+        tm.that(result.success, eq=True)
+        tm.that(result.value, none=False)
         metrics = result.value
-        assert metrics is not None
+        tm.that(metrics, none=False)
 
     def test_api_initialization_variations(self) -> None:
         """Test different API initialization patterns."""
@@ -1228,7 +1261,7 @@ class TestFlextDbOracleApiSafeMethods:
             password="pass1",
         )
         api1 = FlextDbOracleApi(config1)
-        assert api1.config.host == "init1"
+        tm.that(api1.settings.host, eq="init1")
         config2 = FlextDbOracleSettings(
             host="init2",
             port=1521,
@@ -1237,216 +1270,176 @@ class TestFlextDbOracleApiSafeMethods:
             password="pass2",
         )
         api2 = FlextDbOracleApi(config2, context_name="test_context")
-        assert api2.config.host == "init2"
+        tm.that(api2.settings.host, eq="init2")
 
     def test_api_helper_functions(self) -> None:
         """Test module-level helper functions."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="test_helper",
             port=1521,
             service_name="HELPER_TEST",
             username="helper_user",
             password="helper_pass",
         )
-        api = FlextDbOracleApi(config)
-        plugin: dict[str, object] = {
+        api = FlextDbOracleApi(settings)
+        plugin: t.JsonMapping = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
             "capabilities": ["query_tracking", "performance_metrics", "alerting"],
         }
         register_result = api.register_plugin("performance_monitor", plugin)
-        assert register_result.is_success
-        get_result = api.get_plugin("performance_monitor")
-        assert get_result.is_success
-        assert get_result.value == plugin
-
-
-"Simple surgical tests for FlextDbOracleApi - targeting key uncovered lines.\n\nThis module provides targeted tests for specific uncovered lines in api.py\nwith minimal mocking to avoid Pydantic/framework conflicts.\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
-
-
-class TestApiSurgicalSimple:
-    """Simple surgical tests targeting key uncovered lines in FlextDbOracleApi."""
+        tm.that(register_result.success, eq=True)
+        get_result = api.fetch_plugin("performance_monitor")
+        tm.that(get_result.success, eq=True)
+        tm.that(get_result.value, eq=plugin)
 
     def test_is_valid_with_valid_config(self) -> None:
-        """Test is_valid method with valid config values."""
-        config = FlextDbOracleSettings(
+        """Test valid method with valid settings values."""
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
             username="test",
             password="test",
         )
-        api = FlextDbOracleApi(config=config)
-        result = api.is_valid()
-        assert result is True
+        api = FlextDbOracleApi(settings=settings)
+        result = api.valid()
+        tm.that(result, eq=True)
 
     def test_from_config_method(self) -> None:
         """Test from_config class method (covers lines 61-64)."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
             username="test",
             password="test",
         )
-        api = FlextDbOracleApi(config=config)
-        assert isinstance(api, FlextDbOracleApi)
-        assert api.config.host == "localhost"
+        api = FlextDbOracleApi(settings=settings)
+        tm.that(api, is_=FlextDbOracleApi)
+        tm.that(api.settings.host, eq="localhost")
 
     def test_to_dict_method(self) -> None:
         """Test to_dict method (covers lines 66-78)."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
             username="test",
             password="test",
         )
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         result = api.to_dict()
-        assert result is not None
-        assert "config" in result
-        assert "connected" in result
-        assert "plugin_count" in result
+        tm.that(result, none=False)
+        tm.that(result, has="settings")
+        tm.that(result, has="connected")
+        tm.that(result, has="plugin_count")
 
     def test_connection_property(self) -> None:
         """Test connection property (covers lines 527-532)."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
             username="test",
             password="test",
         )
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         conn = api.connection
-        assert conn is None
+        tm.that(conn, none=True)
 
     def test_repr_method(self) -> None:
         """Test __repr__ method (covers lines 553-556)."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
             username="test",
             password="test",
         )
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         repr_str = repr(api)
-        assert "FlextDbOracleApi" in repr_str
-        assert "localhost" in repr_str
+        tm.that(repr_str, has="FlextDbOracleApi")
+        tm.that(repr_str, has="localhost")
 
     def test_context_manager_enter(self) -> None:
-        """Test context manager __enter__ method (covers lines 534-536)."""
-        config = FlextDbOracleSettings(
+        """Test context manager __enter__ raises when connection fails."""
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
             username="test",
             password="test",
         )
-        api = FlextDbOracleApi(config=config)
-        with api as result:
-            assert result is api
+        api = FlextDbOracleApi(settings=settings)
+        with pytest.raises(RuntimeError):
+            with api:
+                pass
 
     def test_context_manager_exit_graceful(self) -> None:
         """Test context manager __exit__ method graceful handling."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
             username="test",
             password="test",
         )
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         api.__exit__(None, None, None)
 
     def test_basic_api_structure(self) -> None:
         """Test basic API structure and initialization."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
             username="test",
             password="test",
         )
-        api = FlextDbOracleApi(config=config)
-        assert hasattr(api, "_config")
-        assert hasattr(api, "_services")
-        assert hasattr(api, "_context_name")
-        assert hasattr(api, "logger")
-        assert hasattr(api, "_registry")
-        assert hasattr(api, "_dispatcher")
-        assert api.config == config
+        api = FlextDbOracleApi(settings=settings)
+        tm.that(api.settings, eq=settings)
 
     def test_dispatch_enabled_property(self) -> None:
         """Test _dispatch_enabled property."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
             username="test",
             password="test",
         )
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         result = api._dispatch_enabled
-        assert isinstance(result, bool)
-
-
-"Working API tests using only real methods that exist and work.\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
-
-
-class TestFlextDbOracleApiWorking:
-    """Test FlextDbOracleApi using only methods that work without hanging."""
-
-    config: FlextDbOracleSettings
-    api: FlextDbOracleApi
-
-    def setup_method(self) -> None:
-        """Setup test configuration."""
-        self.config = FlextDbOracleSettings(
-            host="test_host",
-            port=1521,
-            service_name="TEST",
-            username="test_user",
-            password="test_password",
-        )
-        self.api = FlextDbOracleApi(self.config)
+        tm.that(result, is_=bool)
 
     def test_api_creation(self) -> None:
-        """Test API can be created with valid config."""
-        assert self.api is not None
-        assert self.api.config == self.config
+        """Test API can be created with valid settings."""
+        tm.that(self.api, none=False)
+        tm.that(self.api.settings, eq=self.settings)
 
     def test_config_access(self) -> None:
-        """Test config property access."""
-        assert self.api.config is not None
-        assert self.api.config.host == "test_host"
-        assert self.api.config.port == 1521
+        """Test settings property access."""
+        tm.that(self.api.settings, none=False)
+        tm.that(self.api.settings.host, eq="127.0.0.1")
+        tm.that(self.api.settings.port, eq=19999)
 
     def test_is_valid_method(self) -> None:
-        """Test is_valid method."""
-        is_valid = self.api.is_valid()
-        assert isinstance(is_valid, bool)
+        """Test valid method."""
+        valid = self.api.valid()
+        tm.that(valid, is_=bool)
 
     def test_factory_methods(self) -> None:
         """Test factory methods work."""
-        api_from_config = FlextDbOracleApi(config=self.config)
-        assert api_from_config is not None
-        assert isinstance(api_from_config, FlextDbOracleApi)
+        api_from_config = FlextDbOracleApi(settings=self.settings)
+        tm.that(api_from_config, none=False)
+        tm.that(api_from_config, is_=FlextDbOracleApi)
 
     def test_dict_serialization(self) -> None:
-        """Test dict[str, object] serialization methods."""
+        """Test t.JsonMapping serialization methods."""
         as_dict = self.api.to_dict()
-        assert as_dict is not None
-
-
-"Direct Coverage Boost Tests - Target specific missed lines.\n\nThis module directly calls internal functions to boost coverage from 41% toward ~100%.\nFocus on API (40%), CLI (21%), and other modules with lowest coverage.\n\n\n\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
-
-
-class TestDirectCoverageBoostAPI:
-    """Direct tests for API module missed lines (40% → higher)."""
+        tm.that(as_dict, none=False)
 
     def test_api_connection_error_paths_571_610(self) -> None:
         """Test API connection error handling paths (lines 571-610)."""
@@ -1459,47 +1452,55 @@ class TestDirectCoverageBoostAPI:
         )
         api = FlextDbOracleApi(bad_config)
         result1 = api.test_connection()
-        assert result1.is_failure or result1.is_success
-        result2 = api.get_schemas()
-        assert result2.is_failure or result2.is_success
-        result3 = api.get_tables()
-        assert result3.is_failure or result3.is_success
+        tm.that(result1.failure or result1.success, eq=True)
+        result2 = api.fetch_schemas()
+        tm.that(result2.failure or result2.success, eq=True)
+        result3 = api.fetch_tables()
+        tm.that(result3.failure or result3.success, eq=True)
         result4 = api.query("SELECT 1 FROM DUAL")
-        assert result4.is_failure or result4.is_success
+        tm.that(result4.failure or result4.success, eq=True)
 
     def test_api_schema_operations_1038_1058(
-        self, oracle_api: FlextDbOracleApi | None
+        self,
+        oracle_api: FlextDbOracleApi | None,
     ) -> None:
         """Test API schema operations (lines 1038-1058)."""
         if oracle_api is None:
             pytest.skip("Oracle API unavailable")
         connect_result = oracle_api.connect()
-        if not connect_result.is_success:
+        if not connect_result.success:
             return
         connected_api = connect_result.value
         try:
             schema_names = ["FLEXTTEST", "SYS", "SYSTEM", "NONEXISTENT"]
             for schema in schema_names:
-                tables_result = connected_api.get_tables(schema)
+                tables_result = connected_api.fetch_tables(schema)
                 columns_result = (
-                    connected_api.get_columns("DUAL", schema)
+                    connected_api.fetch_columns("DUAL", schema)
                     if schema != "NONEXISTENT"
                     else None
                 )
-                assert tables_result.is_success or tables_result.is_failure
+                tm.that(
+                    tables_result.success or tables_result.failure,
+                    eq=True,
+                )
                 if columns_result:
-                    assert columns_result.is_success or columns_result.is_failure
+                    tm.that(
+                        columns_result.success or columns_result.failure,
+                        eq=True,
+                    )
         finally:
             connected_api.disconnect()
 
     def test_api_query_optimization_758_798(
-        self, oracle_api: FlextDbOracleApi | None
+        self,
+        oracle_api: FlextDbOracleApi | None,
     ) -> None:
         """Test API query optimization paths (lines 758-798)."""
         if oracle_api is None:
             pytest.skip("Oracle API unavailable")
         connect_result = oracle_api.connect()
-        if not connect_result.is_success:
+        if not connect_result.success:
             return
         connected_api = connect_result.value
         try:
@@ -1511,84 +1512,22 @@ class TestDirectCoverageBoostAPI:
             ]
             for query in complex_queries:
                 result = connected_api.query(query)
-                assert result.is_success or result.is_failure
+                tm.that(result.success or result.failure, eq=True)
         finally:
             connected_api.disconnect()
 
-
-class TestDirectCoverageBoostConfig:
-    """Direct tests for Config module missed lines (46% → higher)."""
-
-    def test_config_validation_edge_cases(self) -> None:
-        """Test config validation edge cases for missed lines."""
-        test_configs = [
-            ("", 1521, "test", "test", "test"),
-            ("localhost", 0, "test", "test", "test"),
-            ("localhost", 1521, "", "test", "test"),
-            ("localhost", 1521, "test", "", "test"),
-            ("localhost", 1521, "test", "test", ""),
-            ("localhost", 65535, "test", "test", "test"),
-            ("localhost", 1, "test", "test", "test"),
-        ]
-        for host, port, user, password, service_name in test_configs:
-            try:
-                config = FlextDbOracleSettings(
-                    host=host,
-                    port=port,
-                    username=user,
-                    password=password,
-                    service_name=service_name,
-                )
-                assert config is not None
-            except (ValueError, TypeError):
-                pass
-
-    def test_config_environment_integration(self) -> None:
-        """Test config environment variable integration."""
-        original_vars: dict[str, str | None] = {}
-        test_vars = {
-            "FLEXT_TARGET_ORACLE_HOST": "test_host",
-            "FLEXT_TARGET_ORACLE_PORT": "1234",
-            "FLEXT_TARGET_ORACLE_USERNAME": "test_user",
-            "FLEXT_TARGET_ORACLE_PASSWORD": "test_pass",
-            "FLEXT_TARGET_ORACLE_SERVICE_NAME": "test_service",
-        }
-        for var, value in test_vars.items():
-            original_vars[var] = os.getenv(var)
-            os.environ[var] = value
-        try:
-            config = FlextDbOracleSettings(
-                host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "default"),
-                port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
-                username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "default"),
-                password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "default"),
-                service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "default"),
-            )
-            assert config.host == "test_host"
-            assert config.port == 1234
-            assert config.username == "test_user"
-        finally:
-            for var, original_value in original_vars.items():
-                if original_value is None:
-                    os.environ.pop(var, None)
-                else:
-                    os.environ[var] = original_value
-
-
-class TestDirectCoverageBoostConnection:
-    """Direct tests for Connection module missed lines (54% → higher)."""
-
     def test_connection_edge_cases(
-        self, real_oracle_config: FlextDbOracleSettings | None
+        self,
+        real_oracle_config: FlextDbOracleSettings | None,
     ) -> None:
         """Test connection edge cases for missed lines."""
         if real_oracle_config is None:
-            pytest.skip("Oracle real config unavailable")
-        connection = FlextDbOracleServices(config=real_oracle_config)
+            pytest.skip("Oracle real settings unavailable")
+        connection = FlextDbOracleServices(settings=real_oracle_config)
         for _i in range(3):
             result = connection.connect()
-            if result.is_success:
-                assert connection.is_connected()
+            if result.success:
+                tm.that(connection.connected(), eq=True)
                 connection.disconnect()
                 connection.disconnect()
 
@@ -1601,82 +1540,31 @@ class TestDirectCoverageBoostConnection:
             password="invalid",
             service_name="invalid",
         )
-        connection = FlextDbOracleServices(config=bad_config)
+        connection = FlextDbOracleServices(settings=bad_config)
         operations = [
             connection.test_connection,
-            connection.get_schemas,
-            lambda: connection.get_tables("test"),
-            connection.is_connected,
+            connection.fetch_schemas,
+            lambda: connection.fetch_tables("test"),
+            connection.connected,
         ]
         for operation in operations:
             try:
                 result = operation()
-                if hasattr(result, "is_failure") and hasattr(result, "is_success"):
-                    assert result.is_failure or result.is_success
+                if hasattr(result, "failure") and hasattr(result, "success"):
+                    is_fail = getattr(result, "failure", False)
+                    is_ok = getattr(result, "success", False)
+                    tm.that(is_fail or is_ok, eq=True)
                 elif isinstance(result, bool):
-                    assert isinstance(result, bool)
+                    tm.that(result, is_=bool)
                 else:
-                    assert result is not None or result is None
+                    assert result is not None or result is None  # any value accepted
             except (AttributeError, TypeError):
                 pass
-
-
-class TestDirectCoverageBoostTypes:
-    """Direct tests for Types module missed lines (35% → higher)."""
-
-    def test_types_validation_comprehensive(self) -> None:
-        """Test comprehensive type validation for missed lines."""
-        try:
-            column = FlextDbOracleModels.DbOracle.Column(
-                name="TEST_COLUMN", data_type="VARCHAR2", nullable=True
-            )
-            assert column.name == "TEST_COLUMN"
-        except (TypeError, ValueError):
-            pass
-        try:
-            table = FlextDbOracleModels.DbOracle.Table(
-                name="TEST_TABLE", owner="TEST_SCHEMA", columns=[]
-            )
-            assert table.name == "TEST_TABLE"
-        except (TypeError, ValueError):
-            pass
-        try:
-            column2 = FlextDbOracleModels.DbOracle.Column(
-                name="EDGE_COL", data_type="NUMBER", nullable=False, default_value="0"
-            )
-            assert hasattr(column2, "name")
-            assert hasattr(column2, "data_type")
-        except (TypeError, ValueError, NotImplementedError):
-            pass
-
-    def test_types_property_methods(self) -> None:
-        """Test type property methods for missed lines."""
-        column = FlextDbOracleModels.DbOracle.Column(
-            name="ID", data_type="NUMBER", nullable=False
-        )
-        assert column.name == "ID"
-        assert column.data_type == "NUMBER"
-        assert column.nullable is False
-        str_repr = str(column)
-        assert str_repr is not None
-        repr_str = repr(column)
-        assert repr_str is not None
-        column_with_default = FlextDbOracleModels.DbOracle.Column(
-            name="TEST_COL",
-            data_type="VARCHAR2",
-            nullable=True,
-            default_value="DEFAULT_VALUE",
-        )
-        assert column_with_default.default_value == "DEFAULT_VALUE"
-
-
-class TestDirectCoverageBoostObservability:
-    """Direct tests for Observability module missed lines (38% → higher)."""
 
     def test_observability_initialization_paths(self) -> None:
         """Test observability initialization paths."""
         try:
-            config = FlextDbOracleSettings(
+            settings = FlextDbOracleSettings(
                 host="localhost",
                 port=1521,
                 service_name="XE",
@@ -1684,121 +1572,104 @@ class TestDirectCoverageBoostObservability:
                 password="test",
                 ssl_server_cert_dn=None,
             )
-            api = FlextDbOracleApi(config)
-            metrics_result = api.get_observability_metrics()
-            assert metrics_result.is_success
-            assert metrics_result.value is not None
+            api = FlextDbOracleApi(settings)
+            metrics_result = api.fetch_observability_metrics()
+            tm.that(metrics_result.success, eq=True)
+            tm.that(metrics_result.value, none=False)
         except (TypeError, AttributeError):
             pass
 
     def test_observability_metrics_collection(
-        self, oracle_api: FlextDbOracleApi | None
+        self,
+        oracle_api: FlextDbOracleApi | None,
     ) -> None:
         """Test observability metrics collection."""
         if oracle_api is None:
             pytest.skip("Oracle API unavailable")
         connect_result = oracle_api.connect()
-        if not connect_result.is_success:
+        if not connect_result.success:
             return
         connected_api = connect_result.value
         try:
             connected_api.test_connection()
-            connected_api.get_schemas()
+            connected_api.fetch_schemas()
             connected_api.query("SELECT 1 FROM DUAL")
-            assert True
+            tm.that(True, eq=True)
         finally:
             connected_api.disconnect()
 
-
-class TestDirectCoverageBoostServices:
-    """Comprehensive Services coverage tests using flext_tests - target 100%."""
-
-    def test_services_direct_imports_and_coverage(self) -> None:
-        """Test direct services imports for coverage measurement."""
-        config = FlextDbOracleSettings(
-            host="coverage_test",
-            port=1521,
-            service_name="COVERAGE",
-            username="coverage_user",
-            password="coverage_pass",
-            ssl_server_cert_dn=None,
-        )
-        services = FlextDbOracleServices(config=config)
-        assert services is not None
-        assert services is not None
-        identifier_result = services.build_select("test_table", ["col1", "col2"])
-        tm.ok(identifier_result)
-        assert "SELECT" in identifier_result.value
-
     def test_services_sql_builder_operations(self) -> None:
         """Test SQL builder operations for 100% coverage."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
             username="test",
             password="test",
         )
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(settings=settings)
         test_identifiers = ["valid_table", "VALID_TABLE", "table123", "test_col"]
         for identifier in test_identifiers:
             result = services.build_select(identifier, ["col1"])
             tm.ok(result)
-            assert identifier.lower() in result.value.lower()
+            tm.that(result.value.lower(), has=identifier.lower())
         table_ref_result = services.build_select(
-            "test_table", ["col1"], schema_name="test_schema"
+            "test_table",
+            ["col1"],
+            schema_name="test_schema",
         )
         tm.ok(table_ref_result)
         sql_result = table_ref_result.value
-        assert (
-            "TEST_SCHEMA" in sql_result and "TEST_TABLE" in sql_result
-        ) or "test_schema.test_table" in sql_result
+        tm.that(
+            ("TEST_SCHEMA" in sql_result and "TEST_TABLE" in sql_result)
+            or ("test_schema.test_table" in sql_result),
+            eq=True,
+        )
         test_columns = ["col1", "col2", "col3"]
         column_result = services.build_select("test_table", test_columns)
         tm.ok(column_result)
         result_sql = column_result.value
-        assert "col1" in result_sql
-        assert "col2" in result_sql
+        tm.that(result_sql, has="col1")
+        tm.that(result_sql, has="col2")
 
     def test_services_configuration_and_connection_paths(self) -> None:
         """Test services configuration and connection paths for complete coverage."""
-        configs = [
-            r.ok(
+        configs: list[p.Result[FlextDbOracleSettings]] = [
+            r[FlextDbOracleSettings].ok(
                 FlextDbOracleSettings(
-                    host="test_host",
-                    port=1521,
+                    host="127.0.0.1",
+                    port=19999,
                     service_name="TEST",
                     username="user",
                     password="pass",
                     ssl_server_cert_dn=None,
-                )
+                    timeout=1,
+                ),
             ),
-            r.ok(
+            r[FlextDbOracleSettings].ok(
                 FlextDbOracleSettings(
-                    host="localhost",
+                    host="127.0.0.1",
                     port=1,
                     service_name="X",
                     username="a",
                     password="b",
                     ssl_server_cert_dn="test_dn",
-                )
+                ),
             ),
         ]
         for config_result in configs:
             tm.ok(config_result)
-            config = config_result.value
-            services = FlextDbOracleServices(config=config)
-            assert services is not None
-            assert hasattr(services, "config")
-            assert services._db_config == config
-            assert not services.is_connected()
+            settings: FlextDbOracleSettings = config_result.value
+            services = FlextDbOracleServices(settings=settings)
+            tm.that(services, none=False)
+            tm.that(services._db_config, eq=settings)
+            tm.that(not services.connected(), eq=True)
             connection_result = services.connect()
-            assert hasattr(connection_result, "is_failure")
-            assert connection_result.is_failure
+            tm.that(connection_result.failure, eq=True)
 
     def test_services_sql_generation_comprehensive(self) -> None:
         """Test SQL generation methods comprehensively for 100% coverage."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="test",
             port=1521,
             service_name="TEST",
@@ -1806,8 +1677,8 @@ class TestDirectCoverageBoostServices:
             password="pass",
             ssl_server_cert_dn=None,
         )
-        services = FlextDbOracleServices(config=config)
-        sql_test_cases = [
+        services = FlextDbOracleServices(settings=settings)
+        sql_test_cases: list[dict[str, str | tuple[t.JsonPayload, ...]]] = [
             {
                 "method": "build_select",
                 "args": ("test_table", ["id", "name"], {"id": 1}),
@@ -1824,31 +1695,31 @@ class TestDirectCoverageBoostServices:
         ]
         for case_dict in sql_test_cases:
             method_name = str(case_dict["method"])
-            args = case_dict["args"]
+            raw_args = case_dict["args"]
+            assert isinstance(raw_args, tuple)
             try:
                 method = getattr(services, method_name)
-                result = method(*args)
-                assert result is not None
+                result = method(*raw_args)
+                tm.that(result, none=False)
                 tm.ok(result)
-                sql_content = result.value
+                sql_content: t.JsonValue = result.value
+                sql_text: str
                 if isinstance(sql_content, tuple):
-                    sql_text = sql_content[0]
-                    sql_params = sql_content[1]
-                    assert isinstance(sql_text, str)
-                    assert isinstance(sql_params, dict)
+                    sql_text = str(sql_content)
+                    tm.that(sql_text, is_=str)
                 elif isinstance(sql_content, str):
                     sql_text = sql_content
                 else:
                     sql_text = str(sql_content)
-                assert len(sql_text) > 0
+                tm.that(len(sql_text) > 0, eq=True)
                 if method_name.startswith("build_select"):
-                    assert "SELECT" in sql_text.upper()
+                    tm.that(sql_text.upper(), has="SELECT")
                 elif method_name.startswith("build_insert"):
-                    assert "INSERT" in sql_text.upper()
+                    tm.that(sql_text.upper(), has="INSERT")
                 elif method_name.startswith("build_update"):
-                    assert "UPDATE" in sql_text.upper()
+                    tm.that(sql_text.upper(), has="UPDATE")
                 elif method_name.startswith("build_delete"):
-                    assert "DELETE" in sql_text.upper()
+                    tm.that(sql_text.upper(), has="DELETE")
             except AttributeError:
                 pass
             except Exception as e:

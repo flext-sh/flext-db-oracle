@@ -12,41 +12,25 @@ import os
 import time
 from collections.abc import Generator
 from pathlib import Path
-from typing import Any
 
 import oracledb
 import pytest
-from flext_core import FlextLogger
-from flext_tests import FlextTestsDocker, FlextTestsDomains
+from flext_tests import tk
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from tests.constants import c
+from tests.protocols import p
+from tests.typings import t
+from tests.utilities import u
 
-logger = FlextLogger(__name__)
+logger = u.fetch_logger(__name__)
 
-
-class OperationTestError(Exception):
-    """Custom exception for test operations to avoid TRY003 lint warnings."""
-
-    def __init__(self, operation: str, error: str) -> None:
-        """Initialize with operation name and error details."""
-        super().__init__(f"{operation} failed: {error}")
-        self.operation = operation
-        self.error = error
+_ORACLE_CONTAINER_NAME = "flext-oracle-db-test"
 
 
 def pytest_configure(config: pytest.Config) -> None:
     """Configure pytest with Oracle container for ALL tests."""
-    config.addinivalue_line("markers", "oracle: Oracle database integration tests")
-    config.addinivalue_line(
-        "markers", "unit_pure: Pure unit tests with no external dependencies"
-    )
-    config.addinivalue_line(
-        "markers",
-        "unit_integration: Unit tests that can use real Oracle when available",
-    )
-    config.addinivalue_line(
-        "markers", "slow: Slow-running tests that should be run separately"
-    )
+    _ = config
     os.environ["SKIP_E2E_TESTS"] = "false"
     os.environ["ORACLE_INTEGRATION_TESTS"] = "1"
     os.environ["USE_REAL_ORACLE"] = "true"
@@ -54,168 +38,146 @@ def pytest_configure(config: pytest.Config) -> None:
 
 def pytest_sessionstart(session: pytest.Session) -> None:
     """Cleanup dirty containers BEFORE test session starts."""
+    _ = session
     try:
-        docker = FlextTestsDocker(workspace_root=Path(__file__).resolve().parents[2])
-        dirty_containers = docker.get_dirty_containers()
-        if not dirty_containers:
-            logger.debug("No dirty containers to clean")
-            return
-        container_name = "flext-oracle-db-test"
-        status_result = docker.get_container_status(container_name)
-        if status_result.is_success:
-            status = status_result.value
-            if status.status == docker.ContainerStatus.RUNNING:
-                docker.mark_container_clean(container_name)
-                logger.info(
-                    f"Container {container_name} is healthy, cleared dirty state"
-                )
-                return
-        cleanup_result = docker.cleanup_dirty_containers()
-        if cleanup_result.is_failure:
-            logger.warning(f"Dirty container cleanup failed: {cleanup_result.error}")
-        else:
-            cleaned = cleanup_result.value
-            if cleaned:
-                logger.info("Recreated dirty containers: %s", cleaned)
-            else:
-                logger.debug("No dirty containers to clean")
-    except Exception as e:
+        _cleanup_dirty_oracle_container()
+    except (ConnectionError, TimeoutError, OSError, RuntimeError) as e:
         logger.warning(f"Docker cleanup skipped (unavailable): {e}")
 
 
-def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> None:
+def _cleanup_dirty_oracle_container() -> None:
+    """Cleanup dirty Oracle test containers before the session starts."""
+    container_name = _ORACLE_CONTAINER_NAME
+    docker = tk.shared(
+        container_name,
+        workspace_root=Path(__file__).resolve().parents[2],
+    )
+    dirty_containers = docker.dirty_containers
+    if not dirty_containers:
+        logger.debug("No dirty containers to clean")
+        return
+    status_result = docker.fetch_container_status(container_name)
+    if status_result.success and status_result.value.status == (
+        c.Tests.ContainerStatus.RUNNING
+    ):
+        docker.mark_container_clean(container_name)
+        logger.info("Container %s is healthy, cleared dirty state", container_name)
+        return
+    cleanup_result = docker.cleanup_dirty_containers()
+    if cleanup_result.failure:
+        logger.warning(f"Dirty container cleanup failed: {cleanup_result.error}")
+        return
+    cleaned = cleanup_result.value
+    if cleaned:
+        logger.info(f"Recreated dirty containers: {', '.join(cleaned)}")
+        return
+    logger.debug("No dirty containers to clean")
+
+
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[None]) -> None:
     """Mark container dirty on Oracle service failures."""
     if call.excinfo is None:
         return
     try:
-        exc_type = call.excinfo.type
-        exc_msg = str(call.excinfo.value).lower()
-        oracle_service_errors = [
-            "ora-",
-            "connection refused",
-            "connection reset by peer",
-            "broken pipe",
-            "database not available",
-            "tns:",
-        ]
-        is_service_failure = any(
-            err in str(exc_type).lower() or err in exc_msg
-            for err in oracle_service_errors
-        )
-        if is_service_failure:
-            docker = FlextTestsDocker(
-                workspace_root=Path(__file__).resolve().parents[2]
-            )
-            docker.mark_container_dirty("flext-oracle-db-test")
-            logger.error(
-                f"ORACLE SERVICE FAILURE detected in {item.nodeid}, container marked DIRTY for recreation: {exc_msg}"
-            )
-    except Exception:
+        _mark_dirty_on_oracle_service_failure(item, call)
+    except (ConnectionError, TimeoutError, OSError, RuntimeError):
         pass
 
 
-@pytest.fixture(scope="session")
-def docker_control() -> FlextTestsDocker:
-    """Provide FlextTestsDocker instance for container management."""
-    return FlextTestsDocker(workspace_root=Path(__file__).resolve().parents[2])
+def _mark_dirty_on_oracle_service_failure(
+    item: pytest.Item,
+    call: pytest.CallInfo[None],
+) -> None:
+    """Mark the shared Oracle container dirty when an Oracle service error occurs."""
+    if call.excinfo is None:
+        return
+    exc_type = call.excinfo.type
+    exc_msg = str(call.excinfo.value).lower()
+    oracle_service_errors = (
+        "ora-",
+        "connection refused",
+        "connection reset by peer",
+        "broken pipe",
+        "database not available",
+        "tns:",
+    )
+    is_service_failure = any(
+        err in str(exc_type).lower() or err in exc_msg for err in oracle_service_errors
+    )
+    if not is_service_failure:
+        return
+    docker = tk.shared(
+        _ORACLE_CONTAINER_NAME,
+        workspace_root=Path(__file__).resolve().parents[2],
+    )
+    docker.mark_container_dirty(_ORACLE_CONTAINER_NAME)
+    logger.error(
+        "ORACLE SERVICE FAILURE detected in %s, container marked DIRTY for recreation: %s",
+        item.nodeid,
+        exc_msg,
+    )
 
 
 @pytest.fixture(scope="session")
-def shared_oracle_container(docker_control: FlextTestsDocker) -> str:
-    """Start and maintain flext-oracle-db-test container using same pattern as flext-ldap."""
-    container_name = "flext-oracle-db-test"
-    container_config = FlextTestsDocker.SHARED_CONTAINERS.get(container_name)
-    if container_config is None:
-        pytest.skip(f"Container {container_name} not found in SHARED_CONTAINERS")
-    compose_file_value = container_config.get("compose_file")
-    if compose_file_value is None:
-        pytest.skip(f"Container {container_name} missing compose_file config")
-    compose_file = str(compose_file_value)
-    if not compose_file.startswith("/"):
-        workspace_root = Path(__file__).resolve().parents[2]
-        compose_file = str(workspace_root / compose_file)
-    is_dirty = docker_control.is_container_dirty(container_name)
-    if is_dirty:
-        logger.info(
-            "Container %s is dirty, recreating with fresh volumes", container_name
+def docker_control() -> tk:
+    """Provide tk instance for container management."""
+    return tk.shared(
+        _ORACLE_CONTAINER_NAME,
+        workspace_root=Path(__file__).resolve().parents[2],
+    )
+
+
+@pytest.fixture(scope="session")
+def shared_oracle_container(docker_control: tk) -> str:
+    """Start and maintain flext-oracle-db-test container."""
+    container_name = _ORACLE_CONTAINER_NAME
+    ensure_result = docker_control.execute()
+    if ensure_result.failure:
+        pytest.skip(
+            f"Failed to start container {container_name}: {ensure_result.error}",
         )
-        cleanup_result = docker_control.cleanup_dirty_containers()
-        if cleanup_result.is_failure:
-            pytest.skip(
-                f"Failed to recreate dirty container {container_name}: {cleanup_result.error}"
-            )
-    else:
-        status = docker_control.get_container_status(container_name)
-        container_running = (
-            status.is_success
-            and isinstance(status.value, FlextTestsDocker.ContainerInfo)
-            and (status.value.status == FlextTestsDocker.ContainerStatus.RUNNING)
-        )
-        if not container_running:
-            logger.info(
-                "Container %s is not running (but not dirty), starting...",
-                container_name,
-            )
-            service_name = str(container_config.get("service", ""))
-            compose_result = docker_control.compose_up(
-                compose_file, service=service_name or None
-            )
-            if compose_result.is_failure:
-                pytest.skip(
-                    f"Failed to start container {container_name}: {compose_result.error}"
-                )
-        else:
-            logger.debug(
-                "Container %s is running and clean, no action needed", container_name
-            )
+    resolved_port = u.Tests.resolve_oracle_test_port(
+        docker_control,
+        container_name,
+    )
+    os.environ["TEST_ORACLE_PORT"] = str(resolved_port)
     max_wait: int = 300
     wait_interval: float = 5.0
     waited: float = 0.0
     logger.info("Waiting for container %s to be ready...", container_name)
     while waited < max_wait:
         try:
-            dsn = oracledb.makedsn("localhost", 1522, service_name="FLEXTDB")
+            dsn = oracledb.makedsn("localhost", resolved_port, service_name="FLEXTDB")
             connection = oracledb.connect(
-                user="flext_test", password="flext_test_password", dsn=dsn
+                user="flext_test",
+                password="flext_test_password",
+                dsn=dsn,
             )
             connection.close()
             logger.info(f"Container {container_name} is ready after {waited:.1f}s")
             break
-        except Exception as e:
+        except (oracledb.Error, ConnectionError, TimeoutError, OSError) as e:
             if waited % 30 == 0:
                 logger.debug(
-                    f"Container {container_name} not ready yet (waited {waited:.1f}s): {e}"
+                    f"Container {container_name} not ready yet (waited {waited:.1f}s): {e}",
                 )
         time.sleep(wait_interval)
         waited += wait_interval
     if waited >= max_wait:
         pytest.skip(
-            f"Container {container_name} did not become ready within {max_wait}s"
+            f"Container {container_name} did not become ready within {max_wait}s",
         )
     return container_name
 
 
 @pytest.fixture(scope="session")
 def oracle_container(shared_oracle_container: str) -> str:
-    """Provide Oracle container name for all tests.
-
-    This fixture ensures the Oracle container is running and provides its name.
-    """
+    """Provide Oracle container name for all tests."""
     return shared_oracle_container
 
 
-@pytest.fixture(scope="session", autouse=True)
-def ensure_shared_docker_container(shared_oracle_container: str) -> None:
-    """Ensure shared Docker container is started for ALL tests in the session.
-
-    This fixture automatically starts the shared Oracle container if not running,
-    and ensures it's available for all unit and integration tests.
-    """
-    _ = shared_oracle_container
-
-
 @pytest.fixture
-def real_oracle_config(oracle_container: str | None) -> FlextDbOracleSettings:
+def real_oracle_settings(oracle_container: str | None) -> FlextDbOracleSettings:
     """Return real Oracle configuration for tests that can use it."""
     if oracle_container is None:
         pytest.skip("Oracle container unavailable")
@@ -231,11 +193,134 @@ def real_oracle_config(oracle_container: str | None) -> FlextDbOracleSettings:
 
 
 @pytest.fixture
-def oracle_api(
+def real_oracle_config(
+    real_oracle_settings: FlextDbOracleSettings,
+) -> FlextDbOracleSettings:
+    """Backward-compatible alias for legacy fixture name used in some tests."""
+    return real_oracle_settings
+
+
+@pytest.fixture
+def oracle_config(
     real_oracle_config: FlextDbOracleSettings,
+) -> FlextDbOracleSettings:
+    """Backward-compatible alias for integration tests using ``oracle_config``."""
+    return real_oracle_config
+
+
+@pytest.fixture
+def oracle_api(
+    real_oracle_settings: FlextDbOracleSettings,
 ) -> FlextDbOracleApi:
     """Return Oracle API for tests that can use it."""
-    return FlextDbOracleApi(config=real_oracle_config)
+    return FlextDbOracleApi(settings=real_oracle_settings)
+
+
+def _assert_oracle_success[TResult](
+    result: p.Result[TResult],
+    operation: str,
+) -> None:
+    """Raise with a clear setup error when an Oracle operation fails."""
+    if result.failure:
+        error = result.error or ""
+        raise AssertionError(f"{operation} failed: {error}")
+
+
+def _user_tables(api: FlextDbOracleApi) -> set[str]:
+    """Return tables visible in the connected Oracle test schema."""
+    result = api.oracle_services.execute_query(
+        'SELECT table_name AS "table_name" FROM user_tables',
+    )
+    _assert_oracle_success(result, "List Oracle test tables")
+    return {str(row.root["table_name"]).upper() for row in result.value}
+
+
+def _ensure_table(api: FlextDbOracleApi, table_name: str, ddl: str) -> None:
+    """Create one test table when absent."""
+    if table_name.upper() in _user_tables(api):
+        return
+    result = api.execute_statement(ddl)
+    _assert_oracle_success(result, f"Create {table_name}")
+
+
+def _seed_row(api: FlextDbOracleApi, table_name: str, insert_sql: str) -> None:
+    """Execute one seed statement for a freshly prepared sample table."""
+    insert_result = api.execute_statement(insert_sql)
+    _assert_oracle_success(insert_result, f"Seed {table_name}")
+
+
+def _ensure_hr_sample_tables(api: FlextDbOracleApi) -> None:
+    """Provision minimal HR sample tables required by real API examples.
+
+    Tables are truncated before seeding so concurrent or repeated test runs
+    never see duplicate-key violations from leftover rows.
+    """
+    _ensure_table(
+        api,
+        "DEPARTMENTS",
+        "CREATE TABLE departments (department_id NUMBER PRIMARY KEY, department_name VARCHAR2(100))",
+    )
+    _ensure_table(
+        api,
+        "JOBS",
+        "CREATE TABLE jobs (job_id VARCHAR2(20) PRIMARY KEY, job_title VARCHAR2(100))",
+    )
+    _ensure_table(
+        api,
+        "EMPLOYEES",
+        "CREATE TABLE employees (employee_id NUMBER PRIMARY KEY, first_name VARCHAR2(50), last_name VARCHAR2(50), email VARCHAR2(100), department_id NUMBER, job_id VARCHAR2(20))",
+    )
+    for table_name in ("DEPARTMENTS", "JOBS", "EMPLOYEES"):
+        truncate_result = api.execute_statement(f"TRUNCATE TABLE {table_name}")
+        _assert_oracle_success(truncate_result, f"Truncate {table_name}")
+    _seed_row(
+        api,
+        "DEPARTMENTS",
+        """
+        MERGE INTO departments target
+        USING (SELECT 10 department_id, 'Engineering' department_name FROM dual) source
+        ON (target.department_id = source.department_id)
+        WHEN MATCHED THEN UPDATE SET target.department_name = source.department_name
+        WHEN NOT MATCHED THEN INSERT (department_id, department_name)
+        VALUES (source.department_id, source.department_name)
+        """,
+    )
+    _seed_row(
+        api,
+        "JOBS",
+        """
+        MERGE INTO jobs target
+        USING (SELECT 'DEV' job_id, 'Developer' job_title FROM dual) source
+        ON (target.job_id = source.job_id)
+        WHEN MATCHED THEN UPDATE SET target.job_title = source.job_title
+        WHEN NOT MATCHED THEN INSERT (job_id, job_title)
+        VALUES (source.job_id, source.job_title)
+        """,
+    )
+    _seed_row(
+        api,
+        "EMPLOYEES",
+        """
+        MERGE INTO employees target
+        USING (
+            SELECT 1 employee_id, 'Ada' first_name, 'Lovelace' last_name,
+                   'ada@example.com' email
+            FROM dual
+        ) source
+        ON (target.employee_id = source.employee_id)
+        WHEN MATCHED THEN UPDATE SET
+            target.first_name = source.first_name,
+            target.last_name = source.last_name,
+            target.email = source.email
+        WHEN NOT MATCHED THEN INSERT (employee_id, first_name, last_name, email)
+        VALUES (
+            source.employee_id,
+            source.first_name,
+            source.last_name,
+            source.email
+        )
+        """,
+    )
 
 
 @pytest.fixture
@@ -244,8 +329,9 @@ def connected_oracle_api(
 ) -> Generator[FlextDbOracleApi]:
     """Return Oracle API that is already connected."""
     connect_result = oracle_api.connect()
-    if connect_result.is_success:
+    if connect_result.success:
         connected_api = connect_result.value
+        _ensure_hr_sample_tables(connected_api)
         yield connected_api
         with contextlib.suppress(Exception):
             connected_api.disconnect()
@@ -254,80 +340,15 @@ def connected_oracle_api(
 
 
 @pytest.fixture
-def flext_domains() -> FlextTestsDomains:
-    """Provide FlextTestsDomains instance for domain-based testing."""
-    return FlextTestsDomains()
-
-
-@pytest.fixture
-def mock_oracle_config() -> FlextDbOracleSettings:
-    """Provide mock Oracle config for tests when real Oracle is not available."""
-    return FlextDbOracleSettings(
-        host="mock-host",
-        port=1521,
-        service_name="mock-service",
-        username="mock-user",
-        password="mock-pass",
-    )
-
-
-@pytest.fixture
-def oracle_config(
-    real_oracle_config: FlextDbOracleSettings | None,
-    mock_oracle_config: FlextDbOracleSettings,
-) -> FlextDbOracleSettings:
-    """Provide Oracle config - real if available, mock otherwise."""
-    return real_oracle_config or mock_oracle_config
-
-
-@pytest.fixture
 def oracle_available(connected_oracle_api: FlextDbOracleApi | None) -> bool:
     """Check if Oracle is available for testing."""
     return connected_oracle_api is not None
 
 
-@pytest.fixture(autouse=True)
-def test_cleanup(connected_oracle_api: FlextDbOracleApi | None) -> Generator[None]:
-    """Ensure test idempotency by cleaning up test data before and after tests."""
-    if connected_oracle_api is not None:
-        try:
-            cleanup_queries = [
-                "DROP TABLE test_table CASCADE",
-                "DROP TABLE flext_test_table CASCADE",
-                "DROP TABLE test_data_types CASCADE",
-                "DROP SEQUENCE test_seq CASCADE",
-                "DROP SEQUENCE flext_test_seq CASCADE",
-            ]
-            for query in cleanup_queries:
-                try:
-                    plsql_query = f"\n                    BEGIN\n                        EXECUTE IMMEDIATE '{query}';\n                    EXCEPTION\n                        WHEN OTHERS THEN\n                            NULL; -- Ignore errors\n                    END;\n                    "
-                    connected_oracle_api.execute_statement(plsql_query)
-                except Exception:
-                    pass
-        except Exception:
-            pass
-    yield
-    if connected_oracle_api is not None:
-        try:
-            post_cleanup_queries = [
-                "DROP TABLE temp_test_table CASCADE",
-                "DROP TABLE session_test_table CASCADE",
-                "DROP TABLE test_oracle_escape CASCADE",
-            ]
-            for query in post_cleanup_queries:
-                try:
-                    plsql_query = f"\n                    BEGIN\n                        EXECUTE IMMEDIATE '{query}';\n                    EXCEPTION\n                        WHEN OTHERS THEN\n                            NULL; -- Ignore errors\n                    END;\n                    "
-                    connected_oracle_api.execute_statement(plsql_query)
-                except Exception:
-                    pass
-        except Exception:
-            pass
-
-
 @pytest.fixture
 def test_database_setup(
     connected_oracle_api: FlextDbOracleApi | None,
-) -> Generator[dict[str, str] | None]:
+) -> Generator[t.StrMapping | None]:
     """Set up test database schema and return test table info."""
     if connected_oracle_api is None:
         yield None
@@ -340,13 +361,13 @@ def test_database_setup(
     for ddl in cleanup_ddl:
         try:
             connected_oracle_api.execute_statement(ddl)
-        except Exception:
+        except (oracledb.Error, ConnectionError, OSError):
             pass
     for ddl in test_schema.values():
         try:
             result = connected_oracle_api.execute_statement(ddl)
-            if result.is_failure:
+            if result.failure:
                 pytest.skip(f"Could not create test schema: {result.error}")
-        except Exception as e:
+        except (oracledb.Error, ConnectionError, OSError) as e:
             pytest.skip(f"Test setup failed: {e}")
     yield test_schema

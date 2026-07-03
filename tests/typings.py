@@ -1,6 +1,4 @@
-"""Module skeleton for TestsFlextDbOracleTypes.
-
-Test type aliases for flextdboracle.
+"""Test type aliases for flext-db-oracle.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -8,6 +6,31 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import (
+    Callable,
+    Mapping,
+)
 
-class TestsFlextDbOracleTypes:
-    """Test type aliases for flextdboracle."""
+from flext_tests import FlextTestsTypes
+
+from flext_db_oracle import m, p, t
+
+
+class TestsFlextDbOracleTypes(FlextTestsTypes, t):
+    """Test type aliases for flext-db-oracle."""
+
+    class Tests(FlextTestsTypes.Tests):
+        """Test-specific type aliases."""
+
+        type ApiCoverageReturn = (
+            bool
+            | m.ConfigMap
+            | p.Result[Mapping[str, t.FlatContainer]]
+            | p.Result[str]
+            | p.Result[t.StrSequence]
+        )
+        type ApiCoverageCallable = Callable[[], ApiCoverageReturn]
+
+
+t = TestsFlextDbOracleTypes
+__all__: list[str] = ["TestsFlextDbOracleTypes", "t"]

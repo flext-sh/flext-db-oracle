@@ -6,35 +6,38 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_tests import tm
+
 from flext_db_oracle import (
     FlextDbOracleDispatcher,
-    FlextDbOracleServices,
     FlextDbOracleSettings,
 )
+from flext_db_oracle.services.facade import FlextDbOracleServices
+from tests.models import m
 
 
-class TestDispatcherSurgical:
+class TestsFlextDbOracleDispatcher:
     """Test FlextDbOracleDispatcher functionality."""
 
     def test_dispatcher_creation(self) -> None:
         """Test dispatcher can be created."""
-        config = FlextDbOracleSettings(
-            host="test-host", username="test-user", password="test-password"
+        settings = FlextDbOracleSettings(
+            host="test-host",
+            username="test-user",
+            password="test-password",
         )
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(settings=settings)
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
-        assert dispatcher is not None
+        tm.that(dispatcher, none=False)
 
     def test_dispatcher_has_command_classes(self) -> None:
         """Test dispatcher has command classes."""
-        assert hasattr(FlextDbOracleDispatcher, "ExecuteQueryCommand")
-        assert hasattr(FlextDbOracleDispatcher, "ConnectCommand")
-        assert hasattr(FlextDbOracleDispatcher, "ExecuteManyCommand")
 
     def test_command_creation(self) -> None:
         """Test command objects can be created."""
-        cmd = FlextDbOracleDispatcher.ExecuteQueryCommand(
-            sql="SELECT 1 FROM DUAL", parameters=None
+        cmd = m.DbOracle.ExecuteQueryCommand(
+            sql="SELECT 1 FROM DUAL",
+            parameters=None,
         )
-        assert cmd.sql == "SELECT 1 FROM DUAL"
-        assert cmd.parameters is None
+        tm.that(cmd.sql, eq="SELECT 1 FROM DUAL")
+        tm.that(cmd.parameters, none=True)

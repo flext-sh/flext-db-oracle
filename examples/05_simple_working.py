@@ -8,11 +8,9 @@ This example demonstrates basic configuration and setup functionality.
 
 from __future__ import annotations
 
-from flext_core import FlextLogger
+from flext_db_oracle import FlextDbOracleSettings, u
 
-from flext_db_oracle import FlextDbOracleSettings
-
-logger = FlextLogger(__name__)
+logger = u.fetch_logger(__name__)
 
 
 def demonstrate_real_functionality() -> None:
@@ -20,24 +18,28 @@ def demonstrate_real_functionality() -> None:
     logger.info("=== FLEXT Oracle Example - Configuration Demo ===")
     try:
         config_result = FlextDbOracleSettings.from_env()
-        if config_result.is_success:
-            config = config_result.value
-            logger.info(f"✅ Configuration created: {config.host}:{config.port}")
+        if config_result.success:
+            settings = config_result.value
+            logger.info(f"✅ Configuration created: {settings.host}:{settings.port}")
         else:
-            config = FlextDbOracleSettings(
-                host="demo-host", username="demo-user", password="demo-password"
+            settings = FlextDbOracleSettings.model_validate(
+                {
+                    "host": "demo-host",
+                    "username": "demo-user",
+                    "password": "demo-password",
+                },
             )
             logger.info("✅ Demo configuration created")
-        logger.info(f"📋 Host: {config.host}")
-        logger.info(f"📋 Port: {config.port}")
-        logger.info(f"📋 Service: {config.service_name}")
-        username_display = str(config.username)[:3]
+        logger.info(f"📋 Host: {settings.host}")
+        logger.info(f"📋 Port: {settings.port}")
+        logger.info(f"📋 Service: {settings.service_name}")
+        username_display = settings.username[:3]
         logger.info("📋 Username: %s***", username_display)
-        if config.host and config.port > 0:
+        if settings.host and settings.port > 0:
             logger.info("✅ Configuration is valid")
         else:
             logger.error("❌ Configuration is invalid")
-    except Exception:
+    except (ValueError, OSError, RuntimeError):
         logger.exception("❌ Unexpected error")
 
 

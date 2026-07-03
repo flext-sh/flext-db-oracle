@@ -15,9 +15,10 @@ import os
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from tests.typings import t
 
 
-class OperationTestError(Exception):
+class OperationTestErrorE2E(Exception):
     """Custom exception for test operations."""
 
     def __init__(self, message: str, error: str | None = None) -> None:
@@ -26,12 +27,13 @@ class OperationTestError(Exception):
         self.error = error
 
 
-class TestOracleE2E:
+class TestsFlextDbOracleEOracle:
     """End-to-end tests for Oracle database operations."""
 
     @pytest.mark.e2e
     def test_complete_oracle_workflow(
-        self, real_oracle_config: FlextDbOracleSettings
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test complete Oracle workflow end-to-end.
 
@@ -45,28 +47,32 @@ class TestOracleE2E:
         7. Table cleanup
         8. Disconnection
         """
-        with FlextDbOracleApi(config=real_oracle_config) as api:
+        with FlextDbOracleApi(settings=real_oracle_config) as api:
             connection_test = api.test_connection()
-            if connection_test.is_failure:
+            if connection_test.failure:
                 msg = "Connection"
-                raise OperationTestError(msg, connection_test.error or "Unknown error")
-            schemas_result = api.get_schemas()
-            if schemas_result.is_failure:
+                raise OperationTestErrorE2E(
+                    msg, connection_test.error or "Unknown error"
+                )
+            schemas_result = api.fetch_schemas()
+            if schemas_result.failure:
                 msg = "Schema discovery"
-                raise OperationTestError(msg, schemas_result.error or "Unknown error")
+                raise OperationTestErrorE2E(
+                    msg, schemas_result.error or "Unknown error"
+                )
             schemas = schemas_result.value
-            assert len(schemas) > 0, "No schemas found"
-            tables_result = api.get_tables()
-            if tables_result.is_failure:
+            assert schemas, "No schemas found"
+            tables_result = api.fetch_tables()
+            if tables_result.failure:
                 msg = "Table listing"
-                raise OperationTestError(msg, tables_result.error or "Unknown error")
+                raise OperationTestErrorE2E(msg, tables_result.error or "Unknown error")
             test_table_name = "E2E_TEST_TABLE"
             create_sql = f"CREATE TABLE {test_table_name} (\n                ID NUMBER(10) NOT NULL PRIMARY KEY,\n                NAME VARCHAR2(100) NOT NULL,\n                EMAIL VARCHAR2(255),\n                CREATED_AT TIMESTAMP DEFAULT SYSDATE\n            )"
             execute_result = api.execute_sql(create_sql)
-            if execute_result.is_failure:
+            if execute_result.failure:
                 raise AssertionError(f"Table creation failed: {execute_result.error}")
             try:
-                test_data = [
+                test_data: list[dict[str, str | int | None]] = [
                     {"id": 1, "name": "John Doe", "email": "john@example.com"},
                     {"id": 2, "name": "Jane Smith", "email": "jane@example.com"},
                     {"id": 3, "name": "Bob Wilson", "email": None},
@@ -75,14 +81,14 @@ class TestOracleE2E:
                     email_value = f"'{data['email']}'" if data["email"] else "NULL"
                     insert_sql = f"INSERT INTO {test_table_name} (ID, NAME, EMAIL) VALUES ({data['id']}, '{data['name']}', {email_value})"
                     insert_result = api.execute_statement(insert_sql)
-                    if insert_result.is_failure:
+                    if insert_result.failure:
                         raise AssertionError(
-                            f"Data insertion failed: {insert_result.error}"
+                            f"Data insertion failed: {insert_result.error}",
                         )
                 select_result = api.query(
-                    f"SELECT * FROM {test_table_name} ORDER BY ID"
+                    f"SELECT * FROM {test_table_name} ORDER BY ID",
                 )
-                if select_result.is_failure:
+                if select_result.failure:
                     raise AssertionError(f"Data query failed: {select_result.error}")
                 query_data = select_result.value
                 assert isinstance(query_data, list), (
@@ -90,51 +96,57 @@ class TestOracleE2E:
                 )
                 assert len(query_data) == 3, f"Expected 3 rows, got {len(query_data)}"
                 count_result = api.query(
-                    f"SELECT COUNT(*) as row_count FROM {test_table_name}"
+                    f"SELECT COUNT(*) as row_count FROM {test_table_name}",
                 )
-                if count_result.is_failure:
+                if count_result.failure:
                     raise AssertionError(f"Count query failed: {count_result.error}")
                 count_data = count_result.value
                 assert isinstance(count_data, list), (
                     f"Expected list, got {type(count_data)}"
                 )
                 assert len(count_data) == 1, f"Expected 1 row, got {len(count_data)}"
-                count_value = count_data[0].get("ROW_COUNT") or count_data[0].get(
-                    "row_count"
+                row = (
+                    count_data[0].root
+                    if hasattr(count_data[0], "root")
+                    else count_data[0]
                 )
-                assert count_value == 3, f"Expected count 3, got {count_value}"
-                metadata_result = api.get_table_metadata(test_table_name)
-                if metadata_result.is_failure:
+                count_value = (
+                    row.get("ROW_COUNT") or row.get("row_count") or row.get("COUNT(*)")
+                )
+                assert int(str(count_value)) == 3, (
+                    f"Expected count 3, got {count_value}"
+                )
+                metadata_result = api.fetch_table_metadata(test_table_name)
+                if metadata_result.failure:
                     raise AssertionError(
-                        f"Metadata query failed: {metadata_result.error}"
+                        f"Metadata query failed: {metadata_result.error}",
                     )
                 table_metadata = metadata_result.value
                 assert table_metadata["table_name"] == test_table_name
                 columns_obj = table_metadata["columns"]
-                assert hasattr(columns_obj, "__len__")
                 if isinstance(columns_obj, (list, tuple, dict, str)):
                     assert len(columns_obj) >= 4
-                columns_result = api.get_columns(test_table_name)
-                if columns_result.is_failure:
+                columns_result = api.fetch_columns(test_table_name)
+                if columns_result.failure:
                     raise AssertionError(f"Column info failed: {columns_result.error}")
                 columns_info = columns_result.value
                 assert len(columns_info) >= 4
-                pk_result = api.get_primary_keys(test_table_name)
-                if pk_result.is_failure:
+                pk_result = api.fetch_primary_keys(test_table_name)
+                if pk_result.failure:
                     raise AssertionError(f"Primary key query failed: {pk_result.error}")
                 primary_keys = pk_result.value
                 assert "ID" in primary_keys, "ID should be primary key"
                 with api.transaction():
                     update_sql = f"UPDATE {test_table_name} SET EMAIL = 'bob@example.com' WHERE ID = 3"
                     update_result = api.execute_statement(update_sql)
-                    if update_result.is_failure:
+                    if update_result.failure:
                         raise AssertionError(f"Update failed: {update_result.error}")
                 verify_result = api.query(
-                    f"SELECT EMAIL FROM {test_table_name} WHERE ID = 3"
+                    f"SELECT EMAIL FROM {test_table_name} WHERE ID = 3",
                 )
-                if verify_result.is_failure:
+                if verify_result.failure:
                     raise AssertionError(
-                        f"Verification query failed: {verify_result.error}"
+                        f"Verification query failed: {verify_result.error}",
                     )
                 email_data = verify_result.value
                 assert isinstance(email_data, list), (
@@ -151,29 +163,30 @@ class TestOracleE2E:
 
     @pytest.mark.e2e
     def test_singer_type_conversion_e2e(
-        self, real_oracle_config: FlextDbOracleSettings
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test Singer type conversion in real Oracle environment."""
-        with FlextDbOracleApi(config=real_oracle_config) as api:
+        with FlextDbOracleApi(settings=real_oracle_config) as api:
             singer_types = [
                 ("string", "VARCHAR2(4000)"),
                 ("integer", "NUMBER(38)"),
                 ("number", "NUMBER"),
                 ("boolean", "NUMBER(1)"),
                 ("array", "VARCHAR2(255)"),
-                ("object", "VARCHAR2(255)"),
+                ("t.JsonValue", "VARCHAR2(255)"),
             ]
             for singer_type, expected_oracle_type in singer_types:
                 result = api.convert_singer_type(singer_type)
-                if result.is_failure:
+                if result.failure:
                     raise AssertionError(
-                        f"Type conversion failed for {singer_type}: {result.error}"
+                        f"Type conversion failed for {singer_type}: {result.error}",
                     )
                 oracle_type = result.value
                 assert expected_oracle_type in oracle_type, (
                     f"Expected {expected_oracle_type} in {oracle_type}"
                 )
-            singer_schema: dict[str, object] = {
+            singer_schema: t.JsonMapping = {
                 "properties": {
                     "id": {"type": "integer"},
                     "name": {"type": "string"},
@@ -181,18 +194,18 @@ class TestOracleE2E:
                     "is_active": {"type": "boolean"},
                     "metadata": {"type": "object"},
                     "created_at": {"type": "string", "format": "date-time"},
-                }
+                },
             }
             schema_result = api.map_singer_schema(singer_schema)
-            if schema_result.is_failure:
+            if schema_result.failure:
                 raise AssertionError(f"Schema mapping failed: {schema_result.error}")
             mapped_schema = schema_result.value
             assert "id" in mapped_schema
-            assert "NUMBER" in str(mapped_schema["id"])
+            assert "NUMBER" in mapped_schema["id"]
             assert "name" in mapped_schema
-            assert "VARCHAR2" in str(mapped_schema["name"])
+            assert "VARCHAR2" in mapped_schema["name"]
             assert "is_active" in mapped_schema
-            assert "NUMBER(1)" in str(mapped_schema["is_active"])
+            assert "NUMBER(1)" in mapped_schema["is_active"]
 
     @pytest.mark.e2e
     def test_configuration_from_environment_e2e(self) -> None:
@@ -210,17 +223,17 @@ class TestOracleE2E:
         os.environ.update(test_env)
         try:
             config_result = FlextDbOracleSettings.from_env()
-            assert config_result.is_success, (
+            assert config_result.success, (
                 f"Config creation failed: {config_result.error}"
             )
-            config = config_result.value
-            assert config.host == "e2e-test-host"
-            assert config.port == 1521
-            assert config.service_name == "E2EDB"
-            assert config.username == "e2e_user"
-            assert config.password == "e2e_password"
-            assert config.pool_min == 2
-            assert config.pool_max == 20
+            settings = config_result.value
+            assert settings.host == "e2e-test-host"
+            assert settings.port == 1521
+            assert settings.service_name == "E2EDB"
+            assert settings.username == "e2e_user"
+            assert settings.password == "e2e_password"
+            assert settings.pool_min == 2
+            assert settings.pool_max == 20
         finally:
             for key in test_env:
                 os.environ.pop(key, None)
@@ -236,22 +249,22 @@ class TestOracleE2E:
             password="invalid_password",
         )
         api = FlextDbOracleApi(invalid_config)
-        connect_result = api.connect()
-        assert hasattr(connect_result, "is_success")
+        api.connect()
         query_result = api.query("SELECT 1 FROM DUAL")
-        if query_result.is_success:
+        if query_result.success:
             msg = "Query should fail without connection"
             raise AssertionError(msg)
         assert "not connected to database" in (query_result.error or "").lower()
-        metadata_result = api.get_tables()
-        if metadata_result.is_success:
+        metadata_result = api.fetch_tables()
+        if metadata_result.success:
             msg = "Get tables should fail without connection"
             raise AssertionError(msg)
         assert "not connected to database" in (metadata_result.error or "").lower()
 
     @pytest.mark.e2e
     def test_concurrent_operations_e2e(
-        self, real_oracle_config: FlextDbOracleSettings
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test concurrent database operations."""
         api1 = FlextDbOracleApi(real_oracle_config, context_name="connection1")
@@ -262,9 +275,9 @@ class TestOracleE2E:
                 result2 = api2.query("SELECT 'API2' as source FROM DUAL")
                 skip_tests = os.getenv("SKIP_E2E_TESTS", "true").lower() == "true"
                 if not skip_tests:
-                    if result1.is_failure:
+                    if result1.failure:
                         raise AssertionError(f"API1 query failed: {result1.error}")
-                    if result2.is_failure:
+                    if result2.failure:
                         raise AssertionError(f"API2 query failed: {result2.error}")
                 else:
                     assert result1 is not None
@@ -275,13 +288,14 @@ class TestOracleE2E:
     @pytest.mark.e2e
     @pytest.mark.benchmark
     def test_performance_benchmark_e2e(
-        self, real_oracle_config: FlextDbOracleSettings
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test performance benchmarks for Oracle operations."""
         try:
-            with FlextDbOracleApi(config=real_oracle_config) as api:
+            with FlextDbOracleApi(settings=real_oracle_config) as api:
                 timed_result = api.query("SELECT 1 FROM DUAL")
-                if timed_result.is_success:
+                if timed_result.success:
                     query_result = timed_result.value
                     assert isinstance(query_result, list)
                     assert len(query_result) >= 0

@@ -171,7 +171,7 @@ COMMIT;
 
 ### **Complete CLI Workflow Test**
 
-```python
+```text
 @pytest.mark.e2e
 def test_complete_cli_workflow():
     """Test complete CLI workflow from connection to query execution."""
@@ -202,7 +202,7 @@ def test_complete_cli_workflow():
 
 ### **API Integration Workflow Test**
 
-```python
+```text
 @pytest.mark.e2e
 def test_api_integration_workflow():
     """Test complete API workflow with real Oracle operations."""
@@ -215,12 +215,12 @@ def test_api_integration_workflow():
         assert api.is_connected()
 
         # Test schema operations
-        schemas_result = api.get_schemas()
+        schemas_result = api.fetch_schemas()
         assert schemas_result.success
         assert "FLEXT_E2E" in schemas_result.value
 
         # Test table operations
-        tables_result = api.get_tables("FLEXT_E2E")
+        tables_result = api.fetch_tables("FLEXT_E2E")
         assert tables_result.success
         assert len(tables_result.value) >= 2
 
@@ -246,7 +246,7 @@ def test_api_integration_workflow():
 
 ### **Data Pipeline Workflow Test**
 
-```python
+```text
 @pytest.mark.e2e
 def test_data_pipeline_workflow():
     """Test complete data pipeline workflow."""
@@ -293,7 +293,7 @@ def test_data_pipeline_workflow():
 
 E2E tests include performance validation for production readiness:
 
-```python
+```text
 @pytest.mark.e2e
 @pytest.mark.performance
 def test_high_volume_operations():

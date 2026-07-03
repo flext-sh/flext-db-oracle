@@ -10,18 +10,20 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-import subprocess
 import sys
 from pathlib import Path
+from typing import Final
 
-MAX_OUTPUT_LINES = 3
+from flext_db_oracle import m, t, u
+
+MAX_OUTPUT_LINES: Final[int] = 3
 
 
-def _get_cli_examples() -> list[dict[str, object]]:
+def _get_cli_examples() -> t.SequenceOf[t.JsonMapping]:
     """Get CLI command examples - DRY pattern for example data.
 
     Returns:
-        list[dict[str, object]]: List of CLI command examples with metadata.
+        t.SequenceOf[t.JsonMapping]: List of CLI command examples with metadata.
 
     """
     return [
@@ -80,7 +82,7 @@ def _get_cli_examples() -> list[dict[str, object]]:
     ]
 
 
-def _run_example_command(example: dict[str, object]) -> None:
+def _run_example_command(example: t.JsonMapping) -> None:
     """Run a single CLI example command - DRY pattern."""
     if example.get("env_required") and (not _check_oracle_env()):
         return
@@ -119,7 +121,7 @@ def _check_oracle_env() -> bool:
     return all(os.getenv(var) for var in required_vars)
 
 
-def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
+def run_cli_command(cmd: t.StrSequence) -> tuple[int, str, str]:
     """Run CLI command and return exit code, stdout, stderr (no shell).
 
     Returns:
@@ -128,13 +130,16 @@ def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
     """
 
     def _run() -> tuple[int, str, str]:
-        try:
-            process = subprocess.run(
-                cmd, capture_output=True, check=False, timeout=30.0, text=True
-            )
-            return (process.returncode, process.stdout, process.stderr)
-        except Exception as e:
-            return (1, "", f"Command failed: {e}")
+        result = u.Cli.run_raw(cmd, timeout=30)
+        if result.success:
+            process = result.value
+            return (process.exit_code, process.stdout, process.stderr)
+        failed = m.Cli.CommandOutput(
+            stdout="",
+            stderr=result.error or "Command failed",
+            exit_code=1,
+        )
+        return (failed.exit_code, failed.stdout, failed.stderr)
 
     return _run()
 
@@ -173,8 +178,7 @@ def main() -> None:
     else:
         env_vars = ["FLEXT_TARGET_ORACLE_HOST", "FLEXT_TARGET_ORACLE_USERNAME"]
         configured = sum(1 for var in env_vars if os.getenv(var))
-        if configured == 0 or configured == len(env_vars):
-            pass
+        _ = configured == 0 or configured == len(env_vars)
 
 
 if __name__ == "__main__":

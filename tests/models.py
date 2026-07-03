@@ -1,11 +1,4 @@
-"""Test models for flext-db-oracle tests.
-
-Provides TestsFlextDbOracleModels, extending FlextTestsModels with flext-db-oracle-specific
-models using COMPOSITION INHERITANCE.
-
-Inheritance hierarchy:
-- FlextTestsModels (flext_tests) - Provides .Tests.* namespace
-- FlextDbOracleModels (production) - Provides Oracle domain models
+"""Test models for flext-db-oracle.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -15,47 +8,33 @@ from __future__ import annotations
 
 from flext_tests import FlextTestsModels
 
-from flext_db_oracle.models import FlextDbOracleModels
+from flext_db_oracle import m
+from tests.typings import t
 
 
-class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
-    """Models for flext-db-oracle tests using COMPOSITION INHERITANCE.
-
-    MANDATORY: Inherits from BOTH:
-    1. FlextTestsModels - for test infrastructure (.Tests.*)
-    2. FlextDbOracleModels - for domain models (ConnectionStatus, QueryResult, etc.)
-
-    Access patterns:
-    - tm.Tests.* (generic test models from FlextTestsModels)
-    - tm.ConnectionStatus (Oracle connection status model)
-    - tm.QueryResult (Oracle query result model)
-    - tm.Table, tm.Column, tm.Schema (Oracle metadata models)
-    - m.* (production models via alternative alias)
-
-    Rules:
-    - NEVER duplicate models from FlextTestsModels or FlextDbOracleModels
-    - Only flext-db-oracle-specific test fixtures allowed
-    - All generic test models come from FlextTestsModels
-    - All production models come from FlextDbOracleModels
-    """
+class TestsFlextDbOracleModels(FlextTestsModels, m):
+    """Test models for flext-db-oracle."""
 
     class Tests(FlextTestsModels.Tests):
-        """Project-specific test fixtures namespace.
+        """Test-specific models."""
 
-        Provides test fixtures for flext-db-oracle testing.
-        Extends the base FlextTestsModels.Tests namespace.
-        """
+        class StubResult(m.DbOracle.DbOracleDomainModel):
+            """Minimal result stub for dynamic integration tests."""
 
-        class Oracle:
-            """Oracle-specific test fixtures."""
+            failure: bool = False
+            error: str = ""
+
+        class StubPluginEntity(m.DbOracle.DbOracleDomainModel):
+            """Stub plugin entity compatible with service integration tests."""
+
+            name: str
+            plugin_version: str
+            description: str
+            author: str
+            plugin_type: str
+            metadata: t.MappingKV[str, t.FlatContainer]
 
 
-# Short aliases per FLEXT convention
-tm = TestsFlextDbOracleModels  # Primary test models alias
-m = TestsFlextDbOracleModels  # Production alias (for from tests.models import m)
+m = TestsFlextDbOracleModels
 
-__all__ = [
-    "TestsFlextDbOracleModels",
-    "m",
-    "tm",
-]
+__all__: list[str] = ["TestsFlextDbOracleModels", "m"]

@@ -36,7 +36,7 @@ This directory contains the complete source code for FLEXT DB Oracle, an enterpr
 
 ### **Configuration and Infrastructure Layer**
 
-- **`flext_db_oracle/config.py`** - Configuration management with Pydantic validation
+- **`flext_db_oracle/settings.py`** - Configuration management with Pydantic validation
 - **`flext_db_oracle/connection.py`** - Connection pooling and resource management
 - **`flext_db_oracle/observability.py`** - Performance monitoring and metrics collection
 
@@ -70,7 +70,7 @@ The source code follows Clean Architecture principles with clear layer separatio
 │  types.py: Domain entities and value objects                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                  Infrastructure Layer                           │
-│  config.py: Configuration management                          │
+│  settings.py: Configuration management                          │
 │  connection.py: Connection pooling                            │
 │  observability.py: Monitoring and metrics                     │
 │  plugins.py: Plugin system                                    │
@@ -109,20 +109,20 @@ All modules integrate with FLEXT Core patterns:
 
 ### **Import Patterns**
 
-```python
+```python notest
 # Primary imports (direct imports only - STRICT RULE)
-from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.settings import FlextDbOracleSettings
-from flext_db_oracle.typings import FlextDbOracleTypes
+from flext_db_oracle import FlextDbOracleApi
+from flext_db_oracle import FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleTypes
 
 # Metadata operations (direct imports only)
 # Use FlextDbOracleApi for metadata operations - NO aliases allowed
 
 # Plugin system
-from flext_db_oracle.plugins import register_all_oracle_plugins
+from flext_db_oracle import register_all_oracle_plugins
 
 # Type definitions
-from flext_db_oracle.types import TDbOracleQueryResult, TDbOracleConnectionStatus
+from flext_db_oracle import TDbOracleQueryResult, TDbOracleConnectionStatus
 ```
 
 ## 📊 Code Quality Standards

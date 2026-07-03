@@ -8,389 +8,278 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
-import os
 import time
 from enum import StrEnum
 
 import pytest
-from flext_core import FlextConstants
+from flext_tests import tm
 
-from flext_db_oracle import (
-    FlextDbOracleApi,
-    FlextDbOracleConstants,
-    FlextDbOracleUtilities,
-)
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from tests.constants import c
+from tests.utilities import u
 
 
-@pytest.mark.unit_pure
-class TestFlextDbOracleConstants:
-    """Comprehensive test FlextDbOracleConstants functionality and values."""
+@pytest.mark.unit
+class TestsFlextDbOracleConstantsUnit:
+    """Comprehensive test c functionality and values."""
 
     def test_constants_inheritance(self) -> None:
         """Test constants properly extends FlextConstants."""
-        assert hasattr(FlextDbOracleConstants, "Network")
-        assert hasattr(FlextDbOracleConstants, "Platform")
-        assert hasattr(FlextDbOracleConstants.DbOracle, "Connection")
-        assert hasattr(FlextDbOracleConstants.DbOracle, "Query")
-        assert hasattr(FlextDbOracleConstants.DbOracle, "DataTypes")
 
-    def test_connection_constants(self) -> None:
-        """Test connection-related constants."""
-        conn = FlextDbOracleConstants.DbOracle.Connection
-        assert conn.DEFAULT_CHARSET == "UTF8"
-        assert conn.DEFAULT_SERVICE_NAME == "XEPDB1"
-        assert conn.DEFAULT_PORT == 1521
-        assert conn.DEFAULT_DATABASE_NAME == "XE"
-        assert conn.DEFAULT_SID == "XE"
-        assert conn.DEFAULT_USERNAME == "system"
-        assert conn.DEFAULT_TIMEOUT == 30
-        assert conn.DEFAULT_POOL_INCREMENT == 1
-        assert conn.DEFAULT_POOL_MIN == 2
-        assert conn.DEFAULT_POOL_MAX == 20
-        assert conn.DEFAULT_POOL_TIMEOUT == 60
-        assert conn.DEFAULT_CONNECTION_TIMEOUT == 30
+    def test_flat_default_constants(self) -> None:
+        """Test flat SSOT defaults on the DbOracle namespace."""
+        tm.that(c.DbOracle.DEFAULT_CHARSET, eq="UTF8")
+        tm.that(c.DbOracle.DEFAULT_SERVICE_NAME, eq="XEPDB1")
+        tm.that(c.DbOracle.DEFAULT_PORT, eq=1521)
+        tm.that(c.DbOracle.DEFAULT_DATABASE_NAME, eq="XE")
+        tm.that(c.DbOracle.DEFAULT_SID, eq="XE")
+        tm.that(c.DbOracle.DEFAULT_USERNAME, eq="system")
+        tm.that(c.DbOracle.DEFAULT_TIMEOUT, eq=30)
+        tm.that(c.DbOracle.DEFAULT_POOL_INCREMENT, eq=1)
+        tm.that(c.DbOracle.DEFAULT_POOL_MIN, eq=2)
+        tm.that(c.DbOracle.DEFAULT_POOL_MAX, eq=20)
+        tm.that(c.DbOracle.DEFAULT_POOL_TIMEOUT, eq=60)
+        tm.that(c.DbOracle.DEFAULT_CONNECTION_TIMEOUT, eq=30)
+        tm.that(c.DbOracle.DEFAULT_HOST, eq="localhost")
+        tm.that(c.DbOracle.DEFAULT_LISTENER_PORT, eq=1521)
+        tm.that(c.DbOracle.DEFAULT_SSL_PORT, eq=2484)
 
-    def test_oracle_network_constants(self) -> None:
-        """Test Oracle-specific network constants."""
-        net = FlextDbOracleConstants.DbOracle.OracleNetwork
-        assert net.MIN_PORT == 1
-        assert net.MAX_PORT == 65535
-        assert net.DEFAULT_PORT == 1521
-        assert net.DEFAULT_LISTENER_PORT == 1521
-        assert net.DEFAULT_SSL_PORT == 2484
+    def test_query_and_performance_constants(self) -> None:
+        """Test flat query and performance constants."""
+        tm.that(c.DbOracle.TEST_QUERY, eq="SELECT 1 FROM DUAL")
+        tm.that(c.DbOracle.DUAL_TABLE, eq="DUAL")
+        tm.that(c.DbOracle.DEFAULT_ARRAY_SIZE, eq=100)
+        tm.that(c.DbOracle.DEFAULT_QUERY_LIMIT, eq=1000)
+        tm.that(c.DbOracle.DEFAULT_QUERY_TIMEOUT, eq=60)
+        tm.that(c.DbOracle.MAX_QUERY_TIMEOUT, eq=3600)
+        tm.that(c.DbOracle.MAX_QUERY_ROWS, eq=100000)
+        tm.that(c.DbOracle.DEFAULT_COMMIT_SIZE, eq=1000)
+        tm.that(abs(c.DbOracle.PERFORMANCE_WARNING_THRESHOLD_SECONDS - 5.0), lt=1e-9)
+        tm.that(c.DbOracle.MAX_DISPLAY_ROWS, eq=1000)
+        tm.that(c.DbOracle.MILLISECONDS_TO_SECONDS_THRESHOLD, eq=1000)
+        tm.that(c.DbOracle.DEFAULT_POOL_RECYCLE, eq=3600)
+        tm.that(c.DbOracle.CONNECTION_IDLE_TIMEOUT_SECONDS, eq=3600)
+        tm.that(abs(c.DbOracle.CONNECTION_EXCELLENT_THRESHOLD_SECONDS - 0.1), lt=1e-9)
+        tm.that(abs(c.DbOracle.CONNECTION_GOOD_THRESHOLD_SECONDS - 0.5), lt=1e-9)
+        tm.that(abs(c.DbOracle.CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS - 2.0), lt=1e-9)
+        tm.that(c.DbOracle.QUERY_EXCELLENT_THRESHOLD_MS, eq=100)
+        tm.that(c.DbOracle.QUERY_GOOD_THRESHOLD_MS, eq=500)
+        tm.that(c.DbOracle.QUERY_ACCEPTABLE_THRESHOLD_MS, eq=2000)
+        tm.that(c.DbOracle.DATA_SIZE_ESTIMATION_FACTOR, eq=50)
+        tm.that(c.DbOracle.INDEX_HINT, eq="/*+ INDEX */")
+        tm.that(c.DbOracle.FULL_HINT, eq="/*+ FULL */")
+        tm.that(c.DbOracle.PARALLEL_HINT, eq="/*+ PARALLEL */")
 
-    def test_query_constants(self) -> None:
-        """Test query-related constants."""
-        query = FlextDbOracleConstants.DbOracle.Query
-        assert query.TEST_QUERY == "SELECT 1 FROM DUAL"
-        assert query.DUAL_TABLE == "DUAL"
-        assert query.DEFAULT_ARRAY_SIZE == 100
-        assert query.DEFAULT_QUERY_LIMIT == 1000
-        assert query.DEFAULT_QUERY_TIMEOUT == 60
-        assert query.MAX_QUERY_TIMEOUT == 3600
-        assert query.MAX_QUERY_ROWS == 100000
+    def test_data_type_constants(self) -> None:
+        """Test data type enums, derived literals, and mapping."""
+        tm.that(c.DbOracle.DataType.DATE, eq="DATE")
+        tm.that(c.DbOracle.DataType.TIMESTAMP, eq="TIMESTAMP")
+        tm.that(c.DbOracle.DEFAULT_VARCHAR_TYPE, eq="VARCHAR2(4000)")
+        tm.that(c.DbOracle.DataType.CLOB, eq="CLOB")
+        tm.that(c.DbOracle.DataType.BLOB, eq="BLOB")
+        tm.that(c.DbOracle.DataType.NUMBER, eq="NUMBER")
+        tm.that(c.DbOracle.INTEGER_TYPE, eq="NUMBER(38)")
+        tm.that(c.DbOracle.BOOLEAN_TYPE, eq="NUMBER(1)")
+        mappings = c.DbOracle.SINGER_TYPE_MAP
+        tm.that(mappings["string"], eq="VARCHAR2(4000)")
+        tm.that(mappings["integer"], eq="NUMBER(38)")
+        tm.that(mappings["number"], eq="NUMBER")
+        tm.that(mappings["boolean"], eq="NUMBER(1)")
+        tm.that(mappings["array"], eq="CLOB")
+        tm.that(mappings["t.JsonValue"], eq="CLOB")
+        tm.that(mappings["date-time"], eq="TIMESTAMP")
+        tm.that(mappings["date"], eq="DATE")
 
-    def test_data_types_constants(self) -> None:
-        """Test Oracle data type constants."""
-        dt = FlextDbOracleConstants.DbOracle.DataTypes
-        assert dt.DATE_TYPE == "DATE"
-        assert dt.TIMESTAMP_TYPE == "TIMESTAMP"
-        assert dt.DEFAULT_VARCHAR_TYPE == "VARCHAR2(4000)"
-        assert dt.CLOB_TYPE == "CLOB"
-        assert dt.BLOB_TYPE == "BLOB"
-        assert dt.NUMBER_TYPE == "NUMBER"
-        assert dt.INTEGER_TYPE == "NUMBER(38)"
-        assert dt.BOOLEAN_TYPE == "NUMBER(1)"
-        mappings = dt.SINGER_TYPE_MAP
-        assert mappings["string"] == "VARCHAR2(4000)"
-        assert mappings["integer"] == "NUMBER(38)"
-        assert mappings["number"] == "NUMBER"
-        assert mappings["boolean"] == "NUMBER(1)"
-        assert mappings["array"] == "CLOB"
-        assert mappings["object"] == "CLOB"
-        assert mappings["date-time"] == "TIMESTAMP"
-        assert mappings["date"] == "DATE"
+    def test_validation_and_message_constants(self) -> None:
+        """Test validation limits, regexes, sets, and error messages."""
+        tm.that(c.DbOracle.MIN_PORT, eq=1)
+        tm.that(c.DbOracle.MAX_PORT, eq=65535)
+        tm.that(c.DbOracle.MAX_ORACLE_IDENTIFIER_LENGTH, eq=30)
+        tm.that(c.DbOracle.MAX_IDENTIFIER_LENGTH, eq=128)
+        tm.that(c.DbOracle.MAX_TABLE_NAME_LENGTH, eq=128)
+        tm.that(c.DbOracle.MAX_COLUMN_NAME_LENGTH, eq=128)
+        tm.that(c.DbOracle.MAX_SCHEMA_NAME_LENGTH, eq=128)
+        tm.that(c.DbOracle.MAX_USERNAME_LENGTH, eq=128)
+        tm.that(c.DbOracle.MAX_SERVICE_NAME_LENGTH, eq=128)
+        tm.that(c.DbOracle.MAX_HOSTNAME_LENGTH, eq=253)
+        tm.that(c.DbOracle.MAX_VARCHAR_LENGTH, eq=4000)
+        tm.that(c.DbOracle.MIN_COLUMN_FIELDS, eq=4)
+        tm.that(c.DbOracle.COLUMN_METADATA_FIELD_COUNT, eq=7)
+        tm.that(c.DbOracle.ORACLE_IDENTIFIER_PATTERN, eq="^[A-Z][A-Z0-9_$#]*$")
+        tm.that(c.DbOracle.IDENTIFIER_PATTERN, eq="^[A-Za-z][A-Za-z0-9_$#]*$")
+        tm.that(c.DbOracle.SCHEMA_PATTERN, eq="^[A-Za-z][A-Za-z0-9_$#]*$")
+        tm.that(c.DbOracle.ORACLE_RESERVED, is_=frozenset)
+        tm.that(c.DbOracle.ORACLE_RESERVED, has="SELECT")
+        tm.that(c.DbOracle.ORACLE_RESERVED, has="DELETE")
+        tm.that(c.DbOracle.SQL_KEYWORDS, is_=frozenset)
+        tm.that(c.DbOracle.SQL_KEYWORDS, has="JOIN")
+        tm.that(c.DbOracle.SQL_KEYWORDS, has="ORDER")
+        tm.that(c.DbOracle.HOST_EMPTY, eq="Host cannot be empty")
+        tm.that(c.DbOracle.USERNAME_EMPTY, eq="Username cannot be empty")
+        tm.that(c.DbOracle.COLUMN_NAME_EMPTY, eq="Column name cannot be empty")
+        tm.that(c.DbOracle.DATA_TYPE_EMPTY, eq="Data type cannot be empty")
+        tm.that(c.DbOracle.TABLE_NAME_EMPTY, eq="Table name cannot be empty")
+        tm.that(c.DbOracle.SCHEMA_NAME_EMPTY, eq="Schema name cannot be empty")
+        tm.that(c.DbOracle.POSITION_INVALID, eq="Position must be positive")
+        tm.that(c.DbOracle.COLUMN_ID_INVALID, eq="Column ID must be positive")
+        tm.that(c.DbOracle.PORT_INVALID, eq="Invalid port number")
+        tm.that(c.DbOracle.CONNECTION_FAILED, eq="Failed to connect to Oracle database")
+        tm.that(c.DbOracle.QUERY_EXECUTION_FAILED, eq="Query execution failed")
+        tm.that(c.DbOracle.IDENTIFIER_TOO_LONG, has="max_length")
+        tm.that(c.DbOracle.IDENTIFIER_INVALID_PATTERN, has="required pattern")
+        tm.that(c.DbOracle.IDENTIFIER_RESERVED_WORD, has="reserved word")
+        tm.that(c.DbOracle.HOST_TOO_LONG, has="too long")
+        tm.that(c.DbOracle.PORT_OUT_OF_RANGE, has="between")
+        tm.that(c.DbOracle.QUERY_TIMEOUT_TOO_HIGH, has="too high")
 
-    def test_oracle_validation_constants(self) -> None:
-        """Test Oracle validation constants."""
-        val = FlextDbOracleConstants.DbOracle.OracleValidation
-        assert val.MAX_ORACLE_IDENTIFIER_LENGTH == 30
-        assert val.MAX_IDENTIFIER_LENGTH == 128
-        assert val.MAX_TABLE_NAME_LENGTH == 128
-        assert val.MAX_COLUMN_NAME_LENGTH == 128
-        assert val.MAX_SCHEMA_NAME_LENGTH == 128
-        assert val.MAX_USERNAME_LENGTH == 128
-        assert val.MAX_SERVICE_NAME_LENGTH == 128
-        assert val.MAX_HOSTNAME_LENGTH == 253
-        assert val.MAX_VARCHAR_LENGTH == 4000
-        assert val.MIN_COLUMN_FIELDS == 4
-        assert val.COLUMN_METADATA_FIELD_COUNT == 7
-        assert val.ORACLE_IDENTIFIER_PATTERN == "^[A-Z][A-Z0-9_$#]*$"
-        assert val.IDENTIFIER_PATTERN == "^[A-Za-z][A-Za-z0-9_$#]*$"
-        assert val.SCHEMA_PATTERN == "^[A-Za-z][A-Za-z0-9_$#]*$"
-        reserved = val.ORACLE_RESERVED
-        assert "SELECT" in reserved
-        assert "FROM" in reserved
-        assert "WHERE" in reserved
-        assert "INSERT" in reserved
-        assert "UPDATE" in reserved
-        assert "DELETE" in reserved
-        assert isinstance(reserved, frozenset)
-        sql_keywords = val.SQL_KEYWORDS
-        assert "SELECT" in sql_keywords
-        assert "JOIN" in sql_keywords
-        assert "ORDER" in sql_keywords
-        assert isinstance(sql_keywords, frozenset)
-
-    def test_error_messages_constants(self) -> None:
-        """Test error message constants."""
-        err = FlextDbOracleConstants.DbOracle.ErrorMessages
-        assert err.HOST_EMPTY == "Host cannot be empty"
-        assert err.USERNAME_EMPTY == "Username cannot be empty"
-        assert err.COLUMN_NAME_EMPTY == "Column name cannot be empty"
-        assert err.DATA_TYPE_EMPTY == "Data type cannot be empty"
-        assert err.TABLE_NAME_EMPTY == "Table name cannot be empty"
-        assert err.SCHEMA_NAME_EMPTY == "Schema name cannot be empty"
-        assert err.POSITION_INVALID == "Position must be positive"
-        assert err.COLUMN_ID_INVALID == "Column ID must be positive"
-        assert err.PORT_INVALID == "Invalid port number"
-        assert err.CONNECTION_FAILED == "Failed to connect to Oracle database"
-        assert err.QUERY_EXECUTION_FAILED == "Query execution failed"
-        assert "max_length" in err.IDENTIFIER_TOO_LONG
-        assert "required pattern" in err.IDENTIFIER_INVALID_PATTERN
-        assert "reserved word" in err.IDENTIFIER_RESERVED_WORD
-        assert "too long" in err.HOST_TOO_LONG
-        assert "between" in err.PORT_OUT_OF_RANGE
-        assert "too high" in err.QUERY_TIMEOUT_TOO_HIGH
-
-    def test_oracle_performance_constants(self) -> None:
-        """Test Oracle performance constants."""
-        perf = FlextDbOracleConstants.DbOracle.OraclePerformance
-        assert perf.DEFAULT_COMMIT_SIZE == 1000
-        assert pytest.approx(5.0) == perf.PERFORMANCE_WARNING_THRESHOLD_SECONDS
-        assert perf.MAX_DISPLAY_ROWS == 1000
-        assert perf.MILLISECONDS_TO_SECONDS_THRESHOLD == 1000
-        assert perf.DEFAULT_POOL_RECYCLE == 3600
-        assert perf.CONNECTION_IDLE_TIMEOUT_SECONDS == 3600
-        assert pytest.approx(0.1) == perf.CONNECTION_EXCELLENT_THRESHOLD_SECONDS
-        assert pytest.approx(0.5) == perf.CONNECTION_GOOD_THRESHOLD_SECONDS
-        assert pytest.approx(2.0) == perf.CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS
-        assert perf.QUERY_EXCELLENT_THRESHOLD_MS == 100
-        assert perf.QUERY_GOOD_THRESHOLD_MS == 500
-        assert perf.QUERY_ACCEPTABLE_THRESHOLD_MS == 2000
-        assert perf.DATA_SIZE_ESTIMATION_FACTOR == 50
-        assert perf.INDEX_HINT == "/*+ INDEX */"
-        assert perf.FULL_HINT == "/*+ FULL */"
-        assert perf.PARALLEL_HINT == "/*+ PARALLEL */"
-
-    def test_isolation_levels_constants(self) -> None:
-        """Test transaction isolation level constants."""
-        iso = FlextDbOracleConstants.DbOracle.IsolationLevels
-        assert iso.READ_UNCOMMITTED == "READ_UNCOMMITTED"
-        assert iso.READ_COMMITTED == "READ_COMMITTED"
-        assert iso.REPEATABLE_READ == "REPEATABLE_READ"
-        assert iso.SERIALIZABLE == "SERIALIZABLE"
-        valid_levels = iso.VALID_LEVELS
-        assert len(valid_levels) == 4
-        assert "READ_COMMITTED" in valid_levels
-        assert "SERIALIZABLE" in valid_levels
-
-    def test_oracle_environment_constants(self) -> None:
-        """Test Oracle environment variable constants."""
-        env = FlextDbOracleConstants.DbOracle.OracleEnvironment
-        assert env.PREFIX_ORACLE == "ORACLE_"
-        assert env.PREFIX_FLEXT_TARGET_ORACLE == "FLEXT_TARGET_ORACLE_"
-        assert env.ENV_HOST == "ORACLE_HOST"
-        assert env.ENV_PORT == "ORACLE_PORT"
-        assert env.ENV_USERNAME == "ORACLE_USERNAME"
-        assert env.ENV_PASSWORD == "ORACLE_PASSWORD"
-        assert env.ENV_SERVICE_NAME == "ORACLE_SERVICE_NAME"
-        assert env.ENV_DATABASE_NAME == "ORACLE_DATABASE_NAME"
-        assert env.ENV_SID == "ORACLE_SID"
-        mapping = env.ENV_MAPPING
-        assert mapping["FLEXT_TARGET_ORACLE_HOST"] == "host"
-        assert mapping["ORACLE_HOST"] == "host"
-        assert mapping["FLEXT_TARGET_ORACLE_PORT"] == "port"
-        assert mapping["ORACLE_PORT"] == "port"
-        assert mapping["FLEXT_TARGET_ORACLE_USERNAME"] == "username"
-        assert mapping["ORACLE_USERNAME"] == "username"
-        assert mapping["FLEXT_TARGET_ORACLE_PASSWORD"] == "password"
-        assert mapping["ORACLE_PASSWORD"] == "password"
-        assert mapping["FLEXT_TARGET_ORACLE_SERVICE_NAME"] == "service_name"
-        assert mapping["ORACLE_SERVICE_NAME"] == "service_name"
-
-    def test_oracle_defaults_constants(self) -> None:
-        """Test Oracle default configuration constants."""
-        defaults = FlextDbOracleConstants.DbOracle.OracleDefaults
-        assert defaults.DEFAULT_HOST == "localhost"
-        assert defaults.DEFAULT_PORT == 1521
-        assert defaults.DEFAULT_USERNAME == "system"
-        assert defaults.DEFAULT_SERVICE_NAME == "XEPDB1"
-        assert defaults.DEFAULT_DATABASE_NAME == "XE"
-        assert defaults.DEFAULT_SID == "XE"
-        assert defaults.DEFAULT_POOL_MIN == 2
-        assert defaults.DEFAULT_POOL_MAX == 20
-        assert defaults.DEFAULT_POOL_TIMEOUT == 60
-        assert defaults.DEFAULT_QUERY_TIMEOUT == 60
-        assert defaults.DEFAULT_QUERY_LIMIT == 1000
-        assert defaults.DEFAULT_COMMIT_SIZE == 1000
-        assert defaults.DEFAULT_POOL_RECYCLE == 3600
-        assert pytest.approx(2.0) == defaults.DEFAULT_SLOW_QUERY_THRESHOLD
-
-    def test_literals_constants(self) -> None:
-        """Test type-safe literal constants."""
-        c = FlextDbOracleConstants
-        assert c.DbOracle.ConnectionTypeLiteral == tuple(
-            c.DbOracle.Lists.VALID_CONNECTION_TYPES
+    def test_environment_constants(self) -> None:
+        """Test flat environment naming SSOT and mapping."""
+        tm.that(c.DbOracle.PREFIX_ORACLE, eq="ORACLE_")
+        tm.that(c.DbOracle.PREFIX_FLEXT_TARGET_ORACLE, eq="FLEXT_TARGET_ORACLE_")
+        tm.that(c.DbOracle.ENV_HOST, eq="ORACLE_HOST")
+        tm.that(c.DbOracle.ENV_PORT, eq="ORACLE_PORT")
+        tm.that(c.DbOracle.ENV_USERNAME, eq="ORACLE_USERNAME")
+        tm.that(c.DbOracle.ENV_PASSWORD, eq="ORACLE_PASSWORD")
+        tm.that(c.DbOracle.ENV_SERVICE_NAME, eq="ORACLE_SERVICE_NAME")
+        tm.that(c.DbOracle.ENV_DATABASE_NAME, eq="ORACLE_DATABASE_NAME")
+        tm.that(c.DbOracle.ENV_SID, eq="ORACLE_SID")
+        tm.that(
+            c.DbOracle.ENV_ENABLE_DISPATCHER, eq="FLEXT_DB_ORACLE_ENABLE_DISPATCHER"
         )
-        assert c.DbOracle.QueryTypeLiteral == tuple(c.DbOracle.Lists.VALID_QUERY_TYPES)
-        assert c.DbOracle.DataTypeLiteral == tuple(c.DbOracle.Lists.VALID_DATA_TYPES)
-        assert isinstance(c.DbOracle.ConnectionTypeLiteral, tuple)
-        assert isinstance(c.DbOracle.QueryTypeLiteral, tuple)
-        assert isinstance(c.DbOracle.DataTypeLiteral, tuple)
-        lit = c.DbOracle.Literals
-        assert lit.EnvironmentLiteral is FlextConstants.Settings.Environment
-        assert lit.LogLevelLiteral is FlextConstants.Settings.LogLevel
+        mapping = c.DbOracle.ENV_MAPPING
+        tm.that(mapping["FLEXT_TARGET_ORACLE_HOST"], eq="host")
+        tm.that(mapping["ORACLE_HOST"], eq="host")
+        tm.that(mapping["FLEXT_TARGET_ORACLE_PORT"], eq="port")
+        tm.that(mapping["ORACLE_PORT"], eq="port")
+        tm.that(mapping["FLEXT_TARGET_ORACLE_USERNAME"], eq="username")
+        tm.that(mapping["ORACLE_USERNAME"], eq="username")
+        tm.that(mapping["FLEXT_TARGET_ORACLE_PASSWORD"], eq="password")
+        tm.that(mapping["ORACLE_PASSWORD"], eq="password")
+        tm.that(mapping["FLEXT_TARGET_ORACLE_SERVICE_NAME"], eq="service_name")
+        tm.that(mapping["ORACLE_SERVICE_NAME"], eq="service_name")
 
-    def test_lists_constants(self) -> None:
-        """Test list-type constants."""
-        lists = FlextDbOracleConstants.DbOracle.Lists
-        valid_types = lists.VALID_DATA_TYPES
-        assert "VARCHAR2" in valid_types
-        assert "NUMBER" in valid_types
-        assert "DATE" in valid_types
-        assert "CLOB" in valid_types
-        valid_conn_types = lists.VALID_CONNECTION_TYPES
-        assert "service_name" in valid_conn_types
-        assert "sid" in valid_conn_types
-        assert "tns" in valid_conn_types
-        valid_query_types = lists.VALID_QUERY_TYPES
-        assert "SELECT" in valid_query_types
-        assert "INSERT" in valid_query_types
-        assert "UPDATE" in valid_query_types
-        assert "DELETE" in valid_query_types
-        valid_iso_levels = lists.VALID_ISOLATION_LEVELS
-        assert "READ_COMMITTED" in valid_iso_levels
-        assert "SERIALIZABLE" in valid_iso_levels
-        system_users = lists.SYSTEM_USERS
-        assert "SYS" in system_users
-        assert "SYSTEM" in system_users
-        assert "XDB" in system_users
-        default_schemas = lists.DEFAULT_SCHEMAS
-        assert "SYSTEM" in default_schemas
-        assert "SYS" in default_schemas
-        assert "PUBLIC" in default_schemas
-
-    def test_feature_flags_functionality(self) -> None:
-        """Test feature flag functionality."""
-        flags = FlextDbOracleUtilities.DbOracle.FeatureFlags
-        assert not flags.dispatcher_enabled()
-        original_value = os.environ.get("FLEXT_DB_ORACLE_ENABLE_DISPATCHER")
-        try:
-            os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "1"
-            assert flags.dispatcher_enabled()
-            os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "true"
-            assert flags.dispatcher_enabled()
-            os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "0"
-            assert not flags.dispatcher_enabled()
-            os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "false"
-            assert not flags.dispatcher_enabled()
-        finally:
-            if original_value is not None:
-                os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = original_value
-            else:
-                os.environ.pop("FLEXT_DB_ORACLE_ENABLE_DISPATCHER", None)
+    def test_closed_sets_and_literals(self) -> None:
+        """Test tuple literals and membership sets derived from enums."""
+        tm.that(c.DbOracle.CONNECTION_TYPE_LITERAL, is_=tuple)
+        tm.that(c.DbOracle.CONNECTION_TYPE_LITERAL, eq=("service_name", "sid", "tns"))
+        tm.that(c.DbOracle.QUERY_TYPE_LITERAL, is_=tuple)
+        tm.that(c.DbOracle.QUERY_TYPE_LITERAL, has="SELECT")
+        tm.that(c.DbOracle.DATA_TYPE_LITERAL, is_=tuple)
+        tm.that(c.DbOracle.DATA_TYPE_LITERAL, has="VARCHAR2")
+        tm.that(c.DbOracle.ISOLATION_LEVEL_LITERAL, is_=tuple)
+        tm.that(c.DbOracle.ISOLATION_LEVEL_LITERAL, has="READ_COMMITTED")
+        tm.that(c.DbOracle.VALID_CONNECTION_TYPES, is_=frozenset)
+        tm.that(c.DbOracle.VALID_CONNECTION_TYPES, has="service_name")
+        tm.that(c.DbOracle.VALID_QUERY_TYPES, is_=frozenset)
+        tm.that(c.DbOracle.VALID_QUERY_TYPES, has="DELETE")
+        tm.that(c.DbOracle.VALID_DATA_TYPES, is_=frozenset)
+        tm.that(c.DbOracle.VALID_DATA_TYPES, has="CLOB")
+        tm.that(c.DbOracle.VALID_ISOLATION_LEVELS, is_=frozenset)
+        tm.that(c.DbOracle.VALID_ISOLATION_LEVELS, has="SERIALIZABLE")
+        tm.that(c.DbOracle.SYSTEM_USERS, has="SYSTEM")
+        tm.that(c.DbOracle.DEFAULT_SCHEMAS, has="PUBLIC")
 
     def test_oracle_enums(self) -> None:
-        """Test Oracle enumeration classes."""
-        enums = FlextDbOracleConstants.DbOracle.OracleEnums
-        conn_type = enums.ConnectionType
-        assert isinstance(conn_type, type)
-        assert issubclass(conn_type, StrEnum)
-        assert getattr(conn_type, "SERVICE_NAME") == "service_name"
-        assert getattr(conn_type, "SID") == "sid"
-        assert getattr(conn_type, "TNS") == "tns"
-        query_type = enums.QueryType
-        assert isinstance(query_type, type)
-        assert issubclass(query_type, StrEnum)
-        assert getattr(query_type, "SELECT") == "SELECT"
-        assert getattr(query_type, "INSERT") == "INSERT"
-        assert getattr(query_type, "UPDATE") == "UPDATE"
-        assert getattr(query_type, "DELETE") == "DELETE"
-        data_type = enums.DataType
-        assert isinstance(data_type, type)
-        assert issubclass(data_type, StrEnum)
-        assert getattr(data_type, "VARCHAR2") == "VARCHAR2"
-        assert getattr(data_type, "NUMBER") == "NUMBER"
-        assert getattr(data_type, "DATE") == "DATE"
-        assert getattr(data_type, "TIMESTAMP") == "TIMESTAMP"
+        """Test Oracle enumeration classes exposed directly on DbOracle."""
+        tm.that(c.DbOracle.ConnectionType, is_=type)
+        assert issubclass(c.DbOracle.ConnectionType, StrEnum)
+        tm.that(c.DbOracle.QueryType, is_=type)
+        assert issubclass(c.DbOracle.QueryType, StrEnum)
+        tm.that(c.DbOracle.DataType, is_=type)
+        assert issubclass(c.DbOracle.DataType, StrEnum)
+        tm.that(c.DbOracle.IsolationLevel, is_=type)
+        assert issubclass(c.DbOracle.IsolationLevel, StrEnum)
 
-    def test_platform_extension(self) -> None:
-        """Test Oracle-specific platform constants extending base Platform."""
-        platform = FlextDbOracleConstants.DbOracle.Platform
-        assert hasattr(platform, "LOOPBACK_IP")
-        assert hasattr(platform, "LOCALHOST_IP")
-        assert platform.LOOPBACK_IP == "127.0.0.1"
-        assert platform.LOCALHOST_IP == "127.0.0.1"
-        assert getattr(platform, "HTTP_METHOD_DELETE") == "DELETE"
-        assert getattr(platform, "HTTP_METHOD_GET") == "GET"
-        assert getattr(platform, "HTTP_METHOD_POST") == "POST"
-        assert getattr(platform, "HTTP_METHOD_PUT") == "PUT"
-        assert getattr(platform, "HTTP_METHOD_PATCH") == "PATCH"
+    def test_platform_constants(self) -> None:
+        """Test flat network platform constants."""
+        tm.that(c.DbOracle.LOOPBACK_IP, eq="127.0.0.1")
 
-    @pytest.mark.unit_integration
+    def test_feature_flags_functionality(self) -> None:
+        """Test feature flag functionality via FlextDbOracleSettings.enable_dispatcher."""
+        settings = FlextDbOracleSettings.model_validate({"enable_dispatcher": False})
+        tm.that(settings.enable_dispatcher, eq=False)
+
+        settings_on = FlextDbOracleSettings.model_validate({"enable_dispatcher": True})
+        tm.that(settings_on.enable_dispatcher, eq=True)
+
+    @pytest.mark.unit
     def test_oracle_constants_real_connection_validation(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test that Oracle constants work with real connections."""
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
-        test_query = FlextDbOracleConstants.DbOracle.Query.TEST_QUERY
+        test_query = c.DbOracle.TEST_QUERY
         result = connected_oracle_api.query(test_query)
-        assert result.is_success, f"TEST_QUERY failed: {result.error}"
+        tm.ok(result)
         data = result.value
-        assert len(data) == 1, "TEST_QUERY should return exactly one row"
-        dual_query = f"SELECT 1 FROM {FlextDbOracleConstants.DbOracle.Query.DUAL_TABLE}"
+        tm.that(len(data), eq=1)
+        dual_query = f"SELECT 1 FROM {c.DbOracle.DUAL_TABLE}"
         result = connected_oracle_api.query(dual_query)
-        assert result.is_success, f"DUAL_TABLE query failed: {result.error}"
+        tm.ok(result)
 
-    @pytest.mark.unit_integration
+    @pytest.mark.unit
     def test_oracle_constants_default_values_real_validation(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test that default constant values work with real Oracle."""
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
-        default_service = (
-            FlextDbOracleConstants.DbOracle.Connection.DEFAULT_SERVICE_NAME
-        )
-        assert isinstance(default_service, str)
-        assert len(default_service) > 0
-        default_port = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT
-        assert isinstance(default_port, int)
-        assert (
-            FlextConstants.Network.MIN_PORT
-            <= default_port
-            <= FlextConstants.Network.MAX_PORT
+        default_service = c.DbOracle.DEFAULT_SERVICE_NAME
+        tm.that(default_service, is_=str)
+        tm.that(bool(default_service), eq=True)
+        default_port = c.DbOracle.DEFAULT_PORT
+        tm.that(default_port, is_=int)
+        tm.that(
+            (c.DbOracle.MIN_PORT <= default_port <= c.DbOracle.MAX_PORT),
+            eq=True,
         )
 
-    @pytest.mark.unit_integration
+    @pytest.mark.unit
     def test_oracle_data_types_real_validation(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test that Oracle data type constants are valid."""
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
-        dt = FlextDbOracleConstants.DbOracle.DataTypes
-        create_sql = f"\n        CREATE TABLE test_data_types (\n            id {dt.NUMBER_TYPE} PRIMARY KEY,\n            name {dt.DEFAULT_VARCHAR_TYPE},\n            active_flag {dt.BOOLEAN_TYPE},\n            created_date {dt.DATE_TYPE},\n            data_blob {dt.BLOB_TYPE}\n        )\n        "
+        create_sql = f"\n        CREATE TABLE test_data_types (\n            id {c.DbOracle.DataType.NUMBER} PRIMARY KEY,\n            name {c.DbOracle.DEFAULT_VARCHAR_TYPE},\n            active_flag {c.DbOracle.BOOLEAN_TYPE},\n            created_date {c.DbOracle.DataType.DATE},\n            data_blob {c.DbOracle.DataType.BLOB}\n        )\n        "
         result = connected_oracle_api.execute_statement(create_sql)
         with contextlib.suppress(Exception):
             connected_oracle_api.execute_statement("DROP TABLE test_data_types")
-        assert result.is_success or "already exists" in str(result.error).lower()
+        tm.that(
+            result.success or ("already exists" in str(result.error).lower()),
+            eq=True,
+        )
 
-    @pytest.mark.unit_integration
+    @pytest.mark.unit
     def test_oracle_validation_constants_real_usage(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test Oracle validation constants with real database."""
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
-        max_length = (
-            FlextDbOracleConstants.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
-        )
-        assert isinstance(max_length, int)
-        assert max_length > 0
+        max_length = c.DbOracle.MAX_IDENTIFIER_LENGTH
+        tm.that(max_length, is_=int)
+        tm.that(max_length, gt=0)
         long_name = "A" * (max_length - 10)
-        escaped = FlextDbOracleUtilities.escape_oracle_identifier(long_name)
-        assert escaped.is_success
-        max_varchar = (
-            FlextDbOracleConstants.DbOracle.OracleValidation.MAX_VARCHAR_LENGTH
-        )
-        assert max_varchar == 4000
+        escaped = u.DbOracle.escape_oracle_identifier(long_name)
+        tm.ok(escaped)
+        max_varchar = c.DbOracle.MAX_VARCHAR_LENGTH
+        tm.that(max_varchar, eq=4000)
 
-    @pytest.mark.unit_integration
+    @pytest.mark.unit
     def test_oracle_performance_constants_real_timing(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test Oracle performance constants with real query timing."""
         if not oracle_available or connected_oracle_api is None:
@@ -398,28 +287,27 @@ class TestFlextDbOracleConstants:
         start_time = time.time()
         result = connected_oracle_api.query("SELECT 1 FROM DUAL")
         end_time = time.time()
-        assert result.is_success
+        tm.ok(result)
         execution_ms = (end_time - start_time) * 1000
-        perf = FlextDbOracleConstants.DbOracle.OraclePerformance
-        if execution_ms < perf.QUERY_EXCELLENT_THRESHOLD_MS:
-            assert execution_ms < 100
-        elif execution_ms < perf.QUERY_GOOD_THRESHOLD_MS:
-            assert execution_ms < 500
-        elif execution_ms < perf.QUERY_ACCEPTABLE_THRESHOLD_MS:
-            assert execution_ms < 2000
+        if execution_ms < c.DbOracle.QUERY_EXCELLENT_THRESHOLD_MS:
+            tm.that(execution_ms, lt=100)
+        elif execution_ms < c.DbOracle.QUERY_GOOD_THRESHOLD_MS:
+            tm.that(execution_ms, lt=500)
+        elif execution_ms < c.DbOracle.QUERY_ACCEPTABLE_THRESHOLD_MS:
+            tm.that(execution_ms, lt=2000)
 
-    @pytest.mark.unit_integration
+    @pytest.mark.unit
     def test_oracle_reserved_words_real_validation(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test that Oracle reserved words are actually reserved."""
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
-        reserved = FlextDbOracleConstants.DbOracle.OracleValidation.ORACLE_RESERVED
+        reserved = c.DbOracle.ORACLE_RESERVED
         test_words = ["SELECT", "FROM", "WHERE", "TABLE", "INDEX"]
         for word in test_words:
-            assert word in reserved, f"{word} should be in reserved words"
+            tm.that(reserved, has=word)
         for word in test_words[:3]:
-            result = FlextDbOracleUtilities.OracleValidation.validate_identifier(word)
-            assert result.is_failure, f"{word} should fail validation as reserved word"
-            assert result.error is not None and "reserved word" in result.error
+            tm.fail(u.DbOracle.validate_identifier(word), has="reserved word")

@@ -34,7 +34,7 @@
 !.tool-versions
 !.gitignore
 !.gitattributes
-!.pre-commit-config.yaml
+!.pre-commit-settings.yaml
 
 # Environment templates (NOT .env - keep secrets out!)
 !.env.example
@@ -172,7 +172,7 @@ state.json
 *.state
 *.state.json
 catalog.json
-target_config.json
+target_settings.json
 dbt.log
 dbt_packages/
 target/
@@ -319,7 +319,14 @@ staging/
 .claude/
 .github/*.rej
 
+
+
+
+!base.mk
+
 # --- workspace-sync: required ignores (auto-managed) ---
+.direnv/
 .reports/
 .venv/
 __pycache__/
+base.mk

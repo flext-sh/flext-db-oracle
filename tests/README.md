@@ -248,7 +248,7 @@ All tests must pass these quality standards:
 
 ### **Test Naming Conventions**
 
-```python
+```python notest
 # Test naming pattern: test_<method>_<scenario>_<expected_result>
 def test_connect_with_valid_config_returns_success():
     """Test successful connection with valid configuration."""
@@ -275,7 +275,7 @@ Each test file includes:
 
 Following FLEXT Core patterns for consistent testing:
 
-```python
+```text
 # r pattern testing
 result = api.connect()
 assert result.success
@@ -313,7 +313,7 @@ assert validation_result.success
 
 Use mocks appropriately based on test layer:
 
-```python
+```text
 # Unit tests: Mock external dependencies
 @patch("flext_db_oracle.connection.create_engine")
 def test_connection_creation_with_mocked_database():
@@ -339,7 +339,7 @@ def test_complete_workflow_without_mocks():
 pytest tests/unit/ -x --tb=short      # Stop on first failure
 
 # Complete validation before commit
-make validate                          # Full validation pipeline
+make val                          # Full validation pipeline
 
 # Performance testing
 pytest tests/integration/ --benchmark  # Performance benchmarks

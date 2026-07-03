@@ -7,11 +7,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle import FlextDbOracleModels, FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleSettings
+from tests.models import m
 
 
-class TestFlextDbOracleFields:
-    """Test FlextDbOracleModels and FlextDbOracleSettings fields."""
+class TestsFlextDbOracleFields:
+    """Test m and FlextDbOracleSettings fields."""
 
     def test_host_field_exists(self) -> None:
         """Test host field exists on settings."""
@@ -40,25 +41,25 @@ class TestFlextDbOracleFields:
 
     def test_connection_status_model_fields(self) -> None:
         """Test ConnectionStatus model has expected fields."""
-        fields = FlextDbOracleModels.DbOracle.ConnectionStatus.model_fields
-        assert "is_connected" in fields
+        fields = m.DbOracle.ConnectionStatus.model_fields
+        assert "connected" in fields
         assert "error_message" in fields
 
     def test_query_result_model_fields(self) -> None:
         """Test QueryResult model has expected fields."""
-        fields = FlextDbOracleModels.DbOracle.QueryResult.model_fields
+        fields = m.DbOracle.QueryResult.model_fields
         assert "query" in fields
         assert "columns" in fields
         assert "rows" in fields
 
     def test_row_data_model_fields(self) -> None:
         """Test RowData model has expected fields."""
-        fields = FlextDbOracleModels.DbOracle.RowData.model_fields
+        fields = m.DbOracle.RowData.model_fields
         assert "values" in fields
 
     def test_column_metadata_model_fields(self) -> None:
         """Test ColumnMetadata model has expected fields."""
-        fields = FlextDbOracleModels.DbOracle.ColumnMetadata.model_fields
+        fields = m.DbOracle.ColumnMetadata.model_fields
         assert "name" in fields
         assert "data_type" in fields
         assert "nullable" in fields

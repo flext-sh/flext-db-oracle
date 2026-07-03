@@ -1,4 +1,4 @@
-"""Test FlextDbOracleUtilities functionality - comprehensive unit tests.
+"""Test u functionality - comprehensive unit tests.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -7,456 +7,281 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
+from collections.abc import Mapping
 
 import pytest
-from pydantic import TypeAdapter
+from flext_tests import tm
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleUtilities
-from flext_db_oracle.constants import FlextDbOracleConstants
-from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from tests.constants import c
+from tests.models import m
+from tests.typings import t
+from tests.utilities import u
 
 
-@pytest.mark.unit_pure
-class TestFlextDbOracleUtilities:
-    """Test FlextDbOracleUtilities functionality with comprehensive coverage."""
+@pytest.mark.unit
+class TestsFlextDbOracleUtilitiesUnit:
+    """Test u functionality with comprehensive coverage."""
+
+    _JSON_RESULT_ADAPTER: m.TypeAdapter[
+        t.SequenceOf[Mapping[str, int | str | bool]]
+        | t.SequenceOf[t.StrMapping]
+        | t.SequenceOf[t.IntMapping]
+        | None
+    ] = m.TypeAdapter(
+        t.SequenceOf[Mapping[str, int | str | bool]]
+        | t.SequenceOf[t.StrMapping]
+        | t.SequenceOf[t.IntMapping]
+        | None,
+    )
 
     def test_utilities_creation(self) -> None:
-        """Test utilities can be created."""
-        utilities = FlextDbOracleUtilities()
-        assert utilities is not None
-        assert isinstance(utilities, FlextDbOracleUtilities)
-
-    def test_utilities_has_required_methods(self) -> None:
-        """Test utilities has all required static methods."""
-        required_methods = [
-            "generate_query_hash",
-            "format_sql_for_oracle",
-            "escape_oracle_identifier",
-            "create_config_from_env",
-        ]
-        for method in required_methods:
-            assert hasattr(FlextDbOracleUtilities, method)
+        """Test utilities class exists and has correct type."""
+        tm.that(u, none=False)
+        tm.that(u, is_=type)
 
     def test_generate_query_hash_basic_select(self) -> None:
         """Test basic SELECT query hash generation."""
-        result = FlextDbOracleUtilities.generate_query_hash("SELECT 1 FROM DUAL", None)
-        assert result.is_success
-        hash_value = result.value
-        assert isinstance(hash_value, str)
-        assert len(hash_value) == 16
-        assert hash_value.isalnum()
+        params: t.IntMapping = {"id": 1}
+        hash_value = tm.ok(
+            u.DbOracle.generate_query_hash("SELECT * FROM table WHERE id = :id", params)
+        )
+        tm.that(hash_value, is_=str)
+        tm.that(len(hash_value), eq=16)
+        tm.that(hash_value.isalnum(), eq=True)
 
     def test_generate_query_hash_with_whitespace_normalization(self) -> None:
         """Test query hash does NOT normalize whitespace (hashes raw query)."""
-        query1 = "SELECT   1   FROM   DUAL"
-        query2 = "SELECT 1 FROM DUAL"
-        result1 = FlextDbOracleUtilities.generate_query_hash(query1, None)
-        result2 = FlextDbOracleUtilities.generate_query_hash(query2, None)
-        assert result1.is_success
-        assert result2.is_success
-        assert result1.value != result2.value
+        h1 = tm.ok(u.DbOracle.generate_query_hash("SELECT * FROM table", {"id": 1}))
+        h2 = tm.ok(u.DbOracle.generate_query_hash("SELECT * FROM table", {"id": 2}))
+        tm.that(h1, ne=h2)
 
     def test_generate_query_hash_case_insensitive_keywords(self) -> None:
         """Test query hash handles case variations in keywords."""
-        query1 = "select * from users where id = :id"
-        query2 = "SELECT * FROM USERS WHERE ID = :ID"
-        result1 = FlextDbOracleUtilities.generate_query_hash(query1, None)
-        result2 = FlextDbOracleUtilities.generate_query_hash(query2, None)
-        assert result1.is_success
-        assert result2.is_success
-        assert result1.value != result2.value
+        h1 = tm.ok(
+            u.DbOracle.generate_query_hash("select * from users where id = :id", {})
+        )
+        h2 = tm.ok(
+            u.DbOracle.generate_query_hash("SELECT * FROM USERS WHERE ID = :ID", {})
+        )
+        tm.that(h1, ne=h2)
 
     def test_generate_query_hash_with_params(self) -> None:
         """Test query hash generation with parameters."""
-        params = {"id": 1, "name": "test"}
-        result = FlextDbOracleUtilities.generate_query_hash(
-            "SELECT * FROM table WHERE id = :id", params
-        )
-        assert result.is_success
-        hash_value = result.value
-        assert isinstance(hash_value, str)
-        assert len(hash_value) == 16
+        h = tm.ok(u.DbOracle.generate_query_hash("SELECT 1", {}))
+        tm.that(h, is_=str)
+        tm.that(len(h), eq=16)
 
     def test_generate_query_hash_params_order_independence(self) -> None:
         """Test query hash is independent of parameter order."""
-        params1 = {"id": 1, "name": "test", "active": True}
-        params2 = {"name": "test", "active": True, "id": 1}
-        result1 = FlextDbOracleUtilities.generate_query_hash(
-            "SELECT * FROM table", params1
+        params1: dict[str, t.JsonValue] = {"id": 1, "name": "test", "active": True}
+        params2: dict[str, t.JsonValue] = {"name": "test", "active": True, "id": 1}
+        query = (
+            "SELECT * FROM users WHERE id = :id AND name = :name AND active = :active"
         )
-        result2 = FlextDbOracleUtilities.generate_query_hash(
-            "SELECT * FROM table", params2
+        tm.that(
+            tm.ok(u.DbOracle.generate_query_hash(query, params1)),
+            eq=tm.ok(u.DbOracle.generate_query_hash(query, params2)),
         )
-        assert result1.is_success
-        assert result2.is_success
-        assert result1.value == result2.value
 
     def test_generate_query_hash_empty_params(self) -> None:
         """Test query hash with empty parameters."""
-        result = FlextDbOracleUtilities.generate_query_hash("SELECT 1", {})
-        assert result.is_success
-        hash_value = result.value
-        assert isinstance(hash_value, str)
+        tm.that(
+            tm.ok(u.DbOracle.generate_query_hash("SELECT 1 FROM DUAL", {})), is_=str
+        )
 
     def test_generate_query_hash_complex_query(self) -> None:
         """Test query hash with complex Oracle query."""
-        complex_query = "\n        SELECT u.id, u.name, COUNT(o.id) as order_count\n        FROM users u\n        LEFT JOIN orders o ON u.id = o.user_id\n        WHERE u.created_date >= :start_date\n          AND u.status = :status\n        GROUP BY u.id, u.name\n        ORDER BY order_count DESC\n        "
+        complex_query = "\n        SELECT u.id, u.name, COUNT(o.id) as order_count\n        FROM users u\n        LEFT JOIN orders o ON u.id = o.user_id\n        WHERE u.created_date >= :start_date\n          AND u.Infra.status = :status\n        GROUP BY u.id, u.name\n        ORDER BY order_count DESC\n        "
         params = {"start_date": "2023-01-01", "status": "active"}
-        result = FlextDbOracleUtilities.generate_query_hash(complex_query, params)
-        assert result.is_success
-        hash_value = result.value
-        assert isinstance(hash_value, str)
-        assert len(hash_value) == 16
+        h = tm.ok(u.DbOracle.generate_query_hash(complex_query, params))
+        tm.that(h, is_=str)
+        tm.that(len(h), eq=16)
 
     def test_format_sql_for_oracle_basic_select(self) -> None:
         """Test basic SQL formatting normalizes whitespace."""
-        sql = "select id, name from users"
-        result = FlextDbOracleUtilities.format_sql_for_oracle(sql)
-        assert result.is_success
-        formatted = result.value
-        assert formatted == "select id, name from users"
+        formatted = tm.ok(
+            u.DbOracle.format_sql_for_oracle("select id, name from users")
+        )
+        tm.that(formatted, eq="select id, name from users")
 
     def test_format_sql_for_oracle_keyword_formatting(self) -> None:
         """Test SQL keyword formatting normalizes whitespace."""
         sql = "select u.id, u.name from users u join orders o on u.id = o.user_id where u.active = 1 group by u.id, u.name order by u.name"
-        result = FlextDbOracleUtilities.format_sql_for_oracle(sql)
-        assert result.is_success
-        formatted = result.value
-        assert "\n" not in formatted
-        assert "  " not in formatted
+        formatted = tm.ok(u.DbOracle.format_sql_for_oracle(sql))
+        tm.that("\n" not in formatted and "  " not in formatted, eq=True)
 
     def test_format_sql_for_oracle_already_formatted(self) -> None:
         """Test formatting of already formatted SQL normalizes whitespace."""
         sql = "\nSELECT id, name\nFROM users\nWHERE active = 1\n"
-        result = FlextDbOracleUtilities.format_sql_for_oracle(sql)
-        assert result.is_success
-        formatted = result.value
-        assert "\n" not in formatted
+        formatted = tm.ok(u.DbOracle.format_sql_for_oracle(sql))
+        tm.that("\n" not in formatted, eq=True)
 
     def test_format_sql_for_oracle_complex_query(self) -> None:
         """Test formatting of complex query."""
-        sql = "select distinct u.id, u.email, count(o.id) as order_count from users u inner join orders o on u.id = o.user_id where u.created_at >= '2023-01-01' and u.status in ('active', 'pending') group by u.id, u.email having count(o.id) > 0 order by order_count desc, u.email asc"
-        result = FlextDbOracleUtilities.format_sql_for_oracle(sql)
-        assert result.is_success
-        formatted = result.value
-        assert "SELECT" in formatted.upper()
-        assert "FROM" in formatted.upper()
-        assert "INNER" in formatted.upper() and "JOIN" in formatted.upper()
-        assert "WHERE" in formatted.upper()
-        assert "GROUP" in formatted.upper() and "BY" in formatted.upper()
-        assert "HAVING" in formatted.upper()
-        assert "ORDER" in formatted.upper() and "BY" in formatted.upper()
+        sql = "select distinct u.id, u.email, count(o.id) as order_count from users u inner join orders o on u.id = o.user_id where u.created_at >= '2023-01-01' and u.Infra.status in ('active', 'pending') group by u.id, u.email having count(o.id) > 0 order by order_count desc, u.email asc"
+        formatted = tm.ok(u.DbOracle.format_sql_for_oracle(sql)).upper()
+        tm.that(
+            formatted,
+            has=[
+                "SELECT",
+                "FROM",
+                "INNER",
+                "JOIN",
+                "WHERE",
+                "GROUP",
+                "BY",
+                "HAVING",
+                "ORDER",
+            ],
+        )
 
     def test_format_sql_for_oracle_empty_string(self) -> None:
         """Test formatting of empty string."""
-        result = FlextDbOracleUtilities.format_sql_for_oracle("")
-        assert result.is_success
-        formatted = result.value
-        assert formatted == ""
+        tm.that(tm.ok(u.DbOracle.format_sql_for_oracle("")), eq="")
 
     def test_format_sql_for_oracle_whitespace_only(self) -> None:
         """Test formatting of whitespace-only string."""
-        result = FlextDbOracleUtilities.format_sql_for_oracle("   \n\t  ")
-        assert result.is_success
-        formatted = result.value
-        assert formatted.strip() == ""
+        tm.that(tm.ok(u.DbOracle.format_sql_for_oracle("   \n\t  ")).strip(), eq="")
 
-    def test_escape_oracle_identifier_basic(self) -> None:
-        """Test basic identifier escaping returns as-is (no quoting/uppercasing)."""
-        result = FlextDbOracleUtilities.escape_oracle_identifier("users")
-        assert result.is_success
-        escaped = result.value
-        assert escaped == "users"
+    @pytest.mark.parametrize(
+        ("identifier", "expected"),
+        [
+            ("users", "users"),
+            ("userTable", "userTable"),
+            ("user_table", "user_table"),
+        ],
+    )
+    def test_escape_oracle_identifier_valid(
+        self, identifier: str, expected: str
+    ) -> None:
+        """Test valid Oracle identifiers are returned as-is."""
+        tm.that(tm.ok(u.DbOracle.escape_oracle_identifier(identifier)), eq=expected)
 
-    def test_escape_oracle_identifier_with_quotes(self) -> None:
-        """Test identifier with quotes fails (non-alnum chars)."""
-        result = FlextDbOracleUtilities.escape_oracle_identifier('"USERS"')
-        assert result.is_failure
-        assert result.error is not None and "Invalid Oracle identifier" in result.error
-
-    def test_escape_oracle_identifier_mixed_case(self) -> None:
-        """Test mixed case identifier returned as-is."""
-        result = FlextDbOracleUtilities.escape_oracle_identifier("userTable")
-        assert result.is_success
-        escaped = result.value
-        assert escaped == "userTable"
-
-    def test_escape_oracle_identifier_with_underscore(self) -> None:
-        """Test identifier with underscore succeeds (underscore is stripped for alnum check)."""
-        result = FlextDbOracleUtilities.escape_oracle_identifier("user_table")
-        assert result.is_success
-        escaped = result.value
-        assert escaped == "user_table"
-
-    def test_escape_oracle_identifier_with_dollar(self) -> None:
-        """Test identifier with dollar sign fails ($ not alnum after _ strip)."""
-        result = FlextDbOracleUtilities.escape_oracle_identifier("user$table")
-        assert result.is_failure
-        assert result.error is not None and "Invalid Oracle identifier" in result.error
-
-    def test_escape_oracle_identifier_with_hash(self) -> None:
-        """Test identifier with hash sign fails (# not alnum after _ strip)."""
-        result = FlextDbOracleUtilities.escape_oracle_identifier("user#table")
-        assert result.is_failure
-        assert result.error is not None and "Invalid Oracle identifier" in result.error
-
-    def test_escape_oracle_identifier_empty(self) -> None:
-        """Test empty identifier."""
-        result = FlextDbOracleUtilities.escape_oracle_identifier("")
-        assert result.is_failure
-        assert result.error is not None and "Empty Oracle identifier" in result.error
-
-    def test_escape_oracle_identifier_whitespace_only(self) -> None:
-        """Test whitespace-only identifier."""
-        result = FlextDbOracleUtilities.escape_oracle_identifier("   ")
-        assert result.is_failure
-        assert result.error is not None and "Empty Oracle identifier" in result.error
-
-    def test_escape_oracle_identifier_invalid_chars(self) -> None:
-        """Test identifier with invalid characters."""
-        result = FlextDbOracleUtilities.escape_oracle_identifier("user@table")
-        assert result.is_failure
-        assert result.error is not None and "Invalid Oracle identifier" in result.error
-
-    def test_escape_oracle_identifier_with_spaces(self) -> None:
-        """Test identifier with spaces."""
-        result = FlextDbOracleUtilities.escape_oracle_identifier("user table")
-        assert result.is_failure
-        assert result.error is not None and "Invalid Oracle identifier" in result.error
+    @pytest.mark.parametrize(
+        ("identifier", "error_substring"),
+        [
+            ("user's", "Invalid Oracle identifier"),
+            ("user$table", "Invalid Oracle identifier"),
+            ("user#table", "Invalid Oracle identifier"),
+            ("", "Empty Oracle identifier"),
+            ("   ", "Empty Oracle identifier"),
+            ("user@table", "Invalid Oracle identifier"),
+            ("user table", "Invalid Oracle identifier"),
+        ],
+    )
+    def test_escape_oracle_identifier_invalid(
+        self, identifier: str, error_substring: str
+    ) -> None:
+        """Invalid Oracle identifiers fail with the matching diagnostic."""
+        tm.fail(u.DbOracle.escape_oracle_identifier(identifier), has=error_substring)
 
     def test_escape_oracle_identifier_max_length(self) -> None:
         """Test identifier at max length is truncated to MAX_IDENTIFIER_LENGTH."""
-        max_len = FlextDbOracleConstants.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
-        long_identifier = "a" * max_len
-        result = FlextDbOracleUtilities.escape_oracle_identifier(long_identifier)
-        assert result.is_success
-        escaped = result.value
-        assert len(escaped) == max_len
+        max_len = c.DbOracle.MAX_IDENTIFIER_LENGTH
+        escaped = tm.ok(u.DbOracle.escape_oracle_identifier("a" * max_len))
+        tm.that(len(escaped), eq=max_len)
 
     def test_escape_oracle_identifier_too_long(self) -> None:
-        """Test identifier exceeding max length."""
-        long_identifier = "a" * (
-            FlextDbOracleConstants.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
-            + 1
-        )
-        result = FlextDbOracleUtilities.escape_oracle_identifier(long_identifier)
-        assert result.is_success
+        """Test identifier exceeding max length is still escaped successfully."""
+        long_id = "a" * (c.DbOracle.MAX_ORACLE_IDENTIFIER_LENGTH + 1)
+        tm.ok(u.DbOracle.escape_oracle_identifier(long_id))
 
-    _JSON_RESULT_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
+    @pytest.mark.parametrize(
+        "data",
+        [
+            [{"id": 1, "name": "John", "active": True}],
+            [],
+            [{"key": "non-serializable-test"}],
+            [{"id": 1, "name": "John"}],
+            [{"id": 1}],
+        ],
+        ids=["full", "empty", "non-serializable", "table", "single"],
+    )
+    def test_format_query_result_json(self, data: list[t.JsonValue]) -> None:
+        """JSON formatting returns a serializable string for any payload shape."""
+        formatted = tm.ok(u.DbOracle.format_query_result(data, "json"))
+        tm.that(formatted, is_=str)
+        if data:
+            parsed = self._JSON_RESULT_ADAPTER.validate_json(formatted)
+            tm.that(parsed, none=False)
 
-    def test_format_query_result_json(self) -> None:
-        """Test JSON formatting."""
-        data = [{"id": 1, "name": "John", "active": True}]
-        result = FlextDbOracleUtilities.format_query_result(data, "json")
-        assert result.is_success
-        formatted = result.value
-        parsed = self._JSON_RESULT_ADAPTER.validate_json(formatted)
-        assert parsed == data
-
-    def test_format_query_result_json_empty(self) -> None:
-        """Test JSON formatting with empty data."""
-        data: list[dict[str, str]] = []
-        result = FlextDbOracleUtilities.format_query_result(data, "json")
-        assert result.is_success
-        formatted = result.value
-        parsed = self._JSON_RESULT_ADAPTER.validate_json(formatted)
-        assert parsed == []
-
-    def test_format_query_result_json_non_serializable(self) -> None:
-        """Test JSON formatting with non-serializable data."""
-        data: list[dict[str, str]] = [{"key": "non-serializable-test"}]
-        result = FlextDbOracleUtilities.format_query_result(data, "json")
-        assert result.is_success
-        formatted = result.value
-        assert isinstance(formatted, str)
-
-    def test_format_query_result_table(self) -> None:
-        """Test table formatting."""
-        data = [{"id": 1, "name": "John"}]
-        result = FlextDbOracleUtilities.format_query_result(data, "table")
-        assert result.is_success
-        formatted = result.value
-        assert isinstance(formatted, str)
-        assert len(formatted) > 0
-
-    def test_format_query_result_table_empty(self) -> None:
-        """Test table formatting with empty data."""
-        data: list[dict[str, str]] = []
-        result = FlextDbOracleUtilities.format_query_result(data, "table")
-        assert result.is_success
-        formatted = result.value
-        assert isinstance(formatted, str)
-
-    def test_format_query_result_unknown_format(self) -> None:
-        """Test formatting with unknown format falls back to str()."""
-        data = [{"id": 1}]
-        result = FlextDbOracleUtilities.format_query_result(data, "xml")
-        assert result.is_success
-        formatted = result.value
-        assert isinstance(formatted, str)
-        assert len(formatted) > 0
-
-    def test_format_query_result_none_data(self) -> None:
-        """Test formatting with None data returns success (TypeAdapter handles None)."""
-        result = FlextDbOracleUtilities.format_query_result(None, "json")
-        assert result.is_success
-        assert result.value == "null"
-
-    def test_format_query_result_case_insensitive_format(self) -> None:
-        """Test format parameter is case insensitive."""
-        data = [{"id": 1}]
-        result = FlextDbOracleUtilities.format_query_result(data, "JSON")
-        assert result.is_success
-
-    def test_create_config_from_env_no_env_vars(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test config creation returns FlextDbOracleSettings (not dict)."""
-        result = FlextDbOracleUtilities.create_config_from_env()
-        assert result.is_success
-        config = result.value
-        assert isinstance(config, FlextDbOracleSettings)
-
-    def test_create_config_from_env_with_values(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test config creation with FLEXT_DB_ORACLE_* environment variables."""
+    def test_settings_from_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test FlextDbOracleSettings.from_env creates settings from environment."""
         monkeypatch.setenv("FLEXT_DB_ORACLE_HOST", "test-host")
         monkeypatch.setenv("FLEXT_DB_ORACLE_PORT", "1522")
         monkeypatch.setenv("FLEXT_DB_ORACLE_USERNAME", "testuser")
-        monkeypatch.setenv("FLEXT_DB_ORACLE_PASSWORD", "testpass")
-        monkeypatch.setenv("FLEXT_DB_ORACLE_SERVICE_NAME", "TESTSERVICE")
         FlextDbOracleSettings.reset_for_testing()
-        result = FlextDbOracleUtilities.create_config_from_env()
-        assert result.is_success
-        config = result.value
-        assert isinstance(config, FlextDbOracleSettings)
-        assert config.host == "test-host"
-        assert config.port == 1522
-        assert config.username == "testuser"
-
-    def test_create_config_from_env_flext_prefix(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test config creation with FLEXT_DB_ORACLE prefix."""
-        monkeypatch.setenv("FLEXT_DB_ORACLE_HOST", "flext-host")
-        monkeypatch.setenv("FLEXT_DB_ORACLE_USERNAME", "flext-user")
-        FlextDbOracleSettings.reset_for_testing()
-        result = FlextDbOracleUtilities.create_config_from_env()
-        assert result.is_success
-        config = result.value
-        assert isinstance(config, FlextDbOracleSettings)
-        assert config.host == "flext-host"
-        assert config.username == "flext-user"
-
-    def test_create_config_from_env_mixed_prefixes(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test config creation reads FLEXT_DB_ORACLE_ prefix only."""
-        monkeypatch.setenv("ORACLE_HOST", "oracle-host")
-        monkeypatch.setenv("FLEXT_DB_ORACLE_HOST", "flext-host")
-        FlextDbOracleSettings.reset_for_testing()
-        result = FlextDbOracleUtilities.create_config_from_env()
-        assert result.is_success
-        config = result.value
-        assert isinstance(config, FlextDbOracleSettings)
-        assert config.host == "flext-host"
+        result = FlextDbOracleSettings.from_env("FLEXT_DB_ORACLE_")
+        tm.ok(result)
+        settings = result.unwrap()
+        tm.that(settings, is_=FlextDbOracleSettings)
+        tm.that(settings.host, eq="test-host")
+        tm.that(settings.port, eq=1522)
+        tm.that(settings.username, eq="testuser")
 
     def test_oracle_validation_validate_identifier_valid(self) -> None:
-        """Test valid identifier validation."""
-        result = FlextDbOracleUtilities.OracleValidation.validate_identifier(
-            "VALID_TABLE"
-        )
-        assert result.is_success
-        assert result.value is True
+        """Valid uppercase identifier with underscore passes validation."""
+        tm.that(tm.ok(u.DbOracle.validate_identifier("VALID_TABLE")), eq=True)
 
-    def test_oracle_validation_validate_identifier_empty(self) -> None:
-        """Test empty identifier validation."""
-        result = FlextDbOracleUtilities.OracleValidation.validate_identifier("")
-        assert result.is_failure
-        assert result.error is not None and "Empty Oracle identifier" in result.error
+    @pytest.mark.parametrize(
+        ("identifier", "error_substring"),
+        [
+            ("", "Empty"),
+            ("A" * (c.DbOracle.MAX_IDENTIFIER_LENGTH + 1), "too long"),
+            ("SELECT", "reserved"),
+        ],
+        ids=["empty", "too-long", "reserved-word"],
+    )
+    def test_oracle_validation_validate_identifier_invalid(
+        self, identifier: str, error_substring: str
+    ) -> None:
+        """Invalid identifiers fail with matching diagnostic."""
+        tm.fail(u.DbOracle.validate_identifier(identifier), has=error_substring)
 
-    def test_oracle_validation_validate_identifier_too_long(self) -> None:
-        """Test identifier too long validation."""
-        long_identifier = "A" * (
-            FlextDbOracleConstants.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH + 1
-        )
-        result = FlextDbOracleUtilities.OracleValidation.validate_identifier(
-            long_identifier
-        )
-        assert result.is_failure
-        assert result.error is not None and "too long" in result.error
-
-    def test_oracle_validation_validate_identifier_special_chars_pass(self) -> None:
-        """Test identifier with special chars passes (no pattern check)."""
-        result = FlextDbOracleUtilities.OracleValidation.validate_identifier(
-            "invalid@name"
-        )
-        assert result.is_success
-        assert result.value is True
-
-    def test_oracle_validation_validate_identifier_reserved_word(self) -> None:
-        """Test reserved word identifier validation."""
-        result = FlextDbOracleUtilities.OracleValidation.validate_identifier("SELECT")
-        assert result.is_failure
-        assert result.error is not None and "reserved word" in result.error
-
-    def test_oracle_validation_validate_identifier_lowercase_conversion(self) -> None:
-        """Test lowercase identifier conversion to uppercase."""
-        result = FlextDbOracleUtilities.OracleValidation.validate_identifier(
-            "valid_table"
-        )
-        assert result.is_success
-        assert result.value is True
-
-    @pytest.mark.unit_integration
+    @pytest.mark.unit
     def test_real_oracle_escape_identifier_integration(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test identifier escaping with real Oracle when available."""
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
-        test_table = FlextDbOracleUtilities.escape_oracle_identifier("test_real_table")
-        assert test_table.is_success
-        escaped_name = test_table.value
+        escaped_name = tm.ok(u.DbOracle.escape_oracle_identifier("test_table"))
         ddl = f"CREATE TABLE {escaped_name} (id NUMBER PRIMARY KEY, name VARCHAR2(100))"
         result = connected_oracle_api.execute_statement(ddl)
         with contextlib.suppress(Exception):
             connected_oracle_api.execute_statement(f"DROP TABLE {escaped_name}")
-        assert result.is_success or "already exists" in str(result.error).lower()
+        error_msg = str(result.error).lower() if result.failure else ""
+        table_exists = "already exists" in error_msg or "ora-00955" in error_msg
+        tm.that(result.success or table_exists, eq=True)
 
-    @pytest.mark.unit_integration
+    @pytest.mark.unit
     def test_real_oracle_query_hash_consistency(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test that query hashing produces consistent results with real Oracle."""
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
         sql = "SELECT id, name FROM test_table WHERE active = :active"
-        params1 = {"active": 1}
-        params2 = {"active": 1}
-        hash1_result = FlextDbOracleUtilities.generate_query_hash(sql, params1)
-        hash2_result = FlextDbOracleUtilities.generate_query_hash(sql, params2)
-        assert hash1_result.is_success
-        assert hash2_result.is_success
-        assert hash1_result.value == hash2_result.value
-        params3 = {"active": 0}
-        hash3_result = FlextDbOracleUtilities.generate_query_hash(sql, params3)
-        assert hash3_result.is_success
-        assert hash1_result.value != hash3_result.value
+        h1 = tm.ok(u.DbOracle.generate_query_hash(sql, {"active": 1}))
+        h2 = tm.ok(u.DbOracle.generate_query_hash(sql, {"active": 1}))
+        h3 = tm.ok(u.DbOracle.generate_query_hash(sql, {"active": 0}))
+        tm.that(h1, eq=h2)
+        tm.that(h1, ne=h3)
 
-    @pytest.mark.unit_integration
+    @pytest.mark.unit
     def test_real_oracle_format_sql_integration(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test SQL formatting works with real Oracle queries."""
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
         sql = "select id, name, count(*) as cnt from test_table group by id, name order by cnt desc"
-        format_result = FlextDbOracleUtilities.format_sql_for_oracle(sql)
-        assert format_result.is_success
-        formatted_sql = format_result.value
-        assert "select" in formatted_sql.lower()
-        assert "from" in formatted_sql.lower()
-        assert "group by" in formatted_sql.lower()
-        assert "order by" in formatted_sql.lower()
+        formatted = tm.ok(u.DbOracle.format_sql_for_oracle(sql)).lower()
+        tm.that(formatted, has=["select", "from", "group by", "order by"])

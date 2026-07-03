@@ -7,12 +7,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle import FlextDbOracleProtocols
+from flext_tests import tm
+
+from tests.protocols import p
 
 
-class TestFlextDbOracleProtocols:
+class TestsFlextDbOracleProtocolsUnit:
     """Test FlextDbOracleProtocols functionality."""
 
     def test_protocols_access(self) -> None:
         """Test protocols can be accessed."""
-        assert FlextDbOracleProtocols is not None
+        tm.that(p, none=False)

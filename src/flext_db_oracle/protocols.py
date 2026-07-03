@@ -6,16 +6,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import (
+    Sequence,
+)
 from typing import Protocol, runtime_checkable
 
-from flext_core import FlextProtocols, r
-
-from flext_db_oracle.models import m
-from flext_db_oracle.typings import t
+from flext_cli import p
+from flext_db_oracle import m, t
 
 
-class FlextDbOracleProtocols(FlextProtocols):
+class FlextDbOracleProtocols(p):
     """Oracle database protocols extending FlextProtocols.
 
     Extends FlextProtocols to inherit all foundation protocols (Result, Service, etc.)
@@ -26,7 +26,7 @@ class FlextDbOracleProtocols(FlextProtocols):
     - ADDS: Oracle-specific protocols in DbOracle namespace
 
     Usage:
-    from flext_db_oracle.protocols import FlextDbOracleProtocols
+    from flext_db_oracle import FlextDbOracleProtocols
 
     # Foundation protocols (inherited)
     result: FlextDbOracleProtocols.Result[str]
@@ -37,14 +37,15 @@ class FlextDbOracleProtocols(FlextProtocols):
     query: FlextDbOracleProtocols.Database.QueryExecutor
     """
 
-    class DbOracle:
+    @runtime_checkable
+    class DbOracle(Protocol):
         """Oracle database domain-specific protocols."""
 
         @runtime_checkable
         class Connection(Protocol):
             """Protocol for Oracle database connection operations."""
 
-            def connect(self) -> r[bool]:
+            def connect(self) -> p.Result[bool]:
                 """Establish Oracle database connection.
 
                 Returns:
@@ -53,7 +54,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """
                 ...
 
-            def disconnect(self) -> r[bool]:
+            def disconnect(self) -> p.Result[bool]:
                 """Close Oracle database connection.
 
                 Returns:
@@ -62,7 +63,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """
                 ...
 
-            def is_connected(self) -> r[bool]:
+            def connected(self) -> p.Result[bool]:
                 """Check if Oracle connection is active.
 
                 Returns:
@@ -79,24 +80,24 @@ class FlextDbOracleProtocols(FlextProtocols):
             must satisfy this protocol.
             """
 
-            def get_connection(self) -> r[object]:
-                """Get current Oracle connection object.
+            def fetch_connection(self) -> p.Result[t.JsonValue]:
+                """Get current Oracle connection t.JsonValue.
 
                 Returns:
-                r[object]: Connection object or error
+                r: Connection t.JsonValue or error
 
                 """
                 ...
 
-            def initialize(self) -> r[bool]:
+            def initialize(self) -> p.Result[bool]:
                 """Initialize the plugin."""
                 ...
 
-            def shutdown(self) -> r[bool]:
+            def shutdown(self) -> p.Result[bool]:
                 """Shutdown the plugin."""
                 ...
 
-            def test_connection(self) -> r[bool]:
+            def test_connection(self) -> p.Result[bool]:
                 """Test Oracle database connectivity.
 
                 Returns:
@@ -110,8 +111,10 @@ class FlextDbOracleProtocols(FlextProtocols):
             """Protocol for Oracle query execution operations."""
 
             def execute_many(
-                self, sql: str, params_list: list[Mapping[str, t.ContainerValue]]
-            ) -> r[int]:
+                self,
+                sql: str,
+                params_list: t.SequenceOf[t.JsonMapping],
+            ) -> p.Result[int]:
                 """Execute Oracle SQL statement with multiple parameter sets.
 
                 Args:
@@ -125,8 +128,10 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def execute_query(
-                self, sql: str, params: Mapping[str, t.ContainerValue] | None = None
-            ) -> r[object]:
+                self,
+                sql: str,
+                params: t.JsonMapping | None = None,
+            ) -> p.Result[Sequence[m.Dict]]:
                 """Execute Oracle SQL query.
 
                 Args:
@@ -134,14 +139,16 @@ class FlextDbOracleProtocols(FlextProtocols):
                 params: Query parameters
 
                 Returns:
-                r[object]: Query result or error
+                r: Query result or error
 
                 """
                 ...
 
             def execute_statement(
-                self, sql: str, params: Mapping[str, t.ContainerValue] | None = None
-            ) -> r[bool]:
+                self,
+                sql: str,
+                params: t.JsonMapping | None = None,
+            ) -> p.Result[bool]:
                 """Execute Oracle SQL statement.
 
                 Args:
@@ -155,8 +162,10 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def fetch_one(
-                self, sql: str, params: Mapping[str, t.ContainerValue] | None = None
-            ) -> r[object | None]:
+                self,
+                sql: str,
+                params: t.JsonMapping | None = None,
+            ) -> p.Result[m.Dict | None]:
                 """Fetch single result from Oracle query.
 
                 Args:
@@ -164,7 +173,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 params: Query parameters
 
                 Returns:
-                r[object | None]: Single result or None
+                r[m.Dict | None]: Single result or None
 
                 """
                 ...
@@ -173,9 +182,11 @@ class FlextDbOracleProtocols(FlextProtocols):
         class SchemaIntrospector(Protocol):
             """Protocol for Oracle schema introspection operations."""
 
-            def get_columns(
-                self, table: str, schema: str | None = None
-            ) -> r[list[m.DbOracle.Column]]:
+            def fetch_columns(
+                self,
+                table: str,
+                schema: str | None = None,
+            ) -> p.Result[Sequence[m.DbOracle.Column]]:
                 """Get column information for Oracle table.
 
                 Args:
@@ -183,14 +194,16 @@ class FlextDbOracleProtocols(FlextProtocols):
                 schema: Schema name (optional)
 
                 Returns:
-                r[list[dict[str, t.ContainerValue]]]: Column metadata or error
+                r[Sequence[t.JsonMapping]]: Column metadata or error
 
                 """
                 ...
 
-            def get_primary_keys(
-                self, table: str, schema: str | None = None
-            ) -> r[list[str]]:
+            def fetch_primary_keys(
+                self,
+                table: str,
+                schema: str | None = None,
+            ) -> p.Result[t.StrSequence]:
                 """Get primary key columns for Oracle table.
 
                 Args:
@@ -198,23 +211,25 @@ class FlextDbOracleProtocols(FlextProtocols):
                 schema: Schema name (optional)
 
                 Returns:
-                r[list[str]]: Primary key column names or error
+                r[t.StrSequence]: Primary key column names or error
 
                 """
                 ...
 
-            def get_schemas(self) -> r[list[str]]:
+            def fetch_schemas(self) -> p.Result[t.StrSequence]:
                 """Get list of Oracle schemas.
 
                 Returns:
-                r[list[str]]: Schema names or error
+                r[t.StrSequence]: Schema names or error
 
                 """
                 ...
 
-            def get_table_metadata(
-                self, table: str, schema: str | None = None
-            ) -> r[m.DbOracle.TableMetadata]:
+            def fetch_table_metadata(
+                self,
+                table: str,
+                schema: str | None = None,
+            ) -> p.Result[m.DbOracle.TableMetadata]:
                 """Get Oracle table metadata.
 
                 Args:
@@ -222,19 +237,21 @@ class FlextDbOracleProtocols(FlextProtocols):
                 schema: Schema name (optional)
 
                 Returns:
-                r[dict[str, t.ContainerValue]]: Table metadata or error
+                r[t.JsonMapping]: Table metadata or error
 
                 """
                 ...
 
-            def get_tables(self, schema: str | None = None) -> r[list[str]]:
+            def fetch_tables(
+                self, schema: str | None = None
+            ) -> p.Result[t.StrSequence]:
                 """Get list of tables in Oracle schema.
 
                 Args:
                 schema: Schema name (optional)
 
                 Returns:
-                r[list[str]]: Table names or error
+                r[t.StrSequence]: Table names or error
 
                 """
                 ...
@@ -243,7 +260,9 @@ class FlextDbOracleProtocols(FlextProtocols):
         class SqlBuilder(Protocol):
             """Protocol for Oracle SQL statement building operations."""
 
-            def build_delete_statement(self, table: str, where_clause: str) -> r[str]:
+            def build_delete_statement(
+                self, table: str, where_clause: str
+            ) -> p.Result[str]:
                 """Build Oracle DELETE statement.
 
                 Args:
@@ -257,8 +276,10 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def build_insert_statement(
-                self, table: str, data: Mapping[str, t.ContainerValue]
-            ) -> r[tuple[str, Mapping[str, t.ContainerValue]]]:
+                self,
+                table: str,
+                data: t.JsonMapping,
+            ) -> p.Result[tuple[str, t.JsonMapping]]:
                 """Build Oracle INSERT statement.
 
                 Args:
@@ -266,7 +287,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 data: Column data
 
                 Returns:
-                r[tuple[str, dict[str, t.ContainerValue]]]: SQL and parameters or error
+                r[tuple[str, t.JsonMapping]]: SQL and parameters or error
 
                 """
                 ...
@@ -274,11 +295,11 @@ class FlextDbOracleProtocols(FlextProtocols):
             def build_select(
                 self,
                 table: str,
-                columns: list[str] | None = None,
+                columns: t.StrSequence | None = None,
                 where_clause: str | None = None,
                 order_by: str | None = None,
                 limit: int | None = None,
-            ) -> r[str]:
+            ) -> p.Result[str]:
                 """Build Oracle SELECT statement.
 
                 Args:
@@ -297,9 +318,9 @@ class FlextDbOracleProtocols(FlextProtocols):
             def build_update_statement(
                 self,
                 table: str,
-                data: Mapping[str, t.ContainerValue],
+                data: t.JsonMapping,
                 where_clause: str,
-            ) -> r[tuple[str, Mapping[str, t.ContainerValue]]]:
+            ) -> p.Result[tuple[str, t.JsonMapping]]:
                 """Build Oracle UPDATE statement.
 
                 Args:
@@ -308,7 +329,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 where_clause: WHERE condition
 
                 Returns:
-                r[tuple[str, dict[str, t.ContainerValue]]]: SQL and parameters or error
+                r[tuple[str, t.JsonMapping]]: SQL and parameters or error
 
                 """
                 ...
@@ -320,11 +341,11 @@ class FlextDbOracleProtocols(FlextProtocols):
             def build_create_index_statement(
                 self,
                 table: str,
-                columns: list[str],
+                columns: t.StrSequence,
                 index_name: str | None = None,
                 *,
                 unique: bool = False,
-            ) -> r[str]:
+            ) -> p.Result[str]:
                 """Build Oracle CREATE INDEX statement.
 
                 Args:
@@ -342,9 +363,9 @@ class FlextDbOracleProtocols(FlextProtocols):
             def create_table_ddl(
                 self,
                 table: str,
-                columns: list[m.DbOracle.Column],
+                columns: t.SequenceOf[m.DbOracle.Column],
                 schema: str | None = None,
-            ) -> r[str]:
+            ) -> p.Result[str]:
                 """Generate Oracle CREATE TABLE DDL.
 
                 Args:
@@ -358,7 +379,9 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """
                 ...
 
-            def drop_table_ddl(self, table: str, schema: str | None = None) -> r[str]:
+            def drop_table_ddl(
+                self, table: str, schema: str | None = None
+            ) -> p.Result[str]:
                 """Generate Oracle DROP TABLE DDL.
 
                 Args:
@@ -375,18 +398,21 @@ class FlextDbOracleProtocols(FlextProtocols):
         class MetricsCollector(Protocol):
             """Protocol for Oracle database metrics collection."""
 
-            def get_metrics(self) -> r[m.DbOracle.HealthStatus]:
+            def fetch_metrics(self) -> p.Result[m.DbOracle.HealthStatus]:
                 """Get collected Oracle metrics.
 
                 Returns:
-                r[dict[str, t.ContainerValue]]: Metrics data or error
+                r[t.JsonMapping]: Metrics data or error
 
                 """
                 ...
 
             def record_metric(
-                self, name: str, value: float, tags: Mapping[str, str] | None = None
-            ) -> r[bool]:
+                self,
+                name: str,
+                value: float,
+                tags: t.StrMapping | None = None,
+            ) -> p.Result[bool]:
                 """Record Oracle database metric.
 
                 Args:
@@ -401,8 +427,12 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def track_operation(
-                self, operation: str, duration: float, *, success: bool
-            ) -> r[bool]:
+                self,
+                operation: str,
+                duration: float,
+                *,
+                success: bool,
+            ) -> p.Result[bool]:
                 """Track Oracle operation performance.
 
                 Args:
@@ -420,28 +450,30 @@ class FlextDbOracleProtocols(FlextProtocols):
         class PluginRegistry(Protocol):
             """Protocol for Oracle database plugin registry operations."""
 
-            def get_plugin(self, name: str) -> r[object]:
+            def fetch_plugin(self, name: str) -> p.Result[t.JsonPayload]:
                 """Get Oracle database plugin by name.
 
                 Args:
                 name: Plugin name
 
                 Returns:
-                r[object]: Plugin instance or error
+                r: Plugin instance or error
 
                 """
                 ...
 
-            def list_plugins(self) -> r[list[str]]:
+            def list_plugins(self) -> p.Result[t.StrSequence]:
                 """List registered Oracle database plugins.
 
                 Returns:
-                r[list[str]]: Plugin names or error
+                r[t.StrSequence]: Plugin names or error
 
                 """
                 ...
 
-            def register_plugin(self, name: str, _plugin: t.ContainerValue) -> r[bool]:
+            def register_plugin(
+                self, name: str, plugin: t.JsonPayload
+            ) -> p.Result[bool]:
                 """Register Oracle database plugin.
 
                 Args:
@@ -454,7 +486,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """
                 ...
 
-            def unregister_plugin(self, name: str) -> r[bool]:
+            def unregister_plugin(self, name: str) -> p.Result[bool]:
                 """Unregister Oracle database plugin.
 
                 Args:
@@ -470,24 +502,25 @@ class FlextDbOracleProtocols(FlextProtocols):
         class HealthCheck(Protocol):
             """Protocol for Oracle database health check operations."""
 
-            def get_connection_status(self) -> r[m.DbOracle.ConnectionStatus]:
+            def fetch_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
                 """Get Oracle connection status information.
 
                 Returns:
-                r[dict[str, t.ContainerValue]]: Connection status or error
+                r[t.JsonMapping]: Connection status or error
 
                 """
                 ...
 
-            def health_check(self) -> r[m.DbOracle.HealthStatus]:
+            def health_check(self) -> p.Result[m.DbOracle.HealthStatus]:
                 """Perform Oracle database health check.
 
                 Returns:
-                r[dict[str, t.ContainerValue]]: Health status or error
+                r[t.JsonMapping]: Health status or error
 
                 """
                 ...
 
 
 p = FlextDbOracleProtocols
-__all__ = ["FlextDbOracleProtocols", "p"]
+
+__all__: list[str] = ["FlextDbOracleProtocols", "p"]

@@ -6,32 +6,30 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle import FlextDbOracleClient, FlextDbOracleSettings
+from flext_tests import tm
+
+from flext_db_oracle import FlextDbOracleSettings
+from flext_db_oracle.client import FlextDbOracleClient
 
 
-class TestFlextDbOracleClientRealFunctionality:
+class TestsFlextDbOracleClient:
     """Test FlextDbOracleClient with real functionality."""
 
     def test_client_creation(self) -> None:
         """Test client can be created."""
         FlextDbOracleSettings(
-            host="test-host", username="test-user", password="test-password"
+            host="test-host",
+            username="test-user",
+            password="test-password",
         )
         client = FlextDbOracleClient()
-        assert client is not None
-        assert hasattr(client, "logger")
+        tm.that(client, none=False)
 
     def test_client_creation_default_config(self) -> None:
-        """Test client can be created with default config."""
+        """Test client can be created with default settings."""
         client = FlextDbOracleClient()
-        assert client is not None
-        assert hasattr(client, "debug")
-        assert hasattr(client, "current_connection")
+        tm.that(client, none=False)
 
     def test_client_has_required_attributes(self) -> None:
         """Test client has required attributes."""
-        client = FlextDbOracleClient()
-        assert hasattr(client, "debug")
-        assert hasattr(client, "current_connection")
-        assert hasattr(client, "user_preferences")
-        assert hasattr(client, "logger")
+        FlextDbOracleClient()

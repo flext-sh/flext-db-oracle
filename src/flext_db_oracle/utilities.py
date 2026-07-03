@@ -2,168 +2,25 @@
 
 from __future__ import annotations
 
-import hashlib
-import os
-from collections.abc import Mapping
-from enum import StrEnum
-from typing import Annotated
-
-from flext_core import FlextUtilities, r, t
-from pydantic import BeforeValidator, TypeAdapter
-
-from flext_db_oracle.constants import c
-from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_cli import u
+from flext_core import FlextUtilitiesReliability
+from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
 
 
-class FlextDbOracleUtilities(FlextUtilities):
+class FlextDbOracleUtilities(u, FlextUtilitiesReliability):
     """FlextDbOracle utilities extending FlextUtilities with Oracle-specific helpers.
 
     Architecture: Advanced utilities with ZERO code bloat through:
     - TypeIs/TypeGuard for narrowing (PEP 742)
-    - BeforeValidator factories for Pydantic coercion
+    - m.BeforeValidator factories for Pydantic coercion
     - @validated decorators eliminating manual validation
     - Generic parsing utilities for StrEnums (inherited from parent)
     """
 
-    class DbOracle:
-        """Oracle-specific utility namespace.
-
-        This namespace groups all Oracle-specific utilities for better organization
-        and cross-project access. Access via u.Oracle.* pattern.
-
-        Example:
-            from flext_db_oracle.utilities import u
-            result = u.Oracle.Collection.parse_sequence(Status, ["active", "pending"])
-            parsed = u.Oracle.Args.parse_kwargs(kwargs, enum_fields)
-
-        """
-
-        class Collection(FlextUtilities):
-            """Collection utilities extending u via inheritance.
-
-            Exposes all flext-core Collection methods through inheritance hierarchy.
-            Access via u.Oracle.Collection.* pattern.
-            """
-
-        class Args(FlextUtilities):
-            """Args utilities extending u via inheritance.
-
-            Exposes all flext-core Args methods through inheritance hierarchy,
-            including validated, validated_with_result, parse_kwargs, and get_enum_params.
-            Access via u.Oracle.Args.* pattern.
-            """
-
-        class Model(FlextUtilities):
-            """Model utilities extending u via inheritance.
-
-            Exposes all flext-core Model methods through inheritance hierarchy.
-            Access via u.Oracle.Model.* pattern.
-            """
-
-        class Pydantic:
-            """Factories for Annotated types."""
-
-            @staticmethod
-            def coerced_enum[E: StrEnum](enum_cls: type[E]) -> t.ContainerValue:
-                """Create an Annotated StrEnum type with automatic coercion.
-
-                Args:
-                    enum_cls: The StrEnum class to create an annotated type for.
-
-                Returns:
-                    An Annotated type that validates and coerces string values to the enum.
-
-                """
-                return Annotated[
-                    enum_cls, BeforeValidator(FlextUtilities.coerce_validator(enum_cls))
-                ]
-
-        class FeatureFlags:
-            """Feature toggles for progressive dispatcher rollout.
-
-            Moved from constants.py to utilities.py to comply with
-            architecture rules (constants.py must contain only constants).
-            Access via u.Oracle.FeatureFlags.* pattern.
-            """
-
-            @classmethod
-            def dispatcher_enabled(cls) -> bool:
-                """Return True when dispatcher integration should be used."""
-                return cls._env_enabled("FLEXT_DB_ORACLE_ENABLE_DISPATCHER")
-
-            @staticmethod
-            def _env_enabled(flag_name: str, default: str = "0") -> bool:
-                """Check if environment flag is enabled."""
-                value = os.environ.get(flag_name, default)
-                return value.lower() not in {"0", "false", "no"}
-
-    class OracleValidation:
-        """Oracle validation grouping class."""
-
-        @staticmethod
-        def validate_identifier(identifier: str) -> r[bool]:
-            """Validate an Oracle identifier."""
-            if not identifier:
-                return r[bool].fail("Empty Oracle identifier")
-            if len(identifier) > c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH:
-                return r[bool].fail("Oracle identifier too long")
-            if identifier.upper() in c.DbOracle.OracleValidation.ORACLE_RESERVED:
-                return r[bool].fail("Oracle identifier is reserved word")
-            return r[bool].ok(True)
-
-    @staticmethod
-    def create_config_from_env() -> r[FlextDbOracleSettings]:
-        """Create Oracle settings directly from the environment variables."""
-        config_result = FlextDbOracleSettings.from_env("FLEXT_DB_ORACLE_")
-        if config_result.is_failure:
-            return r[FlextDbOracleSettings].fail(config_result.error)
-        return r[FlextDbOracleSettings].ok(config_result.value)
-
-    @staticmethod
-    def escape_oracle_identifier(identifier: str) -> r[str]:
-        """Escape and validate an Oracle identifier for safe use."""
-        if not identifier.strip():
-            return r[str].fail("Empty Oracle identifier")
-        if not identifier.replace("_", "").isalnum():
-            return r[str].fail("Invalid Oracle identifier")
-        max_len = c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
-        return r[str].ok(identifier[:max_len])
-
-    _QUERY_RESULT_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
-
-    @staticmethod
-    def format_query_result(
-        result: t.ContainerValue, format_type: str = "table"
-    ) -> r[str]:
-        """Format a query result to string or JSON."""
-        if format_type == "json":
-            return r[str].ok(
-                FlextDbOracleUtilities._QUERY_RESULT_ADAPTER.dump_json(result).decode()
-            )
-        return r[str].ok(str(result))
-
-    @staticmethod
-    def format_sql_for_oracle(sql: str) -> r[str]:
-        """Normalize SQL string formatting for Oracle execution."""
-        normalized = " ".join(sql.split())
-        return r[str].ok(normalized)
-
-    _HASH_PARAMS_ADAPTER: TypeAdapter[dict[str, t.ContainerValue]] = TypeAdapter(
-        dict[str, t.ContainerValue]
-    )
-
-    @staticmethod
-    def generate_query_hash(
-        query: str, params: Mapping[str, t.ContainerValue] | None
-    ) -> r[str]:
-        """Generate a SHA-256 hash for a query and its parameters."""
-        sorted_params = dict(sorted((params or {}).items()))
-        serialized = FlextDbOracleUtilities._HASH_PARAMS_ADAPTER.dump_json(
-            sorted_params
-        ).decode()
-        payload = f"{query}|{serialized}".encode()
-        return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
+    class DbOracle(FlextDbOracleUtilitiesDbOracle):
+        """Oracle-specific utility namespace."""
 
 
 u = FlextDbOracleUtilities
-__all__ = ["FlextDbOracleUtilities", "u"]
+
+__all__: list[str] = ["FlextDbOracleUtilities", "u"]
