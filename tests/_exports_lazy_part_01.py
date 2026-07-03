@@ -42,10 +42,7 @@ TESTS_FLEXT_DB_ORACLE_LAZY_IMPORTS_PART_01 = build_lazy_import_map(
         ".unit.test_typings": ("TestsFlextDbOracleTypingsUnit",),
         ".unit.test_utilities": ("TestsFlextDbOracleUtilitiesUnit",),
         ".utilities": ("TestsFlextDbOracleUtilities",),
-        "flext_tests": (
-            "d",
-            "e",
-        ),
+        "flext_tests": ("d",),
     },
 )
 
