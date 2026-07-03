@@ -4035,15 +4035,15 @@ urllib3 = ">=2"
 
 [[package]]
 name = "types-ldap3"
-version = "2.9.13.20251121"
+version = "2.9.13.20260319"
 description = "Typing stubs for ldap3"
 optional = true
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main"]
 markers = "extra == \"dev\""
 files = [
-    {file = "types_ldap3-2.9.13.20251121-py3-none-any.whl", hash = "sha256:20356bf413cb178898f5b171463b44b82044b8b69f9331e09950009cfef05e48"},
-    {file = "types_ldap3-2.9.13.20251121.tar.gz", hash = "sha256:58f1a63ab56c6e47102035682ec1acf1b127467ae2f52a916f40a6aca852e5a5"},
+    {file = "types_ldap3-2.9.13.20260319-py3-none-any.whl", hash = "sha256:0bf76f060a8f84b2d305115e3d2e9db2b44005770ec9bd3a3f7995b8840c1566"},
+    {file = "types_ldap3-2.9.13.20260319.tar.gz", hash = "sha256:21750db87cb0c91803fb7831be714ab6961a493206cf360640182e28bb84947b"},
 ]
 
 [package.dependencies]
