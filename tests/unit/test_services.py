@@ -10,6 +10,7 @@ a real Oracle database connection, using mocked connections and result data.
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 from unittest.mock import (
@@ -20,16 +21,63 @@ from unittest.mock import (
 import pytest
 from flext_tests import tm
 
-from flext_db_oracle import (
-    FlextDbOracleApi,
-    FlextDbOracleSettings,
-)
+from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.services.facade import FlextDbOracleServices
+from flext_db_oracle.settings import FlextDbOracleSettings
 from tests.constants import c
 from tests.models import m
 
 if TYPE_CHECKING:
     from tests.typings import t
+
+
+def _assert_operation_result(operation: Callable[[], object]) -> None:
+    """Assert operation result has expected shape."""
+    result = operation()
+    if hasattr(result, "failure") and hasattr(result, "success"):
+        is_fail = getattr(result, "failure", False)
+        is_ok = getattr(result, "success", False)
+        tm.that(is_fail or is_ok, eq=True)
+    elif isinstance(result, bool):
+        tm.that(result, is_=bool)
+    else:
+        assert result is not None or result is None  # any value accepted
+
+
+def _assert_sql_build(
+    services: FlextDbOracleServices,
+    method_name: str,
+    args: tuple[object, ...],
+) -> None:
+    """Assert SQL builder method produces expected output."""
+    method = getattr(services, method_name)
+    result = method(*args)
+    tm.that(result, none=False)
+    tm.ok(result)
+    sql_content: t.JsonValue = result.value
+    sql_text: str
+    if isinstance(sql_content, tuple):
+        sql_text = str(sql_content)
+        tm.that(sql_text, is_=str)
+    elif isinstance(sql_content, str):
+        sql_text = sql_content
+    else:
+        sql_text = str(sql_content)
+    tm.that(sql_text, eq=True)
+    if method_name.startswith("build_select"):
+        tm.that(sql_text.upper(), has="SELECT")
+    elif method_name.startswith("build_insert"):
+        tm.that(sql_text.upper(), has="INSERT")
+    elif method_name.startswith("build_update"):
+        tm.that(sql_text.upper(), has="UPDATE")
+    elif method_name.startswith("build_delete"):
+        tm.that(
+            (
+                getattr(c, "HTTP_METHOD_DELETE", "DELETE")
+                in sql_text.upper()
+            ),
+            eq=True,
+        )
 
 
 class TestsFlextDbOracleServices:
@@ -738,15 +786,7 @@ class TestsFlextDbOracleServices:
         ]
         for operation in operations:
             try:
-                result = operation()
-                if hasattr(result, "failure") and hasattr(result, "success"):
-                    is_fail = getattr(result, "failure", False)
-                    is_ok = getattr(result, "success", False)
-                    tm.that(is_fail or is_ok, eq=True)
-                elif isinstance(result, bool):
-                    tm.that(result, is_=bool)
-                else:
-                    assert result is not None or result is None  # any value accepted
+                _assert_operation_result(operation)
             except (AttributeError, TypeError):
                 pass
 
@@ -949,37 +989,8 @@ class TestsFlextDbOracleServices:
             ),
         ]
         for case in sql_test_cases:
-            method_name = case.method
-            args = case.args
             try:
-                method = getattr(services, method_name)
-                result = method(*args)
-                tm.that(result, none=False)
-                tm.ok(result)
-                sql_content: t.JsonValue = result.value
-                sql_text: str
-                if isinstance(sql_content, tuple):
-                    sql_text = str(sql_content)
-                    tm.that(sql_text, is_=str)
-                elif isinstance(sql_content, str):
-                    sql_text = sql_content
-                else:
-                    sql_text = str(sql_content)
-                tm.that(sql_text, eq=True)
-                if method_name.startswith("build_select"):
-                    tm.that(sql_text.upper(), has="SELECT")
-                elif method_name.startswith("build_insert"):
-                    tm.that(sql_text.upper(), has="INSERT")
-                elif method_name.startswith("build_update"):
-                    tm.that(sql_text.upper(), has="UPDATE")
-                elif method_name.startswith("build_delete"):
-                    tm.that(
-                        (
-                            getattr(c, "HTTP_METHOD_DELETE", "DELETE")
-                            in sql_text.upper()
-                        ),
-                        eq=True,
-                    )
+                _assert_sql_build(services, case.method, case.args)
             except AttributeError:
                 pass
             except Exception as e:

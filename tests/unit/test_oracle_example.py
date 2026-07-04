@@ -13,11 +13,9 @@ from typing import TYPE_CHECKING
 import pytest
 from flext_tests import r, tm
 
-from flext_db_oracle import (
-    FlextDbOracleApi,
-    FlextDbOracleSettings,
-)
+from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.services.facade import FlextDbOracleServices
+from flext_db_oracle.settings import FlextDbOracleSettings
 from tests.utilities import u
 
 if TYPE_CHECKING:
@@ -48,6 +46,26 @@ def _dict_first_value(row: m.Dict) -> t.JsonValue:
             else None
         )
     return None
+
+
+def _assert_context_manager_query(api: FlextDbOracleApi) -> None:
+    """Assert API context manager query returns expected value."""
+    test_result = api.test_connection()
+    if test_result.failure:
+        pytest.skip(f"Connection test failed: {test_result.error}")
+    query_result = api.query("SELECT 'Hello Oracle' FROM DUAL")
+    if query_result.failure:
+        pytest.skip(f"Query failed: {query_result.error}")
+    query_data = query_result.value
+    if query_data:
+        row = query_data[0]
+        cell = _dict_first_value(row)
+        final_value = (
+            safe_get_first_value(cell)
+            if isinstance(cell, (list, dict))
+            else cell
+        )
+        tm.that(str(final_value), has="Hello Oracle")
 
 
 class TestsFlextDbOracleOracleExample:
@@ -154,22 +172,7 @@ class TestsFlextDbOracleOracleExample:
         """Test real Oracle API with context manager."""
         try:
             with FlextDbOracleApi(real_oracle_config) as api:
-                test_result = api.test_connection()
-                if test_result.failure:
-                    pytest.skip(f"Connection test failed: {test_result.error}")
-                query_result = api.query("SELECT 'Hello Oracle' FROM DUAL")
-                if query_result.failure:
-                    pytest.skip(f"Query failed: {query_result.error}")
-                query_data = query_result.value
-                if query_data:
-                    row = query_data[0]
-                    cell = _dict_first_value(row)
-                    final_value = (
-                        safe_get_first_value(cell)
-                        if isinstance(cell, (list, dict))
-                        else cell
-                    )
-                    tm.that(str(final_value), has="Hello Oracle")
+                _assert_context_manager_query(api)
         except RuntimeError:
             pytest.skip("Oracle connection unavailable for context manager test")
 

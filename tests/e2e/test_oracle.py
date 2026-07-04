@@ -15,7 +15,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from flext_db_oracle.api import FlextDbOracleApi
+from flext_db_oracle.settings import FlextDbOracleSettings
 
 if TYPE_CHECKING:
     from tests.typings import t
@@ -28,6 +29,30 @@ class OperationTestErrorE2E(Exception):
         """Initialize the operation test error."""
         super().__init__(message)
         self.error = error
+
+
+def _assert_concurrent_queries(api1: FlextDbOracleApi, api2: FlextDbOracleApi) -> None:
+    """Run and assert concurrent API queries."""
+    result1 = api1.query("SELECT 'API1' as source FROM DUAL")
+    result2 = api2.query("SELECT 'API2' as source FROM DUAL")
+    skip_tests = os.getenv("SKIP_E2E_TESTS", "true").lower() == "true"
+    if not skip_tests:
+        if result1.failure:
+            raise AssertionError(f"API1 query failed: {result1.error}")
+        if result2.failure:
+            raise AssertionError(f"API2 query failed: {result2.error}")
+    else:
+        assert result1 is not None
+        assert result2 is not None
+
+
+def _assert_performance_query(api: FlextDbOracleApi) -> None:
+    """Run and assert performance benchmark query."""
+    timed_result = api.query("SELECT 1 FROM DUAL")
+    if timed_result.success:
+        query_result = timed_result.value
+        assert isinstance(query_result, list)
+        assert len(query_result) >= 0
 
 
 class TestsFlextDbOracleEOracle:
@@ -276,17 +301,7 @@ class TestsFlextDbOracleEOracle:
         api2 = FlextDbOracleApi(real_oracle_config, context_name="connection2")
         try:
             with api1, api2:
-                result1 = api1.query("SELECT 'API1' as source FROM DUAL")
-                result2 = api2.query("SELECT 'API2' as source FROM DUAL")
-                skip_tests = os.getenv("SKIP_E2E_TESTS", "true").lower() == "true"
-                if not skip_tests:
-                    if result1.failure:
-                        raise AssertionError(f"API1 query failed: {result1.error}")
-                    if result2.failure:
-                        raise AssertionError(f"API2 query failed: {result2.error}")
-                else:
-                    assert result1 is not None
-                    assert result2 is not None
+                _assert_concurrent_queries(api1, api2)
         except ConnectionError:
             pytest.skip("Oracle database not available for concurrent testing")
 
@@ -299,10 +314,6 @@ class TestsFlextDbOracleEOracle:
         """Test performance benchmarks for Oracle operations."""
         try:
             with FlextDbOracleApi(settings=real_oracle_config) as api:
-                timed_result = api.query("SELECT 1 FROM DUAL")
-                if timed_result.success:
-                    query_result = timed_result.value
-                    assert isinstance(query_result, list)
-                    assert len(query_result) >= 0
+                _assert_performance_query(api)
         except ConnectionError:
             pytest.skip("Oracle database not available for performance testing")

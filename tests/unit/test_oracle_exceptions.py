@@ -10,11 +10,48 @@ from __future__ import annotations
 import pytest
 from flext_tests import tm
 
-from flext_db_oracle import (
-    FlextDbOracleApi,
-    FlextDbOracleSettings,
-)
+from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.services.facade import FlextDbOracleServices
+from flext_db_oracle.settings import FlextDbOracleSettings
+
+
+def _assert_configuration_error() -> None:
+    """Assert connection with invalid settings fails appropriately."""
+    invalid_config = FlextDbOracleSettings(
+        host="localhost",
+        port=1521,
+        service_name="",
+        sid="",
+        username="testuser",
+        password="testpass",
+    )
+    connection = FlextDbOracleServices(settings=invalid_config)
+    result = connection.connect()
+    if result.success:
+        msg = "Connection with invalid settings should fail"
+        raise AssertionError(msg)
+    error_msg = result.error or ""
+    tm.that(
+        "service_name" in error_msg.lower() or "sid" in error_msg.lower(),
+        eq=True,
+    )
+
+
+def _validate_config_data(config_data: dict[str, int | str]) -> None:
+    """Validate a single config data entry."""
+    port_value = int(str(config_data.get("port", 1521)))
+    tm.that(port_value, is_=int)
+    host_value = str(config_data.get("host", ""))
+    user_value = str(config_data.get("user", ""))
+    password_value = str(config_data.get("password", ""))
+    service_name_value = str(config_data.get("service_name", "XE"))
+    FlextDbOracleSettings(
+        host=host_value,
+        port=port_value,
+        username=user_value,
+        password=password_value,
+        service_name=service_name_value,
+    )
 
 
 class TestsFlextDbOracleOracleExceptions:
@@ -91,24 +128,7 @@ class TestsFlextDbOracleOracleExceptions:
     def test_real_configuration_error_scenario(self) -> None:
         """Test e.ConfigurationError with real invalid settings."""
         try:
-            invalid_config = FlextDbOracleSettings(
-                host="localhost",
-                port=1521,
-                service_name="",
-                sid="",
-                username="testuser",
-                password="testpass",
-            )
-            connection = FlextDbOracleServices(settings=invalid_config)
-            result = connection.connect()
-            if result.success:
-                msg = "Connection with invalid settings should fail"
-                raise AssertionError(msg)
-            error_msg = result.error or ""
-            tm.that(
-                "service_name" in error_msg.lower() or "sid" in error_msg.lower(),
-                eq=True,
-            )
+            _assert_configuration_error()
         except (ValueError, TypeError, RuntimeError):
             pass
 
@@ -223,19 +243,7 @@ class TestsFlextDbOracleOracleExceptions:
         ]
         for config_data in invalid_configs:
             try:
-                port_value = int(str(config_data.get("port", 1521)))
-                tm.that(port_value, is_=int)
-                host_value = str(config_data.get("host", ""))
-                user_value = str(config_data.get("user", ""))
-                password_value = str(config_data.get("password", ""))
-                service_name_value = str(config_data.get("service_name", "XE"))
-                FlextDbOracleSettings(
-                    host=host_value,
-                    port=port_value,
-                    username=user_value,
-                    password=password_value,
-                    service_name=service_name_value,
-                )
+                _validate_config_data(config_data)
             except (ValueError, TypeError):
                 pass
 

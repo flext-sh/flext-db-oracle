@@ -15,14 +15,12 @@ from urllib.parse import quote_plus
 
 from sqlalchemy import Connection as SAConnection, text
 
-from flext_db_oracle import (
-    FlextDbOracleServiceBase,
-    c,
-    m,
-    p,
-    r,
-    u,
-)
+from flext_core import r
+from flext_db_oracle.base import FlextDbOracleServiceBase
+from flext_db_oracle.constants import c
+from flext_db_oracle.models import m
+from flext_db_oracle.protocols import p
+from flext_db_oracle.utilities import u
 
 if TYPE_CHECKING:
     from collections.abc import (
@@ -181,17 +179,24 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         with self._engine_begin(engine) as txn:
             yield txn
 
+    def _assemble_connection_url(
+        self,
+        password: m.DbOracle.Password | str,
+    ) -> p.Result[str]:
+        """Assemble Oracle connection URL from validated password."""
+        encoded_password = quote_plus(str(password).encode())
+        service_name = self.db_config.service_name
+        base = f"oracle+oracledb://{self.db_config.username}:{encoded_password}@{self.db_config.host}:{self.db_config.port}"
+        url = f"{base}/?service_name={service_name}"
+        return r[str].ok(url)
+
     def _build_connection_url(self) -> p.Result[str]:
         """Build Oracle connection URL from configuration."""
         try:
             password = self.db_config.password
             if not password:
                 return r[str].fail("Password is required for database connection")
-            encoded_password = quote_plus(str(password).encode())
-            service_name = self.db_config.service_name
-            base = f"oracle+oracledb://{self.db_config.username}:{encoded_password}@{self.db_config.host}:{self.db_config.port}"
-            url = f"{base}/?service_name={service_name}"
-            return r[str].ok(url)
+            return self._assemble_connection_url(password)
         except c.DbOracle.EXC_DB_BROAD as e:
             return r[str].fail(f"Failed to build connection URL: {e}")
 

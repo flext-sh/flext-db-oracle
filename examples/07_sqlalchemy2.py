@@ -8,7 +8,8 @@ This example demonstrates Oracle configuration setup for SQLAlchemy 2.0.
 
 from __future__ import annotations
 
-from flext_db_oracle import FlextDbOracleSettings, u
+from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle.utilities import u
 
 logger = u.fetch_logger(__name__)
 
@@ -38,16 +39,21 @@ def create_oracle_config() -> FlextDbOracleSettings:
     )
 
 
+def _display_sqlalchemy_setup(settings: FlextDbOracleSettings) -> None:
+    """Display SQLAlchemy 2.0 configuration details."""
+    logger.info(f"✅ Configuration created: {settings.host}:{settings.port}")
+    logger.info("🔗 SQLAlchemy connection URL format configured")
+    logger.info(f"📍 Host: {settings.host}:{settings.port}")
+    logger.info(f"📚 Service: {settings.service_name}")
+    logger.info("📚 Ready for SQLAlchemy 2.0 integration")
+
+
 def demonstrate_sqlalchemy_setup() -> None:
     """Demonstrate SQLAlchemy 2.0 configuration setup."""
     logger.info("=== FLEXT Oracle SQLAlchemy 2.0 Setup ===")
     try:
         settings = create_oracle_config()
-        logger.info(f"✅ Configuration created: {settings.host}:{settings.port}")
-        logger.info("🔗 SQLAlchemy connection URL format configured")
-        logger.info(f"📍 Host: {settings.host}:{settings.port}")
-        logger.info(f"📚 Service: {settings.service_name}")
-        logger.info("📚 Ready for SQLAlchemy 2.0 integration")
+        _display_sqlalchemy_setup(settings)
     except (ValueError, OSError, RuntimeError):
         logger.exception("❌ Configuration setup failed")
 
