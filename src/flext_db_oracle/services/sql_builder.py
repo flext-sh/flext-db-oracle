@@ -378,11 +378,11 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
                 update={
                     "name": column.name or c.IDENTIFIER_UNKNOWN,
                     "data_type": column.data_type or "VARCHAR2(255)",
-                }
+                },
             )
         return m.DbOracle.Column.model_validate({
             "name": str(
-                column.get("name") or column.get("column_name") or c.IDENTIFIER_UNKNOWN
+                column.get("name") or column.get("column_name") or c.IDENTIFIER_UNKNOWN,
             ),
             "data_type": str(column.get("data_type") or "VARCHAR2(255)"),
             "nullable": bool(column.get("nullable", True)),
@@ -421,7 +421,9 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         )
 
     def drop_table_ddl(
-        self, table_name: str, schema: str | None = None
+        self,
+        table_name: str,
+        schema: str | None = None,
     ) -> p.Result[str]:
         """Generate DROP TABLE DDL through SQLAlchemy Oracle DDL compilation."""
         normalized_table_name = self._normalize_identifier(table_name)

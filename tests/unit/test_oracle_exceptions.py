@@ -241,4 +241,3 @@ class TestsFlextDbOracleOracleExceptions:
 
     def test_real_exception_inheritance(self) -> None:
         """Test that Oracle exceptions inherit properly from base Exception classes."""
-        pass

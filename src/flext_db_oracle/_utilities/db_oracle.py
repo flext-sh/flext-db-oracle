@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import contextlib
 import hashlib
 import os
 from collections.abc import Mapping
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     Connection as SAConnection,
@@ -14,9 +14,13 @@ from sqlalchemy import (
     TextClause,
     create_engine,
 )
-from sqlalchemy.engine import CursorResult
 
 from flext_db_oracle import c, m, p, r, t, u
+
+if TYPE_CHECKING:
+    import contextlib
+
+    from sqlalchemy.engine import CursorResult
 
 
 class FlextDbOracleUtilitiesDbOracle:

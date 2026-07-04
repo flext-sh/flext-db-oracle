@@ -144,7 +144,8 @@ class TestsFlextDbOracleConstantsUnit:
         tm.that(c.DbOracle.ENV_DATABASE_NAME, eq="ORACLE_DATABASE_NAME")
         tm.that(c.DbOracle.ENV_SID, eq="ORACLE_SID")
         tm.that(
-            c.DbOracle.ENV_ENABLE_DISPATCHER, eq="FLEXT_DB_ORACLE_ENABLE_DISPATCHER"
+            c.DbOracle.ENV_ENABLE_DISPATCHER,
+            eq="FLEXT_DB_ORACLE_ENABLE_DISPATCHER",
         )
         mapping = c.DbOracle.ENV_MAPPING
         tm.that(mapping["FLEXT_TARGET_ORACLE_HOST"], eq="host")

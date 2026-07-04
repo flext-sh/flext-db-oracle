@@ -19,6 +19,7 @@ from collections.abc import (
     Sequence,
 )
 from threading import Thread
+from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
@@ -30,9 +31,11 @@ from flext_db_oracle import (
     r,
 )
 from flext_db_oracle.services.facade import FlextDbOracleServices
-from tests.models import m
 from tests.typings import t
 from tests.utilities import u
+
+if TYPE_CHECKING:
+    from tests.models import m
 
 
 class TestsFlextDbOracleApi:

@@ -10,8 +10,8 @@ from __future__ import annotations
 import contextlib
 import os
 import time
-from collections.abc import Generator
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import oracledb
 import pytest
@@ -19,9 +19,13 @@ from flext_tests import tk
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests.constants import c
-from tests.protocols import p
-from tests.typings import t
 from tests.utilities import u
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from tests.protocols import p
+    from tests.typings import t
 
 logger = u.fetch_logger(__name__)
 
@@ -42,7 +46,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     try:
         _cleanup_dirty_oracle_container()
     except (ConnectionError, TimeoutError, OSError, RuntimeError) as e:
-        logger.warning(f"Docker cleanup skipped (unavailable): {e}")
+        logger.warning("Docker cleanup skipped (unavailable): %s", e)
 
 
 def _cleanup_dirty_oracle_container() -> None:

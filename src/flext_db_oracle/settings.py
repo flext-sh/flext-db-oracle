@@ -88,7 +88,9 @@ class FlextDbOracleSettings(FlextSettingsBase):
         ]
         | None
     ) = u.Field(
-        None, description="Oracle SID for legacy connections", validate_default=True
+        None,
+        description="Oracle SID for legacy connections",
+        validate_default=True,
     )
     name: str = u.Field(
         c.DbOracle.DEFAULT_DATABASE_NAME,
@@ -97,7 +99,9 @@ class FlextDbOracleSettings(FlextSettingsBase):
         validate_default=True,
     )
     ssl_cert_file: str | None = u.Field(
-        None, description="Path to SSL certificate file", validate_default=True
+        None,
+        description="Path to SSL certificate file",
+        validate_default=True,
     )
     ssl_server_cert_dn: str | None = u.Field(
         None,

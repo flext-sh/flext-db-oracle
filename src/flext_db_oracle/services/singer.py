@@ -71,15 +71,15 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
                     field_type = field_def.get("type", "string")
                     if isinstance(field_type, str):
                         normalized_properties[field_name] = m.DbOracle.SingerField(
-                            type=field_type
+                            type=field_type,
                         )
                     else:
                         normalized_properties[field_name] = m.DbOracle.SingerField(
-                            type="string"
+                            type="string",
                         )
                 else:
                     normalized_properties[field_name] = m.DbOracle.SingerField(
-                        type="string"
+                        type="string",
                     )
             schema_model = m.DbOracle.SingerSchema.model_validate({
                 "properties": normalized_properties,

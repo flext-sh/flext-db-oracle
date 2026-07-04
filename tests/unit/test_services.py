@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import os
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 from unittest.mock import (
     MagicMock,
     patch,
@@ -26,7 +27,9 @@ from flext_db_oracle import (
 from flext_db_oracle.services.facade import FlextDbOracleServices
 from tests.constants import c
 from tests.models import m
-from tests.typings import t
+
+if TYPE_CHECKING:
+    from tests.typings import t
 
 
 class TestsFlextDbOracleServices:
@@ -929,16 +932,20 @@ class TestsFlextDbOracleServices:
         services = FlextDbOracleServices(settings=settings)
         sql_test_cases: t.SequenceOf[SimpleNamespace] = [
             SimpleNamespace(
-                method="build_select", args=("test_table", ["id", "name"], {"id": 1})
+                method="build_select",
+                args=("test_table", ["id", "name"], {"id": 1}),
             ),
             SimpleNamespace(
-                method="build_insert_statement", args=("test_table", ["id", "name"])
+                method="build_insert_statement",
+                args=("test_table", ["id", "name"]),
             ),
             SimpleNamespace(
-                method="build_update_statement", args=("test_table", ["name"], ["id"])
+                method="build_update_statement",
+                args=("test_table", ["name"], ["id"]),
             ),
             SimpleNamespace(
-                method="build_delete_statement", args=("test_table", ["id"])
+                method="build_delete_statement",
+                args=("test_table", ["id"]),
             ),
         ]
         for case in sql_test_cases:

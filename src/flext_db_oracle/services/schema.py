@@ -9,9 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Sequence,
-)
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     func,
@@ -34,6 +32,11 @@ from flext_db_oracle import (
     t,
     u,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import (
+        Sequence,
+    )
 
 
 class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
@@ -61,18 +64,19 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             lambda rows: [
                 m.DbOracle.Column(
                     name=str(
-                        row.root.get("COLUMN_NAME") or row.root.get("column_name", "")
+                        row.root.get("COLUMN_NAME") or row.root.get("column_name", ""),
                     ),
                     data_type=str(
-                        row.root.get("DATA_TYPE") or row.root.get("data_type", "")
+                        row.root.get("DATA_TYPE") or row.root.get("data_type", ""),
                     ),
                     nullable=str(
-                        row.root.get("NULLABLE") or row.root.get("nullable", "Y")
+                        row.root.get("NULLABLE") or row.root.get("nullable", "Y"),
                     )
                     == "Y",
                     primary_key=False,
                     default_value=str(
-                        row.root.get("DATA_DEFAULT") or row.root.get("data_default", "")
+                        row.root.get("DATA_DEFAULT")
+                        or row.root.get("data_default", ""),
                     ),
                 )
                 for row in rows

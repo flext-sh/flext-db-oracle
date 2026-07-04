@@ -6,16 +6,17 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Callable,
-    MutableMapping,
-)
 from typing import TYPE_CHECKING, ClassVar, override
 
 from flext_core import FlextContainer, FlextService
 from flext_db_oracle import m, p, r, t
 
 if TYPE_CHECKING:
+    from collections.abc import (
+        Callable,
+        MutableMapping,
+    )
+
     from flext_db_oracle.services.facade import FlextDbOracleServices
 
 
@@ -151,7 +152,7 @@ class FlextDbOracleDispatcher(FlextService):
             if isinstance(command, m.DbOracle.ExecuteManyCommand):
                 sql = command.sql
                 parameters_list: t.SequenceOf[t.JsonMapping] = list(
-                    command.parameters_list
+                    command.parameters_list,
                 )
             else:
                 sql = ""

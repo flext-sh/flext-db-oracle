@@ -9,11 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Generator,
-)
 from contextlib import contextmanager
-from typing import Self, override
+from typing import TYPE_CHECKING, Self, override
 from urllib.parse import quote_plus
 
 from sqlalchemy import Connection as SAConnection, text
@@ -26,6 +23,11 @@ from flext_db_oracle import (
     r,
     u,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import (
+        Generator,
+    )
 
 
 class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):

@@ -44,7 +44,9 @@ class TestsFlextDbOracleUtilitiesUnit:
         """Test basic SELECT query hash generation."""
         params: t.IntMapping = {"id": 1}
         hash_value = tm.ok(
-            u.DbOracle.generate_query_hash("SELECT * FROM table WHERE id = :id", params)
+            u.DbOracle.generate_query_hash(
+                "SELECT * FROM table WHERE id = :id", params
+            ),
         )
         tm.that(hash_value, is_=str)
         tm.that(len(hash_value), eq=16)
@@ -59,10 +61,10 @@ class TestsFlextDbOracleUtilitiesUnit:
     def test_generate_query_hash_case_insensitive_keywords(self) -> None:
         """Test query hash handles case variations in keywords."""
         h1 = tm.ok(
-            u.DbOracle.generate_query_hash("select * from users where id = :id", {})
+            u.DbOracle.generate_query_hash("select * from users where id = :id", {}),
         )
         h2 = tm.ok(
-            u.DbOracle.generate_query_hash("SELECT * FROM USERS WHERE ID = :ID", {})
+            u.DbOracle.generate_query_hash("SELECT * FROM USERS WHERE ID = :ID", {}),
         )
         tm.that(h1, ne=h2)
 
@@ -87,7 +89,8 @@ class TestsFlextDbOracleUtilitiesUnit:
     def test_generate_query_hash_empty_params(self) -> None:
         """Test query hash with empty parameters."""
         tm.that(
-            tm.ok(u.DbOracle.generate_query_hash("SELECT 1 FROM DUAL", {})), is_=str
+            tm.ok(u.DbOracle.generate_query_hash("SELECT 1 FROM DUAL", {})),
+            is_=str,
         )
 
     def test_generate_query_hash_complex_query(self) -> None:
@@ -101,7 +104,7 @@ class TestsFlextDbOracleUtilitiesUnit:
     def test_format_sql_for_oracle_basic_select(self) -> None:
         """Test basic SQL formatting normalizes whitespace."""
         formatted = tm.ok(
-            u.DbOracle.format_sql_for_oracle("select id, name from users")
+            u.DbOracle.format_sql_for_oracle("select id, name from users"),
         )
         tm.that(formatted, eq="select id, name from users")
 
@@ -153,7 +156,9 @@ class TestsFlextDbOracleUtilitiesUnit:
         ],
     )
     def test_escape_oracle_identifier_valid(
-        self, identifier: str, expected: str
+        self,
+        identifier: str,
+        expected: str,
     ) -> None:
         """Test valid Oracle identifiers are returned as-is."""
         tm.that(tm.ok(u.DbOracle.escape_oracle_identifier(identifier)), eq=expected)
@@ -171,7 +176,9 @@ class TestsFlextDbOracleUtilitiesUnit:
         ],
     )
     def test_escape_oracle_identifier_invalid(
-        self, identifier: str, error_substring: str
+        self,
+        identifier: str,
+        error_substring: str,
     ) -> None:
         """Invalid Oracle identifiers fail with the matching diagnostic."""
         tm.fail(u.DbOracle.escape_oracle_identifier(identifier), has=error_substring)
@@ -234,7 +241,9 @@ class TestsFlextDbOracleUtilitiesUnit:
         ids=["empty", "too-long", "reserved-word"],
     )
     def test_oracle_validation_validate_identifier_invalid(
-        self, identifier: str, error_substring: str
+        self,
+        identifier: str,
+        error_substring: str,
     ) -> None:
         """Invalid identifiers fail with matching diagnostic."""
         tm.fail(u.DbOracle.validate_identifier(identifier), has=error_substring)

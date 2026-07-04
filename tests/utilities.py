@@ -8,10 +8,7 @@ from __future__ import annotations
 
 import os
 import time
-from collections.abc import (
-    MutableMapping,
-)
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from flext_tests import FlextTestsUtilities, e, tk
 
@@ -19,6 +16,11 @@ from flext_db_oracle import u
 from tests.constants import c
 from tests.models import m
 from tests.typings import t
+
+if TYPE_CHECKING:
+    from collections.abc import (
+        MutableMapping,
+    )
 
 
 class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):
@@ -28,7 +30,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):
         """Test-specific utilities."""
 
         _PORT_BINDINGS_ADAPTER: ClassVar[m.TypeAdapter[t.StrMapping]] = m.TypeAdapter(
-            t.StrMapping
+            t.StrMapping,
         )
 
         @classmethod

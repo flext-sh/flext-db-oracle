@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import types
 from collections.abc import Mapping, MutableSequence, Sequence
-from typing import Self, override
+from typing import TYPE_CHECKING, Self, override
 
 from flext_db_oracle import (
     FlextDbOracleDispatcher,
@@ -18,6 +17,9 @@ from flext_db_oracle import (
     u,
 )
 from flext_db_oracle.services.facade import FlextDbOracleServices
+
+if TYPE_CHECKING:
+    import types
 
 
 class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
@@ -135,7 +137,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
             .try_(lambda: dict(parameters))
             .map(lambda normalized: m.ConfigMap(root=normalized))
             .lash(
-                lambda error: r[m.ConfigMap].fail(f"Invalid query parameters: {error}")
+                lambda error: r[m.ConfigMap].fail(f"Invalid query parameters: {error}"),
             )
         )
 

@@ -12,16 +12,20 @@ from __future__ import annotations
 import contextlib
 import os
 import socket
-from collections.abc import Generator
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tk
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests.constants import c
-from tests.protocols import p
 from tests.utilities import u
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from tests.protocols import p
 
 # Prevent unit tests from hanging on DNS resolution for fake hostnames.
 # Without this, socket operations to unresolvable hosts block indefinitely.
@@ -40,7 +44,9 @@ def _is_oracle_container_running() -> bool:
     if not status_result.success:
         return False
     container_status: c.Tests.ContainerStatus | None = getattr(
-        status_result.value, "status", None
+        status_result.value,
+        "status",
+        None,
     )
     is_running: bool = container_status == c.Tests.ContainerStatus.RUNNING
     return is_running

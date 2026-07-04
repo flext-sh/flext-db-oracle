@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import r, tm
@@ -21,8 +22,10 @@ from flext_db_oracle import (
     FlextDbOracleSettings,
 )
 from flext_db_oracle.client import FlextDbOracleClient
-from tests.typings import t
 from tests.utilities import u
+
+if TYPE_CHECKING:
+    from tests.typings import t
 
 _NO_CONNECTION_ERROR = "No active Oracle connection"
 
@@ -63,7 +66,7 @@ class TestsFlextDbOracleCli:
                 default_output_format="json",
                 query_limit=2000,
                 show_execution_time=False,
-            )
+            ),
         )
         tm.that(client.user_preferences["default_output_format"], eq="json")
         tm.that(client.user_preferences["query_limit"], eq=2000)
@@ -136,7 +139,8 @@ class TestsFlextDbOracleCli:
         """Test that preference changes persist within client instance."""
         client = FlextDbOracleClient()
         client.configure_preferences(
-            default_output_format="json", connection_timeout=60
+            default_output_format="json",
+            connection_timeout=60,
         )
         tm.that(client.user_preferences["default_output_format"], eq="json")
         tm.that(client.user_preferences["connection_timeout"], eq=60)
@@ -180,7 +184,8 @@ class TestsFlextDbOracleCli:
 
     @pytest.fixture
     def oracle_env_vars(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> t.MutableOptionalStrMapping:
         """Configure ORACLE_* env vars while purging FLEXT_TARGET_ORACLE_* leakage."""
         for key in [k for k in os.environ if k.startswith("FLEXT_TARGET_ORACLE_")]:
@@ -198,7 +203,8 @@ class TestsFlextDbOracleCli:
         return env_vars
 
     def test_environment_configuration_real(
-        self, oracle_env_vars: t.MutableOptionalStrMapping
+        self,
+        oracle_env_vars: t.MutableOptionalStrMapping,
     ) -> None:
         """Test environment configuration using real API functionality."""
         _ = oracle_env_vars
@@ -215,7 +221,7 @@ class TestsFlextDbOracleCli:
                 service_name="TESTDB",
                 username="test",
                 password="test",
-            )
+            ),
         )
         metrics_result = api.fetch_observability_metrics()
         tm.ok(metrics_result)
@@ -244,7 +250,7 @@ class TestsFlextDbOracleCli:
                 service_name="INVALID_SERVICE",
                 username="invalid_user",
                 password="invalid_password",
-            )
+            ),
         )
         query_result = api.query("SELECT 1 FROM DUAL")
         tm.that(query_result.failure, eq=True)
@@ -262,7 +268,7 @@ class TestsFlextDbOracleCli:
                 service_name="PARAM_TEST",
                 username="param_user",
                 password="param_pass",
-            )
+            ),
         )
         tm.that(api.settings.host, eq="param_test_host")
         tm.that(api.settings.port, eq=1521)
@@ -279,7 +285,7 @@ class TestsFlextDbOracleCli:
                 service_name="COMP_TEST",
                 username="comp_user",
                 password="comp_pass",
-            )
+            ),
         )
         methods_to_test = [
             api.valid,
@@ -312,7 +318,7 @@ class TestsFlextDbOracleCli:
                 service_name="SERVICE",
                 username="user",
                 password="pass",
-            )
+            ),
         )
         tm.that(url_api.settings.host, eq="host")
         tm.that(url_api.settings.port, eq=1521)
@@ -327,7 +333,7 @@ class TestsFlextDbOracleCli:
                 service_name="PLUGIN_TEST",
                 username="plugin_user",
                 password="plugin_pass",
-            )
+            ),
         )
         plugin_payload = {"name": "test_plugin", "version": "1.0.0"}
         tm.ok(api.register_plugin("test_plugin", plugin_payload))

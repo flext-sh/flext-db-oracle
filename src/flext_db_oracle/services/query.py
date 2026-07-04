@@ -12,12 +12,14 @@ from __future__ import annotations
 from collections.abc import (
     Sequence,
 )
-from typing import override
+from typing import TYPE_CHECKING, override
 
 from sqlalchemy import text
-from sqlalchemy.engine import CursorResult
 
 from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine import CursorResult
 
 
 class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
@@ -84,7 +86,9 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             return r[Sequence[m.Dict]].fail_op("Query execution", e)
 
     def execute_statement(
-        self, sql: str, params: m.ConfigMap | None = None
+        self,
+        sql: str,
+        params: m.ConfigMap | None = None,
     ) -> p.Result[int]:
         """Execute SQL statement and return affected rows."""
         if not self.connected():

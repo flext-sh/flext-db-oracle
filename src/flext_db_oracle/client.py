@@ -26,7 +26,9 @@ class FlextDbOracleClient(s):
     """
 
     debug: bool = u.Field(
-        False, description="Enable debug output", validate_default=True
+        False,
+        description="Enable debug output",
+        validate_default=True,
     )
     current_connection: FlextDbOracleApi | None = u.Field(
         None,
@@ -310,7 +312,8 @@ class FlextDbOracleClient(s):
         ]
 
     def _adapt_data_for_table(
-        self, data: m.ConfigMap
+        self,
+        data: m.ConfigMap,
     ) -> p.Result[Sequence[m.ConfigMap]]:
         """Adapt data for table display.
 

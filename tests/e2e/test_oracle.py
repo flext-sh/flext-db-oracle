@@ -11,11 +11,14 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+from typing import TYPE_CHECKING
 
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests.typings import t
+
+if TYPE_CHECKING:
+    from tests.typings import t
 
 
 class OperationTestErrorE2E(Exception):
@@ -52,13 +55,15 @@ class TestsFlextDbOracleEOracle:
             if connection_test.failure:
                 msg = "Connection"
                 raise OperationTestErrorE2E(
-                    msg, connection_test.error or "Unknown error"
+                    msg,
+                    connection_test.error or "Unknown error",
                 )
             schemas_result = api.fetch_schemas()
             if schemas_result.failure:
                 msg = "Schema discovery"
                 raise OperationTestErrorE2E(
-                    msg, schemas_result.error or "Unknown error"
+                    msg,
+                    schemas_result.error or "Unknown error",
                 )
             schemas = schemas_result.value
             assert schemas, "No schemas found"

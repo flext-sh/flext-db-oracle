@@ -6,13 +6,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Sequence,
-)
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_cli import p
-from flext_db_oracle import m, t
+
+if TYPE_CHECKING:
+    from collections.abc import (
+        Sequence,
+    )
+
+    from flext_db_oracle import m, t
 
 
 class FlextDbOracleProtocols(p):
@@ -243,7 +246,8 @@ class FlextDbOracleProtocols(p):
                 ...
 
             def fetch_tables(
-                self, schema: str | None = None
+                self,
+                schema: str | None = None,
             ) -> p.Result[t.StrSequence]:
                 """Get list of tables in Oracle schema.
 
@@ -261,7 +265,9 @@ class FlextDbOracleProtocols(p):
             """Protocol for Oracle SQL statement building operations."""
 
             def build_delete_statement(
-                self, table: str, where_clause: str
+                self,
+                table: str,
+                where_clause: str,
             ) -> p.Result[str]:
                 """Build Oracle DELETE statement.
 
@@ -380,7 +386,9 @@ class FlextDbOracleProtocols(p):
                 ...
 
             def drop_table_ddl(
-                self, table: str, schema: str | None = None
+                self,
+                table: str,
+                schema: str | None = None,
             ) -> p.Result[str]:
                 """Generate Oracle DROP TABLE DDL.
 
@@ -472,7 +480,9 @@ class FlextDbOracleProtocols(p):
                 ...
 
             def register_plugin(
-                self, name: str, plugin: t.JsonPayload
+                self,
+                name: str,
+                plugin: t.JsonPayload,
             ) -> p.Result[bool]:
                 """Register Oracle database plugin.
 

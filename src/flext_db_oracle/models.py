@@ -10,13 +10,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from datetime import datetime
 from types import MappingProxyType
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from flext_cli import m, u
 from flext_db_oracle import c, t
 from flext_db_oracle._models.password import FlextDbOraclePassword
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 class FlextDbOracleModels(m):
@@ -69,7 +71,7 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
             last_check: datetime = u.Field(
-                default_factory=lambda: u.now(),
+                default_factory=u.now,
                 description="Timestamp of last connection check",
             )
             error_message: str = u.Field(
@@ -85,7 +87,7 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
             last_activity: datetime = u.Field(
-                default_factory=lambda: u.now(),
+                default_factory=u.now,
                 description="Timestamp of last database activity",
             )
             session_id: str = u.Field(
@@ -148,7 +150,7 @@ class FlextDbOracleModels(m):
                 if not self.connected:
                     return False
                 idle_timeout_seconds: float = float(
-                    c.DbOracle.CONNECTION_IDLE_TIMEOUT_SECONDS
+                    c.DbOracle.CONNECTION_IDLE_TIMEOUT_SECONDS,
                 )
                 return self.connection_age_seconds <= idle_timeout_seconds
 
@@ -247,7 +249,7 @@ class FlextDbOracleModels(m):
                 description="Column names in result set",
             )
             rows: t.SequenceOf[FlextDbOracleModels.DbOracle.RowData] = u.Field(
-                default_factory=lambda: list[FlextDbOracleModels.DbOracle.RowData](),
+                default_factory=list[FlextDbOracleModels.DbOracle.RowData],
                 description="Typed row data from query result",
             )
             query_hash: str = u.Field(
@@ -405,9 +407,7 @@ class FlextDbOracleModels(m):
             )
             columns: t.SequenceOf[FlextDbOracleModels.DbOracle.ColumnMetadata] = (
                 u.Field(
-                    default_factory=lambda: list[
-                        FlextDbOracleModels.DbOracle.ColumnMetadata
-                    ](),
+                    default_factory=list[FlextDbOracleModels.DbOracle.ColumnMetadata],
                     description="Column metadata for the table",
                 )
             )
@@ -476,7 +476,7 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
             columns: t.SequenceOf[FlextDbOracleModels.DbOracle.Column] = u.Field(
-                default_factory=lambda: list[FlextDbOracleModels.DbOracle.Column](),
+                default_factory=list[FlextDbOracleModels.DbOracle.Column],
                 description="Column definitions for the table",
             )
 
@@ -531,7 +531,7 @@ class FlextDbOracleModels(m):
 
             name: str = u.Field(description="Schema name")
             tables: t.SequenceOf[FlextDbOracleModels.DbOracle.Table] = u.Field(
-                default_factory=lambda: list[FlextDbOracleModels.DbOracle.Table](),
+                default_factory=list[FlextDbOracleModels.DbOracle.Table],
                 description="Tables within this schema",
             )
 
@@ -541,7 +541,7 @@ class FlextDbOracleModels(m):
             table_name: str = u.Field(description="Target table for the index")
             index_name: str = u.Field(description="Name of the index to create")
             columns: t.StrSequence = u.Field(
-                description="Columns to include in the index"
+                description="Columns to include in the index",
             )
             unique: bool = u.Field(
                 False,
@@ -609,7 +609,7 @@ class FlextDbOracleModels(m):
 
             sql: str = u.Field(description="SQL statement for batch execution")
             parameters_list: t.SequenceOf[t.JsonMapping] = u.Field(
-                default_factory=lambda: list[t.JsonMapping](),
+                default_factory=list[t.JsonMapping],
                 description="List of parameter sets for batch execution",
             )
 

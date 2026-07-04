@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
+from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import r, tm
@@ -17,9 +18,11 @@ from flext_db_oracle import (
     FlextDbOracleSettings,
 )
 from flext_db_oracle.services.facade import FlextDbOracleServices
-from tests.models import m
-from tests.typings import t
 from tests.utilities import u
+
+if TYPE_CHECKING:
+    from tests.models import m
+    from tests.typings import t
 
 
 def safe_get_first_value(data: t.JsonValue) -> t.JsonValue:
@@ -171,7 +174,8 @@ class TestsFlextDbOracleOracleExample:
             pytest.skip("Oracle connection unavailable for context manager test")
 
     def test_real_api_fetch_schemas(
-        self, connected_oracle_api: FlextDbOracleApi
+        self,
+        connected_oracle_api: FlextDbOracleApi,
     ) -> None:
         """Test real Oracle schema listing using utilities."""
         schemas_result = connected_oracle_api.fetch_schemas()
@@ -187,7 +191,8 @@ class TestsFlextDbOracleOracleExample:
         )
 
     def test_real_api_fetch_tables(
-        self, connected_oracle_api: FlextDbOracleApi
+        self,
+        connected_oracle_api: FlextDbOracleApi,
     ) -> None:
         """Test real Oracle table listing using utilities."""
         tables_result = connected_oracle_api.fetch_tables()
@@ -202,7 +207,8 @@ class TestsFlextDbOracleOracleExample:
             tm.that(any(table in t.upper() for t in tables), eq=True)
 
     def test_real_api_fetch_columns(
-        self, connected_oracle_api: FlextDbOracleApi
+        self,
+        connected_oracle_api: FlextDbOracleApi,
     ) -> None:
         """Test real Oracle column listing."""
         result = connected_oracle_api.fetch_columns("EMPLOYEES")

@@ -139,7 +139,7 @@ class FlextDbOracleConstants(c):
 
         ORACLE_IDENTIFIER_PATTERN: Final[str] = "^[A-Z][A-Z0-9_$#]*$"
         ORACLE_IDENTIFIER_RE: ClassVar[t.RegexPattern] = re.compile(
-            ORACLE_IDENTIFIER_PATTERN
+            ORACLE_IDENTIFIER_PATTERN,
         )
         IDENTIFIER_PATTERN: Final[str] = "^[A-Za-z][A-Za-z0-9_$#]*$"
         IDENTIFIER_RE: ClassVar[t.RegexPattern] = re.compile(IDENTIFIER_PATTERN)
@@ -156,7 +156,8 @@ class FlextDbOracleConstants(c):
             ``re.sub(r"\s+", " ", ...)`` directly).
             """
             collapsed: str = FlextDbOracleConstants.DbOracle.WHITESPACE_RE.sub(
-                " ", value
+                " ",
+                value,
             )
             return collapsed
 
@@ -334,12 +335,12 @@ class FlextDbOracleConstants(c):
         )
 
         VALID_CONNECTION_TYPES: Final[frozenset[str]] = frozenset(
-            CONNECTION_TYPE_LITERAL
+            CONNECTION_TYPE_LITERAL,
         )
         VALID_QUERY_TYPES: Final[frozenset[str]] = frozenset(QUERY_TYPE_LITERAL)
         VALID_DATA_TYPES: Final[frozenset[str]] = frozenset(DATA_TYPE_LITERAL)
         VALID_ISOLATION_LEVELS: Final[frozenset[str]] = frozenset(
-            ISOLATION_LEVEL_LITERAL
+            ISOLATION_LEVEL_LITERAL,
         )
         SYSTEM_USERS: Final[t.StrSequence] = (
             "SYS",
