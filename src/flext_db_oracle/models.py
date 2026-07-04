@@ -249,7 +249,7 @@ class FlextDbOracleModels(m):
                 description="Column names in result set",
             )
             rows: t.SequenceOf[FlextDbOracleModels.DbOracle.RowData] = u.Field(
-                default_factory=list[FlextDbOracleModels.DbOracle.RowData],
+                default_factory=list,
                 description="Typed row data from query result",
             )
             query_hash: str = u.Field(
@@ -407,7 +407,7 @@ class FlextDbOracleModels(m):
             )
             columns: t.SequenceOf[FlextDbOracleModels.DbOracle.ColumnMetadata] = (
                 u.Field(
-                    default_factory=list[FlextDbOracleModels.DbOracle.ColumnMetadata],
+                    default_factory=list,
                     description="Column metadata for the table",
                 )
             )
@@ -476,7 +476,7 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
             columns: t.SequenceOf[FlextDbOracleModels.DbOracle.Column] = u.Field(
-                default_factory=list[FlextDbOracleModels.DbOracle.Column],
+                default_factory=list,
                 description="Column definitions for the table",
             )
 
@@ -531,7 +531,7 @@ class FlextDbOracleModels(m):
 
             name: str = u.Field(description="Schema name")
             tables: t.SequenceOf[FlextDbOracleModels.DbOracle.Table] = u.Field(
-                default_factory=list[FlextDbOracleModels.DbOracle.Table],
+                default_factory=list,
                 description="Tables within this schema",
             )
 
