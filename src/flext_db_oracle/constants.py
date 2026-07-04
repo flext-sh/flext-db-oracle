@@ -26,7 +26,7 @@ from sqlalchemy.exc import (
     SQLAlchemyError as _SQLAlchemyError,
 )
 
-from flext_cli import c
+from flext_core import FlextConstants as c
 
 if TYPE_CHECKING:
     from flext_db_oracle import t
