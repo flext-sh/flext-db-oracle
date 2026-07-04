@@ -20,7 +20,6 @@ from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleSettings,
 )
-from flext_db_oracle._models.password import FlextDbOraclePassword
 from flext_db_oracle.client import FlextDbOracleClient
 from tests.typings import t
 from tests.utilities import u
@@ -155,11 +154,7 @@ class TestsFlextDbOracleCli:
             ssl_server_cert_dn=None,
         )
         client = FlextDbOracleClient()
-        password = (
-            settings.password.get_secret_value()
-            if isinstance(settings.password, FlextDbOraclePassword)
-            else settings.password
-        )
+        password = str(settings.password) if settings.password is not None else None
         result = client.connect_to_oracle(
             settings.host,
             settings.port,

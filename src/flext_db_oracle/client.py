@@ -177,7 +177,7 @@ class FlextDbOracleClient(s):
             actual_port,
             actual_service_name,
         )
-        payload: dict[str, t.JsonPayload] = {
+        payload: t.MutableMappingKV[str, t.JsonPayload] = {
             "host": actual_host,
             "port": actual_port,
             "service_name": actual_service_name,

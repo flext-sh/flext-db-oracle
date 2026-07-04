@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from flext_tests import c, tm
+from flext_tests import tm
+
+from tests.constants import c
 
 
 class TestsFlextDbOracleConftestConstants:

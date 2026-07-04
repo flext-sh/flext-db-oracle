@@ -7,7 +7,11 @@ from flext_core import FlextUtilitiesReliability
 from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
 
 
-class FlextDbOracleUtilities(u, FlextUtilitiesReliability):
+class FlextDbOracleUtilities(
+    u,
+    FlextUtilitiesReliability,
+    FlextDbOracleUtilitiesDbOracle,
+):
     """FlextDbOracle utilities extending FlextUtilities with Oracle-specific helpers.
 
     Architecture: Advanced utilities with ZERO code bloat through:

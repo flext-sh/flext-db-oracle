@@ -45,17 +45,6 @@ from flext_db_oracle import (
 )
 
 
-class OracleRawType(UserDefinedType[str]):
-    """Preserve exact Oracle type strings in SQLAlchemy DDL."""
-
-    def __init__(self, spec: str) -> None:
-        self.spec = spec
-
-    @override
-    def get_col_spec(self, **_kw: p.AttributeProbe) -> str:
-        return self.spec
-
-
 class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     """Mixin providing SQL statement builders for FlextDbOracleServices.
 
@@ -63,6 +52,17 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     build_insert_statement, build_select, build_update_statement,
     create_table_ddl, drop_table_ddl.
     """
+
+    class OracleRawType(UserDefinedType[str]):
+        """Preserve exact Oracle type strings in SQLAlchemy DDL."""
+
+        def __init__(self, spec: str) -> None:
+            """Store the raw Oracle type specification."""
+            self.spec = spec
+
+        @override
+        def get_col_spec(self, **_kw: p.AttributeProbe) -> str:
+            return self.spec
 
     @staticmethod
     def _normalize_identifier(name: str) -> str | quoted_name:
@@ -81,7 +81,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     def _compile_statement_with_binds(
         cls,
         statement: ClauseElement,
-        bind_names: dict[str, str],
+        bind_names: t.MappingKV[str, str],
     ) -> str:
         sql = cls._compile_statement(statement)
         for column_name, bind_name in bind_names.items():
@@ -93,47 +93,58 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         try:
             if not isinstance(config, Mapping):
                 return r[str].fail("Invalid CREATE INDEX settings payload")
-            # Pydantic 2 owns field-by-field coercion (str/bool/int/StrSequence) —
-            # no manual payload construction or per-field isinstance/str()/bool()
-            # gymnastics needed.
             settings = m.DbOracle.CreateIndexConfig.model_validate(config)
-            if not settings.columns:
-                return r[str].fail("Index definition requires at least one column")
-            table_name = self._normalize_identifier(settings.table_name)
-            schema_name = (
-                self._normalize_identifier(settings.schema_name)
-                if settings.schema_name
-                else None
-            )
-            metadata = MetaData()
-            table_object = Table(
-                table_name,
-                metadata,
-                *(
-                    sa_Column(
-                        self._normalize_identifier(column_name),
-                        OracleRawType("VARCHAR2(1)"),
-                    )
-                    for column_name in settings.columns
-                ),
-                schema=schema_name,
-            )
-            index = Index(
-                self._normalize_identifier(settings.index_name),
-                *(
-                    table_object.c[self._normalize_identifier(column_name)]
-                    for column_name in settings.columns
-                ),
-                unique=settings.unique,
-            )
-            sql = self._compile_statement(CreateIndex(index))
-            if settings.tablespace:
-                sql = f"{sql} TABLESPACE {settings.tablespace}"
-            if settings.parallel > 1:
-                sql = f"{sql} PARALLEL {settings.parallel}"
-            return r[str].ok(sql)
+            return self._create_index_sql(settings)
         except c.ValidationError as e:
             return r[str].fail(f"Invalid CREATE INDEX settings: {e}")
+
+    def _create_index_sql(
+        self,
+        settings: m.DbOracle.CreateIndexConfig,
+    ) -> p.Result[str]:
+        """Compile CREATE INDEX SQL from validated settings."""
+        if not settings.columns:
+            return r[str].fail("Index definition requires at least one column")
+        table_object = self._create_index_table(settings)
+        index = Index(
+            self._normalize_identifier(settings.index_name),
+            *(
+                table_object.c[self._normalize_identifier(column_name)]
+                for column_name in settings.columns
+            ),
+            unique=settings.unique,
+        )
+        sql = self._compile_statement(CreateIndex(index))
+        if settings.tablespace:
+            sql = f"{sql} TABLESPACE {settings.tablespace}"
+        if settings.parallel > 1:
+            sql = f"{sql} PARALLEL {settings.parallel}"
+        return r[str].ok(sql)
+
+    def _create_index_table(
+        self,
+        settings: m.DbOracle.CreateIndexConfig,
+    ) -> Table:
+        """Build a SQLAlchemy table object for CREATE INDEX compilation."""
+        table_name = self._normalize_identifier(settings.table_name)
+        schema_name = (
+            self._normalize_identifier(settings.schema_name)
+            if settings.schema_name
+            else None
+        )
+        metadata = MetaData()
+        return Table(
+            table_name,
+            metadata,
+            *(
+                sa_Column(
+                    self._normalize_identifier(column_name),
+                    self.OracleRawType("VARCHAR2(1)"),
+                )
+                for column_name in settings.columns
+            ),
+            schema=schema_name,
+        )
 
     def build_delete_statement(
         self,
@@ -343,56 +354,71 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     ) -> p.Result[str]:
         """Generate CREATE TABLE DDL through SQLAlchemy Oracle DDL compilation."""
         try:
-            column_models: list[m.DbOracle.Column] = []
-            for col in columns:
-                if isinstance(col, m.DbOracle.Column):
-                    column_model = col.model_copy(
-                        update={
-                            "name": col.name or c.IDENTIFIER_UNKNOWN,
-                            "data_type": col.data_type or "VARCHAR2(255)",
-                        }
-                    )
-                else:
-                    column_model = m.DbOracle.Column.model_validate({
-                        "name": str(
-                            col.get("name")
-                            or col.get("column_name")
-                            or c.IDENTIFIER_UNKNOWN
-                        ),
-                        "data_type": str(col.get("data_type") or "VARCHAR2(255)"),
-                        "nullable": bool(col.get("nullable", True)),
-                        "primary_key": bool(col.get("primary_key", False)),
-                        "default_value": str(col.get("default_value") or ""),
-                    })
-                column_models.append(column_model)
-            normalized_table_name = self._normalize_identifier(table_name)
-            normalized_schema_name = (
-                self._normalize_identifier(schema) if schema else None
-            )
-            metadata = MetaData()
-            table_object = Table(
-                normalized_table_name,
-                metadata,
-                *(
-                    sa_Column(
-                        self._normalize_identifier(column_model.name),
-                        OracleRawType(column_model.data_type),
-                        nullable=column_model.nullable,
-                        primary_key=column_model.primary_key,
-                        server_default=(
-                            text(column_model.default_value)
-                            if column_model.default_value
-                            else None
-                        ),
-                    )
-                    for column_model in column_models
-                ),
-                schema=normalized_schema_name,
-            )
+            column_models = self._normalize_table_columns(columns)
+            table_object = self._create_table_object(table_name, column_models, schema)
             ddl = self._compile_statement(CreateTable(table_object))
             return r[str].ok(ddl)
         except c.ValidationError as e:
             return r[str].fail(f"Invalid CREATE TABLE settings: {e}")
+
+    def _normalize_table_columns(
+        self,
+        columns: t.SequenceOf[m.DbOracle.Column | t.JsonMapping],
+    ) -> t.SequenceOf[m.DbOracle.Column]:
+        """Normalize raw column payloads into Column models."""
+        return tuple(self._normalize_table_column(column) for column in columns)
+
+    def _normalize_table_column(
+        self,
+        column: m.DbOracle.Column | t.JsonMapping,
+    ) -> m.DbOracle.Column:
+        """Normalize one raw column payload into a Column model."""
+        if isinstance(column, m.DbOracle.Column):
+            return column.model_copy(
+                update={
+                    "name": column.name or c.IDENTIFIER_UNKNOWN,
+                    "data_type": column.data_type or "VARCHAR2(255)",
+                }
+            )
+        return m.DbOracle.Column.model_validate({
+            "name": str(
+                column.get("name") or column.get("column_name") or c.IDENTIFIER_UNKNOWN
+            ),
+            "data_type": str(column.get("data_type") or "VARCHAR2(255)"),
+            "nullable": bool(column.get("nullable", True)),
+            "primary_key": bool(column.get("primary_key", False)),
+            "default_value": str(column.get("default_value") or ""),
+        })
+
+    def _create_table_object(
+        self,
+        table_name: str,
+        column_models: t.SequenceOf[m.DbOracle.Column],
+        schema: str | None,
+    ) -> Table:
+        """Build a SQLAlchemy table object for CREATE TABLE compilation."""
+        normalized_table_name = self._normalize_identifier(table_name)
+        normalized_schema_name = self._normalize_identifier(schema) if schema else None
+        metadata = MetaData()
+        return Table(
+            normalized_table_name,
+            metadata,
+            *(
+                sa_Column(
+                    self._normalize_identifier(column_model.name),
+                    self.OracleRawType(column_model.data_type),
+                    nullable=column_model.nullable,
+                    primary_key=column_model.primary_key,
+                    server_default=(
+                        text(column_model.default_value)
+                        if column_model.default_value
+                        else None
+                    ),
+                )
+                for column_model in column_models
+            ),
+            schema=normalized_schema_name,
+        )
 
     def drop_table_ddl(
         self, table_name: str, schema: str | None = None

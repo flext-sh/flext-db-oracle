@@ -74,8 +74,8 @@ class TestsFlextDbOracleUtilitiesUnit:
 
     def test_generate_query_hash_params_order_independence(self) -> None:
         """Test query hash is independent of parameter order."""
-        params1: dict[str, t.JsonValue] = {"id": 1, "name": "test", "active": True}
-        params2: dict[str, t.JsonValue] = {"name": "test", "active": True, "id": 1}
+        params1: t.JsonMapping = {"id": 1, "name": "test", "active": True}
+        params2: t.JsonMapping = {"name": "test", "active": True, "id": 1}
         query = (
             "SELECT * FROM users WHERE id = :id AND name = :name AND active = :active"
         )

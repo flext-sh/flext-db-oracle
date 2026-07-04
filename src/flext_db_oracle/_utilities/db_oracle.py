@@ -193,7 +193,7 @@ class FlextDbOracleUtilitiesDbOracle:
         connect_timeout: int | None = None,
     ) -> SAEngine:
         """Create SQLAlchemy engine with optional connection timeout."""
-        connect_args: dict[str, int] = {}
+        connect_args: t.MutableMappingKV[str, int] = {}
         if connect_timeout is not None:
             connect_args["tcp_connect_timeout"] = connect_timeout
         return create_engine(

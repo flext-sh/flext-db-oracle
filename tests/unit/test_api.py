@@ -53,6 +53,54 @@ class TestsFlextDbOracleApi:
         )
         self.api = FlextDbOracleApi(self.settings)
 
+    @staticmethod
+    def _assert_connection_operation_result(result: p.AttributeProbe) -> None:
+        """Assert a connection helper returned a valid result shape."""
+        if hasattr(result, "failure") and hasattr(result, "success"):
+            is_fail = getattr(result, "failure", False)
+            is_ok = getattr(result, "success", False)
+            tm.that(is_fail or is_ok, eq=True)
+            return
+        if isinstance(result, bool):
+            tm.that(result, is_=bool)
+            return
+        assert result is not None or result is None
+
+    @staticmethod
+    def _assert_generated_sql(method_name: str, sql_content: t.JsonValue) -> None:
+        """Assert generated SQL content matches the called builder."""
+        if isinstance(sql_content, tuple):
+            sql_text = str(sql_content)
+            tm.that(sql_text, is_=str)
+        elif isinstance(sql_content, str):
+            sql_text = sql_content
+        else:
+            sql_text = str(sql_content)
+        tm.that(len(sql_text) > 0, eq=True)
+        if method_name.startswith("build_select"):
+            tm.that(sql_text.upper(), has="SELECT")
+        elif method_name.startswith("build_insert"):
+            tm.that(sql_text.upper(), has="INSERT")
+        elif method_name.startswith("build_update"):
+            tm.that(sql_text.upper(), has="UPDATE")
+        elif method_name.startswith("build_delete"):
+            tm.that(sql_text.upper(), has="DELETE")
+
+    @classmethod
+    def _assert_sql_generation_case(
+        cls,
+        services: FlextDbOracleServices,
+        method_name: str,
+        raw_args: str | tuple[t.JsonPayload, ...],
+    ) -> None:
+        """Execute one SQL generation case and assert its output."""
+        assert isinstance(raw_args, tuple)
+        method = getattr(services, method_name)
+        result = method(*raw_args)
+        tm.that(result, none=False)
+        tm.ok(result)
+        cls._assert_generated_sql(method_name, result.value)
+
     def test_api_initialization_complete_real(self) -> None:
         """Test complete API initialization with all attributes."""
         tm.that(self.api, none=False)
@@ -92,7 +140,7 @@ class TestsFlextDbOracleApi:
         tm.that(result, has="plugin_count")
         config_obj = result["settings"]
         tm.that(config_obj, is_=dict)
-        config_dict: dict[str, t.JsonValue] = {}
+        config_dict: t.MutableMappingKV[str, t.JsonValue] = {}
         if isinstance(config_obj, Mapping):
             for key, value in config_obj.items():
                 config_dict[key] = (
@@ -1550,14 +1598,7 @@ class TestsFlextDbOracleApi:
         for operation in operations:
             try:
                 result = operation()
-                if hasattr(result, "failure") and hasattr(result, "success"):
-                    is_fail = getattr(result, "failure", False)
-                    is_ok = getattr(result, "success", False)
-                    tm.that(is_fail or is_ok, eq=True)
-                elif isinstance(result, bool):
-                    tm.that(result, is_=bool)
-                else:
-                    assert result is not None or result is None  # any value accepted
+                self._assert_connection_operation_result(result)
             except (AttributeError, TypeError):
                 pass
 
@@ -1678,7 +1719,9 @@ class TestsFlextDbOracleApi:
             ssl_server_cert_dn=None,
         )
         services = FlextDbOracleServices(settings=settings)
-        sql_test_cases: list[dict[str, str | tuple[t.JsonPayload, ...]]] = [
+        sql_test_cases: t.SequenceOf[
+            t.MappingKV[str, str | tuple[t.JsonPayload, ...]]
+        ] = [
             {
                 "method": "build_select",
                 "args": ("test_table", ["id", "name"], {"id": 1}),
@@ -1696,30 +1739,8 @@ class TestsFlextDbOracleApi:
         for case_dict in sql_test_cases:
             method_name = str(case_dict["method"])
             raw_args = case_dict["args"]
-            assert isinstance(raw_args, tuple)
             try:
-                method = getattr(services, method_name)
-                result = method(*raw_args)
-                tm.that(result, none=False)
-                tm.ok(result)
-                sql_content: t.JsonValue = result.value
-                sql_text: str
-                if isinstance(sql_content, tuple):
-                    sql_text = str(sql_content)
-                    tm.that(sql_text, is_=str)
-                elif isinstance(sql_content, str):
-                    sql_text = sql_content
-                else:
-                    sql_text = str(sql_content)
-                tm.that(len(sql_text) > 0, eq=True)
-                if method_name.startswith("build_select"):
-                    tm.that(sql_text.upper(), has="SELECT")
-                elif method_name.startswith("build_insert"):
-                    tm.that(sql_text.upper(), has="INSERT")
-                elif method_name.startswith("build_update"):
-                    tm.that(sql_text.upper(), has="UPDATE")
-                elif method_name.startswith("build_delete"):
-                    tm.that(sql_text.upper(), has="DELETE")
+                self._assert_sql_generation_case(services, method_name, raw_args)
             except AttributeError:
                 pass
             except Exception as e:
