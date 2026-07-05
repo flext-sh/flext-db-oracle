@@ -1,7 +1,12 @@
-"""Exemplo de testes REAIS usando Oracle.
+"""Behavioral tests for the real Oracle API and services facade.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
+These tests exercise the public contract of :class:`FlextDbOracleApi` and
+:class:`FlextDbOracleServices`. Integration paths that require a live Oracle
+instance skip when the database is unreachable (a genuine external boundary);
+the connection-error and not-connected paths are exercised without a server.
 
 """
 
@@ -11,7 +16,7 @@ import contextlib
 from typing import TYPE_CHECKING
 
 import pytest
-from flext_tests import r, tm
+from flext_tests import tm
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.services.facade import FlextDbOracleServices
@@ -23,114 +28,88 @@ if TYPE_CHECKING:
     from tests.typings import t
 
 
-def safe_get_first_value(data: t.JsonValue) -> t.JsonValue:
-    """Safely get first value from various data structures."""
-    if isinstance(data, list) and data:
-        return data[0]
-    if isinstance(data, dict) and data:
-        return next(iter(data.values()))
-    return data
+class TestsFlextDbOracleOracleExample:
+    """Public-contract behavior for the Oracle API and services facade."""
 
-
-def _dict_first_value(row: m.Dict) -> t.JsonValue:
-    root = row.root
-    if root:
+    @staticmethod
+    def _first_cell(row: m.Dict) -> t.JsonValue:
+        """Return the first cell of a query row via its public ``root`` mapping."""
+        root = row.root
+        if not root:
+            return None
         val = next(iter(root.values()))
         if val is None:
             return None
         if isinstance(val, tuple):
             return [u.normalize_to_metadata(item) for item in val]
-        return (
-            u.normalize_to_metadata(val)
-            if isinstance(val, (str, int, float, bool, dict, list))
-            else None
-        )
-    return None
+        if isinstance(val, (str, int, float, bool, dict, list)):
+            return u.normalize_to_metadata(val)
+        return None
 
+    # ------------------------------------------------------------------
+    # Services facade: connection lifecycle
+    # ------------------------------------------------------------------
 
-def _assert_context_manager_query(api: FlextDbOracleApi) -> None:
-    """Assert API context manager query returns expected value."""
-    test_result = api.test_connection()
-    if test_result.failure:
-        pytest.skip(f"Connection test failed: {test_result.error}")
-    query_result = api.query("SELECT 'Hello Oracle' FROM DUAL")
-    if query_result.failure:
-        pytest.skip(f"Query failed: {query_result.error}")
-    query_data = query_result.value
-    if query_data:
-        row = query_data[0]
-        cell = _dict_first_value(row)
-        final_value = (
-            safe_get_first_value(cell) if isinstance(cell, (list, dict)) else cell
-        )
-        tm.that(str(final_value), has="Hello Oracle")
-
-
-class TestsFlextDbOracleOracleExample:
-    def test_real_connection_connect_disconnect(
+    def test_connect_reports_connected_then_disconnect_clears_it(
         self,
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
-        """Test real Oracle connection and disconnection."""
+        """After a successful connect ``connected()`` is True, False after disconnect."""
         connection = FlextDbOracleServices(settings=real_oracle_config)
-        result = connection.connect()
-        if result.failure:
-            pytest.skip(f"Oracle connection unavailable: {result.error}")
-        tm.that(connection.connected(), eq=True)
-        disconnect_result = connection.disconnect()
-        if disconnect_result.failure:
-            pytest.skip(f"Oracle disconnect failed: {disconnect_result.error}")
-        tm.that(not connection.connected(), eq=True)
+        connect_result = connection.connect()
+        if connect_result.failure:
+            pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
 
-    def test_real_connection_execute_query(
+        tm.that(connection.connected(), eq=True)
+
+        disconnect_result = connection.disconnect()
+        tm.ok(disconnect_result)
+        tm.that(connection.connected(), eq=False)
+
+    def test_execute_query_returns_single_row_result(
         self,
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
-        """Test real Oracle query execution."""
+        """``execute_query`` succeeds and yields exactly one row for ``SELECT 1``."""
         connection = FlextDbOracleServices(settings=real_oracle_config)
         connect_result = connection.connect()
         if connect_result.failure:
             pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
         try:
             result = connection.execute_query("SELECT 1 FROM DUAL")
-            if result.failure:
-                msg = f"Query failed: {result.error}"
-                raise AssertionError(msg)
+            tm.ok(result)
             query_data = result.value
-            tm.that(query_data, is_=list)
             tm.that(len(query_data), eq=1)
-            first_row = query_data[0]
-            first_value = _dict_first_value(first_row)
-            tm.that(int(str(first_value)), eq=1)
+            tm.that(int(str(self._first_cell(query_data[0]))), eq=1)
         finally:
             connection.disconnect()
 
-    def test_real_connection_fetch_one(
+    def test_fetch_one_returns_scalar_mapping(
         self,
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
-        """Test real Oracle fetch_one."""
+        """``fetch_one`` succeeds and the returned mapping carries the scalar value."""
         connection = FlextDbOracleServices(settings=real_oracle_config)
         connect_result = connection.connect()
         if connect_result.failure:
             pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
         try:
             result = connection.fetch_one("SELECT 42 FROM DUAL")
-            if result.failure:
-                msg = f"Fetch one failed: {result.error}"
-                raise AssertionError(msg)
+            tm.ok(result)
             fetch_data = result.value
-            if fetch_data:
-                first_value = next(iter(fetch_data.values()))
-                tm.that(int(str(first_value)), eq=42)
+            if fetch_data is None:
+                msg = "fetch_one returned success with no row"
+                raise AssertionError(msg)
+            first_value = next(iter(fetch_data.values()))
+            tm.that(int(str(first_value)), eq=42)
         finally:
             connection.disconnect()
 
-    def test_real_connection_execute_many(
+    def test_execute_many_returns_affected_row_count(
         self,
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
-        """Test real Oracle execute_many with temporary table."""
+        """``execute_many`` reports the number of rows inserted."""
         connection = FlextDbOracleServices(settings=real_oracle_config)
         connect_result = connection.connect()
         if connect_result.failure:
@@ -139,11 +118,9 @@ class TestsFlextDbOracleOracleExample:
             with contextlib.suppress(Exception):
                 connection.execute_statement("DROP TABLE temp_test_table")
             create_result = connection.execute_statement(
-                "\n                CREATE TABLE temp_test_table (\n                    id NUMBER,\n                    name VARCHAR2(100)\n                )\n            ",
+                "CREATE TABLE temp_test_table (id NUMBER, name VARCHAR2(100))",
             )
-            if create_result.failure:
-                msg = f"Table creation failed: {create_result.error}"
-                raise AssertionError(msg)
+            tm.ok(create_result)
             params_list: t.SequenceOf[t.JsonMapping] = [
                 {"id": 1, "name": "Test 1"},
                 {"id": 2, "name": "Test 2"},
@@ -153,177 +130,148 @@ class TestsFlextDbOracleOracleExample:
                 "INSERT INTO temp_test_table (id, name) VALUES (:id, :name)",
                 params_list,
             )
-            if result.failure:
-                msg = f"Execute many failed: {result.error}"
-                raise AssertionError(msg)
-            many_result = result.value
-            tm.that(many_result, eq=3)
+            tm.ok(result)
+            tm.that(result.value, eq=3)
         finally:
             with contextlib.suppress(Exception):
                 connection.execute_statement("DROP TABLE temp_test_table")
             connection.disconnect()
 
-    def test_real_api_connect_context_manager(
+    # ------------------------------------------------------------------
+    # API facade: context manager and metadata queries
+    # ------------------------------------------------------------------
+
+    def test_api_context_manager_executes_query(
         self,
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
-        """Test real Oracle API with context manager."""
+        """The API context manager yields a usable, connected client."""
         try:
             with FlextDbOracleApi(real_oracle_config) as api:
-                _assert_context_manager_query(api)
+                if api.test_connection().failure:
+                    pytest.skip("Connection test failed inside context manager")
+                query_result = api.query("SELECT 'Hello Oracle' FROM DUAL")
+                if query_result.failure:
+                    pytest.skip(f"Query failed: {query_result.error}")
+                cell = self._first_cell(query_result.value[0])
+                tm.that(str(cell), has="Hello Oracle")
         except RuntimeError:
             pytest.skip("Oracle connection unavailable for context manager test")
 
-    def test_real_api_fetch_schemas(
+    def test_fetch_schemas_includes_a_system_schema(
         self,
         connected_oracle_api: FlextDbOracleApi,
     ) -> None:
-        """Test real Oracle schema listing using utilities."""
+        """``fetch_schemas`` returns a non-empty list containing a known system schema."""
         schemas_result = connected_oracle_api.fetch_schemas()
-        if schemas_result.failure:
-            msg = f"Get schemas failed: {schemas_result.error}"
-            raise AssertionError(msg)
+        tm.ok(schemas_result)
         schemas = schemas_result.value
         tm.that(len(schemas) > 0, eq=True)
-        system_schemas = ["SYS", "SYSTEM", "FLEXT", "FLEXTTEST", "XDB"]
+        system_schemas = ("SYS", "SYSTEM", "FLEXT", "FLEXTTEST", "XDB")
         tm.that(
-            any(any(s in schema.upper() for s in system_schemas) for schema in schemas),
+            any(
+                known in schema.upper()
+                for schema in schemas
+                for known in system_schemas
+            ),
             eq=True,
         )
 
-    def test_real_api_fetch_tables(
+    def test_fetch_tables_lists_seed_tables(
         self,
         connected_oracle_api: FlextDbOracleApi,
     ) -> None:
-        """Test real Oracle table listing using utilities."""
+        """``fetch_tables`` returns the seeded HR-style tables."""
         tables_result = connected_oracle_api.fetch_tables()
-        if tables_result.failure:
-            msg = f"Get tables failed: {tables_result.error}"
-            raise AssertionError(msg)
-        tables = tables_result.value
-        tm.that(tables, is_=list)
-        tm.that(len(tables) >= 0, eq=True)
-        expected_tables = ["EMPLOYEES", "DEPARTMENTS", "JOBS"]
-        for table in expected_tables:
-            tm.that(any(table in t.upper() for t in tables), eq=True)
+        tm.ok(tables_result)
+        tables_upper = [name.upper() for name in tables_result.value]
+        for expected in ("EMPLOYEES", "DEPARTMENTS", "JOBS"):
+            tm.that(any(expected in name for name in tables_upper), eq=True)
 
-    def test_real_api_fetch_columns(
+    def test_fetch_columns_exposes_named_columns(
         self,
         connected_oracle_api: FlextDbOracleApi,
     ) -> None:
-        """Test real Oracle column listing."""
+        """``fetch_columns`` returns Column models whose ``name`` field is public."""
         result = connected_oracle_api.fetch_columns("EMPLOYEES")
-        if result.failure:
-            msg = f"Get columns failed: {result.error}"
-            raise AssertionError(msg)
+        tm.ok(result)
         columns = result.value
         tm.that(len(columns) > 0, eq=True)
-        column_names = [
-            col.name.upper() if hasattr(col, "name") else "" for col in columns
-        ]
-        expected_columns = ["EMPLOYEE_ID", "FIRST_NAME", "LAST_NAME", "EMAIL"]
-        for col in expected_columns:
-            tm.that(column_names, has=col)
+        column_names = [col.name.upper() for col in columns]
+        for expected in ("EMPLOYEE_ID", "FIRST_NAME", "LAST_NAME", "EMAIL"):
+            tm.that(column_names, has=expected)
 
-    def test_real_api_query_with_timing(
+    def test_query_returns_rows_for_aggregate(
         self,
         connected_oracle_api: FlextDbOracleApi,
     ) -> None:
-        """Test real Oracle query with timing."""
+        """``query`` succeeds and returns at least one row for a COUNT aggregate."""
         result = connected_oracle_api.query("SELECT COUNT(*) FROM EMPLOYEES")
-        if result.failure:
-            msg = f"Query with timing failed: {result.error}"
-            raise AssertionError(msg)
-        query_result = result.value
-        tm.that(query_result, is_=list)
-        tm.that(len(query_result) > 0, eq=True)
+        tm.ok(result)
+        tm.that(len(result.value) > 0, eq=True)
 
-    def test_real_api_singer_type_conversion(
-        self,
-        connected_oracle_api: FlextDbOracleApi,
-    ) -> None:
-        """Test real Singer type conversion."""
-        test_cases = [
-            ("string", "VARCHAR2(4000)"),
-            ("integer", "NUMBER(38)"),
-            ("number", "NUMBER"),
-            ("boolean", "NUMBER(1)"),
+    @pytest.mark.parametrize(
+        ("singer_type", "format_hint", "expected_fragment"),
+        [
+            ("string", None, "VARCHAR2(4000)"),
+            ("integer", None, "NUMBER(38)"),
+            ("number", None, "NUMBER"),
+            ("boolean", None, "NUMBER(1)"),
             ("string", "date-time", "TIMESTAMP"),
-        ]
-        for args in test_cases:
-            if len(args) == 2:
-                singer_type, expected = args
-                result = connected_oracle_api.convert_singer_type(singer_type)
-            else:
-                singer_type, format_hint, expected = args
-                result = connected_oracle_api.convert_singer_type(
-                    singer_type,
-                    format_hint,
-                )
-            if result.failure:
-                msg = f"Type conversion failed for {singer_type}: {result.error}"
-                raise AssertionError(msg)
-            oracle_type = result.value
-            tm.that(oracle_type, has=expected)
+        ],
+    )
+    def test_convert_singer_type_maps_to_oracle_type(
+        self,
+        connected_oracle_api: FlextDbOracleApi,
+        singer_type: str,
+        format_hint: str | None,
+        expected_fragment: str,
+    ) -> None:
+        """``convert_singer_type`` maps each Singer type to the Oracle type fragment."""
+        result = (
+            connected_oracle_api.convert_singer_type(singer_type)
+            if format_hint is None
+            else connected_oracle_api.convert_singer_type(singer_type, format_hint)
+        )
+        tm.ok(result)
+        tm.that(result.value, has=expected_fragment)
 
-    def test_real_api_table_operations(
+    def test_execute_sql_creates_table_visible_to_fetch_tables(
         self,
         connected_oracle_api: FlextDbOracleApi,
     ) -> None:
-        """Test real Oracle table operations."""
+        """A table created via ``execute_sql`` appears in ``fetch_tables``."""
         table_name = "TEST_TEMP_TABLE"
         try:
-            columns = [
-                {"name": "id", "type": "NUMBER", "nullable": False},
-                {"name": "name", "type": "VARCHAR2(100)", "nullable": True},
-                {
-                    "name": "created_at",
-                    "type": "TIMESTAMP",
-                    "nullable": True,
-                    "default_value": "SYSDATE",
-                },
-            ]
-            ddl_parts = [f"CREATE TABLE {table_name} ("]
-            column_parts: list[str] = []
-            for col in columns:
-                col_def = f"{col['name']} {col['type']}"
-                if not col.get("nullable", True):
-                    col_def += " NOT NULL"
-                if "default_value" in col:
-                    col_def += f" DEFAULT {col['default_value']}"
-                column_parts.append(col_def)
-            ddl_parts.extend((", ".join(column_parts), ")"))
-            ddl_sql = " ".join(ddl_parts)
-            ddl_result = r[str].ok(ddl_sql)
-            if ddl_result.failure:
-                msg = f"DDL generation failed: {ddl_result.error}"
-                raise AssertionError(msg)
-            ddl_sql = ddl_result.value
+            ddl_sql = (
+                f"CREATE TABLE {table_name} ("
+                "id NUMBER NOT NULL, "
+                "name VARCHAR2(100), "
+                "created_at TIMESTAMP DEFAULT SYSDATE)"
+            )
             execute_result = connected_oracle_api.execute_sql(ddl_sql)
-            if execute_result.failure:
-                msg = f"DDL execution failed: {execute_result.error}"
-                raise AssertionError(msg)
+            tm.ok(execute_result)
+
             tables_result = connected_oracle_api.fetch_tables()
-            if tables_result.failure:
-                msg = f"Get tables failed: {tables_result.error}"
-                raise AssertionError(msg)
-            tables_data = tables_result.value
-            table_names = [t.upper() for t in tables_data]
+            tm.ok(tables_result)
+            table_names = [name.upper() for name in tables_result.value]
             tm.that(table_names, has=table_name.upper())
-            metadata_result = connected_oracle_api.fetch_tables(table_name)
-            if metadata_result.failure:
-                msg = f"Get metadata failed: {metadata_result.error}"
-                raise AssertionError(msg)
-            metadata = metadata_result.value
-            if metadata:
-                tm.that(metadata[0].upper(), eq=table_name.upper())
+
+            filtered_result = connected_oracle_api.fetch_tables(table_name)
+            tm.ok(filtered_result)
+            filtered = filtered_result.value
+            if filtered:
+                tm.that(filtered[0].upper(), eq=table_name.upper())
         finally:
             with contextlib.suppress(Exception):
-                drop_sql = f"DROP TABLE {table_name}"
-                connected_oracle_api.execute_sql(drop_sql)
+                connected_oracle_api.execute_sql(f"DROP TABLE {table_name}")
 
-    def test_real_connection_invalid_credentials(self) -> None:
-        """Test connection with invalid credentials."""
+    # ------------------------------------------------------------------
+    # Error paths (exercised without a live server)
+    # ------------------------------------------------------------------
+
+    def test_connect_with_invalid_credentials_fails_with_reason(self) -> None:
+        """Connecting with bad credentials yields a failure carrying a diagnostic reason."""
         invalid_config = FlextDbOracleSettings(
             host="localhost",
             port=1521,
@@ -335,24 +283,22 @@ class TestsFlextDbOracleOracleExample:
         result = connection.connect()
         tm.fail(result)
         error_msg = (result.error or "").lower()
-        tm.that(
-            (
-                "invalid username/password" in error_msg
-                or "authentication" in error_msg
-                or "login" in error_msg
-                or ("connection refused" in error_msg)
-                or ("cannot connect" in error_msg)
-                or ("connection test failed" in error_msg)
-                or ("not connected to database" in error_msg)
-            ),
-            eq=True,
+        reasons = (
+            "invalid username/password",
+            "authentication",
+            "login",
+            "connection refused",
+            "cannot connect",
+            "connection test failed",
+            "not connected to database",
         )
+        tm.that(any(reason in error_msg for reason in reasons), eq=True)
 
-    def test_real_connection_invalid_sql(
+    def test_invalid_sql_returns_failure(
         self,
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
-        """Test execution with invalid SQL."""
+        """Executing malformed SQL against a real connection returns a failure."""
         connection = FlextDbOracleServices(settings=real_oracle_config)
         connect_result = connection.connect()
         if connect_result.failure:
@@ -362,31 +308,26 @@ class TestsFlextDbOracleOracleExample:
                 "SELECT FROM INVALID_TABLE_THAT_DOES_NOT_EXIST",
             )
             tm.fail(result)
-            tm.that(
-                (
-                    "table" in (result.error or "").lower()
-                    or "not exist" in (result.error or "").lower()
-                ),
-                eq=True,
-            )
+            error_msg = (result.error or "").lower()
+            tm.that("table" in error_msg or "not exist" in error_msg, eq=True)
         finally:
             connection.disconnect()
 
-    def test_real_api_not_connected_operations(
+    def test_api_operations_fail_when_not_connected(
         self,
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
-        """Test API operations when not connected."""
+        """API queries and metadata fetches fail cleanly before ``connect``."""
         api = FlextDbOracleApi(real_oracle_config)
-        result = api.query("SELECT 1 FROM DUAL")
-        tm.fail(result)
-        tm.that((result.error or "").lower(), has="not connected")
+
+        query_result = api.query("SELECT 1 FROM DUAL")
+        tm.fail(query_result)
+        tm.that((query_result.error or "").lower(), has="not connected")
+
         tables_result = api.fetch_tables()
         tm.fail(tables_result)
+        tables_error = (tables_result.error or "").lower()
         tm.that(
-            (
-                "not connected" in (tables_result.error or "").lower()
-                or "connection" in (tables_result.error or "").lower()
-            ),
+            "not connected" in tables_error or "connection" in tables_error,
             eq=True,
         )

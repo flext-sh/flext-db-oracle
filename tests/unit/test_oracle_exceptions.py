@@ -1,4 +1,9 @@
-"""Testes REAIS de exceções Oracle - SEM MOCKS, só Oracle container real.
+"""Behavioral tests for FlextDbOracleExceptions public contract.
+
+Exercises the observable contract of the Oracle exception family: message
+propagation, Oracle-specific metadata fields, flext-core inheritance, and
+raise/catch semantics. No live Oracle container is required — the exception
+classes are pure value types whose contract is fully observable in-process.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -7,245 +12,183 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import pytest
-from flext_tests import tm
 
-from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.services.facade import FlextDbOracleServices
-from flext_db_oracle.settings import FlextDbOracleSettings
-
-
-def _assert_configuration_error() -> None:
-    """Assert connection with invalid settings fails appropriately."""
-    invalid_config = FlextDbOracleSettings(
-        host="localhost",
-        port=1521,
-        service_name="",
-        sid="",
-        username="testuser",
-        password="testpass",
-    )
-    connection = FlextDbOracleServices(settings=invalid_config)
-    result = connection.connect()
-    if result.success:
-        msg = "Connection with invalid settings should fail"
-        raise AssertionError(msg)
-    error_msg = result.error or ""
-    tm.that(
-        "service_name" in error_msg.lower() or "sid" in error_msg.lower(),
-        eq=True,
-    )
-
-
-def _validate_config_data(config_data: dict[str, int | str]) -> None:
-    """Validate a single config data entry."""
-    port_value = int(str(config_data.get("port", 1521)))
-    tm.that(port_value, is_=int)
-    host_value = str(config_data.get("host", ""))
-    user_value = str(config_data.get("user", ""))
-    password_value = str(config_data.get("password", ""))
-    service_name_value = str(config_data.get("service_name", "XE"))
-    FlextDbOracleSettings(
-        host=host_value,
-        port=port_value,
-        username=user_value,
-        password=password_value,
-        service_name=service_name_value,
-    )
+from flext_core import e
+from flext_db_oracle.exceptions import FlextDbOracleExceptions, e as oracle_e
 
 
 class TestsFlextDbOracleOracleExceptions:
-    """Teste real das exceções básicas Oracle - SEM MOCKS."""
+    """Behavioral contract for the Oracle exception family."""
 
-    def test_real_authentication_error_scenario(self) -> None:
-        """Test e.AuthenticationError with real invalid credentials."""
-        invalid_config = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="XEPDB1",
-            username="invalid_user_12345",
-            password="invalid_password_12345",
-        )
-        connection = FlextDbOracleServices(settings=invalid_config)
-        result = connection.connect()
-        if result.success:
-            msg = "Connection with invalid credentials should fail"
-            raise AssertionError(msg)
-        error_msg = (result.error or "").lower()
-        tm.that(
-            any(
-                keyword in error_msg
-                for keyword in [
-                    "invalid username/password",
-                    "authentication",
-                    "login denied",
-                    "ora-01017",
-                    "logon denied",
-                    "connection refused",
-                    "cannot connect",
-                    "name or service not known",
-                    "connection test failed",
-                    "not connected to database",
-                ]
-            ),
-            eq=True,
-        )
+    def test_family_alias_exposes_facade(self) -> None:
+        """The `e` alias exported by the module is the facade class itself."""
+        assert oracle_e is FlextDbOracleExceptions
 
-    def test_real_connection_error_scenario(self) -> None:
-        """Test e.OracleConnectionError with real unreachable host."""
-        unreachable_config = FlextDbOracleSettings(
-            host="127.0.0.1",
-            port=19999,
-            service_name="XEPDB1",
-            username="testuser",
-            password="testpass",
-            timeout=1,
-        )
-        connection = FlextDbOracleServices(settings=unreachable_config)
-        result = connection.connect()
-        if result.success:
-            msg = "Connection to unreachable host should fail"
-            raise AssertionError(msg)
-        error_msg = (result.error or "").lower()
-        tm.that(
-            any(
-                keyword in error_msg
-                for keyword in [
-                    "connection",
-                    "network",
-                    "host",
-                    "unreachable",
-                    "resolve",
-                    "timeout",
-                    "name or service not known",
-                    "errno -2",
-                    "gaierror",
-                ]
-            ),
-            eq=True,
-        )
-
-    def test_real_configuration_error_scenario(self) -> None:
-        """Test e.ConfigurationError with real invalid settings."""
-        try:
-            _assert_configuration_error()
-        except (ValueError, TypeError, RuntimeError):
-            pass
-
-    def test_real_timeout_error_scenario(
+    @pytest.mark.parametrize(
+        "factory",
+        [
+            lambda: FlextDbOracleExceptions.Error("boom"),
+            lambda: FlextDbOracleExceptions.OracleConnectionError("boom"),
+            lambda: FlextDbOracleExceptions.ProcessingError("boom"),
+            lambda: FlextDbOracleExceptions.OracleTimeoutError("boom"),
+        ],
+        ids=["error", "connection", "processing", "timeout"],
+    )
+    def test_message_is_preserved_and_rendered(
         self,
-        real_oracle_config: FlextDbOracleSettings | None,
+        factory: Callable[[], FlextDbOracleExceptions.Error],
     ) -> None:
-        """Test e.TimeoutError with real long-running query."""
-        if real_oracle_config is None:
-            pytest.skip("Oracle real settings unavailable")
-        timeout_config = FlextDbOracleSettings(
-            host=real_oracle_config.host,
-            port=real_oracle_config.port,
-            service_name=real_oracle_config.service_name,
-            username=real_oracle_config.username,
-            password=(
-                str(real_oracle_config.password)
-                if real_oracle_config.password is not None
-                else None
+        """Every family member preserves its message on the public surface."""
+        exc = factory()
+
+        assert exc.message == "boom"
+        assert "boom" in str(exc)
+
+    @pytest.mark.parametrize(
+        ("factory", "expected_base"),
+        [
+            (lambda: FlextDbOracleExceptions.Error("m"), e.BaseError),
+            (
+                lambda: FlextDbOracleExceptions.OracleConnectionError("m"),
+                e.ConnectionError,
             ),
-            timeout=1,
-        )
-        connection = FlextDbOracleServices(settings=timeout_config)
-        connect_result = connection.connect()
-        if connect_result.failure:
-            pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
-        try:
-            long_query = (
-                "SELECT * FROM (SELECT LEVEL FROM DUAL CONNECT BY LEVEL <= 100000)"
-            )
-            result = connection.execute_query(long_query)
-            if result.failure:
-                error_msg = (result.error or "").lower()
-                tm.that(
-                    any(
-                        keyword in error_msg
-                        for keyword in [
-                            "timeout",
-                            "cancel",
-                            "interrupt",
-                            "resource",
-                            "limit",
-                        ]
-                    ),
-                    eq=True,
-                )
-        finally:
-            connection.disconnect()
-
-    def test_real_processing_error_scenario(
+            (
+                lambda: FlextDbOracleExceptions.ProcessingError("m"),
+                e.OperationError,
+            ),
+            (
+                lambda: FlextDbOracleExceptions.OracleTimeoutError("m"),
+                e.TimeoutError,
+            ),
+        ],
+        ids=["error", "connection", "processing", "timeout"],
+    )
+    def test_members_inherit_flext_core_categories(
         self,
-        connected_oracle_api: FlextDbOracleApi | None,
+        factory: Callable[[], BaseException],
+        expected_base: type[BaseException],
     ) -> None:
-        """Test e.ProcessingError with real data processing errors."""
-        if connected_oracle_api is None:
-            pytest.skip("Connected Oracle API unavailable")
-        problematic_operations = [
-            "SELECT * FROM NON_EXISTENT_TABLE_12345",
-            "INSERT INTO dual VALUES (1, 2)",
-            "CREATE TABLE invalid..syntax ERROR",
-        ]
-        for invalid_operation in problematic_operations:
-            result = connected_oracle_api.query(invalid_operation)
-            tm.fail(result)
-            error_msg = (result.error or "").lower()
-            tm.that(
-                any(
-                    keyword in error_msg
-                    for keyword in [
-                        "ora-",
-                        "invalid",
-                        "not exist",
-                        "table",
-                        "syntax",
-                        "error",
-                    ]
-                ),
-                eq=True,
-            )
+        """Each Oracle error is-a its flext-core category and an e.BaseError."""
+        exc = factory()
 
-    def test_real_validation_error_scenario(self) -> None:
-        """Test e.ValidationError with real settings validation."""
-        invalid_configs = [
-            {
-                "host": "",
-                "port": 1521,
-                "service_name": "XE",
-                "user": "user",
-                "password": "pass",
-            },
-            {
-                "host": "localhost",
-                "port": -1,
-                "service_name": "XE",
-                "user": "user",
-                "password": "pass",
-            },
-            {
-                "host": "localhost",
-                "port": 99999,
-                "service_name": "XE",
-                "user": "user",
-                "password": "pass",
-            },
-            {
-                "host": "localhost",
-                "port": 1521,
-                "service_name": "XE",
-                "user": "",
-                "password": "pass",
-            },
-        ]
-        for config_data in invalid_configs:
+        assert isinstance(exc, expected_base)
+        assert isinstance(exc, e.BaseError)
+        assert isinstance(exc, Exception)
+
+    def test_error_carries_oracle_metadata(self) -> None:
+        """Error exposes Oracle error code and SQL state as public fields."""
+        exc = FlextDbOracleExceptions.Error(
+            "table missing",
+            oracle_error_code="ORA-00942",
+            sql_state="42S02",
+        )
+
+        assert exc.oracle_error_code == "ORA-00942"
+        assert exc.sql_state == "42S02"
+
+    def test_connection_error_carries_tns_metadata(self) -> None:
+        """OracleConnectionError exposes TNS and connection-string context."""
+        exc = FlextDbOracleExceptions.OracleConnectionError(
+            "cannot connect",
+            tns_error="TNS-12154",
+            connection_string="host:1521/XEPDB1",
+        )
+
+        assert exc.tns_error == "TNS-12154"
+        assert exc.connection_string == "host:1521/XEPDB1"
+
+    def test_processing_error_carries_operation_metadata(self) -> None:
+        """ProcessingError exposes operation type and processing stage."""
+        exc = FlextDbOracleExceptions.ProcessingError(
+            "insert failed",
+            operation_type="INSERT",
+            processing_stage="parse",
+        )
+
+        assert exc.operation_type == "INSERT"
+        assert exc.processing_stage == "parse"
+
+    def test_timeout_error_carries_query_metadata(self) -> None:
+        """OracleTimeoutError exposes query id and elapsed time."""
+        exc = FlextDbOracleExceptions.OracleTimeoutError(
+            "query timed out",
+            query_id="q-42",
+            elapsed_time=1.5,
+        )
+
+        assert exc.query_id == "q-42"
+        assert exc.elapsed_time == pytest.approx(1.5)
+
+    @pytest.mark.parametrize(
+        "factory",
+        [
+            lambda: FlextDbOracleExceptions.Error("m"),
+            lambda: FlextDbOracleExceptions.OracleConnectionError("m"),
+            lambda: FlextDbOracleExceptions.ProcessingError("m"),
+            lambda: FlextDbOracleExceptions.OracleTimeoutError("m"),
+        ],
+        ids=["error", "connection", "processing", "timeout"],
+    )
+    def test_metadata_defaults_to_none_when_omitted(
+        self,
+        factory: Callable[[], BaseException],
+    ) -> None:
+        """Optional metadata is absent (None) unless explicitly supplied."""
+        exc = factory()
+
+        optional_fields = (
+            "oracle_error_code",
+            "sql_state",
+            "tns_error",
+            "connection_string",
+            "operation_type",
+            "processing_stage",
+            "query_id",
+            "elapsed_time",
+        )
+        present = {
+            name: getattr(exc, name)
+            for name in optional_fields
+            if hasattr(exc, name)
+        }
+        assert all(value is None for value in present.values())
+
+    def test_connection_error_is_raisable_and_catchable_as_category(self) -> None:
+        """A raised OracleConnectionError is caught via its flext-core category."""
+        exc = FlextDbOracleExceptions.OracleConnectionError(
+            "unreachable",
+            tns_error="TNS-12541",
+        )
+
+        def _raise() -> None:
+            raise exc
+
+        with pytest.raises(e.ConnectionError) as caught:
+            _raise()
+
+        assert caught.value is exc
+        assert exc.tns_error == "TNS-12541"
+        assert "unreachable" in str(caught.value)
+
+    def test_raise_from_preserves_cause_chain(self) -> None:
+        """Wrapping a driver error preserves the original via __cause__."""
+        root = ValueError("ORA-01017: invalid username/password")
+
+        def _translate() -> None:
             try:
-                _validate_config_data(config_data)
-            except (ValueError, TypeError):
-                pass
+                raise root
+            except ValueError as driver_error:
+                wrapped = FlextDbOracleExceptions.Error(
+                    "authentication failed",
+                    oracle_error_code="ORA-01017",
+                )
+                raise wrapped from driver_error
 
-    def test_real_exception_inheritance(self) -> None:
-        """Test that Oracle exceptions inherit properly from base Exception classes."""
+        with pytest.raises(FlextDbOracleExceptions.Error) as caught:
+            _translate()
+
+        assert caught.value.__cause__ is root
+        assert caught.value.oracle_error_code == "ORA-01017"
