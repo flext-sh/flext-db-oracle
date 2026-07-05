@@ -137,9 +137,7 @@ class TestsFlextDbOracleSettings:
 
     def test_from_url_accepts_oracledb_driver_scheme(self) -> None:
         """The oracle+oracledb driver scheme is a valid connection URL."""
-        result = FlextDbOracleSettings.from_url(
-            "oracle+oracledb://u:p@host:1600/SVC"
-        )
+        result = FlextDbOracleSettings.from_url("oracle+oracledb://u:p@host:1600/SVC")
 
         assert result.success is True
         assert result.unwrap().port == 1600

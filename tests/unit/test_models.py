@@ -72,7 +72,9 @@ class TestsFlextDbOracleModels:
 
     def test_connected_without_host_is_rejected(self) -> None:
         """Consistency validator rejects a connected status without a host."""
-        with pytest.raises(ValueError, match="Connected status requires host information"):
+        with pytest.raises(
+            ValueError, match="Connected status requires host information"
+        ):
             m.DbOracle.ConnectionStatus(connected=True, host="", port=1521)
 
     def test_out_of_range_port_is_rejected(self) -> None:

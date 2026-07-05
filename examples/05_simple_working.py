@@ -17,6 +17,7 @@ logger = u.fetch_logger(__name__)
 def _resolve_settings() -> FlextDbOracleSettings:
     """Resolve settings from env result or fallback demo config."""
     config_result = FlextDbOracleSettings.from_env()
+    settings: FlextDbOracleSettings
     if config_result.success:
         settings = config_result.value
         logger.info(f"✅ Configuration created: {settings.host}:{settings.port}")

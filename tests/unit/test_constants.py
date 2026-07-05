@@ -130,7 +130,10 @@ class TestsFlextDbOracleConstants:
 
     def test_query_thresholds_are_strictly_increasing(self) -> None:
         """Query quality thresholds in ms form a strictly increasing ladder."""
-        tm.that(c.DbOracle.QUERY_GOOD_THRESHOLD_MS, gt=c.DbOracle.QUERY_EXCELLENT_THRESHOLD_MS)
+        tm.that(
+            c.DbOracle.QUERY_GOOD_THRESHOLD_MS,
+            gt=c.DbOracle.QUERY_EXCELLENT_THRESHOLD_MS,
+        )
         tm.that(
             c.DbOracle.QUERY_ACCEPTABLE_THRESHOLD_MS,
             gt=c.DbOracle.QUERY_GOOD_THRESHOLD_MS,
@@ -261,7 +264,9 @@ class TestsFlextDbOracleConstants:
 
     def test_port_out_of_range_message_formats_with_named_fields(self) -> None:
         """PORT_OUT_OF_RANGE is a format template consuming the documented keys."""
-        rendered = c.DbOracle.PORT_OUT_OF_RANGE.format(min_port=1, max_port=65535, port=0)
+        rendered = c.DbOracle.PORT_OUT_OF_RANGE.format(
+            min_port=1, max_port=65535, port=0
+        )
         tm.that(rendered, has="1")
         tm.that(rendered, has="65535")
 

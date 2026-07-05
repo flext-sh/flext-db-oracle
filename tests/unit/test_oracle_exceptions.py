@@ -150,9 +150,7 @@ class TestsFlextDbOracleOracleExceptions:
             "elapsed_time",
         )
         present = {
-            name: getattr(exc, name)
-            for name in optional_fields
-            if hasattr(exc, name)
+            name: getattr(exc, name) for name in optional_fields if hasattr(exc, name)
         }
         assert all(value is None for value in present.values())
 

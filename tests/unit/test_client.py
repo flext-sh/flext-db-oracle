@@ -37,9 +37,7 @@ class TestsFlextDbOracleClient:
         client = FlextDbOracleClient(debug=True)
         assert client.debug is True
 
-    def test_new_client_is_not_connected(
-        self, client: FlextDbOracleClient
-    ) -> None:
+    def test_new_client_is_not_connected(self, client: FlextDbOracleClient) -> None:
         """A freshly built client has no active engine."""
         assert client.connected() is False
 
@@ -95,9 +93,7 @@ class TestsFlextDbOracleClient:
     # -- validate_identifier ----------------------------------------------
 
     @pytest.mark.parametrize("identifier", ["my_col", "employees", "T1"])
-    def test_validate_identifier_accepts_normal_names(
-        self, identifier: str
-    ) -> None:
+    def test_validate_identifier_accepts_normal_names(self, identifier: str) -> None:
         """Ordinary identifiers validate successfully to True."""
         result = FlextDbOracleClient.validate_identifier(identifier)
         assert result.success is True
@@ -136,9 +132,7 @@ class TestsFlextDbOracleClient:
             ("A\tB", "A B"),
         ],
     )
-    def test_format_sql_collapses_whitespace(
-        self, raw: str, expected: str
-    ) -> None:
+    def test_format_sql_collapses_whitespace(self, raw: str, expected: str) -> None:
         """SQL formatting normalizes all runs of whitespace to single spaces."""
         result = FlextDbOracleClient.format_sql_for_oracle(raw)
         assert result.success is True

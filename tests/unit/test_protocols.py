@@ -94,9 +94,7 @@ class TestsFlextDbOracleProtocols:
 
     def test_db_oracle_namespace_exposes_every_documented_protocol(self) -> None:
         """The public DbOracle namespace exposes exactly the promised protocols."""
-        exposed = {
-            name for name in dir(p.DbOracle) if not name.startswith("_")
-        }
+        exposed = {name for name in dir(p.DbOracle) if not name.startswith("_")}
         promised = {name for name, _proto, _methods in _DB_ORACLE_CONTRACTS}
 
         assert promised <= exposed

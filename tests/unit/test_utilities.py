@@ -95,8 +95,12 @@ class TestsFlextDbOracleUtilitiesUnit:
 
     def test_generate_query_hash_accepts_none_params(self) -> None:
         """None params are treated as empty and still produce a valid hash."""
-        with_none: str = tm.ok(u.DbOracle.generate_query_hash("SELECT 1 FROM DUAL", None))
-        with_empty: str = tm.ok(u.DbOracle.generate_query_hash("SELECT 1 FROM DUAL", {}))
+        with_none: str = tm.ok(
+            u.DbOracle.generate_query_hash("SELECT 1 FROM DUAL", None)
+        )
+        with_empty: str = tm.ok(
+            u.DbOracle.generate_query_hash("SELECT 1 FROM DUAL", {})
+        )
         tm.that(len(with_none), eq=16)
         tm.that(with_none, eq=with_empty)
 

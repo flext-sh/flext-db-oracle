@@ -169,6 +169,7 @@ class TestsFlextDbOracleApi:
         operation: str,
     ) -> None:
         """Every data operation returns a failure mentioning the missing connection."""
+
         def discard(_value: object) -> None:
             return None
 
