@@ -412,16 +412,15 @@ class TestsFlextDbOracleConstants:
         settings = FlextDbOracleSettings.model_validate({"enable_dispatcher": enabled})
         tm.that(settings.enable_dispatcher, eq=enabled)
 
-    # ---- real Oracle integration (public API, skipped when unavailable) -
+    # ---- real Oracle integration (public API, fail-loud when unavailable) -
 
     def test_oracle_constants_real_connection_validation(
         self,
-        connected_oracle_api: FlextDbOracleApi | None,
+        connected_oracle_api: FlextDbOracleApi,
         oracle_available: bool,
     ) -> None:
         """TEST_QUERY and DUAL_TABLE drive a real Oracle round-trip."""
-        if not oracle_available or connected_oracle_api is None:
-            pytest.skip("Oracle not available for integration test")
+        tm.that(oracle_available, eq=True)
         result = connected_oracle_api.query(c.DbOracle.TEST_QUERY)
         tm.ok(result)
         tm.that(len(result.value), eq=1)
@@ -430,12 +429,12 @@ class TestsFlextDbOracleConstants:
 
     def test_oracle_constants_default_values_real_validation(
         self,
-        connected_oracle_api: FlextDbOracleApi | None,
+        connected_oracle_api: FlextDbOracleApi,
         oracle_available: bool,
     ) -> None:
         """Default connection constants are valid against a real Oracle."""
-        if not oracle_available or connected_oracle_api is None:
-            pytest.skip("Oracle not available for integration test")
+        _ = connected_oracle_api
+        tm.that(oracle_available, eq=True)
         tm.that(c.DbOracle.DEFAULT_SERVICE_NAME, is_=str)
         tm.that(bool(c.DbOracle.DEFAULT_SERVICE_NAME), eq=True)
         default_port = c.DbOracle.DEFAULT_PORT
@@ -445,12 +444,11 @@ class TestsFlextDbOracleConstants:
 
     def test_oracle_data_types_real_validation(
         self,
-        connected_oracle_api: FlextDbOracleApi | None,
+        connected_oracle_api: FlextDbOracleApi,
         oracle_available: bool,
     ) -> None:
         """Data-type constants form a DDL statement a real Oracle accepts."""
-        if not oracle_available or connected_oracle_api is None:
-            pytest.skip("Oracle not available for integration test")
+        tm.that(oracle_available, eq=True)
         create_sql = (
             "\n        CREATE TABLE test_data_types (\n"
             f"            id {c.DbOracle.DataType.NUMBER} PRIMARY KEY,\n"
@@ -468,12 +466,12 @@ class TestsFlextDbOracleConstants:
 
     def test_oracle_validation_constants_real_usage(
         self,
-        connected_oracle_api: FlextDbOracleApi | None,
+        connected_oracle_api: FlextDbOracleApi,
         oracle_available: bool,
     ) -> None:
         """Identifier limits produce an escapable identifier on real Oracle."""
-        if not oracle_available or connected_oracle_api is None:
-            pytest.skip("Oracle not available for integration test")
+        _ = connected_oracle_api
+        tm.that(oracle_available, eq=True)
         max_length = c.DbOracle.MAX_IDENTIFIER_LENGTH
         tm.that(max_length, is_=int)
         tm.that(max_length, gt=0)
@@ -483,12 +481,11 @@ class TestsFlextDbOracleConstants:
 
     def test_oracle_performance_constants_real_timing(
         self,
-        connected_oracle_api: FlextDbOracleApi | None,
+        connected_oracle_api: FlextDbOracleApi,
         oracle_available: bool,
     ) -> None:
         """Query timing is classified by the documented ms thresholds."""
-        if not oracle_available or connected_oracle_api is None:
-            pytest.skip("Oracle not available for integration test")
+        tm.that(oracle_available, eq=True)
         start_time = time.time()
         result = connected_oracle_api.query("SELECT 1 FROM DUAL")
         execution_ms = (time.time() - start_time) * 1000
@@ -502,12 +499,12 @@ class TestsFlextDbOracleConstants:
 
     def test_oracle_reserved_words_real_validation(
         self,
-        connected_oracle_api: FlextDbOracleApi | None,
+        connected_oracle_api: FlextDbOracleApi,
         oracle_available: bool,
     ) -> None:
         """Reserved words are rejected by the public identifier validator."""
-        if not oracle_available or connected_oracle_api is None:
-            pytest.skip("Oracle not available for integration test")
+        _ = connected_oracle_api
+        tm.that(oracle_available, eq=True)
         reserved = c.DbOracle.ORACLE_RESERVED
         for word in ("SELECT", "FROM", "WHERE", "TABLE", "INDEX"):
             tm.that(reserved, has=word)

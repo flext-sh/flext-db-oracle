@@ -12,7 +12,6 @@ import pytest
 from flext_tests import tm
 
 from flext_db_oracle import (
-    FlextDbOracleApi,
     FlextDbOracleSettings,
 )
 from tests.constants import c
@@ -25,23 +24,8 @@ class TestsFlextDbOracleModels:
 
     # ------------------------------------------------------------------
     # ConnectionStatus
-    #
-    # NOTE: ``ConnectionStatus`` imports ``datetime`` only under
-    # ``TYPE_CHECKING`` (src/flext_db_oracle/models.py:20-21), so at runtime
-    # the Pydantic model is *not fully defined* and cannot be instantiated
-    # (``PydanticUndefinedAnnotation: name 'datetime' is not defined``). This
-    # is a pre-existing SOURCE defect outside this file's editable scope; the
-    # only in-test workaround would be injecting ``datetime`` into the model
-    # namespace, which would mask the source bug. The behavioral tests below
-    # are therefore marked xfail: they encode the intended public contract and
-    # will turn green automatically once the source forward-ref is resolved.
     # ------------------------------------------------------------------
 
-    @pytest.mark.xfail(
-        reason="ConnectionStatus not runtime-defined: datetime under TYPE_CHECKING (models.py:20-21)",
-        raises=Exception,
-        strict=False,
-    )
     def test_connected_status_reports_connected_description(self) -> None:
         """A connected status exposes a 'Connected' human-readable description."""
         status = m.DbOracle.ConnectionStatus(
@@ -56,11 +40,6 @@ class TestsFlextDbOracleModels:
         tm.that(status.connection_info, has="XEPDB1")
         tm.that(status.connection_info, has="system")
 
-    @pytest.mark.xfail(
-        reason="ConnectionStatus not runtime-defined: datetime under TYPE_CHECKING (models.py:20-21)",
-        raises=Exception,
-        strict=False,
-    )
     def test_disconnected_status_surfaces_error_in_description(self) -> None:
         """A disconnected status embeds its error message in the description."""
         status = m.DbOracle.ConnectionStatus(connected=False)
@@ -68,11 +47,6 @@ class TestsFlextDbOracleModels:
         tm.that(status.healthy, eq=False)
         tm.that(status.connection_info, eq="Not connected")
 
-    @pytest.mark.xfail(
-        reason="ConnectionStatus not runtime-defined: datetime under TYPE_CHECKING (models.py:20-21)",
-        raises=Exception,
-        strict=False,
-    )
     @pytest.mark.parametrize(
         ("connection_time", "rating"),
         [
@@ -96,31 +70,16 @@ class TestsFlextDbOracleModels:
         )
         tm.that(status.performance_info, has=rating)
 
-    @pytest.mark.xfail(
-        reason="ConnectionStatus not runtime-defined: datetime under TYPE_CHECKING (models.py:20-21)",
-        raises=Exception,
-        strict=False,
-    )
     def test_connected_without_host_is_rejected(self) -> None:
         """Consistency validator rejects a connected status without a host."""
         with pytest.raises(ValueError, match="Connected status requires host information"):
             m.DbOracle.ConnectionStatus(connected=True, host="", port=1521)
 
-    @pytest.mark.xfail(
-        reason="ConnectionStatus not runtime-defined: datetime under TYPE_CHECKING (models.py:20-21)",
-        raises=Exception,
-        strict=False,
-    )
     def test_out_of_range_port_is_rejected(self) -> None:
         """Port outside the valid range is rejected at construction."""
         with pytest.raises(ValueError, match="less than or equal to"):
             m.DbOracle.ConnectionStatus(connected=True, host="localhost", port=99999)
 
-    @pytest.mark.xfail(
-        reason="ConnectionStatus not runtime-defined: datetime under TYPE_CHECKING (models.py:20-21)",
-        raises=Exception,
-        strict=False,
-    )
     def test_long_error_message_is_truncated_on_serialization(self) -> None:
         """Serialized error messages are capped at the configured maximum."""
         status = m.DbOracle.ConnectionStatus(
@@ -519,36 +478,25 @@ class TestsFlextDbOracleModels:
         tm.that(second.host, eq="localhost")
 
     # ------------------------------------------------------------------
-    # Real Oracle integration (external boundary, skipped when unavailable)
+    # Offline model contracts for database-shaped payloads
     # ------------------------------------------------------------------
 
-    def test_query_against_real_oracle_returns_rows(
-        self,
-        connected_oracle_api: FlextDbOracleApi | None,
-        oracle_available: bool,
-    ) -> None:
-        """A live query returns a successful result carrying the selected row."""
-        if not oracle_available or connected_oracle_api is None:
-            pytest.skip("Oracle not available for integration test")
-        query_result = connected_oracle_api.query(
-            "SELECT 1 as id, 'test' as name FROM DUAL",
+    def test_query_result_contract_returns_rows(self) -> None:
+        """QueryResult carries typed row payloads without a live database."""
+        row = m.DbOracle.RowData(values=(1, "test"))
+        query_result = m.DbOracle.QueryResult(
+            query="SELECT 1 as id, 'test' as name FROM DUAL",
+            columns=("ID", "NAME"),
+            rows=(row,),
         )
-        tm.ok(query_result)
-        data = query_result.value
-        tm.that(len(data), eq=1)
-        first_row = data[0].root if hasattr(data[0], "root") else data[0]
-        tm.that("ID" in first_row or "id" in first_row, eq=True)
+        tm.that(query_result.has_results, eq=True)
+        tm.that(query_result.row_count, eq=1)
+        tm.that(query_result.rows[0].values, eq=(1, "test"))
 
-    def test_fetch_schemas_against_real_oracle_succeeds(
-        self,
-        connected_oracle_api: FlextDbOracleApi | None,
-        oracle_available: bool,
-    ) -> None:
-        """Fetching schemas from a live database yields a successful result."""
-        if not oracle_available or connected_oracle_api is None:
-            pytest.skip("Oracle not available for integration test")
-        schemas_result = connected_oracle_api.fetch_schemas()
-        tm.ok(schemas_result)
+    def test_schema_contract_preserves_table_metadata(self) -> None:
+        """Schema payloads preserve table metadata without a live database."""
         table = m.DbOracle.Table(name="dual", owner="SYS")
-        tm.that(table.name, eq="dual")
-        tm.that(table.owner, eq="SYS")
+        schema = m.DbOracle.Schema(name="SYS", tables=(table,))
+        tm.that(schema.name, eq="SYS")
+        tm.that(schema.tables[0].name, eq="dual")
+        tm.that(schema.tables[0].owner, eq="SYS")

@@ -12,13 +12,12 @@ implementation structures are exercised.
 
 from __future__ import annotations
 
-import contextlib
 from collections.abc import Mapping
 
 import pytest
 from flext_tests import tm
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleSettings
 from tests.constants import c
 from tests.models import m
 from tests.typings import t
@@ -309,34 +308,18 @@ class TestsFlextDbOracleUtilitiesUnit:
         tm.that(settings.username, eq="testuser")
 
     # ------------------------------------------------------------------ #
-    # Real-Oracle integration (skipped when unavailable)                 #
+    # Offline Oracle SQL utility contracts                               #
     # ------------------------------------------------------------------ #
 
-    def test_real_oracle_escape_identifier_integration(
-        self,
-        connected_oracle_api: FlextDbOracleApi | None,
-        oracle_available: bool,
-    ) -> None:
-        """Escaped identifier is usable in real DDL against a live Oracle."""
-        if not oracle_available or connected_oracle_api is None:
-            pytest.skip("Oracle not available for integration test")
+    def test_escape_identifier_builds_safe_ddl(self) -> None:
+        """Escaped identifier can be composed into Oracle DDL text."""
         escaped_name: str = tm.ok(u.DbOracle.escape_oracle_identifier("test_table"))
         ddl = f"CREATE TABLE {escaped_name} (id NUMBER PRIMARY KEY, name VARCHAR2(100))"
-        result = connected_oracle_api.execute_statement(ddl)
-        with contextlib.suppress(Exception):
-            connected_oracle_api.execute_statement(f"DROP TABLE {escaped_name}")
-        error_msg = str(result.error).lower() if result.failure else ""
-        table_exists = "already exists" in error_msg or "ora-00955" in error_msg
-        tm.that(result.success or table_exists, eq=True)
+        tm.that(ddl, has="CREATE TABLE test_table")
+        tm.that(ddl, has="id NUMBER PRIMARY KEY")
 
-    def test_real_oracle_query_hash_consistency(
-        self,
-        connected_oracle_api: FlextDbOracleApi | None,
-        oracle_available: bool,
-    ) -> None:
-        """Query hashing stays consistent and value-sensitive with live Oracle."""
-        if not oracle_available or connected_oracle_api is None:
-            pytest.skip("Oracle not available for integration test")
+    def test_query_hash_consistency_for_oracle_sql(self) -> None:
+        """Query hashing stays consistent and value-sensitive for Oracle SQL."""
         sql = "SELECT id, name FROM test_table WHERE active = :active"
         h1: str = tm.ok(u.DbOracle.generate_query_hash(sql, {"active": 1}))
         h2: str = tm.ok(u.DbOracle.generate_query_hash(sql, {"active": 1}))
@@ -344,14 +327,8 @@ class TestsFlextDbOracleUtilitiesUnit:
         tm.that(h1, eq=h2)
         tm.that(h1, ne=h3)
 
-    def test_real_oracle_format_sql_integration(
-        self,
-        connected_oracle_api: FlextDbOracleApi | None,
-        oracle_available: bool,
-    ) -> None:
+    def test_format_sql_preserves_oracle_clause_keywords(self) -> None:
         """SQL formatting preserves clause keywords for real Oracle queries."""
-        if not oracle_available or connected_oracle_api is None:
-            pytest.skip("Oracle not available for integration test")
         sql = (
             "select id, name, count(*) as cnt from test_table "
             "group by id, name order by cnt desc"

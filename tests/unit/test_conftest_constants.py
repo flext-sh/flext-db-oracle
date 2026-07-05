@@ -37,6 +37,7 @@ class TestsFlextDbOracleConftestConstants:
             ("service", "oracle-db"),
             ("port", 1521),
             ("host", "localhost"),
+            ("startup_timeout", 900),
             ("compose_file", "docker/docker-compose.oracle-db.yml"),
         ],
     )
@@ -52,7 +53,8 @@ class TestsFlextDbOracleConftestConstants:
     def test_oracle_container_config_declares_expected_fields(self) -> None:
         config = c.Tests.SHARED_CONTAINERS[self.ORACLE_CONTAINER]
         tm.that(
-            sorted(config) == ["compose_file", "host", "port", "service"],
+            sorted(config)
+            == ["compose_file", "host", "port", "service", "startup_timeout"],
             eq=True,
         )
 

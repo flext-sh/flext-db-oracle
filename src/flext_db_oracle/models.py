@@ -10,15 +10,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from datetime import datetime
 from types import MappingProxyType
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from flext_cli import m, u
 from flext_db_oracle import c, t
 from flext_db_oracle._models.password import FlextDbOraclePassword
-
-if TYPE_CHECKING:
-    from datetime import datetime
 
 
 class FlextDbOracleModels(m):
@@ -122,7 +120,11 @@ class FlextDbOracleModels(m):
             def connection_age_seconds(self) -> float:
                 """Connection age in seconds."""
                 if self.connected:
-                    return (u.now() - self.last_activity).total_seconds()
+                    current_time: datetime = u.now()
+                    age_seconds: float = (
+                        current_time - self.last_activity
+                    ).total_seconds()
+                    return age_seconds
                 return 0.0
 
             @u.computed_field(return_type=str)
@@ -152,7 +154,9 @@ class FlextDbOracleModels(m):
                 idle_timeout_seconds: float = float(
                     c.DbOracle.CONNECTION_IDLE_TIMEOUT_SECONDS,
                 )
-                return self.connection_age_seconds <= idle_timeout_seconds
+                age_seconds: float = self.connection_age_seconds
+                is_healthy: bool = age_seconds <= idle_timeout_seconds
+                return is_healthy
 
             @u.computed_field(return_type=str)
             @property
@@ -249,7 +253,7 @@ class FlextDbOracleModels(m):
                 description="Column names in result set",
             )
             rows: t.SequenceOf[FlextDbOracleModels.DbOracle.RowData] = u.Field(
-                default_factory=list,
+                default_factory=tuple,
                 description="Typed row data from query result",
             )
             query_hash: str = u.Field(
@@ -407,7 +411,7 @@ class FlextDbOracleModels(m):
             )
             columns: t.SequenceOf[FlextDbOracleModels.DbOracle.ColumnMetadata] = (
                 u.Field(
-                    default_factory=list,
+                    default_factory=tuple,
                     description="Column metadata for the table",
                 )
             )
@@ -476,7 +480,7 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
             columns: t.SequenceOf[FlextDbOracleModels.DbOracle.Column] = u.Field(
-                default_factory=list,
+                default_factory=tuple,
                 description="Column definitions for the table",
             )
 
@@ -531,7 +535,7 @@ class FlextDbOracleModels(m):
 
             name: str = u.Field(description="Schema name")
             tables: t.SequenceOf[FlextDbOracleModels.DbOracle.Table] = u.Field(
-                default_factory=list,
+                default_factory=tuple,
                 description="Tables within this schema",
             )
 
@@ -609,7 +613,7 @@ class FlextDbOracleModels(m):
 
             sql: str = u.Field(description="SQL statement for batch execution")
             parameters_list: t.SequenceOf[t.JsonMapping] = u.Field(
-                default_factory=list[t.JsonMapping],
+                default_factory=tuple,
                 description="List of parameter sets for batch execution",
             )
 

@@ -1,7 +1,7 @@
 """Behavioral tests for the flext-db-oracle public API contract.
 
-Container-gated tests exercise REAL Oracle connectivity and skip cleanly when
-no container is available. Container-free tests assert observable contract of
+Container-gated tests exercise REAL Oracle connectivity and fail loudly when
+the shared container is unavailable. Container-free tests assert observable contract of
 ``FlextDbOracleSettings`` and ``FlextDbOracleApi`` (validation, factories,
 representation, connection state) without any external dependency.
 
@@ -54,6 +54,15 @@ class TestsFlextDbOracleOracle:
                     return str(dumped[candidate])
         return ""
 
+    @staticmethod
+    def _connect(settings: FlextDbOracleSettings) -> FlextDbOracleApi:
+        """Connect a public API instance or fail the real-Oracle contract."""
+        api = FlextDbOracleApi(settings=settings)
+        connect_result = api.connect()
+        assert connect_result.success, connect_result.error
+        assert api.connected() is True
+        return api
+
     # -------------------------------------------- container-free: settings API
     def test_settings_expose_supplied_connection_values(
         self,
@@ -77,11 +86,11 @@ class TestsFlextDbOracleOracle:
     )
     def test_invalid_settings_raise_validation_error(
         self,
-        overrides: t.StrMapping,
+        overrides: t.JsonMapping,
         reason: str,
     ) -> None:
         """Business-rule violations fail construction (pydantic ValidationError)."""
-        base = {
+        base: dict[str, t.JsonValue] = {
             "host": "db-host",
             "port": 1521,
             "service_name": "svc",
@@ -90,7 +99,7 @@ class TestsFlextDbOracleOracle:
         }
         base.update(overrides)
         with pytest.raises(ValueError):
-            FlextDbOracleSettings(**base)
+            FlextDbOracleSettings.model_validate(base)
 
     def test_from_url_rejects_non_oracle_scheme(self) -> None:
         """``from_url`` returns a failure result for a non-Oracle scheme."""
@@ -153,17 +162,9 @@ class TestsFlextDbOracleOracle:
     def test_connect_then_query_dual_returns_single_row(
         self,
         oracle_config: FlextDbOracleSettings,
-        real_oracle_config: FlextDbOracleSettings | None,
     ) -> None:
         """Connecting and querying DUAL returns exactly one row on success."""
-        if real_oracle_config is None:
-            pytest.skip("Oracle container not available")
-        api = FlextDbOracleApi(settings=oracle_config)
-        connect_result = api.connect()
-        if connect_result.failure:
-            pytest.skip(f"Oracle container not available: {connect_result.error}")
-        connected_api = connect_result.unwrap()
-        assert connected_api.connected() is True
+        connected_api = self._connect(oracle_config)
         assert connected_api.test_connection().unwrap() is True
 
         query_result = connected_api.query("SELECT SYSDATE FROM DUAL")
@@ -177,16 +178,9 @@ class TestsFlextDbOracleOracle:
     def test_metadata_queries_return_string_sequences(
         self,
         oracle_config: FlextDbOracleSettings,
-        real_oracle_config: FlextDbOracleSettings | None,
     ) -> None:
         """Schema/table/column lookups return string sequences on success."""
-        if real_oracle_config is None:
-            pytest.skip("Oracle container not available")
-        api = FlextDbOracleApi(settings=oracle_config)
-        connect_result = api.connect()
-        if connect_result.failure:
-            pytest.skip(f"Oracle container not available: {connect_result.error}")
-        connected_api = connect_result.unwrap()
+        connected_api = self._connect(oracle_config)
 
         schemas_result = connected_api.fetch_schemas()
         assert schemas_result.success, schemas_result.error
@@ -217,17 +211,10 @@ class TestsFlextDbOracleOracle:
     def test_invalid_sql_yields_failure_result(
         self,
         oracle_config: FlextDbOracleSettings,
-        real_oracle_config: FlextDbOracleSettings | None,
         invalid_sql: str,
     ) -> None:
         """Malformed or unresolvable SQL surfaces as a failure result."""
-        if real_oracle_config is None:
-            pytest.skip("Oracle container not available")
-        api = FlextDbOracleApi(settings=oracle_config)
-        connect_result = api.connect()
-        if connect_result.failure:
-            pytest.skip(f"Oracle container not available: {connect_result.error}")
-        connected_api = connect_result.unwrap()
+        connected_api = self._connect(oracle_config)
 
         result = connected_api.query(invalid_sql)
         assert result.failure
@@ -239,29 +226,21 @@ class TestsFlextDbOracleOracle:
     def test_context_manager_connects_for_the_block_and_disconnects_after(
         self,
         oracle_config: FlextDbOracleSettings,
-        real_oracle_config: FlextDbOracleSettings | None,
     ) -> None:
         """``with api`` yields a connected session and disconnects on exit."""
-        if real_oracle_config is None:
-            pytest.skip("Oracle container not available")
         api = FlextDbOracleApi(settings=oracle_config)
-        try:
-            with api as session:
-                assert session.connected() is True
-                assert session.query("SELECT 1 FROM DUAL").success
-        except RuntimeError:
-            pytest.skip("Oracle container not available")
+        with api as session:
+            assert session.connected() is True
+            assert session.query("SELECT 1 FROM DUAL").success
         assert api.connected() is False
 
     @pytest.mark.oracle
     def test_insert_update_delete_roundtrip_is_observable_via_queries(
         self,
-        connected_oracle_api: FlextDbOracleApi | None,
-        test_database_setup: t.StrMapping | None,
+        connected_oracle_api: FlextDbOracleApi,
+        test_database_setup: t.StrMapping,
     ) -> None:
         """DML mutations are observable through subsequent SELECT results."""
-        if connected_oracle_api is None or test_database_setup is None:
-            pytest.skip("Oracle container not available")
         assert "test_table" in test_database_setup
 
         insert = connected_oracle_api.execute_statement(
@@ -299,12 +278,10 @@ class TestsFlextDbOracleOracle:
     @pytest.mark.oracle
     def test_committed_row_is_visible_after_commit(
         self,
-        connected_oracle_api: FlextDbOracleApi | None,
-        test_database_setup: t.StrMapping | None,
+        connected_oracle_api: FlextDbOracleApi,
+        test_database_setup: t.StrMapping,
     ) -> None:
         """A committed insert is readable and cleanup removes it again."""
-        if connected_oracle_api is None or test_database_setup is None:
-            pytest.skip("Oracle container not available")
         insert = connected_oracle_api.execute_statement(
             "INSERT INTO test_table (id, name) VALUES (100, 'Transaction Test')",
         )
@@ -324,11 +301,9 @@ class TestsFlextDbOracleOracle:
     @pytest.mark.oracle
     def test_fetch_schemas_returns_non_empty_string_sequence(
         self,
-        connected_oracle_api: FlextDbOracleApi | None,
+        connected_oracle_api: FlextDbOracleApi,
     ) -> None:
         """A connected instance always reports at least one named schema."""
-        if connected_oracle_api is None:
-            pytest.skip("Oracle container not available")
         result = connected_oracle_api.fetch_schemas()
         assert result.success, result.error
         schemas = result.unwrap()
@@ -336,29 +311,12 @@ class TestsFlextDbOracleOracle:
         assert all(isinstance(name, str) for name in schemas)
 
     @pytest.mark.oracle
-    @pytest.mark.xfail(
-        reason=(
-            "Pre-existing src defect: ConnectionStatus is not fully defined "
-            "(missing datetime forward-ref / model_rebuild) so fetch_health_status "
-            "raises PydanticUserError at services/connection.py:125. The behavioral "
-            "contract below (connected/healthy/status_description/age) is asserted and "
-            "will XPASS once the src model is fixed."
-        ),
-        strict=True,
-        raises=Exception,
-    )
     def test_health_status_reports_connected_and_healthy(
         self,
-        real_oracle_config: FlextDbOracleSettings | None,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Health status of a live connection is connected, healthy, aged >= 0."""
-        if real_oracle_config is None:
-            pytest.skip("Oracle container not available")
-        api = FlextDbOracleApi(settings=real_oracle_config)
-        connect_result = api.connect()
-        if connect_result.failure:
-            pytest.skip(f"Oracle container not available: {connect_result.error}")
-        connected_api = connect_result.unwrap()
+        connected_api = self._connect(real_oracle_config)
 
         health_result = connected_api.fetch_health_status()
         assert health_result.success, health_result.error

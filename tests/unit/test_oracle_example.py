@@ -5,8 +5,8 @@ SPDX-License-Identifier: MIT
 
 These tests exercise the public contract of :class:`FlextDbOracleApi` and
 :class:`FlextDbOracleServices`. Integration paths that require a live Oracle
-instance skip when the database is unreachable (a genuine external boundary);
-the connection-error and not-connected paths are exercised without a server.
+instance fail loudly when the shared test database is unreachable; the
+connection-error and not-connected paths are exercised without a server.
 
 """
 
@@ -46,6 +46,30 @@ class TestsFlextDbOracleOracleExample:
             return u.normalize_to_metadata(val)
         return None
 
+    @classmethod
+    def _api_context_first_cell(
+        cls,
+        real_oracle_config: FlextDbOracleSettings,
+    ) -> t.JsonValue:
+        """Query a scalar value through the public API context manager."""
+        with FlextDbOracleApi(real_oracle_config) as api:
+            connection_result = api.test_connection()
+            assert connection_result.success, connection_result.error
+            query_result = api.query("SELECT 'Hello Oracle' FROM DUAL")
+            assert query_result.success, query_result.error
+            return cls._first_cell(query_result.value[0])
+
+    @staticmethod
+    def _connect_services(
+        real_oracle_config: FlextDbOracleSettings,
+    ) -> FlextDbOracleServices:
+        """Connect the services facade or fail the real-Oracle contract."""
+        connection = FlextDbOracleServices(settings=real_oracle_config)
+        connect_result = connection.connect()
+        assert connect_result.success, connect_result.error
+        assert connection.connected() is True
+        return connection
+
     # ------------------------------------------------------------------
     # Services facade: connection lifecycle
     # ------------------------------------------------------------------
@@ -55,10 +79,7 @@ class TestsFlextDbOracleOracleExample:
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """After a successful connect ``connected()`` is True, False after disconnect."""
-        connection = FlextDbOracleServices(settings=real_oracle_config)
-        connect_result = connection.connect()
-        if connect_result.failure:
-            pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
+        connection = self._connect_services(real_oracle_config)
 
         tm.that(connection.connected(), eq=True)
 
@@ -71,10 +92,7 @@ class TestsFlextDbOracleOracleExample:
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """``execute_query`` succeeds and yields exactly one row for ``SELECT 1``."""
-        connection = FlextDbOracleServices(settings=real_oracle_config)
-        connect_result = connection.connect()
-        if connect_result.failure:
-            pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
+        connection = self._connect_services(real_oracle_config)
         try:
             result = connection.execute_query("SELECT 1 FROM DUAL")
             tm.ok(result)
@@ -89,10 +107,7 @@ class TestsFlextDbOracleOracleExample:
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """``fetch_one`` succeeds and the returned mapping carries the scalar value."""
-        connection = FlextDbOracleServices(settings=real_oracle_config)
-        connect_result = connection.connect()
-        if connect_result.failure:
-            pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
+        connection = self._connect_services(real_oracle_config)
         try:
             result = connection.fetch_one("SELECT 42 FROM DUAL")
             tm.ok(result)
@@ -110,10 +125,7 @@ class TestsFlextDbOracleOracleExample:
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """``execute_many`` reports the number of rows inserted."""
-        connection = FlextDbOracleServices(settings=real_oracle_config)
-        connect_result = connection.connect()
-        if connect_result.failure:
-            pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
+        connection = self._connect_services(real_oracle_config)
         try:
             with contextlib.suppress(Exception):
                 connection.execute_statement("DROP TABLE temp_test_table")
@@ -146,17 +158,8 @@ class TestsFlextDbOracleOracleExample:
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """The API context manager yields a usable, connected client."""
-        try:
-            with FlextDbOracleApi(real_oracle_config) as api:
-                if api.test_connection().failure:
-                    pytest.skip("Connection test failed inside context manager")
-                query_result = api.query("SELECT 'Hello Oracle' FROM DUAL")
-                if query_result.failure:
-                    pytest.skip(f"Query failed: {query_result.error}")
-                cell = self._first_cell(query_result.value[0])
-                tm.that(str(cell), has="Hello Oracle")
-        except RuntimeError:
-            pytest.skip("Oracle connection unavailable for context manager test")
+        cell = self._api_context_first_cell(real_oracle_config)
+        tm.that(str(cell), has="Hello Oracle")
 
     def test_fetch_schemas_includes_a_system_schema(
         self,
@@ -299,10 +302,7 @@ class TestsFlextDbOracleOracleExample:
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Executing malformed SQL against a real connection returns a failure."""
-        connection = FlextDbOracleServices(settings=real_oracle_config)
-        connect_result = connection.connect()
-        if connect_result.failure:
-            pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
+        connection = self._connect_services(real_oracle_config)
         try:
             result = connection.execute_query(
                 "SELECT FROM INVALID_TABLE_THAT_DOES_NOT_EXIST",

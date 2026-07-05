@@ -137,15 +137,15 @@ def shared_oracle_container(docker_control: tk) -> str:
     container_name = _ORACLE_CONTAINER_NAME
     ensure_result = docker_control.execute()
     if ensure_result.failure:
-        pytest.skip(
-            f"Failed to start container {container_name}: {ensure_result.error}",
-        )
+        msg = f"Failed to start container {container_name}: {ensure_result.error}"
+        raise AssertionError(msg)
     resolved_port = u.Tests.resolve_oracle_test_port(
         docker_control,
         container_name,
     )
     os.environ["TEST_ORACLE_PORT"] = str(resolved_port)
-    max_wait: int = 300
+    target = docker_control.target_config
+    max_wait: int = target.startup_timeout if target is not None else 900
     wait_interval: float = 5.0
     waited: float = 0.0
     logger.info("Waiting for container %s to be ready...", container_name)
@@ -168,9 +168,8 @@ def shared_oracle_container(docker_control: tk) -> str:
         time.sleep(wait_interval)
         waited += wait_interval
     if waited >= max_wait:
-        pytest.skip(
-            f"Container {container_name} did not become ready within {max_wait}s",
-        )
+        msg = f"Container {container_name} did not become ready within {max_wait}s"
+        raise AssertionError(msg)
     return container_name
 
 
@@ -181,10 +180,9 @@ def oracle_container(shared_oracle_container: str) -> str:
 
 
 @pytest.fixture
-def real_oracle_settings(oracle_container: str | None) -> FlextDbOracleSettings:
+def real_oracle_settings(oracle_container: str) -> FlextDbOracleSettings:
     """Return real Oracle configuration for tests that can use it."""
-    if oracle_container is None:
-        pytest.skip("Oracle container unavailable")
+    _ = oracle_container
     return FlextDbOracleSettings(
         host=os.getenv("TEST_ORACLE_HOST", "localhost"),
         port=int(os.getenv("TEST_ORACLE_PORT", "1522")),
@@ -340,23 +338,22 @@ def connected_oracle_api(
         with contextlib.suppress(Exception):
             connected_api.disconnect()
     else:
-        pytest.skip(f"Failed to connect Oracle API: {connect_result.error}")
+        msg = f"Failed to connect Oracle API: {connect_result.error}"
+        raise AssertionError(msg)
 
 
 @pytest.fixture
-def oracle_available(connected_oracle_api: FlextDbOracleApi | None) -> bool:
+def oracle_available(connected_oracle_api: FlextDbOracleApi) -> bool:
     """Check if Oracle is available for testing."""
-    return connected_oracle_api is not None
+    _ = connected_oracle_api
+    return True
 
 
 @pytest.fixture
 def test_database_setup(
-    connected_oracle_api: FlextDbOracleApi | None,
-) -> Generator[t.StrMapping | None]:
+    connected_oracle_api: FlextDbOracleApi,
+) -> t.StrMapping:
     """Set up test database schema and return test table info."""
-    if connected_oracle_api is None:
-        yield None
-        return
     test_schema = {
         "test_table": "CREATE TABLE test_table (id NUMBER PRIMARY KEY, name VARCHAR2(100))",
         "test_sequence": "CREATE SEQUENCE test_seq START WITH 1 INCREMENT BY 1",
@@ -371,7 +368,9 @@ def test_database_setup(
         try:
             result = connected_oracle_api.execute_statement(ddl)
             if result.failure:
-                pytest.skip(f"Could not create test schema: {result.error}")
+                msg = f"Could not create test schema: {result.error}"
+                raise AssertionError(msg)
         except (oracledb.Error, ConnectionError, OSError) as e:
-            pytest.skip(f"Test setup failed: {e}")
-    yield test_schema
+            msg = f"Test setup failed: {e}"
+            raise AssertionError(msg) from e
+    return test_schema

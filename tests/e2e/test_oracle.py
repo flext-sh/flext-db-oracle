@@ -168,6 +168,21 @@ class TestsFlextDbOracleOracle:
         """Expose a query row's public mapping regardless of case handling."""
         return {key.upper(): value for key, value in row.root.items()}
 
+    def _concurrent_source_rows(
+        self,
+        api1: FlextDbOracleApi,
+        api2: FlextDbOracleApi,
+    ) -> tuple[Mapping[str, object], Mapping[str, object]]:
+        """Return one query row from each concurrent API context."""
+        with api1, api2:
+            result1 = api1.query("SELECT 'API1' AS SOURCE FROM DUAL")
+            result2 = api2.query("SELECT 'API2' AS SOURCE FROM DUAL")
+            assert result1.success, result1.error
+            assert result2.success, result2.error
+            return self._row_mapping(result1.value[0]), self._row_mapping(
+                result2.value[0],
+            )
+
     @pytest.mark.e2e
     def test_complete_crud_workflow_returns_expected_results(
         self,
@@ -246,16 +261,9 @@ class TestsFlextDbOracleOracle:
         """Two concurrent API contexts each return their own query result."""
         api1 = FlextDbOracleApi(real_oracle_config, context_name="connection1")
         api2 = FlextDbOracleApi(real_oracle_config, context_name="connection2")
-        try:
-            with api1, api2:
-                result1 = api1.query("SELECT 'API1' AS SOURCE FROM DUAL")
-                result2 = api2.query("SELECT 'API2' AS SOURCE FROM DUAL")
-                assert result1.success, result1.error
-                assert result2.success, result2.error
-                assert self._row_mapping(result1.value[0])["SOURCE"] == "API1"
-                assert self._row_mapping(result2.value[0])["SOURCE"] == "API2"
-        except ConnectionError:
-            pytest.skip("Oracle database not available for concurrent testing")
+        row1, row2 = self._concurrent_source_rows(api1, api2)
+        assert row1["SOURCE"] == "API1"
+        assert row2["SOURCE"] == "API2"
 
     @pytest.mark.e2e
     @pytest.mark.benchmark
@@ -264,10 +272,7 @@ class TestsFlextDbOracleOracle:
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """A trivial benchmark query returns exactly one row from the database."""
-        try:
-            with FlextDbOracleApi(settings=real_oracle_config) as api:
-                result = api.query("SELECT 1 AS ONE FROM DUAL")
-                assert result.success, result.error
-                assert len(result.value) == 1
-        except ConnectionError:
-            pytest.skip("Oracle database not available for performance testing")
+        with FlextDbOracleApi(settings=real_oracle_config) as api:
+            result = api.query("SELECT 1 AS ONE FROM DUAL")
+            assert result.success, result.error
+            assert len(result.value) == 1
