@@ -15,7 +15,6 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 from flext_core import FlextSettingsBase
 from flext_db_oracle import c, m, p, r, t, u
-from flext_db_oracle._models.password import FlextDbOraclePassword
 
 
 class FlextDbOracleSettings(FlextSettingsBase):
@@ -58,8 +57,8 @@ class FlextDbOracleSettings(FlextSettingsBase):
         description="Oracle database username",
         validate_default=True,
     )
-    password: FlextDbOraclePassword | str | None = u.Field(
-        default_factory=lambda: FlextDbOraclePassword(""),
+    password: m.DbOracle.Password | str | None = u.Field(
+        default_factory=lambda: m.DbOracle.Password(""),
         description="Oracle database password",
     )
     timeout: t.PositiveInt = u.Field(
@@ -131,13 +130,13 @@ class FlextDbOracleSettings(FlextSettingsBase):
     @classmethod
     def _parse_password(
         cls,
-        value: FlextDbOraclePassword | str | t.JsonValue | None,
-    ) -> FlextDbOraclePassword | str | None:
+        value: m.DbOracle.Password | str | t.JsonValue | None,
+    ) -> m.DbOracle.Password | str | None:
         if value is None:
             return None
-        if isinstance(value, FlextDbOraclePassword):
+        if isinstance(value, m.DbOracle.Password):
             return value
-        return FlextDbOraclePassword(str(value))
+        return m.DbOracle.Password(str(value))
 
     @u.model_validator(mode="after")
     def validate_business_rules(self) -> Self:
