@@ -61,9 +61,7 @@ def _assert_context_manager_query(api: FlextDbOracleApi) -> None:
         row = query_data[0]
         cell = _dict_first_value(row)
         final_value = (
-            safe_get_first_value(cell)
-            if isinstance(cell, (list, dict))
-            else cell
+            safe_get_first_value(cell) if isinstance(cell, (list, dict)) else cell
         )
         tm.that(str(final_value), has="Hello Oracle")
 

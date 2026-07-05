@@ -72,10 +72,7 @@ def _assert_sql_build(
         tm.that(sql_text.upper(), has="UPDATE")
     elif method_name.startswith("build_delete"):
         tm.that(
-            (
-                getattr(c, "HTTP_METHOD_DELETE", "DELETE")
-                in sql_text.upper()
-            ),
+            (getattr(c, "HTTP_METHOD_DELETE", "DELETE") in sql_text.upper()),
             eq=True,
         )
 
