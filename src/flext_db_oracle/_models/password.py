@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_core import m, t, u
+from flext_core import m, u
 
 
 class FlextDbOraclePassword(m.RootModel[str]):
@@ -26,7 +26,7 @@ class FlextDbOraclePassword(m.RootModel[str]):
         return self.root
 
     @override
-    def __eq__(self, other: t.JsonPayload) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Compare wrapped password value with wrappers and raw strings."""
         if isinstance(other, FlextDbOraclePassword):
             return self.root == other.root
