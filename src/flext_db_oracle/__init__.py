@@ -19,13 +19,7 @@ from flext_db_oracle.__version__ import (
 from flext_db_oracle._exports import FLEXT_DB_ORACLE_LAZY_IMPORTS
 
 if TYPE_CHECKING:
-    from flext_core._root_typing_parts.facades import (
-        d as d,
-        e as e,
-        h as h,
-        r as r,
-        x as x,
-    )
+    from flext_core import d as d, e as e, h as h, r as r, x as x
     from flext_db_oracle.api import (
         FlextDbOracleApi as FlextDbOracleApi,
         db_oracle as db_oracle,
