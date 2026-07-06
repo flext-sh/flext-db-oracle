@@ -3,14 +3,61 @@
 
 from __future__ import annotations
 
-from flext_core.lazy import merge_lazy_imports
-from flext_db_oracle._exports_lazy_part_01 import FLEXT_DB_ORACLE_LAZY_IMPORTS_PART_01
-from flext_db_oracle._exports_lazy_part_02 import FLEXT_DB_ORACLE_LAZY_IMPORTS_PART_02
+from flext_core.lazy import build_lazy_import_map, merge_lazy_imports
 
-_LOCAL_LAZY_IMPORTS = {
-    **FLEXT_DB_ORACLE_LAZY_IMPORTS_PART_01,
-    **FLEXT_DB_ORACLE_LAZY_IMPORTS_PART_02,
-}
+_LOCAL_LAZY_IMPORTS = build_lazy_import_map(
+    {
+        "._models": ("_models",),
+        "._utilities": ("_utilities",),
+        ".api": (
+            "FlextDbOracleApi",
+            "db_oracle",
+        ),
+        ".base": (
+            "FlextDbOracleServiceBase",
+            "s",
+        ),
+        ".constants": (
+            "FlextDbOracleConstants",
+            "c",
+        ),
+        ".dispatcher": ("FlextDbOracleDispatcher",),
+        ".exceptions": ("FlextDbOracleExceptions",),
+        ".models": (
+            "FlextDbOracleModels",
+            "m",
+        ),
+        ".protocols": (
+            "FlextDbOracleProtocols",
+            "p",
+        ),
+        ".services": ("services",),
+        ".services.api_runtime": ("FlextDbOracleApiRuntime",),
+        ".services.connection": ("FlextDbOracleServiceConnection",),
+        ".services.facade": ("FlextDbOracleServices",),
+        ".services.plugin": ("FlextDbOracleServicePlugin",),
+        ".services.query": ("FlextDbOracleServiceQuery",),
+        ".services.schema": ("FlextDbOracleServiceSchema",),
+        ".services.singer": ("FlextDbOracleServiceSinger",),
+        ".services.sql_builder": ("FlextDbOracleServiceSqlBuilder",),
+        ".settings": ("FlextDbOracleSettings",),
+        ".typings": (
+            "FlextDbOracleTypes",
+            "t",
+        ),
+        ".utilities": (
+            "FlextDbOracleUtilities",
+            "u",
+        ),
+        "flext_core._root_typing_parts.facades": (
+            "d",
+            "e",
+            "h",
+            "r",
+            "x",
+        ),
+    },
+)
 
 FLEXT_DB_ORACLE_LAZY_IMPORTS = merge_lazy_imports(
     (".services",),
