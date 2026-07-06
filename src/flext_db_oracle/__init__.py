@@ -23,7 +23,7 @@ from flext_db_oracle.__version__ import (
 
 if TYPE_CHECKING:
     from flext_core._root_typing_parts.facades import d, e, h, r, x
-    from flext_db_oracle.api import FlextDbOracleApi
+    from flext_db_oracle.api import FlextDbOracleApi, db_oracle
     from flext_db_oracle.base import FlextDbOracleServiceBase, s
     from flext_db_oracle.constants import FlextDbOracleConstants, c
     from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
