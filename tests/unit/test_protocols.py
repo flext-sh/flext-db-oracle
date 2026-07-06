@@ -14,15 +14,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 import pytest
 
 from flext_db_oracle import p
-
-type ProtocolContract = tuple[str, type, tuple[str, ...]]
+from tests.typings import t
 
 # (public name, protocol class, promised method surface) — the contract each
 # Oracle domain protocol advertises to implementers.
-_DB_ORACLE_CONTRACTS: tuple[ProtocolContract, ...] = (
+_DB_ORACLE_CONTRACTS: tuple[t.Tests.ProtocolContract, ...] = (
     ("Connection", p.DbOracle.Connection, ("connect", "disconnect", "connected")),
     (
         "OraclePlugin",
@@ -84,8 +85,8 @@ def _stub(_self: object) -> None:
 
 def _implementer(methods: tuple[str, ...]) -> object:
     """Build an object exposing exactly ``methods`` as callables."""
-    namespace: dict[str, object] = dict.fromkeys(methods, _stub)
-    cls = type("SyntheticImplementer", (), namespace)
+    namespace: Mapping[str, object] = dict.fromkeys(methods, _stub)
+    cls = type("SyntheticImplementer", (), dict(namespace))
     return cls()
 
 

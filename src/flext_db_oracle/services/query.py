@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import (
+    Mapping,
     Sequence,
 )
 from typing import TYPE_CHECKING, override
@@ -133,7 +134,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
 
     def _normalize_row(self, row: t.JsonMapping) -> m.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
-        payload: dict[str, t.JsonPayload] = dict(row)
+        payload: Mapping[str, t.JsonPayload] = dict(row)
         return m.Dict(root=payload)
 
 

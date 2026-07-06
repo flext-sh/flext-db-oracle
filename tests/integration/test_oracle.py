@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import MutableMapping
 from typing import TYPE_CHECKING
 
 import pytest
@@ -90,7 +91,7 @@ class TestsFlextDbOracleOracle:
         reason: str,
     ) -> None:
         """Business-rule violations fail construction (pydantic ValidationError)."""
-        base: dict[str, t.JsonValue] = {
+        base: MutableMapping[str, t.JsonValue] = {
             "host": "db-host",
             "port": 1521,
             "service_name": "svc",

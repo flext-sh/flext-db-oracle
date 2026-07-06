@@ -11,8 +11,6 @@ from tests.constants import c
 class TestsFlextDbOracleConftestConstants:
     """Behavioral contract of the shared test-container registry constants."""
 
-    ORACLE_CONTAINER = "flext-oracle-db-test"
-
     def test_shared_containers_is_a_mapping(self) -> None:
         # Act / Assert: public contract exposes a read-mappable registry.
         tm.that(c.Tests.SHARED_CONTAINERS, is_=Mapping)
@@ -25,10 +23,10 @@ class TestsFlextDbOracleConftestConstants:
 
     def test_oracle_container_is_registered(self) -> None:
         # Act / Assert: the oracle DB test container is part of the contract.
-        tm.that(self.ORACLE_CONTAINER in c.Tests.SHARED_CONTAINERS, eq=True)
+        tm.that(c.Tests.ORACLE_CONTAINER in c.Tests.SHARED_CONTAINERS, eq=True)
 
     def test_oracle_container_config_is_a_mapping(self) -> None:
-        config = c.Tests.SHARED_CONTAINERS[self.ORACLE_CONTAINER]
+        config = c.Tests.SHARED_CONTAINERS[c.Tests.ORACLE_CONTAINER]
         tm.that(config, is_=Mapping)
 
     @pytest.mark.parametrize(
@@ -47,11 +45,11 @@ class TestsFlextDbOracleConftestConstants:
         expected: str | int,
     ) -> None:
         # Public contract: oracle container advertises its connection metadata.
-        config = c.Tests.SHARED_CONTAINERS[self.ORACLE_CONTAINER]
+        config = c.Tests.SHARED_CONTAINERS[c.Tests.ORACLE_CONTAINER]
         tm.that(config[key], eq=expected)
 
     def test_oracle_container_config_declares_expected_fields(self) -> None:
-        config = c.Tests.SHARED_CONTAINERS[self.ORACLE_CONTAINER]
+        config = c.Tests.SHARED_CONTAINERS[c.Tests.ORACLE_CONTAINER]
         tm.that(
             sorted(config)
             == ["compose_file", "host", "port", "service", "startup_timeout"],

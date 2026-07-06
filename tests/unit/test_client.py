@@ -11,6 +11,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 import pytest
 
 from flext_db_oracle import c, m
@@ -176,7 +178,7 @@ class TestsFlextDbOracleClient:
 
     def test_format_result_table_emits_string_repr(self) -> None:
         """Default (table) formatting yields the string form of the payload."""
-        payload: dict[str, int] = {"a": 1}
+        payload: Mapping[str, int] = {"a": 1}
         result = FlextDbOracleClient.format_query_result(payload)
         assert result.success is True
         assert result.unwrap() == str(payload)

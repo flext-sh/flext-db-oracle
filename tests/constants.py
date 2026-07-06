@@ -17,6 +17,8 @@ class TestsFlextDbOracleConstants(FlextTestsConstants, c):
     class Tests(FlextTestsConstants.Tests):
         """Test-specific constants."""
 
+        ORACLE_CONTAINER = "flext-oracle-db-test"
+
 
 c = TestsFlextDbOracleConstants
 

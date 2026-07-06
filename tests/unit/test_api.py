@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 
 import pytest
 from flext_tests import tm
@@ -173,7 +173,7 @@ class TestsFlextDbOracleApi:
         def discard(_value: object) -> None:
             return None
 
-        calls: dict[str, Callable[[], p.Result[None]]] = {
+        calls: Mapping[str, Callable[[], p.Result[None]]] = {
             "query": lambda: api.query("SELECT 1 FROM DUAL").map(discard),
             "query_one": lambda: api.query_one("SELECT 1 FROM DUAL").map(discard),
             "execute_sql": lambda: api.execute_sql(
