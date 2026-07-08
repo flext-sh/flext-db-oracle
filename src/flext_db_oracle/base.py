@@ -106,4 +106,5 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
 
 
 s = FlextDbOracleServiceBase
-__all__: list[str] = ["FlextDbOracleServiceBase"]
+
+__all__: list[str] = ["FlextDbOracleServiceBase", "s"]
