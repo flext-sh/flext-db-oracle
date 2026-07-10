@@ -29,6 +29,10 @@ if TYPE_CHECKING:
         r as r,
         x as x,
     )
+    from flext_db_oracle._settings import (
+        FlextDbOracleSettings as FlextDbOracleSettings,
+        settings as settings,
+    )
     from flext_db_oracle.api import (
         FlextDbOracleApi as FlextDbOracleApi,
         db_oracle as db_oracle,
