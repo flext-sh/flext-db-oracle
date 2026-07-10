@@ -54,7 +54,7 @@ class FlextDbOracleClient(s):
         debug: bool = False,
     ) -> None:
         """Initialize Oracle CLI client with proper composition."""
-        self._oracle_config = FlextDbOracleSettings()
+        self._oracle_config = FlextDbOracleSettings.fetch_global()
         super().__init__(self._oracle_config)
         self.debug = debug
 

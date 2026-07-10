@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, MutableSequence, Sequence
 from typing import TYPE_CHECKING, Self, override
+from urllib.parse import parse_qs, urlparse
 
 from flext_db_oracle import (
     FlextDbOracleDispatcher,
@@ -13,6 +14,7 @@ from flext_db_oracle import (
     m,
     p,
     r,
+    settings,
     t,
     u,
 )
@@ -111,12 +113,12 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         settings: FlextDbOracleSettings,
     ) -> p.Result[Self]:
         """Create API instance from validated settings."""
-        if not settings.username:
+        if not settings.DbOracle.username:
             username_fail: p.Result[Self] = r.fail(
                 "Oracle username is required but not configured",
             )
             return username_fail
-        password = settings.password
+        password = settings.DbOracle.password
         if password is None or not str(password):
             password_fail: p.Result[Self] = r.fail(
                 "Oracle password is required but not configured",
@@ -159,26 +161,38 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
 
     @classmethod
     def from_env(cls, prefix: str = "ORACLE_") -> p.Result[Self]:
-        """Create API instance from environment variables."""
-        values = FlextDbOracleSettings.resolve_environment_values(prefix)
-        username = values.get("username")
-        password = values.get("password")
-        if username is None or not str(username).strip():
-            username_fail: p.Result[Self] = r.fail(
-                "Oracle username is required but not configured",
-            )
-            return username_fail
-        if password is None or not str(password).strip():
-            password_fail: p.Result[Self] = r.fail(
-                "Oracle password is required but not configured",
-            )
-            return password_fail
-        return FlextDbOracleSettings.from_env(prefix).flat_map(cls._build_api_result)
+        """Create API instance from the resolved settings singleton.
+
+        The settings simple contract reads ``ORACLE_*`` env vars via
+        ``pydantic-settings`` at construction; the ``prefix`` argument is kept
+        for signature compatibility and is not applied (the singleton uses the
+        fixed ``ORACLE_`` prefix).
+        """
+        _ = prefix
+        return cls._build_api_result(settings)
 
     @classmethod
     def from_url(cls, url: str) -> p.Result[Self]:
-        """Create API instance from Oracle URL string."""
-        return FlextDbOracleSettings.from_url(url).flat_map(cls._build_api_result)
+        """Create API instance from an Oracle connection URL string."""
+        parsed = urlparse(url)
+        if parsed.scheme not in {"oracle", "oracle+oracledb"}:
+            return r[Self].fail(f"Unsupported Oracle URL scheme: {parsed.scheme}")
+        if not parsed.hostname:
+            return r[Self].fail("Oracle URL must include a host")
+        path_service = (parsed.path or "").lstrip("/")
+        query_service = parse_qs(parsed.query).get("service_name", [None])[0]
+        service_name = (query_service or path_service or "XEPDB1").upper()
+        fields: dict[str, object] = {
+            "host": parsed.hostname,
+            "port": parsed.port or 1521,
+            "username": parsed.username or "",
+            "password": parsed.password or "",
+            "service_name": service_name,
+        }
+        validated = u.try_(
+            lambda: FlextDbOracleSettings.model_validate({"DbOracle": fields}),
+        )
+        return validated.flat_map(cls._build_api_result)
 
     def connect(self) -> p.Result[Self]:
         """Connect to Oracle database."""

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import hashlib
-import os
 from collections.abc import Mapping
 from enum import StrEnum
 from typing import TYPE_CHECKING
@@ -15,7 +14,7 @@ from sqlalchemy import (
     create_engine,
 )
 
-from flext_db_oracle import c, m, p, r, t, u
+from flext_db_oracle import c, m, p, r, settings, t, u
 
 if TYPE_CHECKING:
     import contextlib
@@ -62,10 +61,7 @@ class FlextDbOracleUtilitiesDbOracle:
     @staticmethod
     def dispatcher_enabled() -> bool:
         """Return True when dispatcher integration should be used."""
-        value = os.getenv(c.DbOracle.ENV_ENABLE_DISPATCHER)
-        if value is None:
-            return False
-        return value.strip().lower() in {"1", "true", "yes", "on"}
+        return settings.DbOracle.enable_dispatcher
 
     @staticmethod
     def validate_identifier(identifier: str) -> p.Result[bool]:
