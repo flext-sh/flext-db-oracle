@@ -79,7 +79,6 @@ if TYPE_CHECKING:
     from flext_db_oracle.services.sql_builder import (
         FlextDbOracleServiceSqlBuilder as FlextDbOracleServiceSqlBuilder,
     )
-    from flext_db_oracle.settings import FlextDbOracleSettings as FlextDbOracleSettings
     from flext_db_oracle.typings import FlextDbOracleTypes as FlextDbOracleTypes, t as t
     from flext_db_oracle.utilities import (
         FlextDbOracleUtilities as FlextDbOracleUtilities,
@@ -89,6 +88,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
     (".services",),
     build_lazy_import_map(
         {
+            "._settings": ("FlextDbOracleSettings", "settings"),
             ".api": (
                 "FlextDbOracleApi",
                 "db_oracle",
@@ -119,7 +119,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".services.schema": ("FlextDbOracleServiceSchema",),
             ".services.singer": ("FlextDbOracleServiceSinger",),
             ".services.sql_builder": ("FlextDbOracleServiceSqlBuilder",),
-            ".settings": ("FlextDbOracleSettings",),
             ".typings": (
                 "FlextDbOracleTypes",
                 "t",
@@ -161,6 +160,8 @@ _LAZY_IMPORTS = merge_lazy_imports(
 
 
 __all__: tuple[str, ...] = (
+    "FlextDbOracleSettings",
+    "settings",
     "FlextDbOracleApi",
     "FlextDbOracleApiRuntime",
     "FlextDbOracleConstants",
@@ -176,7 +177,6 @@ __all__: tuple[str, ...] = (
     "FlextDbOracleServiceSinger",
     "FlextDbOracleServiceSqlBuilder",
     "FlextDbOracleServices",
-    "FlextDbOracleSettings",
     "FlextDbOracleTypes",
     "FlextDbOracleUtilities",
     "__author__",

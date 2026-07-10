@@ -160,11 +160,11 @@ class FlextDbOracleClient(s):
         password: str | None,
     ) -> p.Result[FlextDbOracleSettings]:
         """Resolve and validate Oracle connection settings."""
-        actual_host = host or self.oracle_config.host
-        actual_port = port or self.oracle_config.port
-        actual_service_name = service_name or self.oracle_config.service_name
-        actual_username = username or self.oracle_config.username
-        actual_password_raw = password or self.oracle_config.password
+        actual_host = host or self.oracle_config.DbOracle.host
+        actual_port = port or self.oracle_config.DbOracle.port
+        actual_service_name = service_name or self.oracle_config.DbOracle.service_name
+        actual_username = username or self.oracle_config.DbOracle.username
+        actual_password_raw = password or self.oracle_config.DbOracle.password
         validations: list[tuple[bool, str]] = [
             (not actual_host, "Oracle host is required"),
             (not actual_username, "Oracle username is required"),
@@ -179,14 +179,17 @@ class FlextDbOracleClient(s):
             actual_port,
             actual_service_name,
         )
-        payload: t.MutableMappingKV[str, t.JsonPayload] = {
+        db_oracle_payload: t.MutableMappingKV[str, t.JsonPayload] = {
             "host": actual_host,
             "port": actual_port,
             "service_name": actual_service_name,
             "username": actual_username,
         }
         if actual_password_raw:
-            payload["password"] = str(actual_password_raw)
+            db_oracle_payload["password"] = str(actual_password_raw)
+        payload: t.MutableMappingKV[str, t.JsonPayload] = {
+            "DbOracle": db_oracle_payload,
+        }
         settings = FlextDbOracleSettings.model_validate(payload)
         return r[FlextDbOracleSettings].ok(settings)
 
@@ -379,9 +382,9 @@ class FlextDbOracleClient(s):
                     "connection_status": "active"
                     if self.current_connection.connected()
                     else "inactive",
-                    "host": self.current_connection.oracle_config.host,
-                    "port": self.current_connection.oracle_config.port,
-                    "service_name": self.current_connection.oracle_config.service_name,
+                    "host": self.current_connection.oracle_config.DbOracle.host,
+                    "port": self.current_connection.oracle_config.DbOracle.port,
+                    "service_name": self.current_connection.oracle_config.DbOracle.service_name,
                     "timestamp": "now",
                 },
             )
