@@ -160,8 +160,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
 
 
 __all__: tuple[str, ...] = (
-    "FlextDbOracleSettings",
-    "settings",
     "FlextDbOracleApi",
     "FlextDbOracleApiRuntime",
     "FlextDbOracleConstants",
@@ -177,6 +175,7 @@ __all__: tuple[str, ...] = (
     "FlextDbOracleServiceSinger",
     "FlextDbOracleServiceSqlBuilder",
     "FlextDbOracleServices",
+    "FlextDbOracleSettings",
     "FlextDbOracleTypes",
     "FlextDbOracleUtilities",
     "__author__",
@@ -196,6 +195,7 @@ __all__: tuple[str, ...] = (
     "p",
     "r",
     "s",
+    "settings",
     "t",
     "u",
     "x",

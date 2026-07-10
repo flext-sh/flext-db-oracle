@@ -18,10 +18,10 @@ from typing import TYPE_CHECKING, Annotated
 from pydantic import BaseModel, Field
 from pydantic_settings import SettingsConfigDict
 
-from flext_core import FlextSettings
+from flext_cli import FlextCliSettings
 
 
-class FlextDbOracleSettings(FlextSettings):
+class FlextDbOracleSettings(FlextCliSettings):
     """Oracle settings; all project fields under ``settings.DbOracle.*``."""
 
     model_config = SettingsConfigDict(
