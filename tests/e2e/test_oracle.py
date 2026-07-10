@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleSettings
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

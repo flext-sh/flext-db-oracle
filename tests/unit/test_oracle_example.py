@@ -20,7 +20,7 @@ from flext_tests import tm
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.services.facade import FlextDbOracleServices
-from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleSettings
 from tests.utilities import u
 
 if TYPE_CHECKING:
