@@ -14,18 +14,20 @@ logger = u.fetch_logger(__name__)
 
 
 def _resolve_settings() -> FlextDbOracleSettings:
-    """Resolve settings from env result or fallback demo config."""
-    config_result = FlextDbOracleSettings.from_env()
-    settings: FlextDbOracleSettings
-    if config_result.success:
-        settings = config_result.value
-        logger.info(f"✅ Configuration created: {settings.host}:{settings.port}")
+    """Resolve settings from the env-backed singleton or fallback demo config."""
+    settings = FlextDbOracleSettings.fetch_global()
+    if settings.DbOracle.password:
+        logger.info(
+            f"✅ Configuration created: {settings.DbOracle.host}:{settings.DbOracle.port}",
+        )
     else:
         settings = FlextDbOracleSettings.model_validate(
             {
-                "host": "demo-host",
-                "username": "demo-user",
-                "password": "demo-password",
+                "DbOracle": {
+                    "host": "demo-host",
+                    "username": "demo-user",
+                    "password": "demo-password",
+                },
             },
         )
         logger.info("✅ Demo configuration created")
@@ -34,12 +36,12 @@ def _resolve_settings() -> FlextDbOracleSettings:
 
 def _display_configuration(settings: FlextDbOracleSettings) -> None:
     """Display configuration details and validity."""
-    logger.info(f"📋 Host: {settings.host}")
-    logger.info(f"📋 Port: {settings.port}")
-    logger.info(f"📋 Service: {settings.service_name}")
-    username_display = settings.username[:3]
+    logger.info(f"📋 Host: {settings.DbOracle.host}")
+    logger.info(f"📋 Port: {settings.DbOracle.port}")
+    logger.info(f"📋 Service: {settings.DbOracle.service_name}")
+    username_display = settings.DbOracle.username[:3]
     logger.info("📋 Username: %s***", username_display)
-    if settings.host and settings.port > 0:
+    if settings.DbOracle.host and settings.DbOracle.port > 0:
         logger.info("✅ Configuration is valid")
     else:
         logger.error("❌ Configuration is invalid")
