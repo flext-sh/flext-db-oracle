@@ -38,11 +38,13 @@ class TestsFlextDbOracleMetadata:
     def settings(self) -> FlextDbOracleSettings:
         """Return in-memory Oracle settings pointing at no reachable host."""
         return FlextDbOracleSettings(
-            host="test",
-            port=1521,
-            service_name="TEST",
-            username="test",
-            password="test",
+            DbOracle={
+                "host": "test",
+                "port": 1521,
+                "service_name": "TEST",
+                "username": "test",
+                "password": "test",
+            },
         )
 
     @pytest.fixture
@@ -64,10 +66,10 @@ class TestsFlextDbOracleMetadata:
         bound = services.settings
 
         tm.that(bound, eq=settings)
-        tm.that(bound.host, eq="test")
-        tm.that(bound.port, eq=1521)
-        tm.that(bound.service_name, eq="TEST")
-        tm.that(bound.username, eq="test")
+        tm.that(bound.DbOracle.host, eq="test")
+        tm.that(bound.DbOracle.port, eq=1521)
+        tm.that(bound.DbOracle.service_name, eq="TEST")
+        tm.that(bound.DbOracle.username, eq="test")
 
     def test_new_facade_reports_not_connected(
         self,

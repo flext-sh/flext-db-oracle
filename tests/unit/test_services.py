@@ -32,11 +32,13 @@ class TestsFlextDbOracleServices:
     def settings(self) -> FlextDbOracleSettings:
         """Return a typed, non-routable Oracle configuration."""
         return FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
+            DbOracle={
+                "host": "localhost",
+                "port": 1521,
+                "service_name": "TEST",
+                "username": "testuser",
+                "password": "testpass",
+            },
         )
 
     @pytest.fixture
@@ -89,12 +91,14 @@ class TestsFlextDbOracleServices:
         """Connecting to an unreachable endpoint returns a failure result."""
         service = FlextDbOracleServices(
             settings=FlextDbOracleSettings(
-                host="127.0.0.1",
-                port=19999,
-                service_name="INVALID",
-                username="invalid",
-                password="invalid",
-                timeout=1,
+                DbOracle={
+                    "host": "127.0.0.1",
+                    "port": 19999,
+                    "service_name": "INVALID",
+                    "username": "invalid",
+                    "password": "invalid",
+                    "timeout": 1,
+                },
             ),
         )
         result = service.connect()
@@ -560,15 +564,17 @@ class TestsFlextDbOracleServices:
     def test_settings_roundtrip_public_fields(self) -> None:
         """Settings expose the host and port they were constructed with."""
         settings = FlextDbOracleSettings(
-            host="dbhost",
-            port=1522,
-            service_name="XE",
-            username="app",
-            password="secret",
+            DbOracle={
+                "host": "dbhost",
+                "port": 1522,
+                "service_name": "XE",
+                "username": "app",
+                "password": "secret",
+            },
         )
-        tm.that(settings.host, eq="dbhost")
-        tm.that(settings.port, eq=1522)
-        tm.that(settings.service_name, eq="XE")
+        tm.that(settings.DbOracle.host, eq="dbhost")
+        tm.that(settings.DbOracle.port, eq=1522)
+        tm.that(settings.DbOracle.service_name, eq="XE")
 
     # ------------------------------------------------------------------
     # API error propagation (no live database)
@@ -578,12 +584,14 @@ class TestsFlextDbOracleServices:
         """Every API read operation fails deterministically when offline."""
         api = FlextDbOracleApi(
             FlextDbOracleSettings(
-                host="127.0.0.1",
-                port=19999,
-                service_name="INVALID",
-                username="invalid",
-                password="invalid",
-                timeout=1,
+                DbOracle={
+                    "host": "127.0.0.1",
+                    "port": 19999,
+                    "service_name": "INVALID",
+                    "username": "invalid",
+                    "password": "invalid",
+                    "timeout": 1,
+                },
             ),
         )
         tm.that(api.test_connection().failure, eq=True)

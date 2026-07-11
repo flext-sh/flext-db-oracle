@@ -12,7 +12,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import MutableMapping
 from typing import TYPE_CHECKING
 
 import pytest
@@ -28,11 +27,13 @@ if TYPE_CHECKING:
 def mock_oracle_config() -> FlextDbOracleSettings:
     """Return a well-formed offline Oracle settings value."""
     return FlextDbOracleSettings(
-        host="mock-host",
-        port=1521,
-        service_name="mock-service",
-        username="mock-user",
-        password="mock-pass",
+        DbOracle={
+            "host": "mock-host",
+            "port": 1521,
+            "service_name": "mock-service",
+            "username": "mock-user",
+            "password": "mock-pass",
+        },
     )
 
 
@@ -69,55 +70,36 @@ class TestsFlextDbOracleOracle:
         self,
         mock_oracle_config: FlextDbOracleSettings,
     ) -> None:
-        """Valid settings expose the supplied connection fields (service upper-cased)."""
-        assert mock_oracle_config.host == "mock-host"
-        assert mock_oracle_config.port == 1521
-        assert mock_oracle_config.service_name == "MOCK-SERVICE"
-        assert mock_oracle_config.username == "mock-user"
+        """Valid settings expose the supplied connection fields verbatim."""
+        assert mock_oracle_config.DbOracle.host == "mock-host"
+        assert mock_oracle_config.DbOracle.port == 1521
+        assert mock_oracle_config.DbOracle.service_name == "mock-service"
+        assert mock_oracle_config.DbOracle.username == "mock-user"
 
-    @pytest.mark.parametrize(
-        ("overrides", "reason"),
-        [
-            ({"host": "   "}, "blank host is rejected"),
-            ({"username": ""}, "empty username is rejected"),
-            ({"service_name": "", "sid": None}, "missing service and sid rejected"),
-            ({"port": 70000}, "port above the valid range is rejected"),
-            ({"port": 0}, "port below the valid range is rejected"),
-        ],
-    )
-    def test_invalid_settings_raise_validation_error(
-        self,
-        overrides: t.JsonMapping,
-        reason: str,
-    ) -> None:
-        """Business-rule violations fail construction (pydantic ValidationError)."""
-        base: MutableMapping[str, t.JsonValue] = {
-            "host": "db-host",
-            "port": 1521,
-            "service_name": "svc",
-            "username": "user",
-            "password": "pw",
-        }
-        base.update(overrides)
-        with pytest.raises(ValueError):
-            FlextDbOracleSettings.model_validate(base)
+    def test_namespace_overrides_are_stored_verbatim(self) -> None:
+        """Layer-0 namespace stores caller values without business-rule rewriting."""
+        settings = FlextDbOracleSettings.model_validate(
+            {"DbOracle": {"host": "db-host", "service_name": "svc"}},
+        )
+        assert settings.DbOracle.host == "db-host"
+        assert settings.DbOracle.service_name == "svc"
 
     def test_from_url_rejects_non_oracle_scheme(self) -> None:
         """``from_url`` returns a failure result for a non-Oracle scheme."""
-        result = FlextDbOracleSettings.from_url("postgres://u:p@host:5432/db")
+        result = FlextDbOracleApi.from_url("postgres://u:p@host:5432/db")
         assert result.failure
         assert result.error is not None
         assert "scheme" in result.error.lower()
 
     def test_from_url_parses_valid_oracle_url_into_settings(self) -> None:
         """``from_url`` maps a valid Oracle URL to the corresponding fields."""
-        result = FlextDbOracleSettings.from_url("oracle://scott:tiger@dbhost:1600/ORCL")
+        result = FlextDbOracleApi.from_url("oracle://scott:tiger@dbhost:1600/ORCL")
         assert result.success
-        settings = result.unwrap()
-        assert settings.host == "dbhost"
-        assert settings.port == 1600
-        assert settings.username == "scott"
-        assert settings.service_name == "ORCL"
+        api = result.unwrap()
+        assert api.settings.DbOracle.host == "dbhost"
+        assert api.settings.DbOracle.port == 1600
+        assert api.settings.DbOracle.username == "scott"
+        assert api.settings.DbOracle.service_name == "ORCL"
 
     # ------------------------------------------------- container-free: API API
     def test_api_starts_disconnected(

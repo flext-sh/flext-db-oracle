@@ -6,8 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import os
-
 import pytest
 from flext_tests import tm
 
@@ -16,6 +14,7 @@ from flext_db_oracle import (
 )
 from tests.constants import c
 from tests.models import m
+from tests.utilities import u
 
 
 @pytest.mark.unit
@@ -316,168 +315,91 @@ class TestsFlextDbOracleModels:
     # ------------------------------------------------------------------
 
     def test_settings_defaults(self) -> None:
-        """Settings expose documented Oracle defaults."""
+        """Settings expose documented Oracle defaults under the DbOracle namespace."""
         settings = FlextDbOracleSettings()
-        tm.that(settings.host, eq="localhost")
-        tm.that(settings.port, eq=1521)
-        tm.that(settings.name, eq="XE")
-        tm.that(settings.service_name, eq="XEPDB1")
-        tm.that(settings.username, eq="system")
-        tm.that(settings.password, eq="")
-        tm.that(settings.ssl_server_cert_dn, none=True)
+        tm.that(settings.DbOracle.host, eq="localhost")
+        tm.that(settings.DbOracle.port, eq=1521)
+        tm.that(settings.DbOracle.name, eq="XE")
+        tm.that(settings.DbOracle.service_name, eq="XEPDB1")
+        tm.that(settings.DbOracle.username, eq="system")
+        tm.that(settings.DbOracle.password, eq="")
+        tm.that(settings.DbOracle.ssl_server_cert_dn, none=True)
 
     def test_settings_accept_custom_values(self) -> None:
-        """Settings retain every explicitly supplied connection value."""
+        """Settings retain every explicitly supplied namespace value."""
         settings = FlextDbOracleSettings(
-            host="oracle.example.com",
-            port=1522,
-            name="ORCL",
-            service_name="ORCLPDB1",
-            username="app_user",
-            password="secret123",
-            ssl_server_cert_dn="CN=oracle.example.com",
+            DbOracle={
+                "host": "oracle.example.com",
+                "port": 1522,
+                "name": "ORCL",
+                "service_name": "ORCLPDB1",
+                "username": "app_user",
+                "password": "secret123",
+                "ssl_server_cert_dn": "CN=oracle.example.com",
+            },
         )
-        tm.that(settings.host, eq="oracle.example.com")
-        tm.that(settings.port, eq=1522)
-        tm.that(settings.name, eq="ORCL")
-        tm.that(settings.service_name, eq="ORCLPDB1")
-        tm.that(settings.username, eq="app_user")
-        tm.that(settings.password, eq="secret123")
-        tm.that(settings.ssl_server_cert_dn, eq="CN=oracle.example.com")
+        tm.that(settings.DbOracle.host, eq="oracle.example.com")
+        tm.that(settings.DbOracle.port, eq=1522)
+        tm.that(settings.DbOracle.name, eq="ORCL")
+        tm.that(settings.DbOracle.service_name, eq="ORCLPDB1")
+        tm.that(settings.DbOracle.username, eq="app_user")
+        tm.that(settings.DbOracle.password, eq="secret123")
+        tm.that(settings.DbOracle.ssl_server_cert_dn, eq="CN=oracle.example.com")
 
-    def test_from_env_without_variables_returns_defaults(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """from_env succeeds with defaults when no Oracle env vars are set."""
-        for var in (
-            "FLEXT_TARGET_ORACLE_HOST",
-            "ORACLE_HOST",
-            "FLEXT_TARGET_ORACLE_PORT",
-            "ORACLE_PORT",
-            "FLEXT_TARGET_ORACLE_SERVICE_NAME",
-            "ORACLE_SERVICE_NAME",
-            "FLEXT_TARGET_ORACLE_USERNAME",
-            "ORACLE_USERNAME",
-            "FLEXT_TARGET_ORACLE_PASSWORD",
-            "ORACLE_PASSWORD",
-            "ORACLE_DATABASE_NAME",
-            "ORACLE_SID",
-        ):
-            monkeypatch.delenv(var, raising=False)
-        result = FlextDbOracleSettings.from_env()
-        tm.ok(result)
-        settings = result.value
-        tm.that(settings.host, eq="localhost")
-        tm.that(settings.port, eq=1521)
-        tm.that(settings.service_name, eq="XEPDB1")
-
-    def test_from_env_reads_oracle_prefixed_variables(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """from_env maps ORACLE_* variables onto the settings fields."""
-        for key in list(os.environ.keys()):
-            if key.startswith("FLEXT_TARGET_ORACLE_"):
-                monkeypatch.delenv(key, raising=False)
-        monkeypatch.setenv("ORACLE_HOST", "db.example.com")
-        monkeypatch.setenv("ORACLE_PORT", "1522")
-        monkeypatch.setenv("ORACLE_SERVICE_NAME", "MYDB")
-        monkeypatch.setenv("ORACLE_USERNAME", "dbuser")
-        monkeypatch.setenv("ORACLE_PASSWORD", "dbpass")
-        monkeypatch.setenv("ORACLE_DATABASE_NAME", "ORCL")
-        monkeypatch.setenv("ORACLE_SID", "ORCL")
-        result = FlextDbOracleSettings.from_env()
-        tm.ok(result)
-        settings = result.value
-        tm.that(settings.host, eq="db.example.com")
-        tm.that(settings.port, eq=1522)
-        tm.that(settings.service_name, eq="MYDB")
-        tm.that(settings.username, eq="dbuser")
-        tm.that(settings.password, eq="dbpass")
-        tm.that(settings.name, eq="ORCL")
-
-    def test_from_env_flext_prefix_takes_precedence(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """FLEXT_TARGET_ORACLE_* overrides the plain ORACLE_* equivalents."""
-        for key in list(os.environ.keys()):
-            if key.startswith(("ORACLE_", "FLEXT_TARGET_ORACLE_")):
-                monkeypatch.delenv(key, raising=False)
-        monkeypatch.setenv("ORACLE_HOST", "oracle-host")
-        monkeypatch.setenv("FLEXT_TARGET_ORACLE_HOST", "flext-host")
-        monkeypatch.setenv("ORACLE_USERNAME", "oracle-user")
-        monkeypatch.setenv("FLEXT_TARGET_ORACLE_USERNAME", "flext-user")
-        result = FlextDbOracleSettings.from_env()
-        tm.ok(result)
-        settings = result.value
-        tm.that(settings.host, eq="flext-host")
-        tm.that(settings.username, eq="flext-user")
-
-    def test_from_env_coerces_port_to_int(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """from_env parses the port string into an int field."""
-        for key in list(os.environ.keys()):
-            if key.startswith("FLEXT_TARGET_ORACLE_"):
-                monkeypatch.delenv(key, raising=False)
-        monkeypatch.setenv("ORACLE_PORT", "1523")
-        result = FlextDbOracleSettings.from_env()
-        tm.ok(result)
-        settings = result.value
-        tm.that(settings.port, eq=1523)
-        tm.that(settings.port, is_=int)
-
-    def test_from_env_invalid_port_fails_with_error(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """from_env returns a failure result naming the offending port."""
-        for key in list(os.environ.keys()):
-            if key.startswith("FLEXT_TARGET_ORACLE_"):
-                monkeypatch.delenv(key, raising=False)
-        monkeypatch.setenv("ORACLE_PORT", "invalid")
-        result = FlextDbOracleSettings.from_env()
-        tm.fail(result)
-        tm.that(result.error or "", has="port")
+    def test_env_variables_populate_namespace(self) -> None:
+        """ORACLE_DBORACLE__* env vars populate the DbOracle namespace."""
+        FlextDbOracleSettings.reset_for_testing()
+        with u.Tests.env_vars_context({
+            "ORACLE_DBORACLE__HOST": "db.example.com",
+            "ORACLE_DBORACLE__PORT": "1522",
+            "ORACLE_DBORACLE__SERVICE_NAME": "MYDB",
+            "ORACLE_DBORACLE__USERNAME": "dbuser",
+        }):
+            settings = FlextDbOracleSettings()
+        tm.that(settings.DbOracle.host, eq="db.example.com")
+        tm.that(settings.DbOracle.port, eq=1522)
+        tm.that(settings.DbOracle.service_name, eq="MYDB")
+        tm.that(settings.DbOracle.username, eq="dbuser")
 
     def test_settings_serialization_exposes_fields(self) -> None:
-        """model_dump exposes the connection fields with their values."""
+        """model_dump exposes the connection fields inside the namespace."""
         settings = FlextDbOracleSettings(
-            host="test.com",
-            port=1522,
-            username="user",
-            password="pass",
+            DbOracle={
+                "host": "test.com",
+                "port": 1522,
+                "username": "user",
+                "password": "pass",
+            },
         )
         serialized = settings.model_dump()
-        tm.that(serialized["host"], eq="test.com")
-        tm.that(serialized["port"], eq=1522)
-        tm.that(serialized["username"], eq="user")
+        tm.that(serialized["DbOracle"]["host"], eq="test.com")
+        tm.that(serialized["DbOracle"]["port"], eq=1522)
+        tm.that(serialized["DbOracle"]["username"], eq="user")
 
     def test_settings_value_equality(self) -> None:
-        """Settings with equal field values compare equal, unequal ones differ."""
-        base = FlextDbOracleSettings(host="localhost", port=1521)
-        same = FlextDbOracleSettings(host="localhost", port=1521)
-        other = FlextDbOracleSettings(host="remotehost", port=1521)
+        """Clones with equal namespace values compare equal, unequal ones differ."""
+        base = FlextDbOracleSettings().clone(DbOracle={"host": "localhost"})
+        same = FlextDbOracleSettings().clone(DbOracle={"host": "localhost"})
+        other = FlextDbOracleSettings().clone(DbOracle={"host": "remotehost"})
         tm.that(base, eq=same)
         tm.that(base, ne=other)
 
     def test_settings_repr_includes_identifying_fields(self) -> None:
         """Representation identifies the settings type and connection values."""
-        settings = FlextDbOracleSettings(host="localhost", port=1521, username="system")
+        settings = FlextDbOracleSettings(
+            DbOracle={"host": "localhost", "port": 1521, "username": "system"},
+        )
         repr_str = repr(settings)
         tm.that(repr_str, has="FlextDbOracleSettings")
         tm.that(repr_str, has="localhost")
         tm.that(repr_str, has="1521")
 
     def test_independent_instances_do_not_share_mutation(self) -> None:
-        """Mutating one settings instance never affects another."""
-        first = FlextDbOracleSettings()
-        second = FlextDbOracleSettings()
-        first.host = "modified"
-        tm.that(second.host, eq="localhost")
+        """Mutating one settings clone never affects another."""
+        first = FlextDbOracleSettings().clone()
+        second = FlextDbOracleSettings().clone()
+        first.DbOracle.host = "modified"
+        tm.that(second.DbOracle.host, eq="localhost")
 
     # ------------------------------------------------------------------
     # Offline model contracts for database-shaped payloads

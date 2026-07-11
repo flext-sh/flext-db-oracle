@@ -21,9 +21,11 @@ class TestsFlextDbOracleDispatcher:
     def services(self) -> FlextDbOracleServices:
         """Oracle services wired to non-connecting placeholder settings."""
         settings = FlextDbOracleSettings(
-            host="test-host",
-            username="test-user",
-            password="test-password",
+            DbOracle={
+                "host": "test-host",
+                "username": "test-user",
+                "password": "test-password",
+            },
         )
         return FlextDbOracleServices(settings=settings)
 

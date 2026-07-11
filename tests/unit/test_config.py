@@ -7,31 +7,33 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
+from flext_db_oracle import FlextDbOracleSettings, c
 
-from flext_db_oracle import FlextDbOracleSettings, c, m
+# NOTE (multi-agent): ADR-005 — settings is a layer-0 scalar namespace under
+# settings.DbOracle.*. The flat fields, from_url/from_env factories and custom
+# validators were removed by design; tests cover the namespaced contract only.
 
 
 class TestsFlextDbOracleSettings:
-    """Public contract of FlextDbOracleSettings (fields, validation, factories)."""
+    """Public contract of FlextDbOracleSettings (namespace, defaults, singleton)."""
 
     def test_defaults_match_published_oracle_constants(self) -> None:
         """A settings object with no overrides exposes the documented defaults."""
         settings = FlextDbOracleSettings()
 
-        assert settings.host == c.DbOracle.DEFAULT_HOST
-        assert settings.port == c.DbOracle.DEFAULT_PORT
-        assert settings.service_name == c.DbOracle.DEFAULT_SERVICE_NAME
-        assert settings.username == c.DbOracle.DEFAULT_USERNAME
-        assert settings.timeout == c.DbOracle.DEFAULT_TIMEOUT
-        assert settings.pool_min == c.DbOracle.DEFAULT_POOL_MIN
-        assert settings.pool_max == c.DbOracle.DEFAULT_POOL_MAX
-        assert settings.name == c.DbOracle.DEFAULT_DATABASE_NAME
-        assert settings.sid is None
-        assert settings.enable_dispatcher is False
+        assert settings.DbOracle.host == c.DbOracle.DEFAULT_HOST
+        assert settings.DbOracle.port == c.DbOracle.DEFAULT_PORT
+        assert settings.DbOracle.service_name == c.DbOracle.DEFAULT_SERVICE_NAME
+        assert settings.DbOracle.username == c.DbOracle.DEFAULT_USERNAME
+        assert settings.DbOracle.timeout == c.DbOracle.DEFAULT_TIMEOUT
+        assert settings.DbOracle.pool_min == c.DbOracle.DEFAULT_POOL_MIN
+        assert settings.DbOracle.pool_max == c.DbOracle.DEFAULT_POOL_MAX
+        assert settings.DbOracle.name == c.DbOracle.DEFAULT_DATABASE_NAME
+        assert settings.DbOracle.sid is None
+        assert settings.DbOracle.enable_dispatcher is False
 
     def test_model_dump_exposes_every_public_field(self) -> None:
-        """model_dump surfaces the full public field set for serialization."""
+        """model_dump surfaces the full public field set inside the namespace."""
         dumped = FlextDbOracleSettings().model_dump()
 
         expected_fields = {
@@ -49,133 +51,80 @@ class TestsFlextDbOracleSettings:
             "ssl_server_cert_dn",
             "enable_dispatcher",
         }
-        assert expected_fields <= set(dumped)
+        assert expected_fields <= set(dumped["DbOracle"])
 
-    @pytest.mark.parametrize(
-        ("raw", "expected"),
-        [
-            ("prodsvc", "PRODSVC"),
-            ("  mixedCase  ", "MIXEDCASE"),
-            ("ALREADY", "ALREADY"),
-        ],
-    )
-    def test_service_name_is_stripped_and_uppercased(
-        self, raw: str, expected: str
-    ) -> None:
-        """service_name normalizes whitespace and casing per its constraints."""
-        assert FlextDbOracleSettings(service_name=raw).service_name == expected
-
-    def test_sid_is_stripped_and_uppercased_when_provided(self) -> None:
-        """SID honors the same normalization contract as service_name."""
-        settings = FlextDbOracleSettings(service_name="", sid="  orcl  ")
-
-        assert settings.sid == "ORCL"
-
-    def test_password_string_input_is_wrapped_and_renders_its_secret(self) -> None:
-        """A plain string password is coerced into the password value object."""
-        settings = FlextDbOracleSettings(password="s3cr3t")
-
-        assert str(settings.password) == "s3cr3t"
-
-    def test_password_defaults_to_empty_secret(self) -> None:
-        """Omitting the password yields an empty rendered secret, not None-crash."""
-        assert str(FlextDbOracleSettings().password) == ""
-
-    def test_ssl_server_cert_dn_falls_back_to_cert_file(self) -> None:
-        """When only the cert file is supplied, the server DN mirrors it."""
-        settings = FlextDbOracleSettings(ssl_cert_file="/etc/oracle/cert.pem")
-
-        assert settings.ssl_server_cert_dn == "/etc/oracle/cert.pem"
-
-    def test_explicit_ssl_server_cert_dn_is_preserved(self) -> None:
-        """An explicit server DN is not overwritten by the cert-file fallback."""
+    def test_namespace_overrides_round_trip(self) -> None:
+        """Caller-provided DbOracle values are stored and readable."""
         settings = FlextDbOracleSettings(
-            ssl_cert_file="/etc/oracle/cert.pem",
-            ssl_server_cert_dn="CN=oracle,O=flext",
+            DbOracle={
+                "host": "db.internal",
+                "port": 1522,
+                "username": "appuser",
+                "service_name": "PRODSVC",
+                "password": "apppass",
+            },
         )
 
-        assert settings.ssl_server_cert_dn == "CN=oracle,O=flext"
-
-    @pytest.mark.parametrize(
-        "overrides",
-        [
-            {"host": ""},
-            {"host": "   "},
-            {"username": ""},
-            {"port": 0},
-            {"port": c.DbOracle.MAX_PORT + 1},
-            {"service_name": "", "sid": None},
-        ],
-    )
-    def test_business_rule_violations_reject_construction(
-        self, overrides: dict[str, str | int | None]
-    ) -> None:
-        """Invariant breaches (empty host/user, bad port, no service) are rejected."""
-        with pytest.raises(m.ValidationError):
-            FlextDbOracleSettings.model_validate(overrides)
+        assert settings.DbOracle.host == "db.internal"
+        assert settings.DbOracle.port == 1522
+        assert settings.DbOracle.username == "appuser"
+        assert settings.DbOracle.service_name == "PRODSVC"
+        assert settings.DbOracle.password == "apppass"
 
     def test_sid_only_configuration_is_accepted_without_service_name(self) -> None:
         """A legacy SID connection is valid even with a blank service_name."""
-        settings = FlextDbOracleSettings(service_name="", sid="legacy")
+        settings = FlextDbOracleSettings(DbOracle={"service_name": "", "sid": "legacy"})
 
-        assert settings.sid == "LEGACY"
-        assert settings.service_name == ""
+        assert settings.DbOracle.sid == "legacy"
+        assert settings.DbOracle.service_name == ""
 
-    def test_from_url_parses_host_port_credentials_and_service(self) -> None:
-        """from_url yields a success result populated from the connection URL."""
-        result = FlextDbOracleSettings.from_url(
-            "oracle://appuser:apppass@db.internal:1522/PRODSVC"
+    def test_password_defaults_to_empty_string(self) -> None:
+        """Omitting the password yields an empty string, not a None-crash."""
+        assert FlextDbOracleSettings().DbOracle.password == ""
+
+    def test_ssl_fields_default_to_none(self) -> None:
+        """SSL certificate fields are unset by default."""
+        settings = FlextDbOracleSettings()
+
+        assert settings.DbOracle.ssl_cert_file is None
+        assert settings.DbOracle.ssl_server_cert_dn is None
+
+    def test_explicit_ssl_fields_are_preserved(self) -> None:
+        """Explicit SSL certificate values round-trip through the namespace."""
+        settings = FlextDbOracleSettings(
+            DbOracle={
+                "ssl_cert_file": "/etc/oracle/cert.pem",
+                "ssl_server_cert_dn": "CN=oracle,O=flext",
+            },
         )
 
-        assert result.success is True
-        settings = result.unwrap()
-        assert settings.host == "db.internal"
-        assert settings.port == 1522
-        assert settings.username == "appuser"
-        assert settings.service_name == "PRODSVC"
-        assert str(settings.password) == "apppass"
+        assert settings.DbOracle.ssl_cert_file == "/etc/oracle/cert.pem"
+        assert settings.DbOracle.ssl_server_cert_dn == "CN=oracle,O=flext"
 
-    def test_from_url_accepts_oracledb_driver_scheme(self) -> None:
-        """The oracle+oracledb driver scheme is a valid connection URL."""
-        result = FlextDbOracleSettings.from_url("oracle+oracledb://u:p@host:1600/SVC")
+    def test_fetch_global_returns_shared_singleton(self) -> None:
+        """fetch_global without overrides yields the shared singleton instance."""
+        first = FlextDbOracleSettings.fetch_global()
+        second = FlextDbOracleSettings.fetch_global()
 
-        assert result.success is True
-        assert result.unwrap().port == 1600
+        assert first is second
 
-    def test_from_url_reads_service_name_from_query_string(self) -> None:
-        """service_name provided via query parameters is honored."""
-        result = FlextDbOracleSettings.from_url(
-            "oracle://u:p@host:1521?service_name=QSVC"
+    def test_fetch_global_overrides_return_isolated_clone(self) -> None:
+        """fetch_global with overrides returns a clone; the singleton is untouched."""
+        singleton = FlextDbOracleSettings.fetch_global()
+        clone = FlextDbOracleSettings.fetch_global(
+            overrides={"DbOracle": {"host": "clone-host"}},
         )
 
-        assert result.unwrap().service_name == "QSVC"
+        assert clone is not singleton
+        assert clone.DbOracle.host == "clone-host"
+        assert singleton.DbOracle.host == c.DbOracle.DEFAULT_HOST
 
-    def test_from_url_defaults_service_name_when_absent(self) -> None:
-        """A URL with no path or query service falls back to the default service."""
-        result = FlextDbOracleSettings.from_url("oracle://u:p@host:1521")
+    def test_clone_preserves_canonical_type(self) -> None:
+        """The namespaced clone returns the canonical settings type."""
+        clone = FlextDbOracleSettings.fetch_global().clone(
+            DbOracle={"host": "test", "port": 9000},
+        )
 
-        assert result.unwrap().service_name == c.DbOracle.DEFAULT_SERVICE_NAME
-
-    @pytest.mark.parametrize(
-        "url",
-        [
-            "mysql://u:p@host/db",
-            "postgresql://u:p@host/db",
-            "http://host/db",
-        ],
-    )
-    def test_from_url_rejects_non_oracle_schemes(self, url: str) -> None:
-        """Non-Oracle schemes produce a failure result with a descriptive error."""
-        result = FlextDbOracleSettings.from_url(url)
-
-        assert result.success is False
-        assert "scheme" in (result.error or "").lower()
-
-    def test_from_env_with_unmatched_prefix_yields_default_settings(self) -> None:
-        """from_env with a prefix that matches no vars succeeds with defaults."""
-        result = FlextDbOracleSettings.from_env(prefix="ZZ_NO_SUCH_ORACLE_PREFIX_")
-
-        assert result.success is True
-        settings = result.unwrap()
-        assert isinstance(settings, FlextDbOracleSettings)
-        assert settings.host == c.DbOracle.DEFAULT_HOST
+        assert isinstance(clone, FlextDbOracleSettings)
+        assert clone.DbOracle.host == "test"
+        assert clone.DbOracle.port == 9000

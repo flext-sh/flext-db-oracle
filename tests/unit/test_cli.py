@@ -12,9 +12,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import os
-from typing import TYPE_CHECKING
-
 import pytest
 from flext_tests import r, tm
 
@@ -24,9 +21,6 @@ from flext_db_oracle import (
 )
 from flext_db_oracle.client import FlextDbOracleClient
 from tests.utilities import u
-
-if TYPE_CHECKING:
-    from tests.typings import t
 
 _NO_CONNECTION_ERROR = "No active Oracle connection"
 _CONNECTION_FAILURE_SNIPPETS = (
@@ -169,22 +163,22 @@ class TestsFlextDbOracleCli:
     def test_connect_to_oracle_from_settings_returns_string_error(self) -> None:
         """A failed connection built from settings exposes a string error."""
         settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            name="XE",
-            service_name="XE",
-            username="test",
-            password="test",
-            ssl_server_cert_dn=None,
+            DbOracle={
+                "host": "localhost",
+                "port": 1521,
+                "name": "XE",
+                "service_name": "XE",
+                "username": "test",
+                "password": "test",
+            },
         )
         client = FlextDbOracleClient()
-        password = str(settings.password) if settings.password is not None else None
         result = client.connect_to_oracle(
-            settings.host,
-            settings.port,
-            settings.service_name or "default_service",
-            settings.username,
-            password,
+            settings.DbOracle.host,
+            settings.DbOracle.port,
+            settings.DbOracle.service_name or "default_service",
+            settings.DbOracle.username,
+            settings.DbOracle.password,
         )
         tm.that(result.failure, eq=True)
         tm.that(result.error, is_=str)
@@ -202,65 +196,52 @@ class TestsFlextDbOracleCli:
 
     # ---- API-facing behavior ---------------------------------------------
 
-    @pytest.fixture
-    def oracle_env_vars(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> t.MutableOptionalStrMapping:
-        """Set ORACLE_* env vars while purging FLEXT_TARGET_ORACLE_* leakage."""
-        for key in [k for k in os.environ if k.startswith("FLEXT_TARGET_ORACLE_")]:
-            monkeypatch.delenv(key, raising=False)
-        env_vars: t.MutableOptionalStrMapping = {
-            "ORACLE_HOST": "localhost",
-            "ORACLE_PORT": "1521",
-            "ORACLE_USERNAME": "testuser",
-            "ORACLE_PASSWORD": "testpass",
-            "ORACLE_SERVICE_NAME": "TESTDB",
-        }
-        for key, value in env_vars.items():
-            if value is not None:
-                monkeypatch.setenv(key, value)
-        return env_vars
-
-    def test_api_from_env_builds_configured_api(
-        self,
-        oracle_env_vars: t.MutableOptionalStrMapping,
-    ) -> None:
+    def test_api_from_env_builds_configured_api(self) -> None:
         """``from_env`` succeeds and produces settings with a host."""
-        _ = oracle_env_vars
-        api_result = FlextDbOracleApi.from_env()
+        FlextDbOracleSettings.reset_for_testing()
+        with u.Tests.env_vars_context({
+            "ORACLE_DBORACLE__HOST": "localhost",
+            "ORACLE_DBORACLE__PORT": "1521",
+            "ORACLE_DBORACLE__USERNAME": "testuser",
+            "ORACLE_DBORACLE__PASSWORD": "testpass",
+            "ORACLE_DBORACLE__SERVICE_NAME": "TESTDB",
+        }):
+            api_result = FlextDbOracleApi.from_env()
         tm.ok(api_result)
-        tm.that(api_result.unwrap().settings.host, none=False)
+        tm.that(api_result.unwrap().settings.DbOracle.host, eq="localhost")
 
-    def test_api_from_env_honours_service_name_override(
-        self,
-        oracle_env_vars: t.MutableOptionalStrMapping,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_api_from_env_honours_service_name_override(self) -> None:
         """``from_env`` reflects env-provided settings with an int port."""
-        del oracle_env_vars
-        monkeypatch.setenv("ORACLE_SERVICE_NAME", "XEPDB1")
-        api_result = FlextDbOracleApi.from_env()
+        FlextDbOracleSettings.reset_for_testing()
+        with u.Tests.env_vars_context({
+            "ORACLE_DBORACLE__HOST": "localhost",
+            "ORACLE_DBORACLE__USERNAME": "testuser",
+            "ORACLE_DBORACLE__PASSWORD": "testpass",
+            "ORACLE_DBORACLE__SERVICE_NAME": "XEPDB1",
+        }):
+            api_result = FlextDbOracleApi.from_env()
         tm.ok(api_result)
         api = api_result.unwrap()
-        tm.that(api.settings.host, none=False)
-        tm.that(api.settings.port, is_=int)
+        tm.that(api.settings.DbOracle.host, none=False)
+        tm.that(api.settings.DbOracle.port, is_=int)
 
     def test_api_settings_round_trip_constructor_values(self) -> None:
         """API settings expose exactly the values used to construct them."""
         api = FlextDbOracleApi(
             settings=FlextDbOracleSettings(
-                host="param_test_host",
-                port=1521,
-                service_name="PARAM_TEST",
-                username="param_user",
-                password="param_pass",
+                DbOracle={
+                    "host": "param_test_host",
+                    "port": 1521,
+                    "service_name": "PARAM_TEST",
+                    "username": "param_user",
+                    "password": "param_pass",
+                },
             ),
         )
-        tm.that(api.settings.host, eq="param_test_host")
-        tm.that(api.settings.port, eq=1521)
-        tm.that(api.settings.service_name, eq="PARAM_TEST")
-        tm.that(api.settings.username, eq="param_user")
+        tm.that(api.settings.DbOracle.host, eq="param_test_host")
+        tm.that(api.settings.DbOracle.port, eq=1521)
+        tm.that(api.settings.DbOracle.service_name, eq="PARAM_TEST")
+        tm.that(api.settings.DbOracle.username, eq="param_user")
 
     def test_api_observability_metrics_are_available(self) -> None:
         """Observability metrics succeed and return a mapping."""
@@ -284,11 +265,13 @@ class TestsFlextDbOracleCli:
         """Querying an unconnected API fails with a connection-related error."""
         api = FlextDbOracleApi(
             FlextDbOracleSettings(
-                host="invalid.host",
-                port=9999,
-                service_name="INVALID_SERVICE",
-                username="invalid_user",
-                password="invalid_password",
+                DbOracle={
+                    "host": "invalid.host",
+                    "port": 9999,
+                    "service_name": "INVALID_SERVICE",
+                    "username": "invalid_user",
+                    "password": "invalid_password",
+                },
             ),
         )
         query_result = api.query("SELECT 1 FROM DUAL")
@@ -349,10 +332,12 @@ class TestsFlextDbOracleCli:
         """Build a fully-specified API instance for connection-free assertions."""
         return FlextDbOracleApi(
             FlextDbOracleSettings(
-                host="localhost",
-                port=1521,
-                service_name="TESTDB",
-                username="test",
-                password="test",
+                DbOracle={
+                    "host": "localhost",
+                    "port": 1521,
+                    "service_name": "TESTDB",
+                    "username": "test",
+                    "password": "test",
+                },
             ),
         )

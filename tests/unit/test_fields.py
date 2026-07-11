@@ -12,6 +12,10 @@ import pytest
 from flext_db_oracle import FlextDbOracleSettings
 from tests.models import m
 
+# NOTE (multi-agent): ADR-005 — settings fields live under settings.DbOracle.*;
+# the flat from_url/from_env factories and uppercase/business-rule validators
+# were removed by design (layer-0 scalar namespace), so those tests are gone.
+
 
 class TestsFlextDbOracleFields:
     """Observable behavior of settings and DbOracle domain models."""
@@ -22,80 +26,39 @@ class TestsFlextDbOracleFields:
         """Defaults construct a valid, fully-populated Oracle settings object."""
         settings = FlextDbOracleSettings()
 
-        assert settings.host == "localhost"
-        assert settings.port == 1521
-        assert settings.service_name == "XEPDB1"
-        assert settings.username == "system"
+        assert settings.DbOracle.host == "localhost"
+        assert settings.DbOracle.port == 1521
+        assert settings.DbOracle.service_name == "XEPDB1"
+        assert settings.DbOracle.username == "system"
 
     def test_settings_model_dump_round_trips_overrides(self) -> None:
-        """Public model_dump reflects caller-provided field values."""
+        """Public model_dump reflects caller-provided namespace values."""
         settings = FlextDbOracleSettings(
-            host="db.example.com",
-            port=1600,
-            username="app_user",
+            DbOracle={
+                "host": "db.example.com",
+                "port": 1600,
+                "username": "app_user",
+            },
         )
 
         dumped = settings.model_dump()
 
-        assert dumped["host"] == "db.example.com"
-        assert dumped["port"] == 1600
-        assert dumped["username"] == "app_user"
+        assert dumped["DbOracle"]["host"] == "db.example.com"
+        assert dumped["DbOracle"]["port"] == 1600
+        assert dumped["DbOracle"]["username"] == "app_user"
 
-    def test_service_name_is_upper_cased_by_constraint(self) -> None:
-        """service_name string constraint normalizes to upper case."""
-        settings = FlextDbOracleSettings(service_name="mypdb")
+    def test_service_name_round_trips_through_namespace(self) -> None:
+        """service_name is stored verbatim inside the DbOracle namespace."""
+        settings = FlextDbOracleSettings(DbOracle={"service_name": "MYPDB"})
 
-        assert settings.service_name == "MYPDB"
+        assert settings.DbOracle.service_name == "MYPDB"
 
-    @pytest.mark.parametrize(
-        ("overrides", "fragment"),
-        [
-            ({"host": "   "}, "host"),
-            ({"username": ""}, "username"),
-            ({"service_name": "", "sid": None}, "service_name"),
-            ({"port": 70000}, "port"),
-        ],
-    )
-    def test_business_rules_reject_invalid_settings(
-        self,
-        overrides: dict[str, object],
-        fragment: str,
-    ) -> None:
-        """Invalid connection settings raise a validation error mentioning the field."""
-        with pytest.raises(ValueError, match=fragment):
-            FlextDbOracleSettings.model_validate(overrides)
+    def test_sid_only_configuration_is_accepted(self) -> None:
+        """A legacy SID connection is valid inside the DbOracle namespace."""
+        settings = FlextDbOracleSettings(DbOracle={"service_name": "", "sid": "legacy"})
 
-    def test_sid_satisfies_service_name_requirement(self) -> None:
-        """A SID may substitute for service_name to satisfy business rules."""
-        settings = FlextDbOracleSettings(service_name="", sid="legacy")
-
-        assert settings.sid == "LEGACY"
-
-    # ---- FlextDbOracleSettings.from_url contract ------------------------
-
-    def test_from_url_parses_valid_oracle_url(self) -> None:
-        """A well-formed oracle URL yields a success result with parsed fields."""
-        result = FlextDbOracleSettings.from_url(
-            "oracle://app:secret@db.host:1600/ORDERS",
-        )
-
-        assert result.success
-        settings = result.unwrap()
-        assert settings.host == "db.host"
-        assert settings.port == 1600
-        assert settings.service_name == "ORDERS"
-        assert settings.username == "app"
-
-    @pytest.mark.parametrize(
-        "url",
-        ["postgres://u:p@h:5432/db", "http://example.com", "not-a-url"],
-    )
-    def test_from_url_rejects_non_oracle_scheme(self, url: str) -> None:
-        """Non-Oracle URL schemes produce a failure result, not an exception."""
-        result = FlextDbOracleSettings.from_url(url)
-
-        assert result.failure
-        assert "scheme" in (result.error or "").lower()
+        assert settings.DbOracle.sid == "legacy"
+        assert settings.DbOracle.service_name == ""
 
     # NOTE: m.DbOracle.ConnectionStatus behavior is intentionally NOT covered
     # here. That model carries a `datetime` forward reference that is unresolved

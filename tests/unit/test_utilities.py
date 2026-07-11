@@ -294,22 +294,19 @@ class TestsFlextDbOracleUtilitiesUnit:
     # Settings from environment                                          #
     # ------------------------------------------------------------------ #
 
-    def test_settings_from_env_reads_public_fields(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """from_env reflects environment values in public settings fields."""
-        monkeypatch.setenv("FLEXT_DB_ORACLE_HOST", "test-host")
-        monkeypatch.setenv("FLEXT_DB_ORACLE_PORT", "1522")
-        monkeypatch.setenv("FLEXT_DB_ORACLE_USERNAME", "testuser")
+    def test_settings_from_env_reads_public_fields(self) -> None:
+        """Env vars populate the public DbOracle namespace at construction."""
         FlextDbOracleSettings.reset_for_testing()
-        result = FlextDbOracleSettings.from_env("FLEXT_DB_ORACLE_")
-        tm.ok(result)
-        settings = result.unwrap()
+        with u.Tests.env_vars_context({
+            "ORACLE_DBORACLE__HOST": "test-host",
+            "ORACLE_DBORACLE__PORT": "1522",
+            "ORACLE_DBORACLE__USERNAME": "testuser",
+        }):
+            settings = FlextDbOracleSettings()
         tm.that(settings, is_=FlextDbOracleSettings)
-        tm.that(settings.host, eq="test-host")
-        tm.that(settings.port, eq=1522)
-        tm.that(settings.username, eq="testuser")
+        tm.that(settings.DbOracle.host, eq="test-host")
+        tm.that(settings.DbOracle.port, eq=1522)
+        tm.that(settings.DbOracle.username, eq="testuser")
 
     # ------------------------------------------------------------------ #
     # Offline Oracle SQL utility contracts                               #

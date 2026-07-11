@@ -32,12 +32,14 @@ class TestsFlextDbOracleApi:
     ) -> FlextDbOracleSettings:
         """Build an unreachable-but-valid settings value for offline behavior."""
         return FlextDbOracleSettings(
-            host=host,
-            port=19999,
-            service_name=service_name,
-            username="test_user",
-            password="test_password",
-            timeout=1,
+            DbOracle={
+                "host": host,
+                "port": 19999,
+                "service_name": service_name,
+                "username": "test_user",
+                "password": "test_password",
+                "timeout": 1,
+            },
         )
 
     @pytest.fixture
@@ -67,10 +69,10 @@ class TestsFlextDbOracleApi:
         api: FlextDbOracleApi,
     ) -> None:
         """Public settings expose the exact configured field values."""
-        tm.that(api.settings.host, eq="127.0.0.1")
-        tm.that(api.settings.port, eq=19999)
-        tm.that(api.settings.service_name, eq="TEST")
-        tm.that(api.settings.username, eq="test_user")
+        tm.that(api.settings.DbOracle.host, eq="127.0.0.1")
+        tm.that(api.settings.DbOracle.port, eq=19999)
+        tm.that(api.settings.DbOracle.service_name, eq="TEST")
+        tm.that(api.settings.DbOracle.username, eq="test_user")
 
     def test_from_config_returns_configured_instance(
         self,
@@ -93,10 +95,10 @@ class TestsFlextDbOracleApi:
         result = FlextDbOracleApi.from_url("oracle://user:pass@host:1521/service")
         tm.ok(result)
         api = result.value
-        tm.that(api.settings.host, eq="host")
-        tm.that(api.settings.port, eq=1521)
-        tm.that(api.settings.service_name, eq="SERVICE")
-        tm.that(api.settings.username, eq="user")
+        tm.that(api.settings.DbOracle.host, eq="host")
+        tm.that(api.settings.DbOracle.port, eq=1521)
+        tm.that(api.settings.DbOracle.service_name, eq="SERVICE")
+        tm.that(api.settings.DbOracle.username, eq="user")
 
     @pytest.mark.parametrize("bad_url", ["invalid://not-oracle", "://x", "oracle://"])
     def test_from_url_rejects_malformed_urls(self, bad_url: str) -> None:
@@ -105,12 +107,12 @@ class TestsFlextDbOracleApi:
         tm.fail(result)
         tm.that(result.error, none=False)
 
-    def test_from_env_missing_credentials_reports_required_username(self) -> None:
-        """from_env fails clearly when no username is configured in the env."""
+    def test_from_env_missing_credentials_reports_required_password(self) -> None:
+        """from_env fails clearly when no password is configured in the env."""
         result = FlextDbOracleApi.from_env("NONEXISTENT_PREFIX_")
         tm.fail(result)
         assert result.error is not None
-        tm.that("username is required" in result.error, eq=True)
+        tm.that("password is required" in result.error, eq=True)
 
     # ----- serialization contract ----------------------------------------
 
@@ -125,8 +127,10 @@ class TestsFlextDbOracleApi:
         tm.that("plugin_count" in result, eq=True)
         settings_dump = result["settings"]
         assert isinstance(settings_dump, dict)
-        tm.that("password" not in settings_dump, eq=True)
-        tm.that(settings_dump["host"], eq="127.0.0.1")
+        db_dump = settings_dump["DbOracle"]
+        assert isinstance(db_dump, dict)
+        tm.that("password" not in db_dump, eq=True)
+        tm.that(db_dump["host"], eq="127.0.0.1")
         tm.that(result["connected"], eq=False)
         tm.that(result["plugin_count"], eq=0)
 

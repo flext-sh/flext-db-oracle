@@ -18,6 +18,7 @@ import pytest
 
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.api import FlextDbOracleApi
+from tests.utilities import u
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -35,11 +36,13 @@ class TestsFlextDbOracleOracle:
     def offline_settings(self) -> FlextDbOracleSettings:
         """Settings pointing at an unreachable host for offline contract tests."""
         return FlextDbOracleSettings(
-            host="nonexistent-host.invalid",
-            port=9999,
-            service_name="INVALID_DB",
-            username="invalid_user",
-            password="invalid_password",
+            DbOracle={
+                "host": "nonexistent-host.invalid",
+                "port": 9999,
+                "service_name": "INVALID_DB",
+                "username": "invalid_user",
+                "password": "invalid_password",
+            },
         )
 
     @pytest.fixture
@@ -52,35 +55,29 @@ class TestsFlextDbOracleOracle:
 
     # -- Configuration contract ------------------------------------------
 
-    def test_from_env_maps_environment_variables_to_settings_fields(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """from_env succeeds and exposes each env value on the public fields."""
+    def test_env_vars_populate_settings_namespace(self) -> None:
+        """ORACLE_DBORACLE__* env vars populate the public settings namespace."""
+        FlextDbOracleSettings.reset_for_testing()
         env = {
-            "FLEXT_TARGET_ORACLE_HOST": "e2e-test-host",
-            "FLEXT_TARGET_ORACLE_PORT": "1521",
-            "FLEXT_TARGET_ORACLE_SERVICE_NAME": "E2EDB",
-            "FLEXT_TARGET_ORACLE_USERNAME": "e2e_user",
-            "FLEXT_TARGET_ORACLE_PASSWORD": "e2e_password",
-            "FLEXT_TARGET_ORACLE_POOL_MIN": "2",
-            "FLEXT_TARGET_ORACLE_POOL_MAX": "20",
-            "FLEXT_TARGET_ORACLE_TIMEOUT": "60",
+            "ORACLE_DBORACLE__HOST": "e2e-test-host",
+            "ORACLE_DBORACLE__PORT": "1521",
+            "ORACLE_DBORACLE__SERVICE_NAME": "E2EDB",
+            "ORACLE_DBORACLE__USERNAME": "e2e_user",
+            "ORACLE_DBORACLE__PASSWORD": "e2e_password",
+            "ORACLE_DBORACLE__POOL_MIN": "2",
+            "ORACLE_DBORACLE__POOL_MAX": "20",
+            "ORACLE_DBORACLE__TIMEOUT": "60",
         }
-        for key, value in env.items():
-            monkeypatch.setenv(key, value)
+        with u.Tests.env_vars_context(env):
+            settings = FlextDbOracleSettings()
 
-        result = FlextDbOracleSettings.from_env()
-
-        assert result.success, result.error
-        settings = result.value
-        assert settings.host == "e2e-test-host"
-        assert settings.port == 1521
-        assert settings.service_name == "E2EDB"
-        assert settings.username == "e2e_user"
-        assert settings.password == "e2e_password"
-        assert settings.pool_min == 2
-        assert settings.pool_max == 20
+        assert settings.DbOracle.host == "e2e-test-host"
+        assert settings.DbOracle.port == 1521
+        assert settings.DbOracle.service_name == "E2EDB"
+        assert settings.DbOracle.username == "e2e_user"
+        assert settings.DbOracle.password == "e2e_password"
+        assert settings.DbOracle.pool_min == 2
+        assert settings.DbOracle.pool_max == 20
 
     # -- Error-path contract (no connection) -----------------------------
 

@@ -32,6 +32,20 @@ logger = u.fetch_logger(__name__)
 _ORACLE_CONTAINER_NAME = "flext-oracle-db-test"
 
 
+# NOTE (multi-agent): ADR-005 singleton discipline — drop the settings singleton
+# around every test so direct FlextDbOracleSettings(...) construction never leaks.
+def pytest_runtest_setup(item: pytest.Item) -> None:
+    """Reset the settings singleton before each test for isolation."""
+    _ = item
+    FlextDbOracleSettings.reset_for_testing()
+
+
+def pytest_runtest_teardown(item: pytest.Item, nextitem: pytest.Item | None) -> None:
+    """Reset the settings singleton after each test to prevent leaks."""
+    _ = item, nextitem
+    FlextDbOracleSettings.reset_for_testing()
+
+
 def pytest_configure(config: pytest.Config) -> None:
     """Configure pytest with Oracle container for ALL tests."""
     _ = config
@@ -183,14 +197,17 @@ def oracle_container(shared_oracle_container: str) -> str:
 def real_oracle_settings(oracle_container: str) -> FlextDbOracleSettings:
     """Return real Oracle configuration for tests that can use it."""
     _ = oracle_container
+    # NOTE (multi-agent): ADR-005 — connection scalars live under the DbOracle
+    # namespace; flat constructor kwargs no longer exist.
     return FlextDbOracleSettings(
-        host=os.getenv("TEST_ORACLE_HOST", "localhost"),
-        port=int(os.getenv("TEST_ORACLE_PORT", "1522")),
-        name=os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB"),
-        username=os.getenv("TEST_ORACLE_USER", "flext_test"),
-        password=os.getenv("TEST_ORACLE_PASSWORD", "flext_test_password"),
-        service_name=os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB"),
-        ssl_server_cert_dn=None,
+        DbOracle={
+            "host": os.getenv("TEST_ORACLE_HOST", "localhost"),
+            "port": int(os.getenv("TEST_ORACLE_PORT", "1522")),
+            "name": os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB"),
+            "username": os.getenv("TEST_ORACLE_USER", "flext_test"),
+            "password": os.getenv("TEST_ORACLE_PASSWORD", "flext_test_password"),
+            "service_name": os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB"),
+        },
     )
 
 

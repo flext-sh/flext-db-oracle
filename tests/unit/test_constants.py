@@ -414,8 +414,10 @@ class TestsFlextDbOracleConstants:
         enabled: bool,
     ) -> None:
         """The dispatcher feature flag is readable via settings public state."""
-        settings = FlextDbOracleSettings.model_validate({"enable_dispatcher": enabled})
-        tm.that(settings.enable_dispatcher, eq=enabled)
+        settings = FlextDbOracleSettings.model_validate(
+            {"DbOracle": {"enable_dispatcher": enabled}},
+        )
+        tm.that(settings.DbOracle.enable_dispatcher, eq=enabled)
 
     # ---- real Oracle integration (public API, fail-loud when unavailable) -
 

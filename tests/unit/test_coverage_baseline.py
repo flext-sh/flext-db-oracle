@@ -17,7 +17,6 @@ from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.services.facade import FlextDbOracleServices
-from tests.constants import c
 from tests.models import m
 
 
@@ -28,11 +27,13 @@ class TestsFlextDbOracleCoverageBaseline:
     def settings(self) -> FlextDbOracleSettings:
         """Return a valid Oracle settings instance for service construction."""
         return FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
+            DbOracle={
+                "host": "localhost",
+                "port": 1521,
+                "service_name": "TEST",
+                "username": "testuser",
+                "password": "testpass",
+            },
         )
 
     @pytest.fixture
@@ -44,121 +45,54 @@ class TestsFlextDbOracleCoverageBaseline:
     # FlextDbOracleSettings — construction and public field state
     # ------------------------------------------------------------------
 
+    # NOTE (multi-agent): ADR-005 — settings is a layer-0 scalar namespace under
+    # settings.DbOracle.*. Flat fields, Password wrapping, uppercase/ssl fallback
+    # validators and the settings-level from_url/from_env factories were removed
+    # by design; the namespaced contract is what remains to cover.
     def test_settings_expose_provided_connection_fields(
         self,
         settings: FlextDbOracleSettings,
     ) -> None:
         """Settings return the exact host/port/service/user supplied at build."""
-        tm.that(settings.host, eq="localhost")
-        tm.that(settings.port, eq=1521)
-        tm.that(settings.service_name, eq="TEST")
-        tm.that(settings.username, eq="testuser")
+        tm.that(settings.DbOracle.host, eq="localhost")
+        tm.that(settings.DbOracle.port, eq=1521)
+        tm.that(settings.DbOracle.service_name, eq="TEST")
+        tm.that(settings.DbOracle.username, eq="testuser")
 
-    def test_settings_wrap_password_in_secret_value_object(
+    def test_settings_password_is_a_plain_string(
         self,
         settings: FlextDbOracleSettings,
     ) -> None:
-        """A raw password string is wrapped into the Password value object."""
-        tm.that(settings.password, none=False)
-        assert isinstance(settings.password, m.DbOracle.Password)
-        tm.that(settings.password.get_secret_value(), eq="testpass")
+        """The namespace stores the password as a plain string scalar."""
+        tm.that(settings.DbOracle.password, eq="testpass")
 
-    def test_settings_uppercase_service_name(self) -> None:
-        """service_name is normalized to upper-case per its string constraint."""
+    def test_settings_service_name_round_trips_verbatim(self) -> None:
+        """service_name is stored verbatim (no case normalization in layer-0)."""
         settings = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="lower_svc",
-            username="testuser",
-            password="testpass",
+            DbOracle={
+                "host": "localhost",
+                "port": 1521,
+                "service_name": "lower_svc",
+                "username": "testuser",
+                "password": "testpass",
+            },
         )
-        tm.that(settings.service_name, eq="LOWER_SVC")
+        tm.that(settings.DbOracle.service_name, eq="lower_svc")
 
-    def test_settings_default_ssl_server_cert_dn_from_cert_file(self) -> None:
-        """ssl_server_cert_dn defaults to ssl_cert_file when not supplied."""
+    def test_settings_ssl_fields_are_independent(self) -> None:
+        """ssl_cert_file and ssl_server_cert_dn keep their supplied values."""
         settings = FlextDbOracleSettings(
-            host="secure.example.com",
-            port=2484,
-            service_name="SECURE_DB",
-            username="secure_user",
-            password="secure_pass",
-            ssl_cert_file="/path/to/cert.pem",
+            DbOracle={
+                "host": "secure.example.com",
+                "port": 2484,
+                "service_name": "SECURE_DB",
+                "username": "secure_user",
+                "password": "secure_pass",
+                "ssl_cert_file": "/path/to/cert.pem",
+            },
         )
-        tm.that(settings.ssl_cert_file, eq="/path/to/cert.pem")
-        tm.that(settings.ssl_server_cert_dn, eq="/path/to/cert.pem")
-
-    @pytest.mark.parametrize(
-        ("host", "username"),
-        [
-            ("   ", "testuser"),
-            ("localhost", "   "),
-        ],
-    )
-    def test_settings_reject_blank_identity_fields(
-        self,
-        host: str,
-        username: str,
-    ) -> None:
-        """Blank host or username fail validation at construction."""
-        with pytest.raises(c.ValidationError):
-            FlextDbOracleSettings(
-                host=host,
-                port=1521,
-                service_name="TEST",
-                username=username,
-                password="testpass",
-            )
-
-    @pytest.mark.parametrize("port", [0, 99999])
-    def test_settings_reject_out_of_range_port(self, port: int) -> None:
-        """A listener port outside the valid range fails validation."""
-        with pytest.raises(c.ValidationError):
-            FlextDbOracleSettings(
-                host="localhost",
-                port=port,
-                service_name="TEST",
-                username="testuser",
-                password="testpass",
-            )
-
-    # ------------------------------------------------------------------
-    # FlextDbOracleSettings — fallible factory contracts (r[T])
-    # ------------------------------------------------------------------
-
-    def test_settings_from_url_success_maps_components(self) -> None:
-        """A valid oracle:// URL yields settings with parsed components."""
-        result = FlextDbOracleSettings.from_url(
-            "oracle://alice:s3cret@dbhost:1522/PRODSVC",
-        )
-        tm.ok(result)
-        built = result.value
-        assert isinstance(built, FlextDbOracleSettings)
-        tm.that(built.host, eq="dbhost")
-        tm.that(built.port, eq=1522)
-        tm.that(built.username, eq="alice")
-        tm.that(built.service_name, eq="PRODSVC")
-
-    @pytest.mark.parametrize(
-        ("url", "error_fragment"),
-        [
-            ("mysql://user:pass@host/db", "scheme"),
-            ("postgres://x", "scheme"),
-        ],
-    )
-    def test_settings_from_url_rejects_non_oracle_scheme(
-        self,
-        url: str,
-        error_fragment: str,
-    ) -> None:
-        """Non-Oracle URL schemes fail with a descriptive error."""
-        result = FlextDbOracleSettings.from_url(url)
-        tm.fail(result, has=error_fragment)
-
-    def test_settings_from_env_returns_result(self) -> None:
-        """from_env returns a successful result even with no matching env vars."""
-        result = FlextDbOracleSettings.from_env("NONEXISTENT_PREFIX_")
-        tm.ok(result)
-        assert isinstance(result.value, FlextDbOracleSettings)
+        tm.that(settings.DbOracle.ssl_cert_file, eq="/path/to/cert.pem")
+        tm.that(settings.DbOracle.ssl_server_cert_dn, none=True)
 
     # ------------------------------------------------------------------
     # Password value object contract
