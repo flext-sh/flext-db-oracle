@@ -8,8 +8,7 @@ This example demonstrates basic configuration and setup functionality.
 
 from __future__ import annotations
 
-from flext_db_oracle import u
-from flext_db_oracle import FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleSettings, u
 
 logger = u.fetch_logger(__name__)
 
