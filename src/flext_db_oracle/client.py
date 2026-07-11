@@ -179,15 +179,16 @@ class FlextDbOracleClient(s):
             actual_port,
             actual_service_name,
         )
-        db_oracle_payload: t.MutableMappingKV[str, t.JsonPayload] = {
+        # NOTE (multi-agent): ADR-005 — password is a plain str in the DbOracle
+        # namespace and is guaranteed non-empty by the validations above.
+        db_oracle_payload: t.MappingKV[str, t.JsonPayloadLeaf] = {
             "host": actual_host,
             "port": actual_port,
             "service_name": actual_service_name,
             "username": actual_username,
+            "password": actual_password_raw,
         }
-        if actual_password_raw:
-            db_oracle_payload["password"] = str(actual_password_raw)
-        payload: t.MutableMappingKV[str, t.JsonPayload] = {
+        payload: t.MappingKV[str, t.JsonPayload] = {
             "DbOracle": db_oracle_payload,
         }
         settings = FlextDbOracleSettings.model_validate(payload)

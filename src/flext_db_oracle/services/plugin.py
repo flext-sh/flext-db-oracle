@@ -47,7 +47,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
                 "status": f"{status}_with_observability",
                 "timestamp": self._get_current_timestamp(),
                 "service": "oracle",
-                "database": self.db_config.service_name,
+                "database": self.db_config.DbOracle.service_name,
                 "metrics": metrics_payload,
             }),
         )

@@ -14,7 +14,6 @@ from flext_db_oracle import (
     m,
     p,
     r,
-    settings,
     t,
     u,
 )
@@ -48,7 +47,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     def __repr__(self) -> str:
         """Return string representation of the API instance."""
         status = "connected" if self.connected() else "disconnected"
-        return f"FlextDbOracleApi(host={self._oracle_config.host}, status={status})"
+        return f"FlextDbOracleApi(host={self._oracle_config.DbOracle.host}, status={status})"
 
     def __enter__(self) -> Self:
         """Context manager entry."""
@@ -119,7 +118,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
             )
             return username_fail
         password = settings.DbOracle.password
-        if password is None or not str(password):
+        if not password:
             password_fail: p.Result[Self] = r.fail(
                 "Oracle password is required but not configured",
             )
@@ -163,13 +162,16 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     def from_env(cls, prefix: str = "ORACLE_") -> p.Result[Self]:
         """Create API instance from the resolved settings singleton.
 
-        The settings simple contract reads ``ORACLE_*`` env vars via
+        The settings contract reads ``ORACLE_DBORACLE__*`` env vars via
         ``pydantic-settings`` at construction; the ``prefix`` argument is kept
         for signature compatibility and is not applied (the singleton uses the
         fixed ``ORACLE_`` prefix).
         """
+        # NOTE (multi-agent): ADR-005 singleton discipline — resolve the live
+        # singleton via fetch_global() instead of the import-time module object,
+        # which goes stale after tests reset the singleton slot.
         _ = prefix
-        return cls._build_api_result(settings)
+        return cls._build_api_result(FlextDbOracleSettings.fetch_global())
 
     @classmethod
     def from_url(cls, url: str) -> p.Result[Self]:
@@ -197,8 +199,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     def connect(self) -> p.Result[Self]:
         """Connect to Oracle database."""
         self.logger.info(
-            "Connecting to Oracle database",
-            extra=self._oracle_config.host,
+            f"Connecting to Oracle database: {self._oracle_config.DbOracle.host}",
         )
         return self._services.connect().map(lambda _: self)
 
@@ -305,8 +306,8 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
 
     def valid(self) -> bool:
         """Check if API configuration is valid."""
-        return self._oracle_config.port >= c.DbOracle.MIN_PORT and bool(
-            self._oracle_config.service_name,
+        return self._oracle_config.DbOracle.port >= c.DbOracle.MIN_PORT and bool(
+            self._oracle_config.DbOracle.service_name,
         )
 
     def list_plugins(self) -> p.Result[t.StrSequence]:
@@ -382,7 +383,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         return m.ConfigMap(
             root={
                 "settings": self.oracle_config.model_dump(
-                    exclude={"password"},
+                    exclude={"DbOracle": {"password"}},
                     mode="python",
                 ),
                 "connected": self.connected(),
