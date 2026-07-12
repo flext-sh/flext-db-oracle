@@ -34,7 +34,7 @@ class TestsFlextDbOracleOracle:
 
     @pytest.fixture
     def offline_settings(self) -> FlextDbOracleSettings:
-        """Settings pointing at an unreachable host for offline contract tests."""
+        """Return settings pointing at an unreachable host for offline contract tests."""
         return FlextDbOracleSettings(
             DbOracle={
                 "host": "nonexistent-host.invalid",

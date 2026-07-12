@@ -49,7 +49,7 @@ class TestsFlextDbOracleApi:
 
     @pytest.fixture
     def api(self, settings: FlextDbOracleSettings) -> FlextDbOracleApi:
-        """A fresh, disconnected API instance under test."""
+        """Return a fresh, disconnected API instance under test."""
         return FlextDbOracleApi(settings)
 
     # ----- construction & configuration contract -------------------------
