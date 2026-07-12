@@ -11,7 +11,7 @@
 - Keywords: `database`, `enterprise`, `flext`, `oracle`, `sql`, `typed`
 - Main facades: _none_
 - Alias exports: `c`, `d`, `e`, `h`, `m`, `p`, `r`, `s`, `t`, `u`, `x`
-- Public symbol exports: `FlextDbOracleDispatcher`, `FlextDbOracleApi`, `FlextDbOracleConstants`, `FlextDbOracleServiceBase`, `FlextDbOracleModels`, `FlextDbOracleServiceSqlBuilder`, `settings`, `FlextDbOracleUtilities`, `FlextDbOracleProtocols`, `db_oracle` (+10 more)
+- Public symbol exports: `FlextDbOracleServiceSqlBuilder`, `FlextDbOracleModels`, `db_oracle`, `FlextDbOracleExceptions`, `FlextDbOracleServiceQuery`, `FlextDbOracleTypes`, `FlextDbOracleSettings`, `FlextDbOracleServices`, `FlextDbOracleApi`, `FlextDbOracleServiceBase` (+10 more)
 - Exported module shortcuts: _none_
 - Generated module pages: `17`
 

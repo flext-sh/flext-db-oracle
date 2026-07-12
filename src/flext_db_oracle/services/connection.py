@@ -51,7 +51,9 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                     conn,
                     text("SELECT 1 FROM dual"),
                 )
-            self.logger.info(f"Connected to Oracle database: {self.db_config.DbOracle.host}")
+            self.logger.info(
+                f"Connected to Oracle database: {self.db_config.DbOracle.host}"
+            )
             ok_result: p.Result[Self] = r.ok(self)
             return ok_result
         except c.DbOracle.EXC_DB_BROAD as e:
