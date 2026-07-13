@@ -17,7 +17,7 @@ from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.services.facade import FlextDbOracleServices
-from tests.models import m
+from tests import m
 
 
 class TestsFlextDbOracleCoverageBaseline:
@@ -102,9 +102,9 @@ class TestsFlextDbOracleCoverageBaseline:
         """Password compares to raw strings and to other Password wrappers."""
         password = m.DbOracle.Password("hunter2")
         tm.that(password.get_secret_value(), eq="hunter2")
-        assert password == "hunter2"
-        assert password == m.DbOracle.Password("hunter2")
-        assert password != m.DbOracle.Password("other")
+        tm.that(password, eq="hunter2")
+        tm.that(password, eq=m.DbOracle.Password("hunter2"))
+        tm.that(password, ne=m.DbOracle.Password("other"))
         tm.that(str(password), eq="hunter2")
 
     # ------------------------------------------------------------------
@@ -129,8 +129,8 @@ class TestsFlextDbOracleCoverageBaseline:
         column = m.DbOracle.Column(name="ID", data_type="NUMBER")
         tm.that(column["column_name"], eq="ID")
         tm.that(column["data_type"], eq="NUMBER")
-        assert "nullable" in column
-        assert "unknown_key" not in column
+        tm.that(column, has="nullable")
+        tm.that(column, lacks="unknown_key")
         tm.that(column["unknown_key"], eq="")
 
     # ------------------------------------------------------------------

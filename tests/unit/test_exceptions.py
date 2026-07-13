@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
+from flext_tests import tm
 
 from flext_core import e
 from flext_db_oracle import FlextDbOracleExceptions
@@ -19,7 +20,7 @@ class TestsFlextDbOracleExceptions:
         """Error exposes its message through str()."""
         error = FlextDbOracleExceptions.Error("boom failure")
 
-        assert "boom failure" in str(error)
+        tm.that(str(error), has="boom failure")
 
     def test_error_is_raisable_and_catchable_as_base_error(self) -> None:
         """Error propagates through pytest.raises as an e.BaseError."""
@@ -31,8 +32,8 @@ class TestsFlextDbOracleExceptions:
         """Error metadata fields default to None when omitted."""
         error = FlextDbOracleExceptions.Error("no metadata")
 
-        assert error.oracle_error_code is None
-        assert error.sql_state is None
+        tm.that(error.oracle_error_code, none=True)
+        tm.that(error.sql_state, none=True)
 
     def test_error_preserves_supplied_metadata(self) -> None:
         """Error retains oracle_error_code and sql_state as given."""
@@ -42,8 +43,8 @@ class TestsFlextDbOracleExceptions:
             sql_state="08001",
         )
 
-        assert error.oracle_error_code == "ORA-12345"
-        assert error.sql_state == "08001"
+        tm.that(error.oracle_error_code, eq="ORA-12345")
+        tm.that(error.sql_state, eq="08001")
 
     def test_connection_error_preserves_metadata(self) -> None:
         """OracleConnectionError retains TNS and connection-string metadata."""
@@ -53,9 +54,9 @@ class TestsFlextDbOracleExceptions:
             connection_string="host:1521/svc",
         )
 
-        assert "Connection failed" in str(error)
-        assert error.tns_error == "TNS-12541"
-        assert error.connection_string == "host:1521/svc"
+        tm.that(str(error), has="Connection failed")
+        tm.that(error.tns_error, eq="TNS-12541")
+        tm.that(error.connection_string, eq="host:1521/svc")
 
     def test_processing_error_preserves_metadata(self) -> None:
         """ProcessingError retains operation-type and stage metadata."""
@@ -65,8 +66,8 @@ class TestsFlextDbOracleExceptions:
             processing_stage="commit",
         )
 
-        assert error.operation_type == "INSERT"
-        assert error.processing_stage == "commit"
+        tm.that(error.operation_type, eq="INSERT")
+        tm.that(error.processing_stage, eq="commit")
 
     def test_timeout_error_preserves_metadata(self) -> None:
         """OracleTimeoutError retains query-id and elapsed-time metadata."""
@@ -76,8 +77,8 @@ class TestsFlextDbOracleExceptions:
             elapsed_time=12.5,
         )
 
-        assert error.query_id == "q-42"
-        assert error.elapsed_time == pytest.approx(12.5)
+        tm.that(error.query_id, eq="q-42")
+        tm.that(error.elapsed_time, eq=pytest.approx(12.5))
 
     @pytest.mark.parametrize(
         ("factory", "base"),
@@ -95,7 +96,7 @@ class TestsFlextDbOracleExceptions:
     ) -> None:
         """Every Oracle error is a subclass of its flext-core base contract."""
         assert issubclass(factory, base)
-        assert isinstance(factory("msg"), base)
+        tm.that(factory("msg"), is_=base)
 
     def test_family_extends_flext_core_exceptions(self) -> None:
         """FlextDbOracleExceptions composes the flext-core exceptions facade."""
@@ -119,4 +120,4 @@ class TestsFlextDbOracleExceptions:
         with pytest.raises(Exception, match="raised message") as exc_info:
             raise factory(message)
 
-        assert "raised message" in str(exc_info.value)
+        tm.that(str(exc_info.value), has="raised message")

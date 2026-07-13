@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import oracledb
 import pytest
+from flext_tests import tm
 
 from flext_cli import t as cli_types
 from flext_db_oracle import FlextDbOracleTypes, t, typings as typings_module
@@ -27,7 +28,7 @@ class TestsFlextDbOracleTypings:
 
     def test_public_exports_are_declared(self) -> None:
         """The module publishes exactly its facade class and alias."""
-        assert typings_module.__all__ == ["FlextDbOracleTypes", "t"]
+        tm.that(typings_module.__all__, eq=["FlextDbOracleTypes", "t"])
 
     def test_facade_composes_cli_types_via_mro(self) -> None:
         """Facade extends the flext-cli ``t`` facade so inherited members stay reachable."""
@@ -36,7 +37,7 @@ class TestsFlextDbOracleTypings:
 
     def test_oracle_namespace_is_exposed(self) -> None:
         """The Oracle domain namespace is reachable on the facade."""
-        assert FlextDbOracleTypes.DbOracle is not None
+        tm.that(FlextDbOracleTypes.DbOracle, none=False)
 
     @pytest.mark.parametrize(
         ("attribute", "expected"),
@@ -58,11 +59,11 @@ class TestsFlextDbOracleTypings:
     def test_query_parameters_alias_resolves_to_json_mapping(self) -> None:
         """``QueryParameters`` is a named alias for the cli JSON mapping type."""
         alias = FlextDbOracleTypes.DbOracle.QueryParameters
-        assert alias.__name__ == "QueryParameters"
+        tm.that(alias.__name__, eq="QueryParameters")
         assert alias.__value__ is cli_types.JsonMapping
 
     def test_cli_scalar_alias_is_optional_scalar(self) -> None:
         """``CliScalar`` is a named alias admitting the scalar type or ``None``."""
         alias = FlextDbOracleTypes.DbOracle.CliScalar
-        assert alias.__name__ == "CliScalar"
-        assert type(None) in alias.__value__.__args__
+        tm.that(alias.__name__, eq="CliScalar")
+        tm.that(alias.__value__.__args__, has=type(None))

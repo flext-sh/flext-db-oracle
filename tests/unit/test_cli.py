@@ -20,7 +20,7 @@ from flext_db_oracle import (
     FlextDbOracleSettings,
 )
 from flext_db_oracle.client import FlextDbOracleClient
-from tests.utilities import u
+from tests import u
 
 _NO_CONNECTION_ERROR = "No active Oracle connection"
 _CONNECTION_FAILURE_SNIPPETS = (

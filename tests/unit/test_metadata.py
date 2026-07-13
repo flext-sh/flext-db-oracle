@@ -23,7 +23,7 @@ from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.services.facade import FlextDbOracleServices
-from tests.models import m
+from tests import m
 
 if TYPE_CHECKING:
     from collections.abc import Callable

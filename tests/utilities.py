@@ -13,9 +13,7 @@ from typing import TYPE_CHECKING, ClassVar
 from flext_tests import FlextTestsUtilities, e, tk
 
 from flext_db_oracle import u
-from tests.constants import c
-from tests.models import m
-from tests.typings import t
+from tests import c, m, t
 
 if TYPE_CHECKING:
     from collections.abc import (

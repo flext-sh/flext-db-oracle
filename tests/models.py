@@ -13,7 +13,7 @@ from flext_tests import FlextTestsModels
 from flext_db_oracle import m
 
 if TYPE_CHECKING:
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextDbOracleModels(FlextTestsModels, m):

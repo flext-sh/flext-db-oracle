@@ -18,14 +18,12 @@ import pytest
 from flext_tests import tk
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests.constants import c
-from tests.utilities import u
+from tests import c, u
 
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-    from tests.protocols import p
-    from tests.typings import t
+    from tests import p, t
 
 logger = u.fetch_logger(__name__)
 

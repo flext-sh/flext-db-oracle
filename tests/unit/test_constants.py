@@ -15,8 +15,7 @@ import pytest
 from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests.constants import c
-from tests.utilities import u
+from tests import c, u
 
 
 @pytest.mark.unit
@@ -357,7 +356,7 @@ class TestsFlextDbOracleConstants:
         tm.that(literal, is_=tuple)
         tm.that(valid, is_=frozenset)
         tm.that(valid, has=member)
-        assert valid == frozenset(literal)
+        tm.that(valid, eq=frozenset(literal))
 
     def test_system_user_and_schema_sets(self) -> None:
         """System-user and default-schema catalogs advertise known members."""
@@ -379,7 +378,7 @@ class TestsFlextDbOracleConstants:
     def test_valid_data_types_match_data_type_enum_members(self) -> None:
         """VALID_DATA_TYPES exactly enumerates the DataType enum values."""
         enum_values = frozenset(member.value for member in c.DbOracle.DataType)
-        assert enum_values == c.DbOracle.VALID_DATA_TYPES
+        tm.that(enum_values, eq=c.DbOracle.VALID_DATA_TYPES)
 
     # ---- public behavior: collapse_whitespace ---------------------------
 

@@ -7,6 +7,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_tests import tm
+
 from flext_db_oracle import FlextDbOracleSettings, c
 
 # NOTE (multi-agent): ADR-005 — settings is a layer-0 scalar namespace under
@@ -21,16 +23,16 @@ class TestsFlextDbOracleSettings:
         """A settings object with no overrides exposes the documented defaults."""
         settings = FlextDbOracleSettings()
 
-        assert settings.DbOracle.host == c.DbOracle.DEFAULT_HOST
-        assert settings.DbOracle.port == c.DbOracle.DEFAULT_PORT
-        assert settings.DbOracle.service_name == c.DbOracle.DEFAULT_SERVICE_NAME
-        assert settings.DbOracle.username == c.DbOracle.DEFAULT_USERNAME
-        assert settings.DbOracle.timeout == c.DbOracle.DEFAULT_TIMEOUT
-        assert settings.DbOracle.pool_min == c.DbOracle.DEFAULT_POOL_MIN
-        assert settings.DbOracle.pool_max == c.DbOracle.DEFAULT_POOL_MAX
-        assert settings.DbOracle.name == c.DbOracle.DEFAULT_DATABASE_NAME
-        assert settings.DbOracle.sid is None
-        assert settings.DbOracle.enable_dispatcher is False
+        tm.that(settings.DbOracle.host, eq=c.DbOracle.DEFAULT_HOST)
+        tm.that(settings.DbOracle.port, eq=c.DbOracle.DEFAULT_PORT)
+        tm.that(settings.DbOracle.service_name, eq=c.DbOracle.DEFAULT_SERVICE_NAME)
+        tm.that(settings.DbOracle.username, eq=c.DbOracle.DEFAULT_USERNAME)
+        tm.that(settings.DbOracle.timeout, eq=c.DbOracle.DEFAULT_TIMEOUT)
+        tm.that(settings.DbOracle.pool_min, eq=c.DbOracle.DEFAULT_POOL_MIN)
+        tm.that(settings.DbOracle.pool_max, eq=c.DbOracle.DEFAULT_POOL_MAX)
+        tm.that(settings.DbOracle.name, eq=c.DbOracle.DEFAULT_DATABASE_NAME)
+        tm.that(settings.DbOracle.sid, none=True)
+        tm.that(settings.DbOracle.enable_dispatcher, eq=False)
 
     def test_model_dump_exposes_every_public_field(self) -> None:
         """model_dump surfaces the full public field set inside the namespace."""
@@ -65,29 +67,29 @@ class TestsFlextDbOracleSettings:
             },
         )
 
-        assert settings.DbOracle.host == "db.internal"
-        assert settings.DbOracle.port == 1522
-        assert settings.DbOracle.username == "appuser"
-        assert settings.DbOracle.service_name == "PRODSVC"
-        assert settings.DbOracle.password == "apppass"
+        tm.that(settings.DbOracle.host, eq="db.internal")
+        tm.that(settings.DbOracle.port, eq=1522)
+        tm.that(settings.DbOracle.username, eq="appuser")
+        tm.that(settings.DbOracle.service_name, eq="PRODSVC")
+        tm.that(settings.DbOracle.password, eq="apppass")
 
     def test_sid_only_configuration_is_accepted_without_service_name(self) -> None:
         """A legacy SID connection is valid even with a blank service_name."""
         settings = FlextDbOracleSettings(DbOracle={"service_name": "", "sid": "legacy"})
 
-        assert settings.DbOracle.sid == "legacy"
-        assert settings.DbOracle.service_name == ""
+        tm.that(settings.DbOracle.sid, eq="legacy")
+        tm.that(settings.DbOracle.service_name, eq="")
 
     def test_password_defaults_to_empty_string(self) -> None:
         """Omitting the password yields an empty string, not a None-crash."""
-        assert FlextDbOracleSettings().DbOracle.password == ""
+        tm.that(FlextDbOracleSettings().DbOracle.password, eq="")
 
     def test_ssl_fields_default_to_none(self) -> None:
         """SSL certificate fields are unset by default."""
         settings = FlextDbOracleSettings()
 
-        assert settings.DbOracle.ssl_cert_file is None
-        assert settings.DbOracle.ssl_server_cert_dn is None
+        tm.that(settings.DbOracle.ssl_cert_file, none=True)
+        tm.that(settings.DbOracle.ssl_server_cert_dn, none=True)
 
     def test_explicit_ssl_fields_are_preserved(self) -> None:
         """Explicit SSL certificate values round-trip through the namespace."""
@@ -98,8 +100,8 @@ class TestsFlextDbOracleSettings:
             },
         )
 
-        assert settings.DbOracle.ssl_cert_file == "/etc/oracle/cert.pem"
-        assert settings.DbOracle.ssl_server_cert_dn == "CN=oracle,O=flext"
+        tm.that(settings.DbOracle.ssl_cert_file, eq="/etc/oracle/cert.pem")
+        tm.that(settings.DbOracle.ssl_server_cert_dn, eq="CN=oracle,O=flext")
 
     def test_fetch_global_returns_shared_singleton(self) -> None:
         """fetch_global without overrides yields the shared singleton instance."""
@@ -116,8 +118,8 @@ class TestsFlextDbOracleSettings:
         )
 
         assert clone is not singleton
-        assert clone.DbOracle.host == "clone-host"
-        assert singleton.DbOracle.host == c.DbOracle.DEFAULT_HOST
+        tm.that(clone.DbOracle.host, eq="clone-host")
+        tm.that(singleton.DbOracle.host, eq=c.DbOracle.DEFAULT_HOST)
 
     def test_clone_preserves_canonical_type(self) -> None:
         """The namespaced clone returns the canonical settings type."""
@@ -125,6 +127,6 @@ class TestsFlextDbOracleSettings:
             DbOracle={"host": "test", "port": 9000},
         )
 
-        assert isinstance(clone, FlextDbOracleSettings)
-        assert clone.DbOracle.host == "test"
-        assert clone.DbOracle.port == 9000
+        tm.that(clone, is_=FlextDbOracleSettings)
+        tm.that(clone.DbOracle.host, eq="test")
+        tm.that(clone.DbOracle.port, eq=9000)

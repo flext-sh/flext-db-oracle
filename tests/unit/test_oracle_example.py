@@ -21,11 +21,10 @@ from flext_tests import tm
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.services.facade import FlextDbOracleServices
-from tests.utilities import u
+from tests import u
 
 if TYPE_CHECKING:
-    from tests.models import m
-    from tests.typings import t
+    from tests import m, t
 
 
 class TestsFlextDbOracleOracleExample:
@@ -54,9 +53,9 @@ class TestsFlextDbOracleOracleExample:
         """Query a scalar value through the public API context manager."""
         with FlextDbOracleApi(real_oracle_config) as api:
             connection_result = api.test_connection()
-            assert connection_result.success, connection_result.error
+            tm.ok(connection_result)
             query_result = api.query("SELECT 'Hello Oracle' FROM DUAL")
-            assert query_result.success, query_result.error
+            tm.ok(query_result)
             return cls._first_cell(query_result.value[0])
 
     @staticmethod
@@ -66,8 +65,8 @@ class TestsFlextDbOracleOracleExample:
         """Connect the services facade or fail the real-Oracle contract."""
         connection = FlextDbOracleServices(settings=real_oracle_config)
         connect_result = connection.connect()
-        assert connect_result.success, connect_result.error
-        assert connection.connected() is True
+        tm.ok(connect_result)
+        tm.that(connection.connected(), eq=True)
         return connection
 
     # ------------------------------------------------------------------

@@ -15,16 +15,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
+from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.api import FlextDbOracleApi
-from tests.utilities import u
+from tests import u
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from flext_db_oracle import m
-    from tests.typings import t
+    from tests import t
 
 _NOT_CONNECTED = "not connected to database"
 
@@ -71,13 +72,13 @@ class TestsFlextDbOracleOracle:
         with u.Tests.env_vars_context(env):
             settings = FlextDbOracleSettings()
 
-        assert settings.DbOracle.host == "e2e-test-host"
-        assert settings.DbOracle.port == 1521
-        assert settings.DbOracle.service_name == "E2EDB"
-        assert settings.DbOracle.username == "e2e_user"
-        assert settings.DbOracle.password == "e2e_password"
-        assert settings.DbOracle.pool_min == 2
-        assert settings.DbOracle.pool_max == 20
+        tm.that(settings.DbOracle.host, eq="e2e-test-host")
+        tm.that(settings.DbOracle.port, eq=1521)
+        tm.that(settings.DbOracle.service_name, eq="E2EDB")
+        tm.that(settings.DbOracle.username, eq="e2e_user")
+        tm.that(settings.DbOracle.password, eq="e2e_password")
+        tm.that(settings.DbOracle.pool_min, eq=2)
+        tm.that(settings.DbOracle.pool_max, eq=20)
 
     # -- Error-path contract (no connection) -----------------------------
 
@@ -88,8 +89,8 @@ class TestsFlextDbOracleOracle:
         """Query returns a failure naming the missing connection."""
         result = offline_api.query("SELECT 1 FROM DUAL")
 
-        assert result.failure
-        assert _NOT_CONNECTED in (result.error or "").lower()
+        tm.fail(result)
+        tm.that((result.error or "").lower(), has=_NOT_CONNECTED)
 
     def test_fetch_tables_without_connection_fails_with_not_connected_error(
         self,
@@ -98,8 +99,8 @@ class TestsFlextDbOracleOracle:
         """fetch_tables returns a failure naming the missing connection."""
         result = offline_api.fetch_tables()
 
-        assert result.failure
-        assert _NOT_CONNECTED in (result.error or "").lower()
+        tm.fail(result)
+        tm.that((result.error or "").lower(), has=_NOT_CONNECTED)
 
     def test_transaction_reports_disconnected_status_when_offline(
         self,
@@ -108,10 +109,10 @@ class TestsFlextDbOracleOracle:
         """Transaction succeeds and reports the current (disconnected) state."""
         result = offline_api.transaction()
 
-        assert result.success
+        tm.ok(result)
         status = result.value
-        assert status["connected"] is False
-        assert status["transaction_available"] is True
+        tm.that(status["connected"], eq=False)
+        tm.that(status["transaction_available"], eq=True)
 
     # -- Singer type-conversion contract ---------------------------------
 
@@ -134,8 +135,8 @@ class TestsFlextDbOracleOracle:
         """convert_singer_type maps each Singer type to its Oracle SQL type."""
         result = offline_api.convert_singer_type(singer_type)
 
-        assert result.success, result.error
-        assert expected_oracle_type in result.value
+        tm.ok(result)
+        tm.that(result.value, has=expected_oracle_type)
 
     def test_map_singer_schema_maps_properties_to_oracle_column_types(
         self,
@@ -152,11 +153,11 @@ class TestsFlextDbOracleOracle:
 
         result = offline_api.map_singer_schema(singer_schema)
 
-        assert result.success, result.error
+        tm.ok(result)
         mapped = result.value
-        assert "NUMBER" in mapped["id"]
-        assert "VARCHAR2" in mapped["name"]
-        assert "NUMBER(1)" in mapped["is_active"]
+        tm.that(mapped["id"], has="NUMBER")
+        tm.that(mapped["name"], has="VARCHAR2")
+        tm.that(mapped["is_active"], has="NUMBER(1)")
 
     # -- Full CRUD lifecycle against a real Oracle container -------------
 
@@ -174,8 +175,8 @@ class TestsFlextDbOracleOracle:
         with api1, api2:
             result1 = api1.query("SELECT 'API1' AS SOURCE FROM DUAL")
             result2 = api2.query("SELECT 'API2' AS SOURCE FROM DUAL")
-            assert result1.success, result1.error
-            assert result2.success, result2.error
+            tm.ok(result1)
+            tm.ok(result2)
             return self._row_mapping(result1.value[0]), self._row_mapping(
                 result2.value[0],
             )
@@ -188,10 +189,10 @@ class TestsFlextDbOracleOracle:
         """A connect->create->insert->query->update->drop lifecycle behaves per contract."""
         table = "E2E_TEST_TABLE"
         with FlextDbOracleApi(settings=real_oracle_config) as api:
-            assert api.test_connection().success
+            tm.ok(api.test_connection())
 
             schemas = api.fetch_schemas()
-            assert schemas.success, schemas.error
+            tm.ok(schemas)
             assert schemas.value
 
             create = api.execute_sql(
@@ -200,7 +201,7 @@ class TestsFlextDbOracleOracle:
                 " NAME VARCHAR2(100) NOT NULL,"
                 " EMAIL VARCHAR2(255))",
             )
-            assert create.success, create.error
+            tm.ok(create)
             try:
                 rows = [
                     (1, "John Doe", "'john@example.com'"),
@@ -212,41 +213,41 @@ class TestsFlextDbOracleOracle:
                         f"INSERT INTO {table} (ID, NAME, EMAIL) "
                         f"VALUES ({row_id}, '{name}', {email})",
                     )
-                    assert inserted.success, inserted.error
+                    tm.ok(inserted)
 
                 selected = api.query(f"SELECT * FROM {table} ORDER BY ID")
-                assert selected.success, selected.error
-                assert len(selected.value) == 3
+                tm.ok(selected)
+                tm.that(len(selected.value), eq=3)
 
                 counted = api.query(
                     f"SELECT COUNT(*) AS ROW_COUNT FROM {table}",
                 )
-                assert counted.success, counted.error
+                tm.ok(counted)
                 count_row = self._row_mapping(counted.value[0])
-                assert int(str(count_row["ROW_COUNT"])) == 3
+                tm.that(int(str(count_row["ROW_COUNT"])), eq=3)
 
                 metadata = api.fetch_table_metadata(table)
-                assert metadata.success, metadata.error
-                assert metadata.value.table_name == table
+                tm.ok(metadata)
+                tm.that(metadata.value.table_name, eq=table)
 
                 columns = api.fetch_columns(table)
-                assert columns.success, columns.error
+                tm.ok(columns)
                 assert len(columns.value) >= 3
 
                 primary_keys = api.fetch_primary_keys(table)
-                assert primary_keys.success, primary_keys.error
-                assert "ID" in primary_keys.value
+                tm.ok(primary_keys)
+                tm.that(primary_keys.value, has="ID")
 
                 updated = api.execute_statement(
                     f"UPDATE {table} SET EMAIL = 'bob@example.com' WHERE ID = 3",
                 )
-                assert updated.success, updated.error
+                tm.ok(updated)
 
                 verify = api.query(f"SELECT EMAIL FROM {table} WHERE ID = 3")
-                assert verify.success, verify.error
-                assert len(verify.value) == 1
+                tm.ok(verify)
+                tm.that(len(verify.value), eq=1)
                 verified_row = self._row_mapping(verify.value[0])
-                assert verified_row["EMAIL"] == "bob@example.com"
+                tm.that(verified_row["EMAIL"], eq="bob@example.com")
             finally:
                 api.execute_sql(f"DROP TABLE {table}")
 
@@ -259,8 +260,8 @@ class TestsFlextDbOracleOracle:
         api1 = FlextDbOracleApi(real_oracle_config, context_name="connection1")
         api2 = FlextDbOracleApi(real_oracle_config, context_name="connection2")
         row1, row2 = self._concurrent_source_rows(api1, api2)
-        assert row1["SOURCE"] == "API1"
-        assert row2["SOURCE"] == "API2"
+        tm.that(row1["SOURCE"], eq="API1")
+        tm.that(row2["SOURCE"], eq="API2")
 
     @pytest.mark.e2e
     @pytest.mark.benchmark
@@ -271,5 +272,5 @@ class TestsFlextDbOracleOracle:
         """A trivial benchmark query returns exactly one row from the database."""
         with FlextDbOracleApi(settings=real_oracle_config) as api:
             result = api.query("SELECT 1 AS ONE FROM DUAL")
-            assert result.success, result.error
-            assert len(result.value) == 1
+            tm.ok(result)
+            tm.that(len(result.value), eq=1)

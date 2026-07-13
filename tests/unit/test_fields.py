@@ -8,9 +8,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
+from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleSettings
-from tests.models import m
+from tests import m
 
 # NOTE (multi-agent): ADR-005 — settings fields live under settings.DbOracle.*;
 # the flat from_url/from_env factories and uppercase/business-rule validators
@@ -26,10 +27,10 @@ class TestsFlextDbOracleFields:
         """Defaults construct a valid, fully-populated Oracle settings object."""
         settings = FlextDbOracleSettings()
 
-        assert settings.DbOracle.host == "localhost"
-        assert settings.DbOracle.port == 1521
-        assert settings.DbOracle.service_name == "XEPDB1"
-        assert settings.DbOracle.username == "system"
+        tm.that(settings.DbOracle.host, eq="localhost")
+        tm.that(settings.DbOracle.port, eq=1521)
+        tm.that(settings.DbOracle.service_name, eq="XEPDB1")
+        tm.that(settings.DbOracle.username, eq="system")
 
     def test_settings_model_dump_round_trips_overrides(self) -> None:
         """Public model_dump reflects caller-provided namespace values."""
@@ -43,22 +44,22 @@ class TestsFlextDbOracleFields:
 
         dumped = settings.model_dump()
 
-        assert dumped["DbOracle"]["host"] == "db.example.com"
-        assert dumped["DbOracle"]["port"] == 1600
-        assert dumped["DbOracle"]["username"] == "app_user"
+        tm.that(dumped["DbOracle"]["host"], eq="db.example.com")
+        tm.that(dumped["DbOracle"]["port"], eq=1600)
+        tm.that(dumped["DbOracle"]["username"], eq="app_user")
 
     def test_service_name_round_trips_through_namespace(self) -> None:
         """service_name is stored verbatim inside the DbOracle namespace."""
         settings = FlextDbOracleSettings(DbOracle={"service_name": "MYPDB"})
 
-        assert settings.DbOracle.service_name == "MYPDB"
+        tm.that(settings.DbOracle.service_name, eq="MYPDB")
 
     def test_sid_only_configuration_is_accepted(self) -> None:
         """A legacy SID connection is valid inside the DbOracle namespace."""
         settings = FlextDbOracleSettings(DbOracle={"service_name": "", "sid": "legacy"})
 
-        assert settings.DbOracle.sid == "legacy"
-        assert settings.DbOracle.service_name == ""
+        tm.that(settings.DbOracle.sid, eq="legacy")
+        tm.that(settings.DbOracle.service_name, eq="")
 
     # NOTE: m.DbOracle.ConnectionStatus behavior is intentionally NOT covered
     # here. That model carries a `datetime` forward reference that is unresolved
@@ -82,17 +83,17 @@ class TestsFlextDbOracleFields:
             ],
         )
 
-        assert result.row_count == 2
-        assert result.column_count == 2
-        assert result.has_results is True
+        tm.that(result.row_count, eq=2)
+        tm.that(result.column_count, eq=2)
+        tm.that(result.has_results, eq=True)
 
     def test_empty_query_result_has_no_results(self) -> None:
         """An empty result reports zero rows and no results."""
         result = m.DbOracle.QueryResult(query="SELECT 1 FROM dual")
 
-        assert result.row_count == 0
-        assert result.has_results is False
-        assert result.column_count == 0
+        tm.that(result.row_count, eq=0)
+        tm.that(result.has_results, eq=False)
+        tm.that(result.column_count, eq=0)
 
     def test_query_result_rejects_row_column_mismatch(self) -> None:
         """A row whose width differs from the column count is rejected."""
@@ -109,15 +110,15 @@ class TestsFlextDbOracleFields:
         """RowData without values yields an empty tuple payload."""
         row = m.DbOracle.RowData()
 
-        assert tuple(row.values) == ()
+        tm.that(tuple(row.values), eq=())
 
     def test_column_metadata_exposes_declared_fields(self) -> None:
         """ColumnMetadata surfaces name, data_type, and a default nullable flag."""
         column = m.DbOracle.ColumnMetadata(name="ID", data_type="NUMBER")
 
-        assert column.name == "ID"
-        assert column.data_type == "NUMBER"
-        assert column.nullable is True
+        tm.that(column.name, eq="ID")
+        tm.that(column.data_type, eq="NUMBER")
+        tm.that(column.nullable, eq=True)
 
     def test_column_metadata_respects_non_nullable_flag(self) -> None:
         """Explicit nullable=False is preserved on the public field."""
@@ -127,4 +128,4 @@ class TestsFlextDbOracleFields:
             nullable=False,
         )
 
-        assert column.nullable is False
+        tm.that(column.nullable, eq=False)

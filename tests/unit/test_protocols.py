@@ -17,9 +17,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 import pytest
+from flext_tests import tm
 
 from flext_db_oracle import p
-from tests.typings import t
+from tests import t
 
 # (public name, protocol class, promised method surface) — the contract each
 # Oracle domain protocol advertises to implementers.
@@ -115,7 +116,7 @@ class TestsFlextDbOracleProtocols:
         implementer = _implementer(methods)
 
         # A runtime-checkable protocol answers isinstance without raising.
-        assert isinstance(implementer, protocol), name
+        tm.that(implementer, is_=protocol)
 
     @pytest.mark.parametrize(
         ("name", "protocol", "methods"),
@@ -131,7 +132,7 @@ class TestsFlextDbOracleProtocols:
         """An object with the full promised surface is recognised as implementer."""
         implementer = _implementer(methods)
 
-        assert isinstance(implementer, protocol), name
+        tm.that(implementer, is_=protocol)
 
     @pytest.mark.parametrize(
         ("name", "protocol", "methods"),

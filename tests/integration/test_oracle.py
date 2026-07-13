@@ -15,12 +15,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
+from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 if TYPE_CHECKING:
     from flext_db_oracle import m
-    from tests.typings import t
+    from tests import t
 
 
 @pytest.fixture
@@ -61,8 +62,8 @@ class TestsFlextDbOracleOracle:
         """Connect a public API instance or fail the real-Oracle contract."""
         api = FlextDbOracleApi(settings=settings)
         connect_result = api.connect()
-        assert connect_result.success, connect_result.error
-        assert api.connected() is True
+        tm.ok(connect_result)
+        tm.that(api.connected(), eq=True)
         return api
 
     # -------------------------------------------- container-free: settings API
@@ -71,35 +72,35 @@ class TestsFlextDbOracleOracle:
         mock_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Valid settings expose the supplied connection fields verbatim."""
-        assert mock_oracle_config.DbOracle.host == "mock-host"
-        assert mock_oracle_config.DbOracle.port == 1521
-        assert mock_oracle_config.DbOracle.service_name == "mock-service"
-        assert mock_oracle_config.DbOracle.username == "mock-user"
+        tm.that(mock_oracle_config.DbOracle.host, eq="mock-host")
+        tm.that(mock_oracle_config.DbOracle.port, eq=1521)
+        tm.that(mock_oracle_config.DbOracle.service_name, eq="mock-service")
+        tm.that(mock_oracle_config.DbOracle.username, eq="mock-user")
 
     def test_namespace_overrides_are_stored_verbatim(self) -> None:
         """Layer-0 namespace stores caller values without business-rule rewriting."""
         settings = FlextDbOracleSettings.model_validate(
             {"DbOracle": {"host": "db-host", "service_name": "svc"}},
         )
-        assert settings.DbOracle.host == "db-host"
-        assert settings.DbOracle.service_name == "svc"
+        tm.that(settings.DbOracle.host, eq="db-host")
+        tm.that(settings.DbOracle.service_name, eq="svc")
 
     def test_from_url_rejects_non_oracle_scheme(self) -> None:
         """``from_url`` returns a failure result for a non-Oracle scheme."""
         result = FlextDbOracleApi.from_url("postgres://u:p@host:5432/db")
-        assert result.failure
-        assert result.error is not None
-        assert "scheme" in result.error.lower()
+        tm.fail(result)
+        tm.that(result.error, none=False)
+        tm.that(result.error.lower(), has="scheme")
 
     def test_from_url_parses_valid_oracle_url_into_settings(self) -> None:
         """``from_url`` maps a valid Oracle URL to the corresponding fields."""
         result = FlextDbOracleApi.from_url("oracle://scott:tiger@dbhost:1600/ORCL")
-        assert result.success
+        tm.ok(result)
         api = result.unwrap()
-        assert api.settings.DbOracle.host == "dbhost"
-        assert api.settings.DbOracle.port == 1600
-        assert api.settings.DbOracle.username == "scott"
-        assert api.settings.DbOracle.service_name == "ORCL"
+        tm.that(api.settings.DbOracle.host, eq="dbhost")
+        tm.that(api.settings.DbOracle.port, eq=1600)
+        tm.that(api.settings.DbOracle.username, eq="scott")
+        tm.that(api.settings.DbOracle.service_name, eq="ORCL")
 
     # ------------------------------------------------- container-free: API API
     def test_api_starts_disconnected(
@@ -108,8 +109,8 @@ class TestsFlextDbOracleOracle:
     ) -> None:
         """A freshly built API reports a disconnected connection state."""
         api = FlextDbOracleApi(settings=mock_oracle_config)
-        assert api.connected() is False
-        assert api.connection is None
+        tm.that(api.connected(), eq=False)
+        tm.that(api.connection, none=True)
 
     def test_api_exposes_supplied_settings(
         self,
@@ -126,9 +127,9 @@ class TestsFlextDbOracleOracle:
     ) -> None:
         """``from_config`` yields an API bound to the given settings."""
         api = FlextDbOracleApi.from_config(mock_oracle_config)
-        assert isinstance(api, FlextDbOracleApi)
+        tm.that(api, is_=FlextDbOracleApi)
         assert api.settings is mock_oracle_config
-        assert api.connected() is False
+        tm.that(api.connected(), eq=False)
 
     def test_repr_reflects_host_and_disconnected_state(
         self,
@@ -137,8 +138,8 @@ class TestsFlextDbOracleOracle:
         """``repr`` advertises the host and the disconnected status."""
         api = FlextDbOracleApi(settings=mock_oracle_config)
         rendered = repr(api)
-        assert "mock-host" in rendered
-        assert "disconnected" in rendered
+        tm.that(rendered, has="mock-host")
+        tm.that(rendered, has="disconnected")
 
     # ---------------------------------------------- container-gated: real flow
     @pytest.mark.oracle
@@ -148,14 +149,14 @@ class TestsFlextDbOracleOracle:
     ) -> None:
         """Connecting and querying DUAL returns exactly one row on success."""
         connected_api = self._connect(oracle_config)
-        assert connected_api.test_connection().unwrap() is True
+        tm.that(connected_api.test_connection().unwrap(), eq=True)
 
         query_result = connected_api.query("SELECT SYSDATE FROM DUAL")
-        assert query_result.success, query_result.error
-        assert len(query_result.unwrap()) == 1
+        tm.ok(query_result)
+        tm.that(len(query_result.unwrap()), eq=1)
 
-        assert connected_api.disconnect().unwrap() is True
-        assert connected_api.connected() is False
+        tm.that(connected_api.disconnect().unwrap(), eq=True)
+        tm.that(connected_api.connected(), eq=False)
 
     @pytest.mark.oracle
     def test_metadata_queries_return_string_sequences(
@@ -166,19 +167,19 @@ class TestsFlextDbOracleOracle:
         connected_api = self._connect(oracle_config)
 
         schemas_result = connected_api.fetch_schemas()
-        assert schemas_result.success, schemas_result.error
+        tm.ok(schemas_result)
         schemas = schemas_result.unwrap()
         assert all(isinstance(name, str) for name in schemas)
         assert schemas, "A connected Oracle instance must expose at least one schema"
 
         tables_result = connected_api.fetch_tables(schemas[0])
-        assert tables_result.success, tables_result.error
+        tm.ok(tables_result)
         tables = tables_result.unwrap()
         assert all(isinstance(name, str) for name in tables)
 
         if tables:
             columns_result = connected_api.fetch_columns(tables[0])
-            assert columns_result.success, columns_result.error
+            tm.ok(columns_result)
             assert all(isinstance(col, str) for col in columns_result.unwrap())
 
         connected_api.disconnect()
@@ -200,7 +201,7 @@ class TestsFlextDbOracleOracle:
         connected_api = self._connect(oracle_config)
 
         result = connected_api.query(invalid_sql)
-        assert result.failure
+        tm.fail(result)
         assert result.error
 
         connected_api.disconnect()
@@ -213,9 +214,9 @@ class TestsFlextDbOracleOracle:
         """``with api`` yields a connected session and disconnects on exit."""
         api = FlextDbOracleApi(settings=oracle_config)
         with api as session:
-            assert session.connected() is True
-            assert session.query("SELECT 1 FROM DUAL").success
-        assert api.connected() is False
+            tm.that(session.connected(), eq=True)
+            tm.ok(session.query("SELECT 1 FROM DUAL"))
+        tm.that(api.connected(), eq=False)
 
     @pytest.mark.oracle
     def test_insert_update_delete_roundtrip_is_observable_via_queries(
@@ -224,39 +225,39 @@ class TestsFlextDbOracleOracle:
         test_database_setup: t.StrMapping,
     ) -> None:
         """DML mutations are observable through subsequent SELECT results."""
-        assert "test_table" in test_database_setup
+        tm.that(test_database_setup, has="test_table")
 
         insert = connected_oracle_api.execute_statement(
             "INSERT INTO test_table (id, name) VALUES (1, 'Test User')",
         )
-        assert insert.success, insert.error
+        tm.ok(insert)
 
         after_insert = connected_oracle_api.query(
             "SELECT id, name FROM test_table WHERE id = 1",
         )
-        assert after_insert.success, after_insert.error
+        tm.ok(after_insert)
         rows = after_insert.unwrap()
-        assert len(rows) == 1
-        assert self._cell(rows[0], "id") == "1"
-        assert self._cell(rows[0], "name") == "Test User"
+        tm.that(len(rows), eq=1)
+        tm.that(self._cell(rows[0], "id"), eq="1")
+        tm.that(self._cell(rows[0], "name"), eq="Test User")
 
         update = connected_oracle_api.execute_statement(
             "UPDATE test_table SET name = 'Updated User' WHERE id = 1",
         )
-        assert update.success, update.error
+        tm.ok(update)
         after_update = connected_oracle_api.query(
             "SELECT name FROM test_table WHERE id = 1",
         )
-        assert self._cell(after_update.unwrap()[0], "name") == "Updated User"
+        tm.that(self._cell(after_update.unwrap()[0], "name"), eq="Updated User")
 
         delete = connected_oracle_api.execute_statement(
             "DELETE FROM test_table WHERE id = 1",
         )
-        assert delete.success, delete.error
+        tm.ok(delete)
         remaining = connected_oracle_api.query(
             "SELECT COUNT(*) AS count FROM test_table",
         )
-        assert self._cell(remaining.unwrap()[0], "count", "count(*)") == "0"
+        tm.that(self._cell(remaining.unwrap()[0], "count", "count(*)"), eq="0")
 
     @pytest.mark.oracle
     def test_committed_row_is_visible_after_commit(
@@ -268,16 +269,16 @@ class TestsFlextDbOracleOracle:
         insert = connected_oracle_api.execute_statement(
             "INSERT INTO test_table (id, name) VALUES (100, 'Transaction Test')",
         )
-        assert insert.success, insert.error
-        assert connected_oracle_api.execute_statement("COMMIT").success
+        tm.ok(insert)
+        tm.ok(connected_oracle_api.execute_statement("COMMIT"))
 
         visible = connected_oracle_api.query(
             "SELECT name FROM test_table WHERE id = 100",
         )
-        assert visible.success, visible.error
+        tm.ok(visible)
         rows = visible.unwrap()
-        assert len(rows) == 1
-        assert self._cell(rows[0], "name") == "Transaction Test"
+        tm.that(len(rows), eq=1)
+        tm.that(self._cell(rows[0], "name"), eq="Transaction Test")
 
         connected_oracle_api.execute_statement("DELETE FROM test_table WHERE id = 100")
 
@@ -288,7 +289,7 @@ class TestsFlextDbOracleOracle:
     ) -> None:
         """A connected instance always reports at least one named schema."""
         result = connected_oracle_api.fetch_schemas()
-        assert result.success, result.error
+        tm.ok(result)
         schemas = result.unwrap()
         assert schemas
         assert all(isinstance(name, str) for name in schemas)
@@ -302,11 +303,11 @@ class TestsFlextDbOracleOracle:
         connected_api = self._connect(real_oracle_config)
 
         health_result = connected_api.fetch_health_status()
-        assert health_result.success, health_result.error
+        tm.ok(health_result)
         status = health_result.unwrap()
-        assert status.connected is True
-        assert status.healthy is True
-        assert status.status_description == "Connected"
+        tm.that(status.connected, eq=True)
+        tm.that(status.healthy, eq=True)
+        tm.that(status.status_description, eq="Connected")
         assert status.connection_age_seconds >= 0
 
-        assert connected_api.disconnect().success
+        tm.ok(connected_api.disconnect())

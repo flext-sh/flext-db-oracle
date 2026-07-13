@@ -15,6 +15,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 import pytest
+from flext_tests import tm
 
 from flext_core import e
 from flext_db_oracle.exceptions import FlextDbOracleExceptions, e as oracle_e
@@ -44,8 +45,8 @@ class TestsFlextDbOracleOracleExceptions:
         """Every family member preserves its message on the public surface."""
         exc = factory()
 
-        assert exc.message == "boom"
-        assert "boom" in str(exc)
+        tm.that(exc.message, eq="boom")
+        tm.that(str(exc), has="boom")
 
     @pytest.mark.parametrize(
         ("factory", "expected_base"),
@@ -74,9 +75,9 @@ class TestsFlextDbOracleOracleExceptions:
         """Each Oracle error is-a its flext-core category and an e.BaseError."""
         exc = factory()
 
-        assert isinstance(exc, expected_base)
-        assert isinstance(exc, e.BaseError)
-        assert isinstance(exc, Exception)
+        tm.that(exc, is_=expected_base)
+        tm.that(exc, is_=e.BaseError)
+        tm.that(exc, is_=Exception)
 
     def test_error_carries_oracle_metadata(self) -> None:
         """Error exposes Oracle error code and SQL state as public fields."""
@@ -86,8 +87,8 @@ class TestsFlextDbOracleOracleExceptions:
             sql_state="42S02",
         )
 
-        assert exc.oracle_error_code == "ORA-00942"
-        assert exc.sql_state == "42S02"
+        tm.that(exc.oracle_error_code, eq="ORA-00942")
+        tm.that(exc.sql_state, eq="42S02")
 
     def test_connection_error_carries_tns_metadata(self) -> None:
         """OracleConnectionError exposes TNS and connection-string context."""
@@ -97,8 +98,8 @@ class TestsFlextDbOracleOracleExceptions:
             connection_string="host:1521/XEPDB1",
         )
 
-        assert exc.tns_error == "TNS-12154"
-        assert exc.connection_string == "host:1521/XEPDB1"
+        tm.that(exc.tns_error, eq="TNS-12154")
+        tm.that(exc.connection_string, eq="host:1521/XEPDB1")
 
     def test_processing_error_carries_operation_metadata(self) -> None:
         """ProcessingError exposes operation type and processing stage."""
@@ -108,8 +109,8 @@ class TestsFlextDbOracleOracleExceptions:
             processing_stage="parse",
         )
 
-        assert exc.operation_type == "INSERT"
-        assert exc.processing_stage == "parse"
+        tm.that(exc.operation_type, eq="INSERT")
+        tm.that(exc.processing_stage, eq="parse")
 
     def test_timeout_error_carries_query_metadata(self) -> None:
         """OracleTimeoutError exposes query id and elapsed time."""
@@ -119,8 +120,8 @@ class TestsFlextDbOracleOracleExceptions:
             elapsed_time=1.5,
         )
 
-        assert exc.query_id == "q-42"
-        assert exc.elapsed_time == pytest.approx(1.5)
+        tm.that(exc.query_id, eq="q-42")
+        tm.that(exc.elapsed_time, eq=pytest.approx(1.5))
 
     @pytest.mark.parametrize(
         "factory",
@@ -168,8 +169,8 @@ class TestsFlextDbOracleOracleExceptions:
             _raise()
 
         assert caught.value is exc
-        assert exc.tns_error == "TNS-12541"
-        assert "unreachable" in str(caught.value)
+        tm.that(exc.tns_error, eq="TNS-12541")
+        tm.that(str(caught.value), has="unreachable")
 
     def test_raise_from_preserves_cause_chain(self) -> None:
         """Wrapping a driver error preserves the original via __cause__."""
@@ -189,4 +190,4 @@ class TestsFlextDbOracleOracleExceptions:
             _translate()
 
         assert caught.value.__cause__ is root
-        assert caught.value.oracle_error_code == "ORA-01017"
+        tm.that(caught.value.oracle_error_code, eq="ORA-01017")
