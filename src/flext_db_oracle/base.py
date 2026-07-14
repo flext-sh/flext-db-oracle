@@ -63,7 +63,7 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
 
     @property
     def db_config(self) -> FlextDbOracleSettings:
-        """Return initialized Oracle database configuration."""
+        """The initialized Oracle database configuration."""
         settings = self._db_config
         if settings is None:
             msg = "Database configuration not initialized"

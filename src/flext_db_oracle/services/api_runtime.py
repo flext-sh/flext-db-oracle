@@ -78,12 +78,12 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     @property
     @override
     def settings(self) -> FlextDbOracleSettings:
-        """Get the configuration."""
+        """The configuration."""
         return self._oracle_config
 
     @property
     def connection(self) -> FlextDbOracleServices | None:
-        """Get connection value - public interface."""
+        """The connection value - public interface."""
         return self._services if self._services.connected() else None
 
     @override
@@ -93,12 +93,12 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
 
     @property
     def oracle_config(self) -> FlextDbOracleSettings:
-        """Get the Oracle configuration."""
+        """The Oracle configuration."""
         return self._oracle_config
 
     @property
     def oracle_services(self) -> FlextDbOracleServices:
-        """Get the Oracle services instance."""
+        """The Oracle services instance."""
         return self._services
 
     @classmethod

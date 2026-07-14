@@ -60,7 +60,7 @@ class FlextDbOracleClient(s):
 
     @property
     def oracle_config(self) -> FlextDbOracleSettings:
-        """Get the Oracle configuration."""
+        """The Oracle configuration."""
         return self._oracle_config
 
     @classmethod
