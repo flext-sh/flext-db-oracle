@@ -14,7 +14,12 @@ from sqlalchemy import (
     create_engine,
 )
 
-from flext_db_oracle import c, m, p, r, settings, t, u
+# mro-6int (claude-ulw): import aliases from upstream (flext_core/flext_cli) and
+# the settings singleton from the concrete _settings leaf, not the own package
+# facade, to break the flext_db_oracle package-init circular import.
+from flext_cli import m, p, r, t, u
+from flext_db_oracle.constants import FlextDbOracleConstants as c
+from flext_db_oracle._settings import settings
 
 if TYPE_CHECKING:
     import contextlib
