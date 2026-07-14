@@ -5,163 +5,206 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import (
-    build_lazy_import_map,
-    install_lazy_exports,
-    merge_lazy_imports,
-)
+from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 from flext_db_oracle.__version__ import (
-    __author__,
-    __author_email__,
-    __description__,
-    __license__,
-    __title__,
-    __url__,
-    __version__,
-    __version_info__,
+    __author__ as __author__,
+    __author_email__ as __author_email__,
+    __description__ as __description__,
+    __license__ as __license__,
+    __title__ as __title__,
+    __url__ as __url__,
+    __version__ as __version__,
+    __version_info__ as __version_info__,
 )
 
 if TYPE_CHECKING:
-    from flext_core import (
+    from flext_core import d, e, h, r, x
+
+    from ._config import FlextDbOracleConfig, config
+    from ._models.password import FlextDbOraclePassword
+    from ._settings import FlextDbOracleSettings, settings
+    from ._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
+    from .api import FlextDbOracleApi, db_oracle
+    from .base import FlextDbOracleServiceBase, s
+    from .client import FlextDbOracleClient, client
+    from .constants import FlextDbOracleConstants, FlextDbOracleConstants as c
+    from .dispatcher import FlextDbOracleDispatcher
+    from .exceptions import FlextDbOracleExceptions
+    from .models import FlextDbOracleModels, FlextDbOracleModels as m
+    from .protocols import FlextDbOracleProtocols, FlextDbOracleProtocols as p
+    from .services.api_runtime import FlextDbOracleApiRuntime
+    from .services.connection import FlextDbOracleServiceConnection
+    from .services.facade import FlextDbOracleServices
+    from .services.plugin import FlextDbOracleServicePlugin
+    from .services.query import FlextDbOracleServiceQuery
+    from .services.schema import FlextDbOracleServiceSchema
+    from .services.singer import FlextDbOracleServiceSinger
+    from .services.sql_builder import FlextDbOracleServiceSqlBuilder
+    from .typings import FlextDbOracleTypes, FlextDbOracleTypes as t
+    from .utilities import FlextDbOracleUtilities, FlextDbOracleUtilities as u
+
+    _ = (
+        c,
+        FlextDbOracleConstants,
+        t,
+        FlextDbOracleTypes,
+        p,
+        FlextDbOracleProtocols,
+        m,
+        FlextDbOracleModels,
+        u,
+        FlextDbOracleUtilities,
         d,
         e,
         h,
         r,
         x,
+        s,
+        FlextDbOracleServiceBase,
+        FlextDbOracleConfig,
+        config,
+        FlextDbOraclePassword,
+        FlextDbOracleSettings,
+        settings,
+        FlextDbOracleUtilitiesDbOracle,
+        FlextDbOracleApi,
+        db_oracle,
+        FlextDbOracleClient,
+        client,
+        FlextDbOracleDispatcher,
+        FlextDbOracleExceptions,
+        FlextDbOracleApiRuntime,
+        FlextDbOracleServiceConnection,
+        FlextDbOracleServices,
+        FlextDbOracleServicePlugin,
+        FlextDbOracleServiceQuery,
+        FlextDbOracleServiceSchema,
+        FlextDbOracleServiceSinger,
+        FlextDbOracleServiceSqlBuilder,
     )
-    from flext_db_oracle._settings import (
-        FlextDbOracleSettings as FlextDbOracleSettings,
-        settings as settings,
-    )
-    from flext_db_oracle.api import (
-        FlextDbOracleApi as FlextDbOracleApi,
-        db_oracle as db_oracle,
-    )
-    from flext_db_oracle.base import (
-        FlextDbOracleServiceBase as FlextDbOracleServiceBase,
-        s as s,
-    )
-    from flext_db_oracle.constants import (
-        FlextDbOracleConstants as FlextDbOracleConstants,
-        c as c,
-    )
-    from flext_db_oracle.dispatcher import (
-        FlextDbOracleDispatcher as FlextDbOracleDispatcher,
-    )
-    from flext_db_oracle.exceptions import (
-        FlextDbOracleExceptions as FlextDbOracleExceptions,
-    )
-    from flext_db_oracle.models import (
-        FlextDbOracleModels as FlextDbOracleModels,
-        m as m,
-    )
-    from flext_db_oracle.protocols import (
-        FlextDbOracleProtocols as FlextDbOracleProtocols,
-        p as p,
-    )
-    from flext_db_oracle.services.api_runtime import (
-        FlextDbOracleApiRuntime as FlextDbOracleApiRuntime,
-    )
-    from flext_db_oracle.services.connection import (
-        FlextDbOracleServiceConnection as FlextDbOracleServiceConnection,
-    )
-    from flext_db_oracle.services.facade import (
-        FlextDbOracleServices as FlextDbOracleServices,
-    )
-    from flext_db_oracle.services.plugin import (
-        FlextDbOracleServicePlugin as FlextDbOracleServicePlugin,
-    )
-    from flext_db_oracle.services.query import (
-        FlextDbOracleServiceQuery as FlextDbOracleServiceQuery,
-    )
-    from flext_db_oracle.services.schema import (
-        FlextDbOracleServiceSchema as FlextDbOracleServiceSchema,
-    )
-    from flext_db_oracle.services.singer import (
-        FlextDbOracleServiceSinger as FlextDbOracleServiceSinger,
-    )
-    from flext_db_oracle.services.sql_builder import (
-        FlextDbOracleServiceSqlBuilder as FlextDbOracleServiceSqlBuilder,
-    )
-    from flext_db_oracle.typings import FlextDbOracleTypes as FlextDbOracleTypes, t as t
-    from flext_db_oracle.utilities import (
-        FlextDbOracleUtilities as FlextDbOracleUtilities,
-        u as u,
-    )
-_LAZY_IMPORTS = merge_lazy_imports(
-    (".services",),
-    build_lazy_import_map(
-        {
-            "._settings": ("FlextDbOracleSettings", "settings"),
-            ".api": (
-                "FlextDbOracleApi",
-                "db_oracle",
-            ),
-            ".base": (
-                "FlextDbOracleServiceBase",
-                "s",
-            ),
-            ".constants": (
-                "FlextDbOracleConstants",
-                "c",
-            ),
-            ".dispatcher": ("FlextDbOracleDispatcher",),
-            ".exceptions": ("FlextDbOracleExceptions",),
-            ".models": (
-                "FlextDbOracleModels",
-                "m",
-            ),
-            ".protocols": (
-                "FlextDbOracleProtocols",
-                "p",
-            ),
-            ".services.api_runtime": ("FlextDbOracleApiRuntime",),
-            ".services.connection": ("FlextDbOracleServiceConnection",),
-            ".services.facade": ("FlextDbOracleServices",),
-            ".services.plugin": ("FlextDbOracleServicePlugin",),
-            ".services.query": ("FlextDbOracleServiceQuery",),
-            ".services.schema": ("FlextDbOracleServiceSchema",),
-            ".services.singer": ("FlextDbOracleServiceSinger",),
-            ".services.sql_builder": ("FlextDbOracleServiceSqlBuilder",),
-            ".typings": (
-                "FlextDbOracleTypes",
-                "t",
-            ),
-            ".utilities": (
-                "FlextDbOracleUtilities",
-                "u",
-            ),
-            "flext_core._root_typing_parts.facades": (
-                "d",
-                "e",
-                "h",
-                "r",
-                "x",
-            ),
-        },
+
+
+_LAZY_MODULES: dict[str, tuple[str, ...]] = {
+    "._config": (
+        "FlextDbOracleConfig",
+        "config",
     ),
-    exclude_names=(
-        "cleanup_submodule_namespace",
-        "install_lazy_exports",
-        "lazy_getattr",
-        "logger",
-        "merge_lazy_imports",
-        "output",
-        "output_reporting",
-        "pytest_addoption",
-        "pytest_collect_file",
-        "pytest_collection_modifyitems",
-        "pytest_configure",
-        "pytest_runtest_setup",
-        "pytest_runtest_teardown",
-        "pytest_sessionfinish",
-        "pytest_sessionstart",
-        "pytest_terminal_summary",
-        "pytest_warning_recorded",
+    "._models.password": ("FlextDbOraclePassword",),
+    "._settings": (
+        "FlextDbOracleSettings",
+        "settings",
     ),
-    module_name=__name__,
+    "._utilities.db_oracle": ("FlextDbOracleUtilitiesDbOracle",),
+    ".api": (
+        "FlextDbOracleApi",
+        "db_oracle",
+    ),
+    ".base": (
+        "FlextDbOracleServiceBase",
+        "s",
+    ),
+    ".client": (
+        "FlextDbOracleClient",
+        "client",
+    ),
+    ".constants": (
+        "FlextDbOracleConstants",
+        "c",
+    ),
+    ".dispatcher": ("FlextDbOracleDispatcher",),
+    ".exceptions": ("FlextDbOracleExceptions",),
+    ".models": (
+        "FlextDbOracleModels",
+        "m",
+    ),
+    ".protocols": (
+        "FlextDbOracleProtocols",
+        "p",
+    ),
+    ".services.api_runtime": ("FlextDbOracleApiRuntime",),
+    ".services.connection": ("FlextDbOracleServiceConnection",),
+    ".services.facade": ("FlextDbOracleServices",),
+    ".services.plugin": ("FlextDbOracleServicePlugin",),
+    ".services.query": ("FlextDbOracleServiceQuery",),
+    ".services.schema": ("FlextDbOracleServiceSchema",),
+    ".services.singer": ("FlextDbOracleServiceSinger",),
+    ".services.sql_builder": ("FlextDbOracleServiceSqlBuilder",),
+    ".typings": (
+        "FlextDbOracleTypes",
+        "t",
+    ),
+    ".utilities": (
+        "FlextDbOracleUtilities",
+        "u",
+    ),
+    "flext_core": (
+        "d",
+        "e",
+        "h",
+        "r",
+        "x",
+    ),
+}
+
+
+_LAZY_ALIAS_GROUPS: dict[str, tuple[tuple[str, str], ...]] = {}
+
+
+_LAZY_IMPORTS = build_lazy_import_map(
+    _LAZY_MODULES,
+    alias_groups=_LAZY_ALIAS_GROUPS,
+    sort_keys=False,
 )
 
+_DIRECT_IMPORTS: tuple[str, ...] = (
+    "FlextDbOracleApi",
+    "FlextDbOracleApiRuntime",
+    "FlextDbOracleClient",
+    "FlextDbOracleConfig",
+    "FlextDbOracleConstants",
+    "FlextDbOracleDispatcher",
+    "FlextDbOracleExceptions",
+    "FlextDbOracleModels",
+    "FlextDbOraclePassword",
+    "FlextDbOracleProtocols",
+    "FlextDbOracleServiceBase",
+    "FlextDbOracleServiceConnection",
+    "FlextDbOracleServicePlugin",
+    "FlextDbOracleServiceQuery",
+    "FlextDbOracleServiceSchema",
+    "FlextDbOracleServiceSinger",
+    "FlextDbOracleServiceSqlBuilder",
+    "FlextDbOracleServices",
+    "FlextDbOracleSettings",
+    "FlextDbOracleTypes",
+    "FlextDbOracleUtilities",
+    "FlextDbOracleUtilitiesDbOracle",
+    "__author__",
+    "__author_email__",
+    "__description__",
+    "__license__",
+    "__title__",
+    "__url__",
+    "__version__",
+    "__version_info__",
+    "build_lazy_import_map",
+    "c",
+    "client",
+    "config",
+    "d",
+    "db_oracle",
+    "e",
+    "h",
+    "install_lazy_exports",
+    "m",
+    "p",
+    "r",
+    "s",
+    "settings",
+    "t",
+    "u",
+    "x",
+)
 
 __all__: tuple[str, ...] = (
     "FlextDbOracleApi",
