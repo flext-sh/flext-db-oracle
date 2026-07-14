@@ -31,7 +31,7 @@ class FlextDbOracleServices(
     @property
     @override
     def settings(self) -> FlextDbOracleSettings:
-        """Return the typed Oracle settings bound to this services facade."""
+        """The typed Oracle settings bound to this services facade."""
         return self.db_config
 
     @override
