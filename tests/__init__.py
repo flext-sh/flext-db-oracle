@@ -22,12 +22,12 @@ if TYPE_CHECKING:
     )
     from tests.protocols import (
         TestsFlextDbOracleProtocols as TestsFlextDbOracleProtocols,
-        p as p,
+        p,
     )
     from tests.typings import TestsFlextDbOracleTypes as TestsFlextDbOracleTypes, t as t
     from tests.utilities import (
         TestsFlextDbOracleUtilities as TestsFlextDbOracleUtilities,
-        u as u,
+        u,
     )
 
 _LAZY_IMPORTS = build_lazy_import_map(
