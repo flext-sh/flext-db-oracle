@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, MutableSequence, Sequence
+from collections.abc import MutableSequence, Sequence
 from typing import TYPE_CHECKING, Self, override
 from urllib.parse import parse_qs, urlparse
 
@@ -321,7 +321,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         singer_schema: m.DbOracle.SingerSchema | t.JsonMapping,
     ) -> p.Result[t.StrMapping]:
         """Map Singer JSON Schema to Oracle table schema."""
-        if not isinstance(singer_schema, (Mapping, m.DbOracle.SingerSchema)):
+        if not singer_schema:
             return r[t.StrMapping].fail("Schema must be a mapping")
         return self._services.map_singer_schema(singer_schema).map(
             lambda value: value.mapping,
