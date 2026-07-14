@@ -10,12 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
+from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.services.api_runtime import FlextDbOracleApiRuntime
-
-if TYPE_CHECKING:
-    from flext_db_oracle import FlextDbOracleSettings
 
 
 class FlextDbOracleApi(FlextDbOracleApiRuntime):

@@ -6,14 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from flext_tests import FlextTestsModels
 
 from flext_db_oracle import m
-
-if TYPE_CHECKING:
-    from tests import t
+from tests import t
 
 
 class TestsFlextDbOracleModels(FlextTestsModels, m):

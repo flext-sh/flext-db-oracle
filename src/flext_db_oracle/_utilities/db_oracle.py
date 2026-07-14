@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 from collections.abc import Mapping
 from enum import StrEnum
-from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     Connection as SAConnection,
@@ -13,6 +13,7 @@ from sqlalchemy import (
     TextClause,
     create_engine,
 )
+from sqlalchemy.engine import CursorResult
 
 # mro-6int (claude-ulw): import aliases from upstream (flext_core/flext_cli) and
 # the settings singleton from the concrete _settings leaf, not the own package
@@ -20,11 +21,6 @@ from sqlalchemy import (
 from flext_cli import m, p, r, t, u
 from flext_db_oracle._settings import settings
 from flext_db_oracle.constants import FlextDbOracleConstants as c
-
-if TYPE_CHECKING:
-    import contextlib
-
-    from sqlalchemy.engine import CursorResult
 
 
 class FlextDbOracleUtilitiesDbOracle:

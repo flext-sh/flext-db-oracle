@@ -12,16 +12,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pytest
 from flext_tests import tm
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-
-if TYPE_CHECKING:
-    from flext_db_oracle import m
-    from tests import t
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, m
+from tests import t
 
 
 @pytest.fixture

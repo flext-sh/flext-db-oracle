@@ -8,17 +8,15 @@ from __future__ import annotations
 
 import os
 import time
-from typing import TYPE_CHECKING, ClassVar
+from collections.abc import (
+    MutableMapping,
+)
+from typing import ClassVar
 
 from flext_tests import FlextTestsUtilities, e, tk
 
 from flext_db_oracle import u
 from tests import c, m, t
-
-if TYPE_CHECKING:
-    from collections.abc import (
-        MutableMapping,
-    )
 
 
 class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):

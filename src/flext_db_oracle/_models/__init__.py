@@ -3,6 +3,4 @@
 
 from __future__ import annotations
 
-from .password import FlextDbOraclePassword as FlextDbOraclePassword
-
-__all__: tuple[str, ...] = ("FlextDbOraclePassword",)
+__all__: tuple[str, ...] = ()

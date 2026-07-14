@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import types
 from collections.abc import MutableSequence, Sequence
-from typing import TYPE_CHECKING, Self, override
+from typing import Self, override
 from urllib.parse import parse_qs, urlparse
 
 from flext_db_oracle import (
@@ -18,9 +19,6 @@ from flext_db_oracle import (
     u,
 )
 from flext_db_oracle.services.facade import FlextDbOracleServices
-
-if TYPE_CHECKING:
-    import types
 
 
 class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
@@ -74,12 +72,6 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     def _dispatch_enabled(self) -> bool:
         """Check if dispatcher is enabled."""
         return True
-
-    @property
-    @override
-    def settings(self) -> FlextDbOracleSettings:
-        """The configuration."""
-        return self._oracle_config
 
     @property
     def connection(self) -> FlextDbOracleServices | None:
