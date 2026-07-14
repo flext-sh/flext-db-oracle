@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 from flext_cli import u
-from flext_core import FlextUtilitiesReliability
 from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
 
 
 class FlextDbOracleUtilities(
     u,
-    FlextUtilitiesReliability,
     FlextDbOracleUtilitiesDbOracle,
 ):
     """FlextDbOracle utilities extending FlextUtilities with Oracle-specific helpers.
