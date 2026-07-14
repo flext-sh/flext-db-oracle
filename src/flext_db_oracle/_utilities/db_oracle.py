@@ -18,8 +18,8 @@ from sqlalchemy import (
 # the settings singleton from the concrete _settings leaf, not the own package
 # facade, to break the flext_db_oracle package-init circular import.
 from flext_cli import m, p, r, t, u
-from flext_db_oracle.constants import FlextDbOracleConstants as c
 from flext_db_oracle._settings import settings
+from flext_db_oracle.constants import FlextDbOracleConstants as c
 
 if TYPE_CHECKING:
     import contextlib
