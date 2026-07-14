@@ -9,9 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-)
 from typing import override
 
 from sqlalchemy import (
@@ -91,8 +88,6 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     def build_create_index_statement(self, config: t.JsonMapping) -> p.Result[str]:
         """Build Oracle CREATE INDEX statement from configuration."""
         try:
-            if not isinstance(config, Mapping):
-                return r[str].fail("Invalid CREATE INDEX settings payload")
             settings = m.DbOracle.CreateIndexConfig.model_validate(config)
             return self._create_index_sql(settings)
         except c.ValidationError as e:
