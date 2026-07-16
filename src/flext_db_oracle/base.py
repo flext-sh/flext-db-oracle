@@ -45,8 +45,8 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
 
     _db_config: FlextDbOracleSettings | None = u.PrivateAttr()
     _engine: SAEngine | None = u.PrivateAttr(default_factory=lambda: None)
-    _operations: MutableSequence[m.DbOracle.OperationRecord] = u.PrivateAttr(
-        default_factory=list[m.DbOracle.OperationRecord],
+    _operations: MutableSequence[p.DbOracle.OperationRecord] = u.PrivateAttr(
+        default_factory=list[p.DbOracle.OperationRecord],
     )
     _plugins: MutableMapping[str, t.JsonPayload] = u.PrivateAttr(
         default_factory=dict[str, t.JsonPayload],
@@ -71,7 +71,7 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
         """Check if the service has an active SQLAlchemy engine."""
         return self._engine is not None
 
-    def _parse_count_from_rows(self, rows: t.SequenceOf[m.Dict]) -> int:
+    def _parse_count_from_rows(self, rows: t.SequenceOf[p.Dict]) -> int:
         """Parse COUNT(*) value from normalized query rows."""
         if not rows:
             return 0
@@ -95,7 +95,7 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
         self,
         sql: str,
         params: m.ConfigMap | None = None,
-    ) -> p.Result[Sequence[m.Dict]]:
+    ) -> p.Result[Sequence[p.Dict]]:
         """Execute a SQL query in composed service facades."""
         del sql, params
         msg = "execute_query requires the composed DB Oracle service facade"

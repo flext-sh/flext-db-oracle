@@ -60,13 +60,13 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         self,
         sql: str,
         params: m.ConfigMap | None = None,
-    ) -> p.Result[Sequence[m.Dict]]:
+    ) -> p.Result[Sequence[p.Dict]]:
         """Execute SQL query and return results."""
         if not self.connected():
-            return r[Sequence[m.Dict]].fail("Not connected to database")
+            return r[Sequence[p.Dict]].fail("Not connected to database")
         engine_result = self._get_engine()
         if engine_result.failure:
-            return r[Sequence[m.Dict]].fail(
+            return r[Sequence[p.Dict]].fail(
                 engine_result.error or "Failed to get database engine",
             )
         try:
@@ -76,10 +76,10 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
                     text(sql),
                     params,
                 )
-                rows: t.SequenceOf[m.Dict] = self._normalize_query_rows(result)
-                return r[Sequence[m.Dict]].ok(rows)
+                rows: t.SequenceOf[p.Dict] = self._normalize_query_rows(result)
+                return r[Sequence[p.Dict]].ok(rows)
         except c.DbOracle.EXC_DB_BROAD as e:
-            return r[Sequence[m.Dict]].fail_op("Query execution", e)
+            return r[Sequence[p.Dict]].fail_op("Query execution", e)
 
     def execute_statement(
         self,
@@ -108,7 +108,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         self,
         sql: str,
         params: m.ConfigMap | None = None,
-    ) -> p.Result[m.Dict | None]:
+    ) -> p.Result[p.Dict | None]:
         """Execute query and return first result."""
         return self.execute_query(sql, params).map(
             lambda rows: rows[0] if rows else None,
@@ -117,17 +117,17 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     def _normalize_query_rows(
         self,
         query_result: CursorResult[tuple[t.JsonValue, ...]],
-    ) -> t.SequenceOf[m.Dict]:
+    ) -> t.SequenceOf[p.Dict]:
         """Normalize SQLAlchemy query result rows into typed mapping models."""
         mapping_result = query_result.mappings()
         rows = mapping_result.all()
-        result: t.SequenceOf[m.Dict] = [
+        result: t.SequenceOf[p.Dict] = [
             m.Dict(root={str(key): str(val) for key, val in dict(row).items()})
             for row in rows
         ]
         return result
 
-    def _normalize_row(self, row: t.JsonMapping) -> m.Dict:
+    def _normalize_row(self, row: t.JsonMapping) -> p.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
         payload: dict[str, t.JsonPayload] = dict(row)
         return m.Dict(root=payload)

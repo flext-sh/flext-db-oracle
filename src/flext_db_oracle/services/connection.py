@@ -116,10 +116,10 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         with self._engine_connect(engine) as connection:
             yield connection
 
-    def fetch_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
+    def fetch_connection_status(self) -> p.Result[p.DbOracle.ConnectionStatus]:
         """Get connection status - simplified."""
         now = u.now()
-        return r[m.DbOracle.ConnectionStatus].ok(
+        return r[p.DbOracle.ConnectionStatus].ok(
             m.DbOracle.ConnectionStatus(
                 connected=self.connected(),
                 last_check=now,
@@ -135,9 +135,9 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             ),
         )
 
-    def health_check(self) -> p.Result[m.DbOracle.HealthStatus]:
+    def health_check(self) -> p.Result[p.DbOracle.HealthStatus]:
         """Perform health check."""
-        return r[m.DbOracle.HealthStatus].ok(
+        return r[p.DbOracle.HealthStatus].ok(
             m.DbOracle.HealthStatus(
                 status=c.HealthStatus.HEALTHY.value
                 if self.connected()

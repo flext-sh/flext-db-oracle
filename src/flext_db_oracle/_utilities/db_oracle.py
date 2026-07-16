@@ -130,7 +130,7 @@ class FlextDbOracleUtilitiesDbOracle:
         return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
 
     @staticmethod
-    def validate_config_map(value: t.JsonValue | t.JsonMapping) -> m.ConfigMap | None:
+    def validate_config_map(value: t.JsonValue | t.JsonMapping) -> p.ConfigMap | None:
         """Validate arbitrary mapping input as ConfigMap."""
         if not isinstance(value, Mapping):
             return None
@@ -140,7 +140,7 @@ class FlextDbOracleUtilitiesDbOracle:
             return None
 
     @staticmethod
-    def normalize_params(params: m.ConfigMap | None) -> m.ConfigMap:
+    def normalize_params(params: m.ConfigMap | None) -> p.ConfigMap:
         """Normalize optional parameters into ConfigMap."""
         if params is not None:
             return params

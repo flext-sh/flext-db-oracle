@@ -50,7 +50,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
     def map_singer_schema(
         self,
         singer_schema: m.DbOracle.SingerSchema | t.JsonMapping,
-    ) -> p.Result[m.DbOracle.TypeMapping]:
+    ) -> p.Result[p.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified."""
         raw_properties: t.JsonDict = {}
         if isinstance(singer_schema, m.DbOracle.SingerSchema):
@@ -58,7 +58,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
         else:
             raw_props_value = singer_schema.get("properties", {})
             if not isinstance(raw_props_value, dict):
-                return r[m.DbOracle.TypeMapping].fail(
+                return r[p.DbOracle.TypeMapping].fail(
                     "Singer schema properties must be a mapping",
                 )
             raw_properties = raw_props_value
@@ -98,7 +98,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
         type_mapping = m.DbOracle.TypeMapping.model_validate({
             "mapping": normalized_mapping,
         })
-        return r[m.DbOracle.TypeMapping].ok(type_mapping)
+        return r[p.DbOracle.TypeMapping].ok(type_mapping)
 
 
 __all__: list[str] = ["FlextDbOracleServiceSinger"]

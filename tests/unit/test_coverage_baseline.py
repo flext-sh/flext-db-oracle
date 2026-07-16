@@ -212,7 +212,7 @@ class TestsFlextDbOracleCoverageBaseline:
         service: FlextDbOracleServices,
     ) -> None:
         """create_table_ddl compiles CREATE TABLE with the column definitions."""
-        columns: list[m.DbOracle.Column] = [
+        columns: list[p.DbOracle.Column] = [
             m.DbOracle.Column(name="ID", data_type="NUMBER", nullable=False),
         ]
         sql = tm.ok(service.create_table_ddl("ACCOUNTS", columns))

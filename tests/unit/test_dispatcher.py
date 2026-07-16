@@ -87,7 +87,7 @@ class TestsFlextDbOracleDispatcher:
     )
     def test_sql_command_parameters_default_to_none(
         self,
-        command_type: type[m.DbOracle.ExecuteQueryCommand],
+        command_type: type[p.DbOracle.ExecuteQueryCommand],
     ) -> None:
         """SQL commands omit parameters as None when none are supplied."""
         cmd = command_type(sql="SELECT 1 FROM DUAL")
@@ -106,7 +106,7 @@ class TestsFlextDbOracleDispatcher:
     )
     def test_sql_command_requires_sql(
         self,
-        command_type: type[m.DbOracle.ExecuteQueryCommand],
+        command_type: type[p.DbOracle.ExecuteQueryCommand],
     ) -> None:
         """SQL is a mandatory field; construction without it fails validation."""
         with pytest.raises(m.ValidationError):

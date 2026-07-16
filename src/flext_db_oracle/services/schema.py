@@ -47,7 +47,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         self,
         table_name: str,
         schema_name: str | None = None,
-    ) -> p.Result[Sequence[m.DbOracle.Column]]:
+    ) -> p.Result[Sequence[p.DbOracle.Column]]:
         """Get column information for Oracle table."""
         if schema_name:
             sql = "\nSELECT column_name, data_type, data_length, data_precision, data_scale, nullable\nFROM all_tab_columns\nWHERE table_name = UPPER(:table_name) AND owner = UPPER(:schema_name)\nORDER BY column_id\n"
@@ -135,10 +135,10 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         self,
         table_name: str,
         schema: str | None = None,
-    ) -> p.Result[m.DbOracle.TableMetadata]:
+    ) -> p.Result[p.DbOracle.TableMetadata]:
         """Get complete table metadata."""
 
-        def _fetch_metadata() -> m.DbOracle.TableMetadata:
+        def _fetch_metadata() -> p.DbOracle.TableMetadata:
             columns_result = self.fetch_columns(table_name, schema)
             if columns_result.failure:
                 raise RuntimeError(columns_result.error or "Failed to get columns")

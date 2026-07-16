@@ -25,7 +25,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):
     class Tests(FlextTestsUtilities.Tests):
         """Test-specific utilities."""
 
-        _PORT_BINDINGS_ADAPTER: ClassVar[m.TypeAdapter[t.StrMapping]] = m.TypeAdapter(
+        _PORT_BINDINGS_ADAPTER: ClassVar[p.TypeAdapter[t.StrMapping]] = m.TypeAdapter(
             t.StrMapping,
         )
 
@@ -101,7 +101,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):
             def register_plugin(
                 self,
                 plugin: m.Tests.StubPluginEntity,
-            ) -> m.Tests.StubResult:
+            ) -> p.Tests.StubResult:
                 """Register a plugin in the in-memory registry."""
                 self._registry[plugin.name] = plugin
                 return m.Tests.StubResult()
@@ -109,7 +109,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):
             def unregister_plugin(
                 self,
                 plugin_name: str,
-            ) -> m.Tests.StubResult:
+            ) -> p.Tests.StubResult:
                 """Remove a plugin from the in-memory registry."""
                 if plugin_name not in self._registry:
                     return m.Tests.StubResult(
@@ -121,14 +121,14 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):
 
             def list_plugins(
                 self,
-            ) -> t.SequenceOf[m.Tests.StubPluginEntity]:
+            ) -> t.SequenceOf[p.Tests.StubPluginEntity]:
                 """Return all registered plugins."""
                 return list(self._registry.values())
 
             def fetch_plugin(
                 self,
                 plugin_name: str,
-            ) -> m.Tests.StubPluginEntity | None:
+            ) -> p.Tests.StubPluginEntity | None:
                 """Return a plugin by name when present."""
                 return self._registry.get(plugin_name)
 
