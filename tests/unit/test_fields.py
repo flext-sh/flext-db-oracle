@@ -61,7 +61,7 @@ class TestsFlextDbOracleFields:
         tm.that(settings.DbOracle.sid, eq="legacy")
         tm.that(settings.DbOracle.service_name, eq="")
 
-    # NOTE: m.DbOracle.ConnectionStatus behavior is intentionally NOT covered
+    # NOTE: p.DbOracle.ConnectionStatus behavior is intentionally NOT covered
     # here. That model carries a `datetime` forward reference that is unresolved
     # at runtime (raises PydanticUserError demanding model_rebuild()), so it
     # cannot be instantiated through the public API in this environment. The

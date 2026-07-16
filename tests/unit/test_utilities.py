@@ -18,14 +18,14 @@ import pytest
 from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleSettings
-from tests import c, m, t, u
+from tests import c, m, p, t, u
 
 
 @pytest.mark.unit
 class TestsFlextDbOracleUtilitiesUnit:
     """Behavioral contract for u.DbOracle Oracle helper utilities."""
 
-    _JSON_RESULT_ADAPTER: m.TypeAdapter[
+    _JSON_RESULT_ADAPTER: p.TypeAdapter[
         t.SequenceOf[Mapping[str, int | str | bool]]
         | t.SequenceOf[t.StrMapping]
         | t.SequenceOf[t.IntMapping]

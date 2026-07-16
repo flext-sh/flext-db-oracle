@@ -179,7 +179,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
 
     def _assemble_connection_url(
         self,
-        password: m.DbOracle.Password | str,
+        password: p.DbOracle.Password | str,
     ) -> p.Result[str]:
         """Assemble Oracle connection URL from validated password."""
         encoded_password = quote_plus(str(password).encode())

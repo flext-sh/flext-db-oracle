@@ -20,7 +20,7 @@ import pytest
 from flext_tests import tm
 
 from flext_db_oracle import p
-from tests import t
+from tests import p, t
 
 # (public name, protocol class, promised method surface) — the contract each
 # Oracle domain protocol advertises to implementers.

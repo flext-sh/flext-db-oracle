@@ -19,7 +19,7 @@ from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, p
 from flext_db_oracle.services.facade import FlextDbOracleServices
-from tests import t
+from tests import p, t
 
 
 class TestsFlextDbOracleApi:

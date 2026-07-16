@@ -128,7 +128,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         return (
             u
             .try_(lambda: dict(parameters))
-            .map(lambda normalized: m.ConfigMap(root=normalized))
+            .map(lambda normalized: p.ConfigMap(root=normalized))
             .lash(
                 lambda error: r[p.ConfigMap].fail(f"Invalid query parameters: {error}"),
             )
@@ -310,7 +310,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
 
     def map_singer_schema(
         self,
-        singer_schema: m.DbOracle.SingerSchema | t.JsonMapping,
+        singer_schema: p.DbOracle.SingerSchema | t.JsonMapping,
     ) -> p.Result[t.StrMapping]:
         """Map Singer JSON Schema to Oracle table schema."""
         if not singer_schema:

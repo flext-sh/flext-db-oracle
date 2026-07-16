@@ -12,7 +12,7 @@ from flext_tests import tm
 from flext_db_oracle import (
     FlextDbOracleSettings,
 )
-from tests import c, m, u
+from tests import c, m, p, u
 
 
 @pytest.mark.unit

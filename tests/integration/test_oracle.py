@@ -15,8 +15,8 @@ from __future__ import annotations
 import pytest
 from flext_tests import tm
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, m
-from tests import t
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from tests import p, t
 
 
 @pytest.fixture
@@ -39,7 +39,7 @@ class TestsFlextDbOracleOracle:
 
     # ----------------------------------------------------------------- helpers
     @staticmethod
-    def _cell(row: m.Dict, *keys: str) -> str:
+    def _cell(row: p.Dict, *keys: str) -> str:
         """Read one column value from a query row via its public model dump.
 
         Oracle returns column names in varying case; probe the requested keys

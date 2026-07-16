@@ -59,7 +59,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     def execute_query(
         self,
         sql: str,
-        params: m.ConfigMap | None = None,
+        params: p.ConfigMap | None = None,
     ) -> p.Result[Sequence[p.Dict]]:
         """Execute SQL query and return results."""
         if not self.connected():
@@ -84,7 +84,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     def execute_statement(
         self,
         sql: str,
-        params: m.ConfigMap | None = None,
+        params: p.ConfigMap | None = None,
     ) -> p.Result[int]:
         """Execute SQL statement and return affected rows."""
         if not self.connected():
@@ -107,7 +107,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     def fetch_one(
         self,
         sql: str,
-        params: m.ConfigMap | None = None,
+        params: p.ConfigMap | None = None,
     ) -> p.Result[p.Dict | None]:
         """Execute query and return first result."""
         return self.execute_query(sql, params).map(

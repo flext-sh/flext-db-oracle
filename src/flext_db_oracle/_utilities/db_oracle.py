@@ -140,7 +140,7 @@ class FlextDbOracleUtilitiesDbOracle:
             return None
 
     @staticmethod
-    def normalize_params(params: m.ConfigMap | None) -> p.ConfigMap:
+    def normalize_params(params: p.ConfigMap | None) -> p.ConfigMap:
         """Normalize optional parameters into ConfigMap."""
         if params is not None:
             return params
@@ -234,7 +234,7 @@ class FlextDbOracleUtilitiesDbOracle:
         cls,
         connection: SAConnection,
         statement: TextClause,
-        parameters: m.ConfigMap | None = None,
+        parameters: p.ConfigMap | None = None,
     ) -> CursorResult[tuple[t.JsonValue, ...]]:
         """Execute statement on SQL connection."""
         normalized_params = cls.normalize_params(

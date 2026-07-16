@@ -77,7 +77,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         self,
         name: str,
         value: float,
-        tags: m.ConfigMap | t.JsonMapping | None = None,
+        tags: p.ConfigMap | t.JsonMapping | None = None,
     ) -> p.Result[bool]:
         """Record metric in the local service metrics registry."""
         if not name:
@@ -108,7 +108,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         duration: float = 0.0,
         *,
         success: bool = True,
-        metadata: m.ConfigMap | t.JsonMapping | None = None,
+        metadata: p.ConfigMap | t.JsonMapping | None = None,
     ) -> p.Result[bool]:
         """Track database operation for monitoring."""
 

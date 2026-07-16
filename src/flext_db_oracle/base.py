@@ -23,7 +23,6 @@ from sqlalchemy import (
 from flext_core import s
 from flext_db_oracle import (
     FlextDbOracleSettings,
-    m,
     p,
     r,
     t,
@@ -94,7 +93,7 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
     def execute_query(
         self,
         sql: str,
-        params: m.ConfigMap | None = None,
+        params: p.ConfigMap | None = None,
     ) -> p.Result[Sequence[p.Dict]]:
         """Execute a SQL query in composed service facades."""
         del sql, params

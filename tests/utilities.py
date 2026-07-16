@@ -100,7 +100,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):
 
             def register_plugin(
                 self,
-                plugin: m.Tests.StubPluginEntity,
+                plugin: p.Tests.StubPluginEntity,
             ) -> p.Tests.StubResult:
                 """Register a plugin in the in-memory registry."""
                 self._registry[plugin.name] = plugin

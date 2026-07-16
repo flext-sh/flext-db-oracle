@@ -17,9 +17,9 @@ from collections.abc import Mapping
 import pytest
 from flext_tests import tm
 
-from flext_db_oracle import FlextDbOracleSettings, m
+from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.api import FlextDbOracleApi
-from tests import t, u
+from tests import p, t, u
 
 _NOT_CONNECTED = "not connected to database"
 
@@ -156,7 +156,7 @@ class TestsFlextDbOracleOracle:
     # -- Full CRUD lifecycle against a real Oracle container -------------
 
     @staticmethod
-    def _row_mapping(row: m.Dict) -> Mapping[str, object]:
+    def _row_mapping(row: p.Dict) -> Mapping[str, object]:
         """Expose a query row's public mapping regardless of case handling."""
         return {key.upper(): value for key, value in row.root.items()}
 

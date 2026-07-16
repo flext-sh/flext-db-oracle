@@ -97,7 +97,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
     def _create_index_sql(
         self,
-        settings: m.DbOracle.CreateIndexConfig,
+        settings: p.DbOracle.CreateIndexConfig,
     ) -> p.Result[str]:
         """Compile CREATE INDEX SQL from validated settings."""
         if not settings.columns:
@@ -120,7 +120,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
     def _create_index_table(
         self,
-        settings: m.DbOracle.CreateIndexConfig,
+        settings: p.DbOracle.CreateIndexConfig,
     ) -> Table:
         """Build a SQLAlchemy table object for CREATE INDEX compilation."""
         table_name = self._normalize_identifier(settings.table_name)
@@ -238,7 +238,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         self,
         table_name: str,
         columns: t.StrSequence | None = None,
-        conditions: m.ConfigMap | t.JsonMapping | None = None,
+        conditions: p.ConfigMap | t.JsonMapping | None = None,
         schema_name: str | None = None,
     ) -> p.Result[str]:
         """Build SELECT query through SQLAlchemy Core Oracle compilation."""
@@ -367,7 +367,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
     def _normalize_table_column(
         self,
-        column: m.DbOracle.Column | t.JsonMapping,
+        column: p.DbOracle.Column | t.JsonMapping,
     ) -> p.DbOracle.Column:
         """Normalize one raw column payload into a Column model."""
         if isinstance(column, m.DbOracle.Column):

@@ -35,8 +35,8 @@ class FlextDbOracleClient(s):
         description="Active Oracle API connection instance",
         validate_default=True,
     )
-    user_preferences: m.ConfigMap = u.Field(
-        default_factory=lambda: m.ConfigMap(
+    user_preferences: p.ConfigMap = u.Field(
+        default_factory=lambda: p.ConfigMap(
             root={
                 "default_output_format": "table",
                 "show_execution_time": "True",
@@ -317,7 +317,7 @@ class FlextDbOracleClient(s):
 
     def _adapt_data_for_table(
         self,
-        data: m.ConfigMap,
+        data: p.ConfigMap,
     ) -> p.Result[Sequence[p.ConfigMap]]:
         """Adapt data for table display.
 
@@ -466,7 +466,7 @@ class FlextDbOracleClient(s):
             ),
         )
 
-    def _format_as_json(self, data: m.ConfigMap) -> p.Result[str]:
+    def _format_as_json(self, data: p.ConfigMap) -> p.Result[str]:
         """Format data as JSON output.
 
         Returns:
@@ -482,7 +482,7 @@ class FlextDbOracleClient(s):
             ),
         ).map_error(lambda e: f"JSON formatting failed: {e}")
 
-    def _format_as_table(self, data: m.ConfigMap) -> p.Result[str]:
+    def _format_as_table(self, data: p.ConfigMap) -> p.Result[str]:
         """Format data as table output.
 
         Returns:
@@ -539,7 +539,7 @@ class FlextDbOracleClient(s):
         if self.current_connection is None:
             return r[p.ConfigMap].fail("No active database connection")
         return self.current_connection.fetch_health_status().map(
-            lambda status: m.ConfigMap(root=status.model_dump()),
+            lambda status: p.ConfigMap(root=status.model_dump()),
         )
 
     def _handle_list_schemas_operation(self) -> p.Result[p.ConfigMap]:
@@ -547,7 +547,7 @@ class FlextDbOracleClient(s):
         if self.current_connection is None:
             return r[p.ConfigMap].fail("No active database connection")
         return self.current_connection.fetch_schemas().map(
-            lambda schemas: m.ConfigMap.model_validate({
+            lambda schemas: p.ConfigMap.model_validate({
                 "root": {"schemas": list(schemas)},
             }),
         )
@@ -561,7 +561,7 @@ class FlextDbOracleClient(s):
             return r[p.ConfigMap].fail("No active database connection")
         schema = str(params.get("schema", ""))
         return self.current_connection.fetch_tables(schema or None).map(
-            lambda tables: m.ConfigMap.model_validate({
+            lambda tables: p.ConfigMap.model_validate({
                 "root": {"tables": list(tables)},
             }),
         )
@@ -592,7 +592,7 @@ class FlextDbOracleClient(s):
             params_map.root,
         )
         return self.current_connection.query(sql, query_params).map(
-            lambda rows: m.ConfigMap.model_validate(
+            lambda rows: p.ConfigMap.model_validate(
                 {"root": {"row_count": len(rows)}},
             ),
         )

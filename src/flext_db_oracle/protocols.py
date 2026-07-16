@@ -12,7 +12,7 @@ from collections.abc import (
 from typing import Protocol, runtime_checkable
 
 from flext_cli import p
-from flext_db_oracle import t
+from flext_db_oracle import p, t
 
 
 class FlextDbOracleProtocols(p):
