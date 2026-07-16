@@ -14,8 +14,8 @@ from datetime import datetime
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_cli import m, p, u
-from flext_db_oracle import c, p, t
+from flext_cli import m, u
+from flext_db_oracle import c, t
 from flext_db_oracle._models.password import FlextDbOraclePassword
 
 
@@ -36,7 +36,7 @@ class FlextDbOracleModels(m):
         class DbOracleDomainModel(m.BaseModel):
             """Base model for FlextDbOracle with standard Pydantic v2 configuration."""
 
-            model_config: ClassVar[p.ConfigDict] = m.ConfigDict(
+            model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
                 use_enum_values=True,
                 validate_default=True,
                 str_strip_whitespace=True,
@@ -61,7 +61,7 @@ class FlextDbOracleModels(m):
         class ConnectionStatus(m.Entity, m.FlexibleModel):
             """Connection status using flext-core Entity."""
 
-            model_config: ClassVar[p.ConfigDict] = m.ConfigDict(frozen=False)
+            model_config: ClassVar[t.ConfigDict] = m.ConfigDict(frozen=False)
 
             connected: bool = u.Field(
                 False,
@@ -229,7 +229,7 @@ class FlextDbOracleModels(m):
         class QueryResult(m.Entity, m.FlexibleModel):
             """Query result using flext-core Entity."""
 
-            model_config: ClassVar[p.ConfigDict] = m.ConfigDict(frozen=False)
+            model_config: ClassVar[t.ConfigDict] = m.ConfigDict(frozen=False)
 
             query: str = u.Field(description="SQL query that produced the result")
             result_data: t.JsonList = u.Field(

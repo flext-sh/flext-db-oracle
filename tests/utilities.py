@@ -16,7 +16,7 @@ from typing import ClassVar
 from flext_tests import FlextTestsUtilities, e, tk
 
 from flext_db_oracle import u
-from tests import c, m, t
+from tests import c, m, p, t
 
 
 class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):
