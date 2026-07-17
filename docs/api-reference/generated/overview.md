@@ -3,15 +3,15 @@
 # flext-db-oracle API Overview
 
 - Package: `flext_db_oracle`
-- Version: `0.12.0-dev`
+- Version: `0.12.0`
 - Description: FLEXT DB Oracle - Enterprise Oracle Database Operations Library
 - Doc summary: Flext Db Oracle package.
-- Classifiers: `Development Status :: 4 - Beta`, `Development Status :: 5 - Production/Stable`, `Intended Audience :: Developers`, `Operating System :: OS Independent`, `Programming Language :: Python :: 3 :: Only`, `Programming Language :: Python :: 3.13` (+3 more)
+- Classifiers: `Development Status :: 3 - Alpha`, `Intended Audience :: Developers`, `Operating System :: OS Independent`, `Programming Language :: Python :: 3 :: Only`, `Programming Language :: Python :: 3.13`, `Topic :: Database` (+2 more)
 - Project class: `domain`
 - Keywords: `database`, `enterprise`, `flext`, `oracle`, `sql`, `typed`
-- Main facades: _none_
+- Main facades: `FlextDbOracleApi`, `FlextDbOracleApiRuntime`, `FlextDbOracleConstants`, `FlextDbOracleDispatcher`, `FlextDbOracleExceptions`, `FlextDbOracleModels`, `FlextDbOracleProtocols`, `FlextDbOracleServiceBase` (+10 more)
 - Alias exports: `c`, `d`, `e`, `h`, `m`, `p`, `r`, `s`, `t`, `u`, `x`
-- Public symbol exports: `FlextDbOracleServiceSqlBuilder`, `FlextDbOracleModels`, `db_oracle`, `FlextDbOracleExceptions`, `FlextDbOracleServiceQuery`, `FlextDbOracleTypes`, `FlextDbOracleSettings`, `FlextDbOracleServices`, `FlextDbOracleApi`, `FlextDbOracleServiceBase` (+10 more)
+- Public symbol exports: `FlextDbOracleApi`, `FlextDbOracleApiRuntime`, `FlextDbOracleConstants`, `FlextDbOracleDispatcher`, `FlextDbOracleExceptions`, `FlextDbOracleModels`, `FlextDbOracleProtocols`, `FlextDbOracleServiceBase`, `FlextDbOracleServiceConnection`, `FlextDbOracleServicePlugin` (+10 more)
 - Exported module shortcuts: _none_
 - Generated module pages: `17`
 
