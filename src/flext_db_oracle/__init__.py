@@ -20,6 +20,7 @@ from flext_db_oracle.__version__ import (
 if TYPE_CHECKING:
     from flext_core import d, e, h, r, x
 
+    from ._config import FlextDbOracleConfig, config
     from ._settings import FlextDbOracleSettings, settings
     from .api import FlextDbOracleApi, db_oracle
     from .base import FlextDbOracleServiceBase, s
@@ -51,6 +52,8 @@ if TYPE_CHECKING:
         FlextDbOracleServiceBase,
         FlextDbOracleSettings,
         settings,
+        FlextDbOracleConfig,
+        config,
         FlextDbOracleApi,
         db_oracle,
         FlextDbOracleDispatcher,
@@ -59,6 +62,10 @@ if TYPE_CHECKING:
 
 
 _LAZY_MODULES: dict[str, tuple[str, ...]] = {
+    "._config": (
+        "FlextDbOracleConfig",
+        "config",
+    ),
     "._settings": (
         "FlextDbOracleSettings",
         "settings",
@@ -119,6 +126,7 @@ _DIRECT_IMPORTS: tuple[str, ...] = (
     "FlextDbOracleExceptions",
     "FlextDbOracleModels",
     "FlextDbOracleProtocols",
+    "FlextDbOracleConfig",
     "FlextDbOracleServiceBase",
     "FlextDbOracleSettings",
     "FlextDbOracleTypes",
@@ -143,6 +151,7 @@ _DIRECT_IMPORTS: tuple[str, ...] = (
     "r",
     "s",
     "settings",
+    "config",
     "t",
     "u",
     "x",
@@ -150,6 +159,7 @@ _DIRECT_IMPORTS: tuple[str, ...] = (
 
 __all__: tuple[str, ...] = (
     "FlextDbOracleApi",
+    "FlextDbOracleConfig",
     "FlextDbOracleConstants",
     "FlextDbOracleDispatcher",
     "FlextDbOracleExceptions",
@@ -168,6 +178,7 @@ __all__: tuple[str, ...] = (
     "__version__",
     "__version_info__",
     "c",
+    "config",
     "d",
     "db_oracle",
     "e",

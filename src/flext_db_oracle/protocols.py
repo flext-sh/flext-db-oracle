@@ -9,10 +9,13 @@ from __future__ import annotations
 from collections.abc import (
     Sequence,
 )
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_cli import p
 from flext_db_oracle import t
+
+if TYPE_CHECKING:
+    from flext_db_oracle import m
 
 
 class FlextDbOracleProtocols(p):
@@ -131,7 +134,7 @@ class FlextDbOracleProtocols(p):
                 self,
                 sql: str,
                 params: t.JsonMapping | None = None,
-            ) -> p.Result[Sequence[p.Dict]]:
+            ) -> p.Result[Sequence[m.Dict]]:
                 """Execute Oracle SQL query.
 
                 Args:
@@ -165,7 +168,7 @@ class FlextDbOracleProtocols(p):
                 self,
                 sql: str,
                 params: t.JsonMapping | None = None,
-            ) -> p.Result[p.Dict | None]:
+            ) -> p.Result[m.Dict | None]:
                 """Fetch single result from Oracle query.
 
                 Args:
@@ -173,7 +176,7 @@ class FlextDbOracleProtocols(p):
                 params: Query parameters
 
                 Returns:
-                r[p.Dict | None]: Single result or None
+                r[m.Dict | None]: Single result or None
 
                 """
                 ...
@@ -186,7 +189,7 @@ class FlextDbOracleProtocols(p):
                 self,
                 table: str,
                 schema: str | None = None,
-            ) -> p.Result[Sequence[p.DbOracle.Column]]:
+            ) -> p.Result[Sequence[m.DbOracle.Column]]:
                 """Get column information for Oracle table.
 
                 Args:
@@ -229,7 +232,7 @@ class FlextDbOracleProtocols(p):
                 self,
                 table: str,
                 schema: str | None = None,
-            ) -> p.Result[p.DbOracle.TableMetadata]:
+            ) -> p.Result[m.DbOracle.TableMetadata]:
                 """Get Oracle table metadata.
 
                 Args:
@@ -366,7 +369,7 @@ class FlextDbOracleProtocols(p):
             def create_table_ddl(
                 self,
                 table: str,
-                columns: t.SequenceOf[p.DbOracle.Column],
+                columns: t.SequenceOf[m.DbOracle.Column],
                 schema: str | None = None,
             ) -> p.Result[str]:
                 """Generate Oracle CREATE TABLE DDL.
@@ -403,7 +406,7 @@ class FlextDbOracleProtocols(p):
         class MetricsCollector(Protocol):
             """Protocol for Oracle database metrics collection."""
 
-            def fetch_metrics(self) -> p.Result[p.DbOracle.HealthStatus]:
+            def fetch_metrics(self) -> p.Result[m.DbOracle.HealthStatus]:
                 """Get collected Oracle metrics.
 
                 Returns:
@@ -509,7 +512,7 @@ class FlextDbOracleProtocols(p):
         class HealthCheck(Protocol):
             """Protocol for Oracle database health check operations."""
 
-            def fetch_connection_status(self) -> p.Result[p.DbOracle.ConnectionStatus]:
+            def fetch_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
                 """Get Oracle connection status information.
 
                 Returns:
@@ -518,7 +521,7 @@ class FlextDbOracleProtocols(p):
                 """
                 ...
 
-            def health_check(self) -> p.Result[p.DbOracle.HealthStatus]:
+            def health_check(self) -> p.Result[m.DbOracle.HealthStatus]:
                 """Perform Oracle database health check.
 
                 Returns:

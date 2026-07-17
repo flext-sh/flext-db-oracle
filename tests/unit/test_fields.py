@@ -101,7 +101,7 @@ class TestsFlextDbOracleFields:
             m.DbOracle.QueryResult(
                 query="SELECT a FROM t",
                 columns=("a",),
-                rows=[p.DbOracle.RowData(values=(1, 2))],
+                rows=[m.DbOracle.RowData(values=(1, 2))],
             )
 
     # ---- RowData / ColumnMetadata contracts -----------------------------

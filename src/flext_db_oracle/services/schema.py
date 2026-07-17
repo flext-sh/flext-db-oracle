@@ -47,7 +47,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         self,
         table_name: str,
         schema_name: str | None = None,
-    ) -> p.Result[Sequence[p.DbOracle.Column]]:
+    ) -> p.Result[Sequence[m.DbOracle.Column]]:
         """Get column information for Oracle table."""
         if schema_name:
             sql = "\nSELECT column_name, data_type, data_length, data_precision, data_scale, nullable\nFROM all_tab_columns\nWHERE table_name = UPPER(:table_name) AND owner = UPPER(:schema_name)\nORDER BY column_id\n"
@@ -135,10 +135,10 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         self,
         table_name: str,
         schema: str | None = None,
-    ) -> p.Result[p.DbOracle.TableMetadata]:
+    ) -> p.Result[m.DbOracle.TableMetadata]:
         """Get complete table metadata."""
 
-        def _fetch_metadata() -> p.DbOracle.TableMetadata:
+        def _fetch_metadata() -> m.DbOracle.TableMetadata:
             columns_result = self.fetch_columns(table_name, schema)
             if columns_result.failure:
                 raise RuntimeError(columns_result.error or "Failed to get columns")
@@ -220,7 +220,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         """Get list of tables in Oracle schema."""
         if schema:
             sql = "SELECT table_name FROM all_tables WHERE owner = UPPER(:schema_name) ORDER BY table_name"
-            params: p.ConfigMap | None = m.ConfigMap(root={"schema_name": schema})
+            params: m.ConfigMap | None = m.ConfigMap(root={"schema_name": schema})
         else:
             sql = "SELECT table_name FROM user_tables ORDER BY table_name"
             params = None

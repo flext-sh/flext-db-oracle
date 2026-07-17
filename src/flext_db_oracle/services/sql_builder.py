@@ -97,7 +97,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
     def _create_index_sql(
         self,
-        settings: p.DbOracle.CreateIndexConfig,
+        settings: m.DbOracle.CreateIndexConfig,
     ) -> p.Result[str]:
         """Compile CREATE INDEX SQL from validated settings."""
         if not settings.columns:
@@ -120,7 +120,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
     def _create_index_table(
         self,
-        settings: p.DbOracle.CreateIndexConfig,
+        settings: m.DbOracle.CreateIndexConfig,
     ) -> Table:
         """Build a SQLAlchemy table object for CREATE INDEX compilation."""
         table_name = self._normalize_identifier(settings.table_name)
@@ -238,7 +238,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         self,
         table_name: str,
         columns: t.StrSequence | None = None,
-        conditions: p.ConfigMap | t.JsonMapping | None = None,
+        conditions: m.ConfigMap | t.JsonMapping | None = None,
         schema_name: str | None = None,
     ) -> p.Result[str]:
         """Build SELECT query through SQLAlchemy Core Oracle compilation."""
@@ -346,7 +346,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     def create_table_ddl(
         self,
         table_name: str,
-        columns: t.SequenceOf[p.DbOracle.Column | t.JsonMapping],
+        columns: t.SequenceOf[m.DbOracle.Column | t.JsonMapping],
         schema: str | None = None,
     ) -> p.Result[str]:
         """Generate CREATE TABLE DDL through SQLAlchemy Oracle DDL compilation."""
@@ -360,15 +360,15 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
     def _normalize_table_columns(
         self,
-        columns: t.SequenceOf[p.DbOracle.Column | t.JsonMapping],
-    ) -> t.SequenceOf[p.DbOracle.Column]:
+        columns: t.SequenceOf[m.DbOracle.Column | t.JsonMapping],
+    ) -> t.SequenceOf[m.DbOracle.Column]:
         """Normalize raw column payloads into Column models."""
         return tuple(self._normalize_table_column(column) for column in columns)
 
     def _normalize_table_column(
         self,
-        column: p.DbOracle.Column | t.JsonMapping,
-    ) -> p.DbOracle.Column:
+        column: m.DbOracle.Column | t.JsonMapping,
+    ) -> m.DbOracle.Column:
         """Normalize one raw column payload into a Column model."""
         if isinstance(column, m.DbOracle.Column):
             return column.model_copy(
@@ -390,7 +390,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     def _create_table_object(
         self,
         table_name: str,
-        column_models: t.SequenceOf[p.DbOracle.Column],
+        column_models: t.SequenceOf[m.DbOracle.Column],
         schema: str | None,
     ) -> Table:
         """Build a SQLAlchemy table object for CREATE TABLE compilation."""

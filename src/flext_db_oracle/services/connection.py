@@ -99,13 +99,8 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
     def execute(
         self,
     ) -> p.Result[p.Base]:
-        """Execute main domain service operation - return settings."""
-        test_result = self.test_connection()
-        if test_result.success:
-            return r[p.Base].ok(self.db_config)
-        return r[p.Base].fail(
-            test_result.error or "Connection test failed",
-        )
+        """Execute main domain service operation - return active settings."""
+        return r[p.Base].ok(self.db_config)
 
     @contextmanager
     def fetch_connection(self) -> Generator[SAConnection]:
@@ -117,10 +112,10 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         with self._engine_connect(engine) as connection:
             yield connection
 
-    def fetch_connection_status(self) -> p.Result[p.DbOracle.ConnectionStatus]:
+    def fetch_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
         """Get connection status - simplified."""
         now = u.now()
-        return r[p.DbOracle.ConnectionStatus].ok(
+        return r[m.DbOracle.ConnectionStatus].ok(
             m.DbOracle.ConnectionStatus(
                 connected=self.connected(),
                 last_check=now,
@@ -136,9 +131,9 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             ),
         )
 
-    def health_check(self) -> p.Result[p.DbOracle.HealthStatus]:
+    def health_check(self) -> p.Result[m.DbOracle.HealthStatus]:
         """Perform health check."""
-        return r[p.DbOracle.HealthStatus].ok(
+        return r[m.DbOracle.HealthStatus].ok(
             m.DbOracle.HealthStatus(
                 status=c.HealthStatus.HEALTHY.value
                 if self.connected()
@@ -180,7 +175,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
 
     def _assemble_connection_url(
         self,
-        password: p.DbOracle.Password | str,
+        password: m.DbOracle.Password | str,
         port: int | None = None,
     ) -> p.Result[str]:
         """Assemble Oracle connection URL from validated password."""

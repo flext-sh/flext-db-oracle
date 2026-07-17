@@ -23,6 +23,7 @@ from sqlalchemy import (
 from flext_core import s
 from flext_db_oracle import (
     FlextDbOracleSettings,
+    m,
     p,
     r,
     t,
@@ -44,8 +45,8 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
 
     _db_config: FlextDbOracleSettings | None = u.PrivateAttr()
     _engine: SAEngine | None = u.PrivateAttr(default_factory=lambda: None)
-    _operations: MutableSequence[p.DbOracle.OperationRecord] = u.PrivateAttr(
-        default_factory=list[p.DbOracle.OperationRecord],
+    _operations: MutableSequence[m.DbOracle.OperationRecord] = u.PrivateAttr(
+        default_factory=list[m.DbOracle.OperationRecord],
     )
     _plugins: MutableMapping[str, t.JsonPayload] = u.PrivateAttr(
         default_factory=dict[str, t.JsonPayload],
@@ -54,7 +55,7 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
 
     def __init__(self, settings: FlextDbOracleSettings) -> None:
         """Initialize shared Oracle service state."""
-        super().__init__()
+        super().__init__(runtime_settings=settings)
         self._db_config = settings
 
     @property
@@ -70,7 +71,7 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
         """Check if the service has an active SQLAlchemy engine."""
         return self._engine is not None
 
-    def _parse_count_from_rows(self, rows: t.SequenceOf[p.Dict]) -> int:
+    def _parse_count_from_rows(self, rows: t.SequenceOf[m.Dict]) -> int:
         """Parse COUNT(*) value from normalized query rows."""
         if not rows:
             return 0
@@ -93,8 +94,8 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
     def execute_query(
         self,
         sql: str,
-        params: p.ConfigMap | None = None,
-    ) -> p.Result[Sequence[p.Dict]]:
+        params: m.ConfigMap | None = None,
+    ) -> p.Result[Sequence[m.Dict]]:
         """Execute a SQL query in composed service facades."""
         del sql, params
         msg = "execute_query requires the composed DB Oracle service facade"

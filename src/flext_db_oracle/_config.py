@@ -13,6 +13,8 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from functools import cached_property
+from pathlib import Path
+from typing import ClassVar
 
 from flext_cli import FlextCliConfig
 from flext_db_oracle._models.config import FlextDbOracleConfigModels
@@ -20,6 +22,10 @@ from flext_db_oracle._models.config import FlextDbOracleConfigModels
 
 class FlextDbOracleConfig(FlextCliConfig):
     """DbOracle config auto-loaded from ``config/*.yaml`` and validated via models."""
+
+    CONFIG_DIR: ClassVar[str] = str(
+        Path(__file__).resolve().parent / "config",
+    )
 
     @cached_property
     def DbOracle(self) -> FlextDbOracleConfigModels.DbOracle:

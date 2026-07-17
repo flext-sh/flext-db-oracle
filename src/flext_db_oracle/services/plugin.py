@@ -35,14 +35,14 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
     record_metric, get_metrics, track_operation, get_operations.
     """
 
-    def fetch_metrics(self) -> p.Result[p.DbOracle.HealthStatus]:
+    def fetch_metrics(self) -> p.Result[m.DbOracle.HealthStatus]:
         """Get metrics status with observability integration."""
         status = "connected" if self.connected() else "disconnected"
         metrics_payload: t.StrMapping = {
             metric_name: str(metric_value)
             for metric_name, metric_value in self._metrics.items()
         }
-        return r[p.DbOracle.HealthStatus].ok(
+        return r[m.DbOracle.HealthStatus].ok(
             m.DbOracle.HealthStatus.model_validate({
                 "status": f"{status}_with_observability",
                 "timestamp": self._get_current_timestamp(),
@@ -54,9 +54,9 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
     def fetch_operations(
         self,
-    ) -> p.Result[Sequence[p.DbOracle.OperationRecord]]:
+    ) -> p.Result[Sequence[m.DbOracle.OperationRecord]]:
         """Get tracked operations."""
-        return r[Sequence[p.DbOracle.OperationRecord]].ok(
+        return r[Sequence[m.DbOracle.OperationRecord]].ok(
             list(self._operations),
         )
 
@@ -68,16 +68,16 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
             return e.fail_not_found("Plugin", name, result_type=r[t.JsonPayload])
         return r[t.JsonPayload].ok(self._plugins[name])
 
-    def list_plugins(self) -> p.Result[p.ConfigMap]:
+    def list_plugins(self) -> p.Result[m.ConfigMap]:
         """List plugin names from local service registry."""
         plugin_names = list(self._plugins.keys())
-        return r[p.ConfigMap].ok(m.ConfigMap(root=dict.fromkeys(plugin_names, True)))
+        return r[m.ConfigMap].ok(m.ConfigMap(root=dict.fromkeys(plugin_names, True)))
 
     def record_metric(
         self,
         name: str,
         value: float,
-        tags: p.ConfigMap | t.JsonMapping | None = None,
+        tags: m.ConfigMap | t.JsonMapping | None = None,
     ) -> p.Result[bool]:
         """Record metric in the local service metrics registry."""
         if not name:
@@ -108,7 +108,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         duration: float = 0.0,
         *,
         success: bool = True,
-        metadata: p.ConfigMap | t.JsonMapping | None = None,
+        metadata: m.ConfigMap | t.JsonMapping | None = None,
     ) -> p.Result[bool]:
         """Track database operation for monitoring."""
 

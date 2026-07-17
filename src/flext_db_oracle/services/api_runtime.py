@@ -121,16 +121,16 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     @staticmethod
     def _normalize_parameters(
         parameters: t.JsonMapping | None = None,
-    ) -> p.Result[p.ConfigMap]:
+    ) -> p.Result[m.ConfigMap]:
         """Normalize query parameters into the canonical ConfigMap contract."""
         if parameters is None:
-            return r[p.ConfigMap].ok(m.ConfigMap(root={}))
+            return r[m.ConfigMap].ok(m.ConfigMap(root={}))
         return (
             u
             .try_(lambda: dict(parameters))
-            .map(lambda normalized: p.ConfigMap(root=normalized))
+            .map(lambda normalized: m.ConfigMap(root=normalized))
             .lash(
-                lambda error: r[p.ConfigMap].fail(f"Invalid query parameters: {error}"),
+                lambda error: r[m.ConfigMap].fail(f"Invalid query parameters: {error}"),
             )
         )
 
@@ -138,17 +138,17 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     def _normalize_parameters_list(
         cls,
         parameters_list: t.SequenceOf[t.JsonMapping],
-    ) -> p.Result[Sequence[p.ConfigMap]]:
+    ) -> p.Result[Sequence[m.ConfigMap]]:
         """Normalize bulk query parameters into canonical ConfigMap values."""
-        normalized: MutableSequence[p.ConfigMap] = []
+        normalized: MutableSequence[m.ConfigMap] = []
         for parameters in parameters_list:
             result = cls._normalize_parameters(parameters)
             if result.failure:
-                return r[Sequence[p.ConfigMap]].fail(
+                return r[Sequence[m.ConfigMap]].fail(
                     result.error or "Invalid bulk query parameters",
                 )
             normalized.append(result.value)
-        return r[Sequence[p.ConfigMap]].ok(normalized)
+        return r[Sequence[m.ConfigMap]].ok(normalized)
 
     @classmethod
     def from_env(cls, prefix: str = "ORACLE_") -> p.Result[Self]:
@@ -256,11 +256,11 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         self,
         table_name: str,
         schema_name: str | None = None,
-    ) -> p.Result[Sequence[p.DbOracle.Column]]:
+    ) -> p.Result[Sequence[m.DbOracle.Column]]:
         """Get column information for specified table."""
         return self._services.fetch_columns(table_name, schema_name)
 
-    def fetch_health_status(self) -> p.Result[p.DbOracle.ConnectionStatus]:
+    def fetch_health_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
         """Get database connection health status."""
         return self._services.fetch_connection_status()
 
@@ -288,7 +288,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         self,
         table_name: str,
         schema: str | None = None,
-    ) -> p.Result[p.DbOracle.TableMetadata]:
+    ) -> p.Result[m.DbOracle.TableMetadata]:
         """Get complete table metadata including columns and constraints."""
         return self._services.fetch_table_metadata(table_name, schema)
 
@@ -310,7 +310,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
 
     def map_singer_schema(
         self,
-        singer_schema: p.DbOracle.SingerSchema | t.JsonMapping,
+        singer_schema: m.DbOracle.SingerSchema | t.JsonMapping,
     ) -> p.Result[t.StrMapping]:
         """Map Singer JSON Schema to Oracle table schema."""
         if not singer_schema:
@@ -330,7 +330,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         self,
         sql: str,
         parameters: t.JsonMapping | None = None,
-    ) -> p.Result[Sequence[p.Dict]]:
+    ) -> p.Result[Sequence[m.Dict]]:
         """Execute a SELECT query and return all results."""
         self.logger.debug("Executing query", query_length=len(sql))
         return self._normalize_parameters(parameters).flat_map(
@@ -344,7 +344,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         self,
         sql: str,
         parameters: t.JsonMapping | None = None,
-    ) -> p.Result[p.Dict | None]:
+    ) -> p.Result[m.Dict | None]:
         """Execute a SELECT query and return first result or None."""
         return self._normalize_parameters(parameters).flat_map(
             lambda normalized_parameters: self._services.fetch_one(
@@ -368,7 +368,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     def to_dict(
         self,
         obj: t.JsonMapping | None = None,
-    ) -> p.ConfigMap:
+    ) -> m.ConfigMap:
         """Serialize API state or explicit mapping into the canonical ConfigMap."""
         if obj is not None:
             return m.ConfigMap.model_validate(obj)
@@ -401,8 +401,8 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     def _convert_to_query_result(
         self,
         sql: str,
-        data: t.SequenceOf[p.Dict],
-    ) -> p.DbOracle.QueryResult:
+        data: t.SequenceOf[m.Dict],
+    ) -> m.DbOracle.QueryResult:
         """Convert raw query data to QueryResult model."""
         if not data:
             return m.DbOracle.QueryResult(
@@ -441,7 +441,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     def _execute_query_sql(
         self,
         sql: str,
-    ) -> p.Result[p.DbOracle.QueryResult]:
+    ) -> p.Result[m.DbOracle.QueryResult]:
         """Execute SQL query and return results as QueryResult."""
         return self._services.execute_query(sql).map(
             lambda data: self._convert_to_query_result(sql, data),

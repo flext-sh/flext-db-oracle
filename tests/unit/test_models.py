@@ -12,7 +12,7 @@ from flext_tests import tm
 from flext_db_oracle import (
     FlextDbOracleSettings,
 )
-from tests import c, m, p, u
+from tests import c, m, u
 
 
 @pytest.mark.unit
@@ -169,7 +169,7 @@ class TestsFlextDbOracleModels:
         result = m.DbOracle.QueryResult(
             query="SELECT 1",
             columns=["col1"],
-            rows=[p.DbOracle.RowData(values=[1])],
+            rows=[m.DbOracle.RowData(values=[1])],
             execution_time_ms=2500,
         )
         tm.that(result.has_results, eq=True)
@@ -181,7 +181,7 @@ class TestsFlextDbOracleModels:
             m.DbOracle.QueryResult(
                 query="SELECT 1",
                 columns=["id", "name"],
-                rows=[p.DbOracle.RowData(values=[1])],
+                rows=[m.DbOracle.RowData(values=[1])],
             )
 
     def test_negative_execution_time_is_rejected(self) -> None:
