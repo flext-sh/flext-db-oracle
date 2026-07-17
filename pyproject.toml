@@ -20,12 +20,12 @@ classifiers = [
   "Typing :: Typed",
 ]
 dependencies = [
-    "flext-cli @ git+https://github.com/flext-sh/flext-cli.git@0.12.0-dev",
-    "flext-core @ git+https://github.com/flext-sh/flext-core.git@0.12.0-dev",
-    "oracledb>=3.4.2",
-    "pydantic-core>=2.46.3",
-    "pydantic>=2.13.3",
-    "sqlalchemy>=2.0.49",
+  "flext-cli @ git+https://github.com/flext-sh/flext-cli.git@0.12.0-dev",
+  "flext-core @ git+https://github.com/flext-sh/flext-core.git@0.12.0-dev",
+  "oracledb>=3.4.2",
+  "pydantic-core>=2.46.3",
+  "pydantic>=2.13.3",
+  "sqlalchemy>=2.0.49",
 ]
 description = "FLEXT DB Oracle - Enterprise Oracle Database Operations Library"
 keywords = [ "database", "enterprise", "flext", "oracle", "sql", "typed" ]
@@ -207,22 +207,23 @@ project-excludes = [
   "**/typings/**",
   "**/vendor/**",
   "**/venv/**",
-  ".flext-deps/**",
   ".venv/**",
   "typings/**",
   "vendor/**",
 ]
 # mro-f1fe (agent: kimi-sweep): examples moved to gitignored legado/ — out of active lint/typecheck surface
-project-includes = [ "src/**/*.py*", "tests/**/*.py*" ]
+project-includes = [
+  "examples/**/*.py*",
+  "src/**/*.py*",
+  "tests/**/*.py*",
+]
 python-interpreter-path = "../.venv/bin/python"
 python-version = "3.13"
 search-path = [
   ".",
   "../flext-cli/src",
-  "../flext-core/scripts",
   "../flext-core/src",
   "../flext-infra/src",
-  "../flext-infra/tmp_flow_test",
   "../flext-tests/src",
   "src",
 ]
