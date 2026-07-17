@@ -70,7 +70,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
 
     @property
     def _dispatch_enabled(self) -> bool:
-        """Check if dispatcher is enabled."""
+        """Whether dispatcher is enabled."""
         return True
 
     @property
