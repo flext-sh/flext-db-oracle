@@ -213,9 +213,9 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     @override
     def execute(
         self,
-    ) -> p.Result[p.ModelBase]:
+    ) -> p.Result[p.BaseModel]:
         """Execute default domain service operation - return settings."""
-        return r[p.ModelBase].ok(self._oracle_config)
+        return r[p.BaseModel].ok(self._oracle_config)
 
     def execute_many(
         self,

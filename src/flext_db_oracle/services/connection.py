@@ -100,9 +100,9 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
     @override
     def execute(
         self,
-    ) -> p.Result[p.ModelBase]:
+    ) -> p.Result[p.BaseModel]:
         """Execute main domain service operation - return active settings."""
-        return r[p.ModelBase].ok(self.db_config)
+        return r[p.BaseModel].ok(self.db_config)
 
     @contextmanager
     def fetch_connection(self) -> Generator[SAConnection]:

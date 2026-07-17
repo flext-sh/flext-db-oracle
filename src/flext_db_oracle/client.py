@@ -223,14 +223,14 @@ class FlextDbOracleClient(s):
         return r[bool].ok(True)
 
     @override
-    def execute(self) -> p.Result[p.ModelBase]:
+    def execute(self) -> p.Result[p.BaseModel]:
         """Execute the main domain operation for Oracle client.
 
         Returns:
-        r[p.ModelBase]: Success with settings or failure with error
+        r[p.BaseModel]: Success with settings or failure with error
 
         """
-        return r[p.ModelBase].ok(self._oracle_config)
+        return r[p.BaseModel].ok(self._oracle_config)
 
     @override
     def execute_query(
