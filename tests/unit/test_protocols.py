@@ -14,13 +14,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
 
 from flext_db_oracle import p
 from tests import p, t
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 # (public name, protocol class, promised method surface) — the contract each
 # Oracle domain protocol advertises to implementers.

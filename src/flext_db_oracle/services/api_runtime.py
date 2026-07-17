@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import types
 from collections.abc import MutableSequence, Sequence
-from typing import Self, override
+from typing import TYPE_CHECKING, Self, override
 from urllib.parse import parse_qs, urlparse
 
 from flext_db_oracle import (
@@ -19,6 +18,9 @@ from flext_db_oracle import (
     u,
 )
 from flext_db_oracle.services.facade import FlextDbOracleServices
+
+if TYPE_CHECKING:
+    import types
 
 
 class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
@@ -211,9 +213,9 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     @override
     def execute(
         self,
-    ) -> p.Result[p.Base]:
+    ) -> p.Result[p.ModelBase]:
         """Execute default domain service operation - return settings."""
-        return r[p.Base].ok(self._oracle_config)
+        return r[p.ModelBase].ok(self._oracle_config)
 
     def execute_many(
         self,

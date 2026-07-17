@@ -12,13 +12,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
 
 from flext_core import e
 from flext_db_oracle.exceptions import FlextDbOracleExceptions, e as oracle_e
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class TestsFlextDbOracleOracleExceptions:

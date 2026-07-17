@@ -10,11 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
-from collections.abc import (
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     Engine as SAEngine,
@@ -30,6 +26,13 @@ from flext_db_oracle import (
     u,
 )
 from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
+
+if TYPE_CHECKING:
+    from collections.abc import (
+        MutableMapping,
+        MutableSequence,
+        Sequence,
+    )
 
 
 class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):

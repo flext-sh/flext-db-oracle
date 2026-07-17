@@ -16,7 +16,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
@@ -24,6 +24,9 @@ from flext_tests import tm
 from flext_db_oracle import FlextDbOracleSettings, p
 from flext_db_oracle.services.facade import FlextDbOracleServices
 from tests import m
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class TestsFlextDbOracleMetadata:

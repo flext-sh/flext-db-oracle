@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from flext_db_oracle import FlextDbOracleSettings
+from typing import TYPE_CHECKING
+
 from flext_db_oracle.base import FlextDbOracleServiceBase
 from flext_db_oracle.services.connection import FlextDbOracleServiceConnection
 from flext_db_oracle.services.plugin import FlextDbOracleServicePlugin
@@ -10,6 +11,9 @@ from flext_db_oracle.services.query import FlextDbOracleServiceQuery
 from flext_db_oracle.services.schema import FlextDbOracleServiceSchema
 from flext_db_oracle.services.singer import FlextDbOracleServiceSinger
 from flext_db_oracle.services.sql_builder import FlextDbOracleServiceSqlBuilder
+
+if TYPE_CHECKING:
+    from flext_db_oracle import FlextDbOracleSettings
 
 
 class FlextDbOracleServices(

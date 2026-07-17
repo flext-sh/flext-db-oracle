@@ -10,8 +10,8 @@ from __future__ import annotations
 import contextlib
 import os
 import time
-from collections.abc import Generator
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import oracledb
 import pytest
@@ -19,6 +19,9 @@ from flext_tests import tk
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import c, p, t, u
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 logger = u.fetch_logger(__name__)
 

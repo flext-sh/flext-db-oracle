@@ -9,17 +9,19 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Generator,
-)
 from contextlib import contextmanager
-from typing import Self, override
+from typing import TYPE_CHECKING, Self, override
 from urllib.parse import quote_plus
 
 from sqlalchemy import Connection as SAConnection, text
 
 from flext_core import r
 from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, u
+
+if TYPE_CHECKING:
+    from collections.abc import (
+        Generator,
+    )
 
 
 # NOTE (multi-agent): ADR-005 settings fallout — connection scalars are read from
@@ -98,9 +100,9 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
     @override
     def execute(
         self,
-    ) -> p.Result[p.Base]:
+    ) -> p.Result[p.ModelBase]:
         """Execute main domain service operation - return active settings."""
-        return r[p.Base].ok(self.db_config)
+        return r[p.ModelBase].ok(self.db_config)
 
     @contextmanager
     def fetch_connection(self) -> Generator[SAConnection]:

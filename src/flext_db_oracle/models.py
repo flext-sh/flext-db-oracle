@@ -10,13 +10,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from datetime import datetime
 from types import MappingProxyType
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from flext_cli import m, u
 from flext_db_oracle import c, t
 from flext_db_oracle._models.password import FlextDbOraclePassword
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 class FlextDbOracleModels(m):

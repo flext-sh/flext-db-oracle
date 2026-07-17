@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import contextlib
 import socket
-from collections.abc import Generator
+from typing import TYPE_CHECKING
 
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 # Prevent unit tests from hanging on network failures.
 socket.setdefaulttimeout(2)
