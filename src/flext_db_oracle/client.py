@@ -396,7 +396,7 @@ class FlextDbOracleClient(s):
     def _execute_operation(
         self,
         operation: str,
-        **params: t.Scalar | m.ConfigMap,
+        **params: t.Scalar | p.ConfigMap,
     ) -> p.Result[p.ConfigMap]:
         """Execute Oracle operation with error handling.
 
@@ -414,7 +414,7 @@ class FlextDbOracleClient(s):
     def _dispatch_operation(
         self,
         operation: str,
-        params: t.MappingKV[str, t.Scalar | m.ConfigMap],
+        params: t.MappingKV[str, t.Scalar | p.ConfigMap],
     ) -> p.Result[p.ConfigMap]:
         """Dispatch one validated Oracle client operation."""
         match operation:
@@ -432,7 +432,7 @@ class FlextDbOracleClient(s):
     def _execute_with_chain(
         self,
         operation: str,
-        **params: t.Scalar | m.ConfigMap,
+        **params: t.Scalar | p.ConfigMap,
     ) -> p.Result[p.ConfigMap]:
         """Execute operation with validation chain.
 
@@ -554,7 +554,7 @@ class FlextDbOracleClient(s):
 
     def _handle_list_tables_operation(
         self,
-        **params: t.Scalar | m.ConfigMap,
+        **params: t.Scalar | p.ConfigMap,
     ) -> p.Result[p.ConfigMap]:
         """Handle list tables operation."""
         if self.current_connection is None:
@@ -568,7 +568,7 @@ class FlextDbOracleClient(s):
 
     def _handle_query_operation(
         self,
-        **params: t.Scalar | m.ConfigMap,
+        **params: t.Scalar | p.ConfigMap,
     ) -> p.Result[p.ConfigMap]:
         """Handle query operation."""
         if self.current_connection is None:

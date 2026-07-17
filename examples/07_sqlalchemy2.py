@@ -61,7 +61,7 @@ def demonstrate_sqlalchemy_setup() -> None:
 
 
 def main() -> None:
-    """Main entry point."""
+    """Run the main entry point."""
     demonstrate_sqlalchemy_setup()
 
 

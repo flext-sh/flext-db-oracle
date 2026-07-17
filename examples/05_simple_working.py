@@ -58,7 +58,7 @@ def demonstrate_real_functionality() -> None:
 
 
 def main() -> None:
-    """Main entry point."""
+    """Run the main entry point."""
     demonstrate_real_functionality()
 
 

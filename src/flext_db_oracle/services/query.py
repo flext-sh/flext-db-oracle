@@ -28,7 +28,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     def execute_many(
         self,
         sql: str,
-        params_list: t.SequenceOf[t.JsonMapping | m.ConfigMap],
+        params_list: t.SequenceOf[t.JsonMapping | p.ConfigMap],
     ) -> p.Result[int]:
         """Execute SQL statement multiple times."""
         if not self.connected():
