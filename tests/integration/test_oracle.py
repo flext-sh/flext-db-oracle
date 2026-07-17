@@ -88,9 +88,8 @@ class TestsFlextDbOracleOracle:
     def test_from_url_rejects_non_oracle_scheme(self) -> None:
         """``from_url`` returns a failure result for a non-Oracle scheme."""
         result = FlextDbOracleApi.from_url("postgres://u:p@host:5432/db")
-        tm.fail(result)
-        tm.that(result.error, none=False)
-        tm.that(result.error.lower(), has="scheme")
+        error = tm.fail(result)
+        tm.that(error.lower(), has="scheme")
 
     def test_from_url_parses_valid_oracle_url_into_settings(self) -> None:
         """``from_url`` maps a valid Oracle URL to the corresponding fields."""
