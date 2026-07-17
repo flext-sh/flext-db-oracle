@@ -60,9 +60,10 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                 c.DbOracle.LOOPBACK_IP,
             }
             default_port = c.DbOracle.DEFAULT_PORT
+            effective_port = self.db_config.DbOracle.port
             if local_host and self.db_config.DbOracle.port != default_port:
-                self.db_config.DbOracle.port = default_port
-                retry_url_result = self._build_connection_url()
+                effective_port = default_port
+                retry_url_result = self._build_connection_url(port=effective_port)
                 if retry_url_result.success:
                     self._engine = self._sqlalchemy_create_engine(
                         retry_url_result.value,
@@ -180,21 +181,23 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
     def _assemble_connection_url(
         self,
         password: p.DbOracle.Password | str,
+        port: int | None = None,
     ) -> p.Result[str]:
         """Assemble Oracle connection URL from validated password."""
         encoded_password = quote_plus(str(password).encode())
         service_name = self.db_config.DbOracle.service_name
-        base = f"oracle+oracledb://{self.db_config.DbOracle.username}:{encoded_password}@{self.db_config.DbOracle.host}:{self.db_config.DbOracle.port}"
+        effective_port = port if port is not None else self.db_config.DbOracle.port
+        base = f"oracle+oracledb://{self.db_config.DbOracle.username}:{encoded_password}@{self.db_config.DbOracle.host}:{effective_port}"
         url = f"{base}/?service_name={service_name}"
         return r[str].ok(url)
 
-    def _build_connection_url(self) -> p.Result[str]:
+    def _build_connection_url(self, port: int | None = None) -> p.Result[str]:
         """Build Oracle connection URL from configuration."""
         try:
             password = self.db_config.DbOracle.password
             if not password:
                 return r[str].fail("Password is required for database connection")
-            return self._assemble_connection_url(password)
+            return self._assemble_connection_url(password, port=port)
         except c.DbOracle.EXC_DB_BROAD as e:
             return r[str].fail(f"Failed to build connection URL: {e}")
 

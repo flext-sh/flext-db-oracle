@@ -566,6 +566,7 @@ split-on-trailing-comma = true
 [tool.ruff.lint.per-file-ignores]
 "**/.vulture_whitelist.py" = [ "ALL" ]
 "**/*_pb2*.py" = [ "ALL" ]
+"**/_config.py" = [ "N802" ]
 "**/*dispatcher*" = [  ]
 "**/*docs*" = [ "INP001", "S404", "S603", "T201" ]
 "**/*examples*" = [
