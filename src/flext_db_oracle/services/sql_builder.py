@@ -371,13 +371,14 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     ) -> m.DbOracle.Column:
         """Normalize one raw column payload into a Column model."""
         if isinstance(column, m.DbOracle.Column):
-            return column.model_copy(
+            copied: m.DbOracle.Column = column.model_copy(
                 update={
                     "name": column.name or c.IDENTIFIER_UNKNOWN,
                     "data_type": column.data_type or "VARCHAR2(255)",
                 },
             )
-        return m.DbOracle.Column.model_validate({
+            return copied
+        normalized: m.DbOracle.Column = m.DbOracle.Column.model_validate({
             "name": str(
                 column.get("name") or column.get("column_name") or c.IDENTIFIER_UNKNOWN,
             ),
@@ -386,6 +387,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             "primary_key": bool(column.get("primary_key", False)),
             "default_value": str(column.get("default_value") or ""),
         })
+        return normalized
 
     def _create_table_object(
         self,

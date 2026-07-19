@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from flext_db_oracle.services.facade import FlextDbOracleServices
 
 
-class FlextDbOracleDispatcher(FlextService):
+class FlextDbOracleDispatcher(FlextService[None]):
     """Unified Oracle Database Dispatcher with integrated command classes."""
 
     _container_type: ClassVar[p.ContainerType] = FlextContainer

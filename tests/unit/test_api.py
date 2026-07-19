@@ -114,9 +114,8 @@ class TestsFlextDbOracleApi:
     def test_from_env_missing_credentials_reports_required_password(self) -> None:
         """from_env fails clearly when no password is configured in the env."""
         result = FlextDbOracleApi.from_env("NONEXISTENT_PREFIX_")
-        tm.fail(result)
-        tm.that(result.error, none=False)
-        tm.that("password is required" in result.error, eq=True)
+        error = tm.fail(result)
+        tm.that("password is required" in error, eq=True)
 
     # ----- serialization contract ----------------------------------------
 
@@ -130,9 +129,9 @@ class TestsFlextDbOracleApi:
         tm.that("connected" in result, eq=True)
         tm.that("plugin_count" in result, eq=True)
         settings_dump = result["settings"]
-        tm.that(settings_dump, is_=dict)
+        assert isinstance(settings_dump, dict)
         db_dump = settings_dump["DbOracle"]
-        tm.that(db_dump, is_=dict)
+        assert isinstance(db_dump, dict)
         tm.that("password" not in db_dump, eq=True)
         tm.that(db_dump["host"], eq="127.0.0.1")
         tm.that(result["connected"], eq=False)
@@ -193,9 +192,8 @@ class TestsFlextDbOracleApi:
             "test_connection": lambda: api.test_connection().map(discard),
         }
         result = calls[operation]()
-        tm.fail(result)
-        tm.that(result.error, none=False)
-        tm.that("connect" in result.error.lower(), eq=True)
+        error = tm.fail(result)
+        tm.that("connect" in error.lower(), eq=True)
 
     def test_disconnect_is_idempotent_when_never_connected(
         self,
@@ -333,9 +331,8 @@ class TestsFlextDbOracleApi:
     ) -> None:
         """register_plugin fails when the plugin name is blank."""
         result = api.register_plugin("", {"x": 1})
-        tm.fail(result)
-        tm.that(result.error, none=False)
-        tm.that("name is required" in result.error.lower(), eq=True)
+        error = tm.fail(result)
+        tm.that("name is required" in error.lower(), eq=True)
 
     def test_fetch_missing_plugin_reports_not_found(
         self,
@@ -343,9 +340,8 @@ class TestsFlextDbOracleApi:
     ) -> None:
         """fetch_plugin fails with a not-found error for an unknown plugin."""
         result = api.fetch_plugin("nonexistent_plugin")
-        tm.fail(result)
-        tm.that(result.error, none=False)
-        tm.that("not found" in result.error.lower(), eq=True)
+        error = tm.fail(result)
+        tm.that("not found" in error.lower(), eq=True)
 
     def test_unregister_missing_plugin_reports_not_found(
         self,
@@ -353,9 +349,8 @@ class TestsFlextDbOracleApi:
     ) -> None:
         """unregister_plugin fails with a not-found error for an unknown plugin."""
         result = api.unregister_plugin("nonexistent_plugin")
-        tm.fail(result)
-        tm.that(result.error, none=False)
-        tm.that("not found" in result.error.lower(), eq=True)
+        error = tm.fail(result)
+        tm.that("not found" in error.lower(), eq=True)
 
     def test_instances_have_isolated_plugin_registries(self) -> None:
         """Plugins registered on one API instance never leak into another."""
