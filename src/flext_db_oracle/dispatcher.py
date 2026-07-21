@@ -12,10 +12,7 @@ from flext_core import FlextContainer, FlextService
 from flext_db_oracle import m, p, r, t
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        Callable,
-        MutableMapping,
-    )
+    from collections.abc import Callable, MutableMapping
 
     from flext_db_oracle.services.facade import FlextDbOracleServices
 

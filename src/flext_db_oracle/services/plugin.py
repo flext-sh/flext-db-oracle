@@ -9,23 +9,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Sequence,
-)
+from collections.abc import Sequence
 
-from sqlalchemy.exc import (
-    OperationalError as SQLAlchemyOperationalError,
-)
+from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
-from flext_db_oracle import (
-    FlextDbOracleServiceBase,
-    e,
-    m,
-    p,
-    r,
-    t,
-    u,
-)
+from flext_db_oracle import FlextDbOracleServiceBase, e, m, p, r, t, u
 
 
 class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):

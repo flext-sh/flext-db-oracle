@@ -12,27 +12,14 @@ from __future__ import annotations
 import time
 from typing import TYPE_CHECKING
 
-from sqlalchemy import (
-    Engine as SAEngine,
-)
+from sqlalchemy import Engine as SAEngine
 
 from flext_core import s
-from flext_db_oracle import (
-    FlextDbOracleSettings,
-    m,
-    p,
-    r,
-    t,
-    u,
-)
+from flext_db_oracle import FlextDbOracleSettings, m, p, r, t, u
 from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        MutableMapping,
-        MutableSequence,
-        Sequence,
-    )
+    from collections.abc import MutableMapping, MutableSequence, Sequence
 
 
 class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):

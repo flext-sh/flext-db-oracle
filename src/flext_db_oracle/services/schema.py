@@ -11,11 +11,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import (
-    func,
-    select,
-    table,
-)
+from sqlalchemy import func, select, table
 from sqlalchemy.dialects.oracle import dialect as oracle_dialect
 from sqlalchemy.exc import (
     DatabaseError as SQLAlchemyDatabaseError,
@@ -24,19 +20,10 @@ from sqlalchemy.exc import (
 )
 from sqlalchemy.sql import quoted_name
 
-from flext_db_oracle import (
-    FlextDbOracleServiceBase,
-    c,
-    m,
-    p,
-    t,
-    u,
-)
+from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, t, u
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        Sequence,
-    )
+    from collections.abc import Sequence
 
 
 class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):

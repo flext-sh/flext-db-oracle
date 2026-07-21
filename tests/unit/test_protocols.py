@@ -19,7 +19,6 @@ from typing import TYPE_CHECKING
 import pytest
 from flext_tests import tm
 
-from flext_db_oracle import p
 from tests import p, t
 
 if TYPE_CHECKING:

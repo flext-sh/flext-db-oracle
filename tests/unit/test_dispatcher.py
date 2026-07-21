@@ -9,7 +9,7 @@ from __future__ import annotations
 import pytest
 from flext_tests import tm
 
-from flext_db_oracle import FlextDbOracleDispatcher, FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleDispatcher, FlextDbOracleSettings, p
 from flext_db_oracle.services.facade import FlextDbOracleServices
 from tests import m
 

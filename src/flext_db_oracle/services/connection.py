@@ -19,9 +19,7 @@ from flext_core import r
 from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, u
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        Generator,
-    )
+    from collections.abc import Generator
 
 
 # NOTE (multi-agent): ADR-005 settings fallout — connection scalars are read from

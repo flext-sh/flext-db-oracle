@@ -15,10 +15,7 @@ from __future__ import annotations
 import pytest
 from flext_tests import r, tm
 
-from flext_db_oracle import (
-    FlextDbOracleApi,
-    FlextDbOracleSettings,
-)
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from flext_db_oracle.client import FlextDbOracleClient
 from tests import u
 

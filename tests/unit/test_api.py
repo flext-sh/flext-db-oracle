@@ -218,9 +218,8 @@ class TestsFlextDbOracleApi:
         api: FlextDbOracleApi,
     ) -> None:
         """Entering the context on an unreachable host raises RuntimeError."""
-        with pytest.raises(RuntimeError):
-            with api:
-                pass
+        with pytest.raises(RuntimeError), api:
+            pass
 
     def test_exit_without_enter_does_not_raise(
         self,

@@ -32,14 +32,7 @@ from sqlalchemy.sql import quoted_name
 from sqlalchemy.sql.ddl import CreateIndex, CreateTable, DropTable
 from sqlalchemy.types import UserDefinedType
 
-from flext_db_oracle import (
-    FlextDbOracleServiceBase,
-    c,
-    m,
-    p,
-    r,
-    t,
-)
+from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
 
 
 class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):

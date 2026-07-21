@@ -16,9 +16,7 @@ from flext_db_oracle import u
 from tests import c, m, p, t
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        MutableMapping,
-    )
+    from collections.abc import MutableMapping
 
 
 class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):
