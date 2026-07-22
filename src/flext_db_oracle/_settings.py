@@ -25,63 +25,49 @@ class FlextDbOracleSettings(FlextCliSettings):
     """Oracle settings; all project fields under ``settings.DbOracle.*``."""
 
     model_config = SettingsConfigDict(
-        env_prefix="ORACLE_",
-        env_nested_delimiter="__",
-        extra="ignore",
+        env_prefix="ORACLE_", env_nested_delimiter="__", extra="ignore"
     )
 
     class _DbOracle(BaseModel):
         """Namespaced Oracle connection + pool settings (scalars only)."""
 
         host: Annotated[
-            str,
-            Field(default="localhost", description="Oracle database host address"),
+            str, Field(default="localhost", description="Oracle database host address")
         ]
         port: Annotated[
-            int,
-            Field(default=1521, description="Oracle database listener port"),
+            int, Field(default=1521, description="Oracle database listener port")
         ]
         service_name: Annotated[
             str,
             Field(default="XEPDB1", description="Oracle service name for connection"),
         ]
         username: Annotated[
-            str,
-            Field(default="system", description="Oracle database username"),
+            str, Field(default="system", description="Oracle database username")
         ]
         password: Annotated[
-            str,
-            Field(default="", description="Oracle database password"),
+            str, Field(default="", description="Oracle database password")
         ]
-        timeout: Annotated[
-            int,
-            Field(default=30, description="Connection timeout (s)"),
-        ]
+        timeout: Annotated[int, Field(default=30, description="Connection timeout (s)")]
         pool_min: Annotated[
-            int,
-            Field(default=2, description="Minimum connection pool size"),
+            int, Field(default=2, description="Minimum connection pool size")
         ]
         pool_max: Annotated[
-            int,
-            Field(default=20, description="Maximum connection pool size"),
+            int, Field(default=20, description="Maximum connection pool size")
         ]
         sid: Annotated[
             str | None,
             Field(default=None, description="Oracle SID for legacy connections"),
         ]
         name: Annotated[
-            str,
-            Field(default="XE", description="Oracle database name identifier"),
+            str, Field(default="XE", description="Oracle database name identifier")
         ]
         ssl_cert_file: Annotated[
-            str | None,
-            Field(default=None, description="Path to SSL certificate file"),
+            str | None, Field(default=None, description="Path to SSL certificate file")
         ]
         ssl_server_cert_dn: Annotated[
             str | None,
             Field(
-                default=None,
-                description="Distinguished name of server SSL certificate",
+                default=None, description="Distinguished name of server SSL certificate"
             ),
         ]
         enable_dispatcher: Annotated[
@@ -96,8 +82,7 @@ class FlextDbOracleSettings(FlextCliSettings):
         DbOracle: _DbOracle
     else:
         DbOracle: _DbOracle = Field(
-            default_factory=_DbOracle,
-            description="Namespaced Oracle settings.",
+            default_factory=_DbOracle, description="Namespaced Oracle settings."
         )
 
 

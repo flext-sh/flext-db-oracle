@@ -13,13 +13,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
-from flext_tests import r, tm
 
-from flext_db_oracle import (
-    FlextDbOracleApi,
-    FlextDbOracleSettings,
-)
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from flext_db_oracle.client import FlextDbOracleClient
+from flext_tests import r, tm
 from tests import u
 
 _NO_CONNECTION_ERROR = "No active Oracle connection"
@@ -57,9 +54,7 @@ class TestsFlextDbOracleCli:
         ],
     )
     def test_default_preferences_are_populated(
-        self,
-        preference_key: str,
-        expected_value: str | int,
+        self, preference_key: str, expected_value: str | int
     ) -> None:
         """Default user preferences expose the documented defaults."""
         client = FlextDbOracleClient()
@@ -83,7 +78,7 @@ class TestsFlextDbOracleCli:
                 default_output_format="json",
                 query_limit=2000,
                 show_execution_time=False,
-            ),
+            )
         )
         tm.that(client.user_preferences["default_output_format"], eq="json")
         tm.that(client.user_preferences["query_limit"], eq=2000)
@@ -94,9 +89,8 @@ class TestsFlextDbOracleCli:
         client = FlextDbOracleClient()
         tm.ok(
             client.configure_preferences(
-                default_output_format="json",
-                connection_timeout=60,
-            ),
+                default_output_format="json", connection_timeout=60
+            )
         )
         tm.that(client.user_preferences["default_output_format"], eq="json")
         tm.that(client.user_preferences["connection_timeout"], eq=60)
@@ -127,9 +121,7 @@ class TestsFlextDbOracleCli:
         ],
     )
     def test_privileged_operations_fail_without_connection(
-        self,
-        method_name: str,
-        args: tuple[str, ...],
+        self, method_name: str, args: tuple[str, ...]
     ) -> None:
         """Every privileged operation fails fast when no connection is active."""
         client = FlextDbOracleClient()
@@ -170,7 +162,7 @@ class TestsFlextDbOracleCli:
                 "service_name": "XE",
                 "username": "test",
                 "password": "test",
-            },
+            }
         )
         client = FlextDbOracleClient()
         result = client.connect_to_oracle(
@@ -235,8 +227,8 @@ class TestsFlextDbOracleCli:
                     "service_name": "PARAM_TEST",
                     "username": "param_user",
                     "password": "param_pass",
-                },
-            ),
+                }
+            )
         )
         tm.that(api.settings.DbOracle.host, eq="param_test_host")
         tm.that(api.settings.DbOracle.port, eq=1521)
@@ -271,8 +263,8 @@ class TestsFlextDbOracleCli:
                     "service_name": "INVALID_SERVICE",
                     "username": "invalid_user",
                     "password": "invalid_password",
-                },
-            ),
+                }
+            )
         )
         query_result = api.query("SELECT 1 FROM DUAL")
         tm.that(query_result.failure, eq=True)
@@ -289,13 +281,11 @@ class TestsFlextDbOracleCli:
 
     @pytest.mark.parametrize("format_type", ["table", "json", "csv"])
     def test_format_query_result_produces_non_empty_string(
-        self,
-        format_type: str,
+        self, format_type: str
     ) -> None:
         """Every supported output format yields a non-empty string result."""
         formatted = u.DbOracle.format_query_result(
-            {"column1": "value1", "column2": "value2"},
-            format_type=format_type,
+            {"column1": "value1", "column2": "value2"}, format_type=format_type
         )
         tm.ok(formatted)
         unwrapped = formatted.unwrap()
@@ -338,6 +328,6 @@ class TestsFlextDbOracleCli:
                     "service_name": "TESTDB",
                     "username": "test",
                     "password": "test",
-                },
-            ),
+                }
+            )
         )

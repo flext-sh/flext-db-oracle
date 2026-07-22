@@ -13,10 +13,10 @@ from __future__ import annotations
 
 import oracledb
 import pytest
-from flext_tests import tm
 
 from flext_cli import t as cli_types
 from flext_db_oracle import FlextDbOracleTypes, t, typings as typings_module
+from flext_tests import tm
 
 
 class TestsFlextDbOracleTypings:
@@ -47,9 +47,7 @@ class TestsFlextDbOracleTypings:
         ],
     )
     def test_oracle_exception_bindings_map_to_driver(
-        self,
-        attribute: str,
-        expected: type[Exception],
+        self, attribute: str, expected: type[Exception]
     ) -> None:
         """Oracle exception aliases bind to the driver's exception classes."""
         bound = getattr(FlextDbOracleTypes.DbOracle, attribute)

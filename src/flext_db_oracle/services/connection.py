@@ -19,9 +19,7 @@ from flext_core import r
 from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, u
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        Generator,
-    )
+    from collections.abc import Generator
 
 
 # NOTE (multi-agent): ADR-005 settings fallout — connection scalars are read from
@@ -42,15 +40,11 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                 success=False,
             )
         self._engine = self._sqlalchemy_create_engine(
-            url_result.value,
-            connect_timeout=self.db_config.DbOracle.timeout,
+            url_result.value, connect_timeout=self.db_config.DbOracle.timeout
         )
         try:
             with self._engine_connect(self._engine) as conn:
-                _ = self._connection_execute(
-                    conn,
-                    text("SELECT 1 FROM dual"),
-                )
+                _ = self._connection_execute(conn, text("SELECT 1 FROM dual"))
             self.logger.info(
                 f"Connected to Oracle database: {self.db_config.DbOracle.host}"
             )
@@ -73,11 +67,10 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                     try:
                         with self._engine_connect(self._engine) as conn:
                             _ = self._connection_execute(
-                                conn,
-                                text("SELECT 1 FROM dual"),
+                                conn, text("SELECT 1 FROM dual")
                             )
                         self.logger.info(
-                            f"Connected to Oracle database: {self.db_config.DbOracle.host}",
+                            f"Connected to Oracle database: {self.db_config.DbOracle.host}"
                         )
                         nested_ok: p.Result[Self] = r.ok(self)
                         return nested_ok
@@ -97,16 +90,12 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         return r[bool].ok(True)
 
     @override
-    def execute(
-        self,
-    ) -> p.Result[p.Base]:
+    def execute(self) -> p.Result[p.Base]:
         """Execute main domain service operation - return settings."""
         test_result = self.test_connection()
         if test_result.success:
             return r[p.Base].ok(self.db_config)
-        return r[p.Base].fail(
-            test_result.error or "Connection test failed",
-        )
+        return r[p.Base].fail(test_result.error or "Connection test failed")
 
     @contextmanager
     def fetch_connection(self) -> Generator[SAConnection]:
@@ -134,7 +123,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                 username=self.db_config.DbOracle.username,
                 db_version="",
                 error_message="" if self.connected() else "Connection unavailable",
-            ),
+            )
         )
 
     def health_check(self) -> p.Result[m.DbOracle.HealthStatus]:
@@ -152,7 +141,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                     "host": self.db_config.DbOracle.host,
                     "port": self.db_config.DbOracle.port,
                 },
-            ),
+            )
         )
 
     def test_connection(self) -> p.Result[bool]:
@@ -162,10 +151,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             return r[bool].fail("Not connected to database")
         try:
             with self._engine_connect(engine_result.value) as conn:
-                _ = self._connection_execute(
-                    conn,
-                    text("SELECT 1 FROM dual"),
-                )
+                _ = self._connection_execute(conn, text("SELECT 1 FROM dual"))
             return r[bool].ok(True)
         except c.DbOracle.EXC_DB_BROAD as e:
             return r[bool].fail_op("Connection test", e)
@@ -180,8 +166,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             yield txn
 
     def _assemble_connection_url(
-        self,
-        password: m.DbOracle.Password | str,
+        self, password: m.DbOracle.Password | str
     ) -> p.Result[str]:
         """Assemble Oracle connection URL from validated password."""
         encoded_password = quote_plus(str(password).encode())

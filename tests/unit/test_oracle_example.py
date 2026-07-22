@@ -16,11 +16,11 @@ import contextlib
 from typing import TYPE_CHECKING
 
 import pytest
-from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.services.facade import FlextDbOracleServices
+from flext_tests import tm
 from tests import u
 
 if TYPE_CHECKING:
@@ -47,8 +47,7 @@ class TestsFlextDbOracleOracleExample:
 
     @classmethod
     def _api_context_first_cell(
-        cls,
-        real_oracle_config: FlextDbOracleSettings,
+        cls, real_oracle_config: FlextDbOracleSettings
     ) -> t.JsonValue:
         """Query a scalar value through the public API context manager."""
         with FlextDbOracleApi(real_oracle_config) as api:
@@ -74,8 +73,7 @@ class TestsFlextDbOracleOracleExample:
     # ------------------------------------------------------------------
 
     def test_connect_reports_connected_then_disconnect_clears_it(
-        self,
-        real_oracle_config: FlextDbOracleSettings,
+        self, real_oracle_config: FlextDbOracleSettings
     ) -> None:
         """After a successful connect ``connected()`` is True, False after disconnect."""
         connection = self._connect_services(real_oracle_config)
@@ -87,8 +85,7 @@ class TestsFlextDbOracleOracleExample:
         tm.that(connection.connected(), eq=False)
 
     def test_execute_query_returns_single_row_result(
-        self,
-        real_oracle_config: FlextDbOracleSettings,
+        self, real_oracle_config: FlextDbOracleSettings
     ) -> None:
         """``execute_query`` succeeds and yields exactly one row for ``SELECT 1``."""
         connection = self._connect_services(real_oracle_config)
@@ -102,8 +99,7 @@ class TestsFlextDbOracleOracleExample:
             connection.disconnect()
 
     def test_fetch_one_returns_scalar_mapping(
-        self,
-        real_oracle_config: FlextDbOracleSettings,
+        self, real_oracle_config: FlextDbOracleSettings
     ) -> None:
         """``fetch_one`` succeeds and the returned mapping carries the scalar value."""
         connection = self._connect_services(real_oracle_config)
@@ -120,8 +116,7 @@ class TestsFlextDbOracleOracleExample:
             connection.disconnect()
 
     def test_execute_many_returns_affected_row_count(
-        self,
-        real_oracle_config: FlextDbOracleSettings,
+        self, real_oracle_config: FlextDbOracleSettings
     ) -> None:
         """``execute_many`` reports the number of rows inserted."""
         connection = self._connect_services(real_oracle_config)
@@ -129,7 +124,7 @@ class TestsFlextDbOracleOracleExample:
             with contextlib.suppress(Exception):
                 connection.execute_statement("DROP TABLE temp_test_table")
             create_result = connection.execute_statement(
-                "CREATE TABLE temp_test_table (id NUMBER, name VARCHAR2(100))",
+                "CREATE TABLE temp_test_table (id NUMBER, name VARCHAR2(100))"
             )
             tm.ok(create_result)
             params_list: t.SequenceOf[t.JsonMapping] = [
@@ -153,16 +148,14 @@ class TestsFlextDbOracleOracleExample:
     # ------------------------------------------------------------------
 
     def test_api_context_manager_executes_query(
-        self,
-        real_oracle_config: FlextDbOracleSettings,
+        self, real_oracle_config: FlextDbOracleSettings
     ) -> None:
         """The API context manager yields a usable, connected client."""
         cell = self._api_context_first_cell(real_oracle_config)
         tm.that(str(cell), has="Hello Oracle")
 
     def test_fetch_schemas_includes_a_system_schema(
-        self,
-        connected_oracle_api: FlextDbOracleApi,
+        self, connected_oracle_api: FlextDbOracleApi
     ) -> None:
         """``fetch_schemas`` returns a non-empty list containing a known system schema."""
         schemas_result = connected_oracle_api.fetch_schemas()
@@ -180,8 +173,7 @@ class TestsFlextDbOracleOracleExample:
         )
 
     def test_fetch_tables_lists_seed_tables(
-        self,
-        connected_oracle_api: FlextDbOracleApi,
+        self, connected_oracle_api: FlextDbOracleApi
     ) -> None:
         """``fetch_tables`` returns the seeded HR-style tables."""
         tables_result = connected_oracle_api.fetch_tables()
@@ -191,8 +183,7 @@ class TestsFlextDbOracleOracleExample:
             tm.that(any(expected in name for name in tables_upper), eq=True)
 
     def test_fetch_columns_exposes_named_columns(
-        self,
-        connected_oracle_api: FlextDbOracleApi,
+        self, connected_oracle_api: FlextDbOracleApi
     ) -> None:
         """``fetch_columns`` returns Column models whose ``name`` field is public."""
         result = connected_oracle_api.fetch_columns("EMPLOYEES")
@@ -204,8 +195,7 @@ class TestsFlextDbOracleOracleExample:
             tm.that(column_names, has=expected)
 
     def test_query_returns_rows_for_aggregate(
-        self,
-        connected_oracle_api: FlextDbOracleApi,
+        self, connected_oracle_api: FlextDbOracleApi
     ) -> None:
         """``query`` succeeds and returns at least one row for a COUNT aggregate."""
         result = connected_oracle_api.query("SELECT COUNT(*) FROM EMPLOYEES")
@@ -239,8 +229,7 @@ class TestsFlextDbOracleOracleExample:
         tm.that(result.value, has=expected_fragment)
 
     def test_execute_sql_creates_table_visible_to_fetch_tables(
-        self,
-        connected_oracle_api: FlextDbOracleApi,
+        self, connected_oracle_api: FlextDbOracleApi
     ) -> None:
         """A table created via ``execute_sql`` appears in ``fetch_tables``."""
         table_name = "TEST_TEMP_TABLE"
@@ -281,7 +270,7 @@ class TestsFlextDbOracleOracleExample:
                 "service_name": "XEPDB1",
                 "username": "invalid_user",
                 "password": "invalid_password",
-            },
+            }
         )
         connection = FlextDbOracleServices(settings=invalid_config)
         result = connection.connect()
@@ -299,14 +288,13 @@ class TestsFlextDbOracleOracleExample:
         tm.that(any(reason in error_msg for reason in reasons), eq=True)
 
     def test_invalid_sql_returns_failure(
-        self,
-        real_oracle_config: FlextDbOracleSettings,
+        self, real_oracle_config: FlextDbOracleSettings
     ) -> None:
         """Executing malformed SQL against a real connection returns a failure."""
         connection = self._connect_services(real_oracle_config)
         try:
             result = connection.execute_query(
-                "SELECT FROM INVALID_TABLE_THAT_DOES_NOT_EXIST",
+                "SELECT FROM INVALID_TABLE_THAT_DOES_NOT_EXIST"
             )
             tm.fail(result)
             error_msg = (result.error or "").lower()
@@ -315,8 +303,7 @@ class TestsFlextDbOracleOracleExample:
             connection.disconnect()
 
     def test_api_operations_fail_when_not_connected(
-        self,
-        real_oracle_config: FlextDbOracleSettings,
+        self, real_oracle_config: FlextDbOracleSettings
     ) -> None:
         """API queries and metadata fetches fail cleanly before ``connect``."""
         api = FlextDbOracleApi(real_oracle_config)
@@ -329,6 +316,5 @@ class TestsFlextDbOracleOracleExample:
         tm.fail(tables_result)
         tables_error = (tables_result.error or "").lower()
         tm.that(
-            "not connected" in tables_error or "connection" in tables_error,
-            eq=True,
+            "not connected" in tables_error or "connection" in tables_error, eq=True
         )

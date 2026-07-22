@@ -6,9 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_tests import FlextTestsConstants
-
 from flext_db_oracle import c
+from flext_tests import FlextTestsConstants
 
 
 class TestsFlextDbOracleConstants(FlextTestsConstants, c):

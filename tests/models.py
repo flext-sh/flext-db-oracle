@@ -8,9 +8,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_tests import FlextTestsModels
-
 from flext_db_oracle import m
+from flext_tests import FlextTestsModels
 
 if TYPE_CHECKING:
     from tests import t

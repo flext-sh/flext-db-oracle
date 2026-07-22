@@ -14,10 +14,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 import pytest
-from flext_tests import tm
 
 from flext_db_oracle import c, m
 from flext_db_oracle.client import FlextDbOracleClient
+from flext_tests import tm
 
 
 class TestsFlextDbOracleClient:
@@ -54,11 +54,7 @@ class TestsFlextDbOracleClient:
 
     @pytest.mark.parametrize(
         ("identifier", "expected"),
-        [
-            ("valid_name", "valid_name"),
-            ("Table1", "Table1"),
-            ("COL_A_1", "COL_A_1"),
-        ],
+        [("valid_name", "valid_name"), ("Table1", "Table1"), ("COL_A_1", "COL_A_1")],
     )
     def test_escape_identifier_accepts_valid_names(
         self, identifier: str, expected: str

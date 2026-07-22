@@ -7,11 +7,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
-from flext_tests import tm
 
-from flext_db_oracle import (
-    FlextDbOracleSettings,
-)
+from flext_db_oracle import FlextDbOracleSettings
+from flext_tests import tm
 from tests import c, m, u
 
 
@@ -26,10 +24,7 @@ class TestsFlextDbOracleModels:
     def test_connected_status_reports_connected_description(self) -> None:
         """A connected status exposes a 'Connected' human-readable description."""
         status = m.DbOracle.ConnectionStatus(
-            connected=True,
-            host="localhost",
-            service_name="XEPDB1",
-            username="system",
+            connected=True, host="localhost", service_name="XEPDB1", username="system"
         )
         tm.that(status.status_description, eq="Connected")
         tm.that(status.healthy, eq=True)
@@ -55,15 +50,11 @@ class TestsFlextDbOracleModels:
         ],
     )
     def test_performance_info_reflects_connection_time(
-        self,
-        connection_time: float,
-        rating: str,
+        self, connection_time: float, rating: str
     ) -> None:
         """performance_info categorizes the measured connection time."""
         status = m.DbOracle.ConnectionStatus(
-            connected=True,
-            host="localhost",
-            connection_time=connection_time,
+            connected=True, host="localhost", connection_time=connection_time
         )
         tm.that(status.performance_info, has=rating)
 
@@ -81,10 +72,7 @@ class TestsFlextDbOracleModels:
 
     def test_long_error_message_is_truncated_on_serialization(self) -> None:
         """Serialized error messages are capped at the configured maximum."""
-        status = m.DbOracle.ConnectionStatus(
-            connected=False,
-            error_message="x" * 800,
-        )
+        status = m.DbOracle.ConnectionStatus(connected=False, error_message="x" * 800)
         serialized = status.model_dump(mode="json")
         tm.that(
             len(serialized["error_message"]),
@@ -144,22 +132,14 @@ class TestsFlextDbOracleModels:
 
     @pytest.mark.parametrize(
         ("execution_time_ms", "rating"),
-        [
-            (50, "Excellent"),
-            (300, "Good"),
-            (1500, "Acceptable"),
-            (2500, "Slow"),
-        ],
+        [(50, "Excellent"), (300, "Good"), (1500, "Acceptable"), (2500, "Slow")],
     )
     def test_performance_rating_without_results_uses_time_thresholds(
-        self,
-        execution_time_ms: int,
-        rating: str,
+        self, execution_time_ms: int, rating: str
     ) -> None:
         """With no rows, performance_rating is decided by execution time alone."""
         result = m.DbOracle.QueryResult(
-            query="SELECT 1",
-            execution_time_ms=execution_time_ms,
+            query="SELECT 1", execution_time_ms=execution_time_ms
         )
         tm.that(result.has_results, eq=False)
         tm.that(result.performance_rating, eq=rating)
@@ -194,10 +174,7 @@ class TestsFlextDbOracleModels:
         result = m.DbOracle.QueryResult(
             query="SELECT 1",
             columns=["id"],
-            rows=[
-                m.DbOracle.RowData(values=[1]),
-                m.DbOracle.RowData(values=[2]),
-            ],
+            rows=[m.DbOracle.RowData(values=[1]), m.DbOracle.RowData(values=[2])],
             execution_time_ms=100,
         )
         validated = m.DbOracle.QueryResult.model_validate(result.model_dump())
@@ -234,10 +211,7 @@ class TestsFlextDbOracleModels:
     def test_column_defaults_and_explicit_values(self) -> None:
         """Column exposes type, nullability and default value through public fields."""
         column = m.DbOracle.Column(
-            name="user_id",
-            data_type="NUMBER(38)",
-            nullable=False,
-            default_value="NULL",
+            name="user_id", data_type="NUMBER(38)", nullable=False, default_value="NULL"
         )
         tm.that(column.name, eq="user_id")
         tm.that(column.data_type, eq="NUMBER(38)")
@@ -294,8 +268,7 @@ class TestsFlextDbOracleModels:
         """A CreateIndexConfig without columns is rejected."""
         with pytest.raises(ValueError, match="columns"):
             m.DbOracle.CreateIndexConfig(
-                table_name="users",
-                index_name="idx_users_email",
+                table_name="users", index_name="idx_users_email"
             )
 
     def test_positive_index_parallel_degree_is_enforced(self) -> None:
@@ -334,7 +307,7 @@ class TestsFlextDbOracleModels:
                 "username": "app_user",
                 "password": "secret123",
                 "ssl_server_cert_dn": "CN=oracle.example.com",
-            },
+            }
         )
         tm.that(settings.DbOracle.host, eq="oracle.example.com")
         tm.that(settings.DbOracle.port, eq=1522)
@@ -367,7 +340,7 @@ class TestsFlextDbOracleModels:
                 "port": 1522,
                 "username": "user",
                 "password": "pass",
-            },
+            }
         )
         serialized = settings.model_dump()
         tm.that(serialized["DbOracle"]["host"], eq="test.com")
@@ -385,7 +358,7 @@ class TestsFlextDbOracleModels:
     def test_settings_repr_includes_identifying_fields(self) -> None:
         """Representation identifies the settings type and connection values."""
         settings = FlextDbOracleSettings(
-            DbOracle={"host": "localhost", "port": 1521, "username": "system"},
+            DbOracle={"host": "localhost", "port": 1521, "username": "system"}
         )
         repr_str = repr(settings)
         tm.that(repr_str, has="FlextDbOracleSettings")

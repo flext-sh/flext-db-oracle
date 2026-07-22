@@ -85,42 +85,18 @@ if TYPE_CHECKING:
 
 
 _LAZY_MODULES: dict[str, tuple[str, ...]] = {
-    "._config": (
-        "FlextDbOracleConfig",
-        "config",
-    ),
+    "._config": ("FlextDbOracleConfig", "config"),
     "._models.password": ("FlextDbOraclePassword",),
-    "._settings": (
-        "FlextDbOracleSettings",
-        "settings",
-    ),
+    "._settings": ("FlextDbOracleSettings", "settings"),
     "._utilities.db_oracle": ("FlextDbOracleUtilitiesDbOracle",),
-    ".api": (
-        "FlextDbOracleApi",
-        "db_oracle",
-    ),
-    ".base": (
-        "FlextDbOracleServiceBase",
-        "s",
-    ),
-    ".client": (
-        "FlextDbOracleClient",
-        "client",
-    ),
-    ".constants": (
-        "FlextDbOracleConstants",
-        "c",
-    ),
+    ".api": ("FlextDbOracleApi", "db_oracle"),
+    ".base": ("FlextDbOracleServiceBase", "s"),
+    ".client": ("FlextDbOracleClient", "client"),
+    ".constants": ("FlextDbOracleConstants", "c"),
     ".dispatcher": ("FlextDbOracleDispatcher",),
     ".exceptions": ("FlextDbOracleExceptions",),
-    ".models": (
-        "FlextDbOracleModels",
-        "m",
-    ),
-    ".protocols": (
-        "FlextDbOracleProtocols",
-        "p",
-    ),
+    ".models": ("FlextDbOracleModels", "m"),
+    ".protocols": ("FlextDbOracleProtocols", "p"),
     ".services.api_runtime": ("FlextDbOracleApiRuntime",),
     ".services.connection": ("FlextDbOracleServiceConnection",),
     ".services.facade": ("FlextDbOracleServices",),
@@ -129,21 +105,9 @@ _LAZY_MODULES: dict[str, tuple[str, ...]] = {
     ".services.schema": ("FlextDbOracleServiceSchema",),
     ".services.singer": ("FlextDbOracleServiceSinger",),
     ".services.sql_builder": ("FlextDbOracleServiceSqlBuilder",),
-    ".typings": (
-        "FlextDbOracleTypes",
-        "t",
-    ),
-    ".utilities": (
-        "FlextDbOracleUtilities",
-        "u",
-    ),
-    "flext_core": (
-        "d",
-        "e",
-        "h",
-        "r",
-        "x",
-    ),
+    ".typings": ("FlextDbOracleTypes", "t"),
+    ".utilities": ("FlextDbOracleUtilities", "u"),
+    "flext_core": ("d", "e", "h", "r", "x"),
 }
 
 
@@ -151,9 +115,7 @@ _LAZY_ALIAS_GROUPS: dict[str, tuple[tuple[str, str], ...]] = {}
 
 
 _LAZY_IMPORTS = build_lazy_import_map(
-    _LAZY_MODULES,
-    alias_groups=_LAZY_ALIAS_GROUPS,
-    sort_keys=False,
+    _LAZY_MODULES, alias_groups=_LAZY_ALIAS_GROUPS, sort_keys=False
 )
 
 _DIRECT_IMPORTS: tuple[str, ...] = (
@@ -249,9 +211,4 @@ __all__: tuple[str, ...] = (
 )
 
 
-install_lazy_exports(
-    __name__,
-    globals(),
-    _LAZY_IMPORTS,
-    public_exports=__all__,
-)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

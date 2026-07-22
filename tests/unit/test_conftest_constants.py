@@ -3,8 +3,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 import pytest
-from flext_tests import tm
 
+from flext_tests import tm
 from tests import c
 
 
@@ -40,9 +40,7 @@ class TestsFlextDbOracleConftestConstants:
         ],
     )
     def test_oracle_container_config_exposes_connection_contract(
-        self,
-        key: str,
-        expected: str | int,
+        self, key: str, expected: str | int
     ) -> None:
         # Public contract: oracle container advertises its connection metadata.
         config = c.Tests.SHARED_CONTAINERS[c.Tests.ORACLE_CONTAINER]
