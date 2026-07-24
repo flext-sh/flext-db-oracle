@@ -192,10 +192,7 @@ def validate_and_process(data: dict) -> ProcessedData:
 
 ### Unified Models Pattern
 
-```python
-from __future__ import annotations
-
-
+```text
 # ✅ CORRECT - Use [Project]Models pattern
 class FlextApiModels:
     class Request(m.BaseModel):
@@ -303,9 +300,7 @@ cd flext-newlib
 
 ### 2. Implement Core Patterns
 
-```python
-from __future__ import annotations
-
+```text
 # src/flext_newlib/__init__.py
 from flext_cli import u
 from flext_core import FlextSettings
@@ -410,7 +405,7 @@ Update project README.md files when adding new features:
 
 - Add a "New Feature" section with usage and configuration examples.
 
-```python
+```text
 from flext_newlib import FlextNewlib
 from flext_newlib import FlextNewlibSettings
 
