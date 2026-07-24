@@ -624,6 +624,8 @@ objectClass: inetOrgPerson"""
 ### 4. Test Independence
 
 ```python notest
+from __future__ import annotations
+
 from flext_ldif import ldif
 
 
@@ -669,6 +671,8 @@ def test_parse_invalid_ldif_shared():
 1. **Fixture Not Found**
 
    ```python
+   from __future__ import annotations
+
    import pytest
 
 
