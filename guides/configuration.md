@@ -334,7 +334,6 @@ class FlextLdifSettings(m.BaseModel):
 ### Debug Configuration
 
 ```python
-from flext_cli import u
 from flext_core import FlextSettings
 
 # Enable debug logging
@@ -343,11 +342,8 @@ settings = FlextSettings(debug=True)
 # Print configuration
 print(settings.model_dump())
 
-# Validate configuration
-if settings.is_valid():
-    print("Configuration is valid")
-else:
-    print("Configuration has errors")
+# FlextSettings validates on construction; success means the configuration is valid
+print("Configuration is valid")
 ```
 
 ## Examples
@@ -361,7 +357,6 @@ from __future__ import annotations
 """Complete FLEXT configuration example."""
 
 import os
-from flext_cli import u
 from flext_core import FlextSettings
 from flext_ldif import FlextLdifSettings
 from flext_api import FlextApiSettings

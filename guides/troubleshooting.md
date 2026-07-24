@@ -204,20 +204,16 @@ pytest tests/unit/test_module.py::TestClass::test_method -v --pdb
 **Check test data:**
 
 ```python
+from __future__ import annotations
+
 from flext_core import r
 
-
-def my_function():
-    return r.ok("expected value")
-
-
-def test_with_debug():
-    result = my_function()
-    print(f"Result: {result}")
-    print(f"Success: {result.success}")
-    if result.failure:
-        print(f"Error: {result.error}")
-    assert result.success
+result = r.ok("expected value")
+print(f"Result: {result}")
+print(f"Success: {result.success}")
+if result.failure:
+    print(f"Error: {result.error}")
+assert result.success
 ```
 
 ### 4. Configuration Issues
@@ -240,10 +236,10 @@ env | grep FLEXT_
 **Validate configuration:**
 
 ```python
-from flext_core import c, settings
+from flext_core import FlextSettings, c
 
 try:
-    cfg = settings.FlextSettings()
+    cfg = FlextSettings()
     print("Configuration valid")
 except c.ValidationError as e:
     print(f"Configuration error: {e}")
@@ -254,7 +250,7 @@ except c.ValidationError as e:
 ```python
 import os
 
-from flext_core import settings
+from flext_core import FlextSettings
 
 # Print all FLEXT environment variables
 for key, value in os.environ.items():
@@ -262,7 +258,7 @@ for key, value in os.environ.items():
         print(f"{key}={value}")
 
 # Load and print configuration
-cfg = settings.FlextSettings()
+cfg = FlextSettings()
 print(f"Config: {cfg.model_dump()}")
 ```
 
@@ -401,20 +397,15 @@ import os
 
 import psutil
 
+process = psutil.Process(os.getpid())
+initial_memory = process.memory_info().rss
 
-def profile_memory():
-    process = psutil.Process(os.getpid())
-    initial_memory = process.memory_info().rss
+# Your processing code here
 
-    # Your processing code here
+final_memory = process.memory_info().rss
+memory_used = final_memory - initial_memory
 
-    final_memory = process.memory_info().rss
-    memory_used = final_memory - initial_memory
-
-    print(f"Memory used: {memory_used / 1024 / 1024:.2f} MB")
-
-
-profile_memory()
+print(f"Memory used: {memory_used / 1024 / 1024:.2f} MB")
 ```
 
 **Optimize batch size:**
@@ -493,10 +484,10 @@ def safe_operation(data: dict) -> p.Result[dict]:
 ### 3. Debug Mode
 
 ```python
-from flext_core import settings
+from flext_core import FlextSettings
 
 # Enable debug mode
-cfg = settings.FlextSettings(debug=True)
+cfg = FlextSettings(debug=True)
 
 # Debug information will be printed
 print(f"Debug mode: {cfg.debug}")
@@ -579,21 +570,15 @@ import os
 
 import psutil
 
+process = psutil.Process(os.getpid())
+memory_info = process.memory_info()
 
-# Monitor memory usage
-def monitor_memory():
-    process = psutil.Process(os.getpid())
-    memory_info = process.memory_info()
+print(f"RSS: {memory_info.rss / 1024 / 1024:.2f} MB")
+print(f"VMS: {memory_info.vms / 1024 / 1024:.2f} MB")
 
-    print(f"RSS: {memory_info.rss / 1024 / 1024:.2f} MB")
-    print(f"VMS: {memory_info.vms / 1024 / 1024:.2f} MB")
-
-    # Check for memory leaks
-    if memory_info.rss > 500 * 1024 * 1024:  # 500MB
-        print("WARNING: High memory usage detected")
-
-
-monitor_memory()
+# Check for memory leaks
+if memory_info.rss > 500 * 1024 * 1024:  # 500MB
+    print("WARNING: High memory usage detected")
 ```
 
 ### CPU Issues
@@ -604,19 +589,13 @@ import time
 
 import psutil
 
+process = psutil.Process(os.getpid())
 
-# Monitor CPU usage
-def monitor_cpu():
-    process = psutil.Process(os.getpid())
-
-    # Get CPU usage over time
-    for i in range(3):
-        cpu_percent = process.cpu_percent()
-        print(f"CPU usage: {cpu_percent}%")
-        time.sleep(0.1)
-
-
-monitor_cpu()
+# Get CPU usage over time
+for i in range(3):
+    cpu_percent = process.cpu_percent()
+    print(f"CPU usage: {cpu_percent}%")
+    time.sleep(0.1)
 ```
 
 ## Getting Help
@@ -695,9 +674,9 @@ When reporting issues, include:
 
    ```python
    # Minimal code that reproduces the issue
-   from flext_core import settings
+   from flext_core import FlextSettings
 
-   cfg = settings.FlextSettings()
+   cfg = FlextSettings()
    print(cfg.model_dump())
    ```
 
@@ -786,20 +765,13 @@ def process(data: dict) -> ProcessedData:
    from flext_core import r
 
 
-   def process_data(data):
-       if data is None:
-           return r.fail("Data required")
-       return r.ok(data)
+   # Test success case
+   result = r.ok({"key": "value"})
+   assert result.success
 
-
-   def test_process_data():
-       # Test success case
-       result = process_data({"key": "value"})
-       assert result.success
-
-       # Test failure case
-       result = process_data(None)
-       assert result.failure
+   # Test failure case
+   result = r.fail("Data required")
+   assert result.failure
    ```
 
 ## Resources
