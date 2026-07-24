@@ -100,36 +100,34 @@ docker run -v $(pwd)/data:/app/data flext:latest
 
 ```python
 from flext_cli import u
-from flext_core import FlextSettings
+from flext_core import FlextContainer
 
 # Create dependency injection container
 container = FlextContainer()
 
 # Register services (example)
-# container.bind(IService, ServiceImplementation())
+# container.bind("IService", ServiceImplementation())
 
-print("FLEXT application initialized!")
+u.Cli.info("FLEXT application initialized!")
 ```
 
 ### 2. Using flext-ldif for LDIF Processing
 
 ```python
+from flext_cli import u
 from flext_ldif import ldif
 
-# Initialize LDIF API
-
-# Parse LDIF content
 ldif_content = """dn: cn=test,dc=example,dc=com
 cn: test
 sn: user
 objectClass: inetOrgPerson"""
 
-result = ldif.parse(ldif_content)
+result = ldif.parse_string(ldif_content)
 if result.success:
-    entries = result.unwrap()
-    print(f"Successfully parsed {len(entries)} LDIF entries")
+    entries = result.value.entries
+    u.Cli.info(f"Successfully parsed {len(entries)} LDIF entries")
 else:
-    print(f"Failed to parse LDIF: {result.failure()}")
+    u.Cli.info(f"Failed to parse LDIF: {result.error}")
 ```
 
 ### 3. Railway-Oriented Error Handling
@@ -137,23 +135,24 @@ else:
 ```python
 from __future__ import annotations
 from flext_cli import u
-from flext_core import FlextSettings
+from flext_core import p, r
+from flext_ldif import ldif
 
 
-def process_ldif_data(content: str) -> p.Result[str, Exception]:
+def process_ldif_data(content: str) -> p.Result[str]:
     # Parse LDIF
-    parse_result = ldif.parse(content)
+    parse_result = ldif.parse_string(content)
     if parse_result.failure:
-        return r.failure(parse_result.failure())
+        return r[str].fail(parse_result.error or "LDIF parse failed")
 
-    entries = parse_result.unwrap()
+    entries = parse_result.value.entries
 
     # Process entries
     try:
         processed_data = process_entries(entries)
-        return r.success(processed_data)
+        return r[str].ok(processed_data)
     except Exception as e:
-        return r.failure(e)
+        return r[str].fail(str(e))
 
 
 def process_entries(entries: list) -> str:
@@ -161,12 +160,16 @@ def process_entries(entries: list) -> str:
     return f"Processed {len(entries)} entries"
 
 
-# Usage
+ldif_content = """dn: cn=test,dc=example,dc=com
+cn: test
+sn: user
+objectClass: inetOrgPerson"""
+
 result = process_ldif_data(ldif_content)
 if result.success:
-    print(f"Success: {result.unwrap()}")
+    u.Cli.info(f"Success: {result.unwrap()}")
 else:
-    print(f"Error: {result.failure()}")
+    u.Cli.info(f"Error: {result.error}")
 ```
 
 ### 4. CQRS Pattern with Commands and Queries
@@ -174,41 +177,51 @@ else:
 ```python
 from __future__ import annotations
 from flext_cli import u
-from flext_core import FlextSettings
-from dataclasses import dataclass
+from flext_core import FlextDispatcher, p, r
 
 
-@dataclass
 class CreateUserCommand:
-    username: str
-    email: str
+    command_type = "create_user"
+
+    def __init__(self, username: str, email: str) -> None:
+        self.username = username
+        self.email = email
 
 
-@dataclass
 class GetUserQuery:
-    user_id: str
+    query_type = "get_user"
+
+    def __init__(self, user_id: str) -> None:
+        self.user_id = user_id
 
 
-class UserService:
-    def create_user(self, cmd: CreateUserCommand) -> p.Result[str, Exception]:
+class CreateUserHandler:
+    message_type = "create_user"
+
+    def __call__(self, cmd: CreateUserCommand) -> r[str]:
         # Create user logic
-        return r.success(f"User {cmd.username} created")
+        return r[str].ok(f"User {cmd.username} created")
 
-    def get_user(self, query: GetUserQuery) -> p.Result[str, Exception]:
+
+class GetUserHandler:
+    message_type = "get_user"
+
+    def __call__(self, query: GetUserQuery) -> r[str]:
         # Get user logic
-        return r.success(f"User {query.user_id} data")
+        return r[str].ok(f"User {query.user_id} data")
 
 
 # Setup dispatcher
 dispatcher = FlextDispatcher()
-user_service = UserService()
-
-dispatcher.register_handler(CreateUserCommand, user_service.create_user)
-dispatcher.register_handler(GetUserQuery, user_service.get_user)
+dispatcher.register_handler(CreateUserHandler())
+dispatcher.register_handler(GetUserHandler())
 
 # Use the dispatcher
 create_result = dispatcher.dispatch(CreateUserCommand("john", "john@example.com"))
 get_result = dispatcher.dispatch(GetUserQuery("user123"))
+
+u.Cli.info(f"Create result: {create_result.unwrap()}")
+u.Cli.info(f"Get result: {get_result.unwrap()}")
 ```
 
 ## Configuration
@@ -227,18 +240,23 @@ export FLEXT_LDIF_STRICT_VALIDATION=true
 ### Programmatic Configuration
 
 ```python
-from flext_ldif import FlextLdifSettings
+from flext_cli import u
+from flext_ldif import FlextLdif, FlextLdifSettings
 
 # Create custom configuration
 settings = FlextLdifSettings(
-    default_encoding="utf-8",
-    strict_validation=True,
-    servers_enabled=True,
-    batch_size=1000,
+    ldif={
+        "ldif_encoding": "utf-8",
+        "ldif_strict_validation": True,
+    },
 )
 
 # Use configuration
-ldif = ldif(settings=settings)
+ldif_api = FlextLdif(settings=settings)
+
+u.Cli.info(
+    f"LDIF API configured with encoding: {ldif_api.runtime_settings.ldif.ldif_encoding}"
+)
 ```
 
 ## Next Steps

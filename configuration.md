@@ -26,21 +26,31 @@ export ORACLE_PASSWORD="Oracle123"
 ### Code Configuration
 
 ```python
-from flext_db_oracle import FlextDbOracleApi
-from flext_db_oracle import FlextDbOracleModels
+import os
+
+# Provide environment values so the API can be built from env vars.
+os.environ["ORACLE_DBORACLE__HOST"] = "localhost"
+os.environ["ORACLE_DBORACLE__PORT"] = "1521"
+os.environ["ORACLE_DBORACLE__SERVICE_NAME"] = "XEPDB1"
+os.environ["ORACLE_DBORACLE__USERNAME"] = "system"
+os.environ["ORACLE_DBORACLE__PASSWORD"] = "Oracle123"
+
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 # From environment
-config_result = FlextDbOracleModels.OracleConfig.from_env()
-if config_result.success:
-    api = FlextDbOracleApi(config_result.value)
+api_result = FlextDbOracleApi.from_env()
+if api_result.success:
+    api = api_result.value
 
 # Direct configuration
-settings = FlextDbOracleModels.OracleConfig(
-    host="localhost",
-    port=1521,
-    service_name="XEPDB1",
-    user="system",
-    password="Oracle123",
+settings = FlextDbOracleSettings(
+    DbOracle={
+        "host": "localhost",
+        "port": 1521,
+        "service_name": "XEPDB1",
+        "username": "system",
+        "password": "Oracle123",
+    }
 )
 api = FlextDbOracleApi(settings)
 ```
@@ -58,12 +68,29 @@ api = FlextDbOracleApi(settings)
 ## Testing Connection
 
 ```python
-# Test connection
-result = api.test_connection()
-if result.success:
-    print("Connected to Oracle")
+import os
+
+# Seed environment values so the API can be resolved from settings.
+os.environ["ORACLE_DBORACLE__HOST"] = "localhost"
+os.environ["ORACLE_DBORACLE__PORT"] = "1521"
+os.environ["ORACLE_DBORACLE__SERVICE_NAME"] = "XEPDB1"
+os.environ["ORACLE_DBORACLE__USERNAME"] = "system"
+os.environ["ORACLE_DBORACLE__PASSWORD"] = "Oracle123"
+
+from flext_db_oracle import FlextDbOracleApi
+
+api_result = FlextDbOracleApi.from_env()
+if api_result.success:
+    api = api_result.value
+
+    # Test connection
+    result = api.test_connection()
+    if result.success:
+        print("Connected to Oracle")
+    else:
+        print(f"Connection failed: {result.error}")
 else:
-    print(f"Connection failed: {result.error}")
+    print(f"API could not be created: {api_result.error}")
 ```
 
 ## CLI Configuration

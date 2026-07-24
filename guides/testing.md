@@ -253,10 +253,9 @@ pytest -n 4
 ### Pytest Fixtures
 
 ```python
-from __future__ import annotations
 import pytest
 from pathlib import Path
-from flext_ldif import ldif, FlextLdifSettings
+from flext_ldif import FlextLdifSettings, ldif
 
 
 @pytest.fixture
@@ -295,12 +294,10 @@ def temp_directories(tmp_path):
 ### Using Fixtures
 
 ```python
-from __future__ import annotations
-
 
 def test_ldif_parsing(ldif_service, sample_ldif_content):
     """Test LDIF parsing with fixtures."""
-    result = ldif_service.parse(sample_ldif_content)
+    result = ldif_service.parse_string(sample_ldif_content)
     assert result.success
 
 
@@ -322,10 +319,13 @@ def test_file_migration(ldif_service, temp_directories):
 ### Unit Test Mocking
 
 ```python
-from __future__ import annotations
 from unittest.mock import Mock, patch
-from flext_cli import u
-from flext_core import FlextSettings
+from flext_core import r
+
+
+def my_function():
+    """Example function that delegates to an external service."""
+    return r.ok("processed")
 
 
 def test_with_mocked_dependency():
@@ -345,10 +345,13 @@ def test_with_mocked_dependency():
 ### Integration Test Stubbing
 
 ```python
-from __future__ import annotations
 from unittest.mock import Mock
-from flext_cli import u
-from flext_core import FlextSettings
+from flext_core import FlextContainer, r
+
+
+def integration_function():
+    """Example integration function that returns a success result."""
+    return r.ok("integrated")
 
 
 def test_with_stubbed_service():
@@ -372,19 +375,19 @@ def test_with_stubbed_service():
 ### Load Testing
 
 ```python
-from __future__ import annotations
 import pytest
 import time
 from concurrent.futures import ThreadPoolExecutor
+from flext_ldif import ldif
 
 
 @pytest.mark.slow
 def test_concurrent_processing():
     """Test concurrent processing performance."""
-        content = "dn: test\ncn: test"
+    content = "dn: test\ncn: test"
 
     def process_entry():
-        return ldif.parse(content)
+        return ldif.parse_string(content)
 
     # Run concurrent processing
     start_time = time.time()
@@ -405,10 +408,10 @@ def test_concurrent_processing():
 ### Memory Testing
 
 ```python
-from __future__ import annotations
 import pytest
 import psutil
 import os
+from flext_ldif import ldif
 
 
 @pytest.mark.slow
@@ -418,9 +421,9 @@ def test_memory_usage():
     initial_memory = process.memory_info().rss
 
     # Process large dataset
-        large_content = "dn: test\ncn: test\n" * 10000
+    large_content = "dn: test\ncn: test\n" * 10000
 
-    result = ldif.parse(large_content)
+    result = ldif.parse_string(large_content)
     assert result.success
 
     # Check memory usage (should not exceed 100MB)
@@ -455,6 +458,7 @@ tests/
 from __future__ import annotations
 import json
 from pathlib import Path
+from flext_core import t
 
 
 def load_test_fixture(fixture_name: str) -> str:
@@ -467,17 +471,6 @@ def load_json_fixture(fixture_name: str) -> t.JsonMapping:
     """Load JSON test fixture."""
     fixture_path = Path(__file__).parent / "fixtures" / fixture_name
     return json.loads(fixture_path.read_text())
-
-
-# Usage
-def test_with_fixture():
-    """Test using loaded fixture data."""
-    ldif_content = load_test_fixture("ldif/valid.ldif")
-    config_data = load_json_fixture("settings/dev.yaml")
-
-    # Use fixture data in test
-    result = process_ldif(ldif_content, config_data)
-    assert result.success
 ```
 
 ## Continuous Integration
@@ -524,9 +517,6 @@ jobs:
 ### 1. Test Naming
 
 ```python
-from __future__ import annotations
-
-
 # ✅ GOOD - Descriptive test names
 def test_parse_valid_ldif_returns_success():
     """Test that parsing valid LDIF returns success result."""
@@ -550,9 +540,6 @@ def test_ldif():
 ### 2. Test Organization
 
 ```python
-from __future__ import annotations
-
-
 class TestLdifParsing:
     """Test LDIF parsing functionality."""
 
@@ -580,57 +567,63 @@ class TestLdifMigration:
 ### 3. Assertion Quality
 
 ```python
-from __future__ import annotations
+from flext_ldif import ldif
 
 
 # ✅ GOOD - Specific assertions
 def test_parse_result():
-    result = ldif.parse(content)
+    content = """dn: cn=test,dc=example,dc=com
+cn: test
+objectClass: inetOrgPerson"""
+    result = ldif.parse_string(content)
 
     assert result.success
-    entries = result.unwrap()
+    entries = result.unwrap().entries
     assert len(entries) == 1
     assert entries[0].dn == "cn=test,dc=example,dc=com"
     assert "cn" in entries[0].attributes
 
 
 # ❌ BAD - Vague assertions
-def test_parse_result():
-    result = ldif.parse(content)
+def test_parse_result_vague():
+    content = """dn: cn=test,dc=example,dc=com
+cn: test
+objectClass: inetOrgPerson"""
+    result = ldif.parse_string(content)
     assert result  # Too vague
 ```
 
 ### 4. Test Independence
 
-```python
-from __future__ import annotations
+```python notest
+from flext_ldif import ldif
 
 
 # ✅ GOOD - Independent tests
 def test_parse_valid_ldif():
-    ldif = ldif()  # Fresh instance
-    result = ldif.parse("dn: test")
+    ldif_service = ldif()  # Fresh instance
+    result = ldif_service.parse_string("dn: test")
     assert result.success
 
 
 def test_parse_invalid_ldif():
-    ldif = ldif()  # Fresh instance
-    result = ldif.parse("invalid")
-    assert result.failure
+    ldif_service = ldif()  # Fresh instance
+    result = ldif_service.parse_string("invalid")
+    assert not result.unwrap().entries
 
 
-# ❌ BAD - Dependent tests
-ldif = ldif()  # Shared instance
+# ❌ BAD - Shared instance
+ldif_service = ldif()  # Shared instance
 
 
-def test_parse_valid_ldif():
-    result = ldif.parse("dn: test")
+def test_parse_valid_ldif_shared():
+    result = ldif_service.parse_string("dn: test")
     assert result.success
 
 
-def test_parse_invalid_ldif():
-    result = ldif.parse("invalid")
-    assert result.failure
+def test_parse_invalid_ldif_shared():
+    result = ldif_service.parse_string("invalid")
+    assert not result.unwrap().entries
 ```
 
 ## Troubleshooting
@@ -648,15 +641,13 @@ def test_parse_invalid_ldif():
 1. **Fixture Not Found**
 
    ```python
+   import pytest
 
-from **future** import annotations
 
-# Check fixture scope and dependencies
-
+   # Check fixture scope and dependencies
    @pytest.fixture(scope="function")
    def my_fixture():
        return "value"
-
    ```
 
 1. **Test Timeout**
