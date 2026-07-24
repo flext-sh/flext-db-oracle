@@ -9,15 +9,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Sequence,
-)
-from typing import override
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, override
 
 from sqlalchemy import text
-from sqlalchemy.engine import CursorResult
 
 from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine import CursorResult
 
 
 class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
@@ -28,9 +28,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     """
 
     def execute_many(
-        self,
-        sql: str,
-        params_list: t.SequenceOf[t.JsonMapping | m.ConfigMap],
+        self, sql: str, params_list: t.SequenceOf[t.JsonMapping | m.ConfigMap]
     ) -> p.Result[int]:
         """Execute SQL statement multiple times."""
         if not self.connected():
@@ -47,11 +45,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
                         if isinstance(params, m.ConfigMap)
                         else m.ConfigMap.model_validate(params)
                     )
-                    result = self._connection_execute(
-                        conn,
-                        text(sql),
-                        typed_params,
-                    )
+                    result = self._connection_execute(conn, text(sql), typed_params)
                     total_affected += max(result.rowcount, 0)
                 return r[int].ok(total_affected)
         except c.DbOracle.EXC_DB_BROAD as e:
@@ -59,9 +53,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
 
     @override
     def execute_query(
-        self,
-        sql: str,
-        params: m.ConfigMap | None = None,
+        self, sql: str, params: m.ConfigMap | None = None
     ) -> p.Result[Sequence[m.Dict]]:
         """Execute SQL query and return results."""
         if not self.connected():
@@ -69,15 +61,11 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         engine_result = self._get_engine()
         if engine_result.failure:
             return r[Sequence[m.Dict]].fail(
-                engine_result.error or "Failed to get database engine",
+                engine_result.error or "Failed to get database engine"
             )
         try:
             with self._engine_connect(engine_result.value) as conn:
-                result = self._connection_execute(
-                    conn,
-                    text(sql),
-                    params,
-                )
+                result = self._connection_execute(conn, text(sql), params)
                 rows: t.SequenceOf[m.Dict] = self._normalize_query_rows(result)
                 return r[Sequence[m.Dict]].ok(rows)
         except c.DbOracle.EXC_DB_BROAD as e:
@@ -94,29 +82,22 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             return r[int].fail(engine_result.error or "Failed to get database engine")
         try:
             with self._engine_begin(engine_result.value) as conn:
-                result = self._connection_execute(
-                    conn,
-                    text(sql),
-                    params,
-                )
+                result = self._connection_execute(conn, text(sql), params)
                 rowcount = max(result.rowcount, 0)
                 return r[int].ok(rowcount)
         except c.DbOracle.EXC_DB_BROAD as e:
             return r[int].fail_op("Statement execution", e)
 
     def fetch_one(
-        self,
-        sql: str,
-        params: m.ConfigMap | None = None,
+        self, sql: str, params: m.ConfigMap | None = None
     ) -> p.Result[m.Dict | None]:
         """Execute query and return first result."""
         return self.execute_query(sql, params).map(
-            lambda rows: rows[0] if rows else None,
+            lambda rows: rows[0] if rows else None
         )
 
     def _normalize_query_rows(
-        self,
-        query_result: CursorResult[tuple[t.JsonValue, ...]],
+        self, query_result: CursorResult[tuple[t.JsonValue, ...]]
     ) -> t.SequenceOf[m.Dict]:
         """Normalize SQLAlchemy query result rows into typed mapping models."""
         mapping_result = query_result.mappings()
@@ -129,7 +110,8 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
 
     def _normalize_row(self, row: t.JsonMapping) -> m.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
-        return m.Dict(root=t.json_dict_adapter().validate_python(row))
+        payload: dict[str, t.JsonPayload] = dict(row)
+        return m.Dict(root=payload)
 
 
 __all__: list[str] = ["FlextDbOracleServiceQuery"]

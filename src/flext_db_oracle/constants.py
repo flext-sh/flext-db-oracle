@@ -26,7 +26,7 @@ from sqlalchemy.exc import (
     SQLAlchemyError as _SQLAlchemyError,
 )
 
-from flext_cli import c
+from flext_core import FlextConstants as c
 
 if TYPE_CHECKING:
     from flext_db_oracle import t
@@ -130,7 +130,7 @@ class FlextDbOracleConstants(c):
         ENV_HOST: Final[str] = "ORACLE_HOST"
         ENV_PORT: Final[str] = "ORACLE_PORT"
         ENV_USERNAME: Final[str] = "ORACLE_USERNAME"
-        ENV_PASSWORD: Final[str] = "ORACLE_PASSWORD"
+        ENV_PASSWORD: Final[str] = PREFIX_ORACLE + "PASSWORD"
         ENV_SERVICE_NAME: Final[str] = "ORACLE_SERVICE_NAME"
         ENV_DATABASE_NAME: Final[str] = "ORACLE_DATABASE_NAME"
         ENV_SID: Final[str] = "ORACLE_SID"
@@ -341,18 +341,8 @@ class FlextDbOracleConstants(c):
         VALID_ISOLATION_LEVELS: Final[frozenset[str]] = frozenset(
             ISOLATION_LEVEL_LITERAL
         )
-        SYSTEM_USERS: Final[t.StrSequence] = (
-            "SYS",
-            "SYSTEM",
-            "XDB",
-            "DBSNMP",
-            "OUTLN",
-        )
-        DEFAULT_SCHEMAS: Final[t.StrSequence] = (
-            "SYSTEM",
-            "SYS",
-            "PUBLIC",
-        )
+        SYSTEM_USERS: Final[t.StrSequence] = ("SYS", "SYSTEM", "XDB", "DBSNMP", "OUTLN")
+        DEFAULT_SCHEMAS: Final[t.StrSequence] = ("SYSTEM", "SYS", "PUBLIC")
 
         SINGER_TYPE_MAP: Final[t.StrMapping] = MappingProxyType({
             "string": DEFAULT_VARCHAR_TYPE,

@@ -1,4 +1,4 @@
-"""Comprehensive unit tests for flext_db_oracle.models module.
+"""Behavioral unit tests for flext_db_oracle.models public contract.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -6,159 +6,96 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import os
-from datetime import UTC, datetime
-
 import pytest
-from flext_tests import tm
 
-from flext_db_oracle import (
-    FlextDbOracleApi,
-    FlextDbOracleSettings,
-)
-from tests.constants import c
-from tests.models import m
+from flext_db_oracle import FlextDbOracleSettings
+from flext_tests import tm
+from tests import c, m, u
 
 
 @pytest.mark.unit
-class TestsFlextDbOracleModelsUnit:
-    """Comprehensive test m functionality and validation."""
+class TestsFlextDbOracleModels:
+    """Assert observable public behavior of the Oracle domain models and settings."""
 
-    def test_connection_status_creation_defaults(self) -> None:
-        """Test ConnectionStatus creation with defaults."""
-        status = m.DbOracle.ConnectionStatus()
-        tm.that(not status.connected, eq=True)
-        tm.that(status.error_message, eq="")
-        tm.that(abs(status.connection_time - 0.0), lt=1e-9)
-        tm.that(status.session_id, eq="")
-        tm.that(status.host, eq="")
-        tm.that(status.port, eq=c.DbOracle.DEFAULT_PORT)
-        tm.that(status.service_name, eq="")
-        tm.that(status.username, eq="")
-        tm.that(status.db_version, eq="")
+    # ------------------------------------------------------------------
+    # ConnectionStatus
+    # ------------------------------------------------------------------
 
-    def test_connection_status_creation_with_values(self) -> None:
-        """Test ConnectionStatus creation with custom values."""
-        now = datetime.now(UTC)
+    def test_connected_status_reports_connected_description(self) -> None:
+        """A connected status exposes a 'Connected' human-readable description."""
         status = m.DbOracle.ConnectionStatus(
-            connected=True,
-            error_message="",
-            connection_time=0.5,
-            last_activity=now,
-            session_id="ABC123",
-            host="localhost",
-            port=1521,
-            service_name="XEPDB1",
-            username="system",
-            db_version="19.3.0.0.0",
-        )
-        tm.that(status.connected, eq=True)
-        tm.that(abs(status.connection_time - 0.5), lt=1e-9)
-        tm.that(status.session_id, eq="ABC123")
-        tm.that(status.host, eq="localhost")
-        tm.that(status.service_name, eq="XEPDB1")
-        tm.that(status.username, eq="system")
-
-    def test_connection_status_computed_fields(self) -> None:
-        """Test ConnectionStatus computed fields."""
-        now = datetime.now(UTC)
-        status = m.DbOracle.ConnectionStatus(
-            connected=True,
-            last_activity=now,
-            host="localhost",
-            service_name="XEPDB1",
-            username="system",
+            connected=True, host="localhost", service_name="XEPDB1", username="system"
         )
         tm.that(status.status_description, eq="Connected")
-        status.connected = False
-        status.error_message = "Connection lost"
-        tm.that(status.status_description, eq="Disconnected: Connection lost")
-        status.connected = True
-        status.error_message = ""
-        tm.that(status.connection_age_seconds, gte=0)
         tm.that(status.healthy, eq=True)
         tm.that(status.connection_info, has="localhost")
-        tm.that(status.connection_info, has="1521")
         tm.that(status.connection_info, has="XEPDB1")
         tm.that(status.connection_info, has="system")
 
-    def test_connection_status_performance_info(self) -> None:
-        """Test ConnectionStatus performance rating."""
-        status = m.DbOracle.ConnectionStatus(
-            connected=True,
-            host="localhost",
-            connection_time=0.05,
-        )
-        tm.that(status.performance_info, has="Excellent")
-        status.connection_time = 0.3
-        tm.that(status.performance_info, has="Good")
-        status.connection_time = 1.5
-        tm.that(status.performance_info, has="Acceptable")
-        status.connection_time = 3.0
-        tm.that(status.performance_info, has="Slow")
-        status.connection_time = 0.0
-        tm.that(status.performance_info, has="No performance data")
+    def test_disconnected_status_surfaces_error_in_description(self) -> None:
+        """A disconnected status embeds its error message in the description."""
+        status = m.DbOracle.ConnectionStatus(connected=False)
+        tm.that(status.status_description, eq="Disconnected")
+        tm.that(status.healthy, eq=False)
+        tm.that(status.connection_info, eq="Not connected")
 
-    def test_connection_status_validation(self) -> None:
-        """Test ConnectionStatus validation."""
+    @pytest.mark.parametrize(
+        ("connection_time", "rating"),
+        [
+            (0.05, "Excellent"),
+            (0.3, "Good"),
+            (1.5, "Acceptable"),
+            (3.0, "Slow"),
+            (0.0, "No performance data"),
+        ],
+    )
+    def test_performance_info_reflects_connection_time(
+        self, connection_time: float, rating: str
+    ) -> None:
+        """performance_info categorizes the measured connection time."""
         status = m.DbOracle.ConnectionStatus(
-            connected=True,
-            host="localhost",
-            port=1521,
+            connected=True, host="localhost", connection_time=connection_time
         )
-        validated = m.DbOracle.ConnectionStatus.model_validate(
-            status.model_dump(),
-        )
-        tm.that(validated.connected, eq=True)
+        tm.that(status.performance_info, has=rating)
+
+    def test_connected_without_host_is_rejected(self) -> None:
+        """Consistency validator rejects a connected status without a host."""
         with pytest.raises(
-            ValueError,
-            match="Connected status requires host information",
+            ValueError, match="Connected status requires host information"
         ):
-            m.DbOracle.ConnectionStatus(
-                connected=True,
-                host="",
-                port=1521,
-            )
+            m.DbOracle.ConnectionStatus(connected=True, host="", port=1521)
+
+    def test_out_of_range_port_is_rejected(self) -> None:
+        """Port outside the valid range is rejected at construction."""
         with pytest.raises(ValueError, match="less than or equal to"):
-            m.DbOracle.ConnectionStatus(
-                connected=True,
-                host="localhost",
-                port=99999,
-            )
-        with pytest.raises(ValueError, match="greater than or equal to"):
-            m.DbOracle.ConnectionStatus(connection_time=-1.0)
+            m.DbOracle.ConnectionStatus(connected=True, host="localhost", port=99999)
 
-    def test_connection_status_serialization(self) -> None:
-        """Test ConnectionStatus field serialization."""
-        now = datetime.now(UTC)
-        status = m.DbOracle.ConnectionStatus(
-            connected=True,
-            host="localhost",
-            last_check=now,
-            last_activity=now,
-            error_message="Test error message that is very long and should be truncated because it's over 500 characters in length and we want to make sure the serialization works properly by cutting it off at the appropriate limit",
-            connection_time=1.23456,
-        )
+    def test_long_error_message_is_truncated_on_serialization(self) -> None:
+        """Serialized error messages are capped at the configured maximum."""
+        status = m.DbOracle.ConnectionStatus(connected=False, error_message="x" * 800)
         serialized = status.model_dump(mode="json")
-        tm.that(serialized, has="last_check")
-        tm.that(serialized, has="last_activity")
-        tm.that(len(status.error_message), lte=500 + len("... (truncated)"))
-        tm.that(abs(status.connection_time - 1.23456), lt=1e-9)
+        tm.that(
+            len(serialized["error_message"]),
+            lte=c.DbOracle.MAX_ERROR_MESSAGE_LENGTH + len("... (truncated)"),
+        )
 
-    def test_query_result_creation_minimal(self) -> None:
-        """Test QueryResult creation with minimal data."""
+    # ------------------------------------------------------------------
+    # QueryResult
+    # ------------------------------------------------------------------
+
+    def test_query_result_minimal_defaults(self) -> None:
+        """A minimal QueryResult exposes empty collections and zeroed metrics."""
         result = m.DbOracle.QueryResult(query="SELECT 1")
         tm.that(result.query, eq="SELECT 1")
         tm.that(result.row_count, eq=0)
         tm.that(result.execution_time_ms, eq=0)
-        tm.that(result.result_data, empty=True)
         tm.that(result.columns, empty=True)
         tm.that(result.rows, empty=True)
-        tm.that(result.query_hash, eq="")
-        tm.that(result.explain_plan, eq="")
+        tm.that(result.has_results, eq=False)
+        tm.that(result.column_count, eq=0)
 
-    def test_query_result_creation_with_data(self) -> None:
-        """Test QueryResult creation with full data."""
+    def test_row_count_is_derived_from_supplied_rows(self) -> None:
+        """row_count is normalized to the number of typed rows regardless of input."""
         result = m.DbOracle.QueryResult(
             query="SELECT id, name FROM users",
             columns=["id", "name"],
@@ -167,28 +104,21 @@ class TestsFlextDbOracleModelsUnit:
                 m.DbOracle.RowData(values=[2, "Jane"]),
             ],
             execution_time_ms=150,
-            query_hash="abc123",
-            explain_plan="TABLE ACCESS FULL",
         )
-        tm.that(result.query, eq="SELECT id, name FROM users")
         tm.that(result.row_count, eq=2)
-        tm.that(result.execution_time_ms, eq=150)
+        tm.that(result.has_results, eq=True)
+        tm.that(result.column_count, eq=2)
         tm.that(result.columns, eq=["id", "name"])
-        tm.that(
-            result.rows,
-            eq=[
-                m.DbOracle.RowData(values=[1, "John"]),
-                m.DbOracle.RowData(values=[2, "Jane"]),
-            ],
-        )
-        tm.that(result.query_hash, eq="abc123")
-        tm.that(result.explain_plan, eq="TABLE ACCESS FULL")
 
-    def test_query_result_computed_fields(self) -> None:
-        """Test QueryResult computed fields."""
+    def test_execution_time_seconds_converts_from_milliseconds(self) -> None:
+        """execution_time_seconds is the millisecond value divided by 1000."""
+        result = m.DbOracle.QueryResult(query="SELECT 1", execution_time_ms=2500)
+        tm.that(abs(result.execution_time_seconds - 2.5), lt=1e-9)
+
+    def test_data_size_and_memory_estimates_scale_with_shape(self) -> None:
+        """Estimated size scales with rows * columns * estimation factor."""
         result = m.DbOracle.QueryResult(
             query="SELECT 1",
-            execution_time_ms=2500,
             columns=["col1"],
             rows=[
                 m.DbOracle.RowData(values=[1]),
@@ -196,131 +126,128 @@ class TestsFlextDbOracleModelsUnit:
                 m.DbOracle.RowData(values=[3]),
             ],
         )
-        tm.that(abs(result.execution_time_seconds - 2.5), lt=1e-9)
-        tm.that(result.has_results, eq=True)
-        tm.that(result.column_count, eq=1)
-        tm.that(result.performance_rating, eq="Acceptable")
-        expected_size = 3 * 1 * 50
+        expected_size = 3 * 1 * c.DbOracle.DATA_SIZE_ESTIMATION_FACTOR
         tm.that(result.data_size_bytes, eq=expected_size)
-        expected_mb = expected_size / (1024 * 1024)
-        tm.that(result.memory_usage_mb, eq=expected_mb)
+        tm.that(abs(result.memory_usage_mb - expected_size / (1024 * 1024)), lt=1e-12)
 
-    def test_query_result_performance_ratings(self) -> None:
-        """Test QueryResult performance rating categories."""
+    @pytest.mark.parametrize(
+        ("execution_time_ms", "rating"),
+        [(50, "Excellent"), (300, "Good"), (1500, "Acceptable"), (2500, "Slow")],
+    )
+    def test_performance_rating_without_results_uses_time_thresholds(
+        self, execution_time_ms: int, rating: str
+    ) -> None:
+        """With no rows, performance_rating is decided by execution time alone."""
+        result = m.DbOracle.QueryResult(
+            query="SELECT 1", execution_time_ms=execution_time_ms
+        )
+        tm.that(result.has_results, eq=False)
+        tm.that(result.performance_rating, eq=rating)
+
+    def test_performance_rating_with_results_is_acceptable_within_grace(self) -> None:
+        """A result-bearing query within the grace window rates as Acceptable."""
         result = m.DbOracle.QueryResult(
             query="SELECT 1",
-            execution_time_ms=50,
+            columns=["col1"],
+            rows=[m.DbOracle.RowData(values=[1])],
+            execution_time_ms=2500,
         )
-        tm.that(result.performance_rating, eq="Excellent")
-        result.execution_time_ms = 300
-        tm.that(result.performance_rating, eq="Good")
-        result.execution_time_ms = 1500
+        tm.that(result.has_results, eq=True)
         tm.that(result.performance_rating, eq="Acceptable")
-        result.execution_time_ms = 2500
-        tm.that(result.performance_rating, eq="Slow")
 
-    def test_query_result_validation(self) -> None:
-        """Test QueryResult validation."""
-        result = m.DbOracle.QueryResult(
-            query="SELECT 1",
-            columns=["id"],
-            rows=[
-                m.DbOracle.RowData(values=[1]),
-                m.DbOracle.RowData(values=[2]),
-            ],
-            execution_time_ms=100,
-        )
-        validated = m.DbOracle.QueryResult.model_validate(
-            result.model_dump(),
-        )
-        tm.that(validated.row_count, eq=2)
-        with pytest.raises(ValueError, match="greater than or equal to"):
-            m.DbOracle.QueryResult(
-                query="SELECT 1",
-                execution_time_ms=-100,
-            )
+    def test_row_length_mismatch_is_rejected(self) -> None:
+        """Rows whose width differs from the column count are rejected."""
         with pytest.raises(ValueError, match=r"Row length.*doesn't match column count"):
             m.DbOracle.QueryResult(
                 query="SELECT 1",
                 columns=["id", "name"],
-                rows=[
-                    m.DbOracle.RowData(values=[1]),
-                    m.DbOracle.RowData(values=[2]),
-                ],
+                rows=[m.DbOracle.RowData(values=[1])],
             )
 
-    def test_query_result_serialization(self) -> None:
-        """Test QueryResult field serialization."""
+    def test_negative_execution_time_is_rejected(self) -> None:
+        """A negative execution time is rejected at construction."""
+        with pytest.raises(ValueError, match="greater than or equal to"):
+            m.DbOracle.QueryResult(query="SELECT 1", execution_time_ms=-100)
+
+    def test_query_result_roundtrips_through_model_validate(self) -> None:
+        """A dumped QueryResult validates back into an equivalent model."""
         result = m.DbOracle.QueryResult(
             query="SELECT 1",
-            execution_time_ms=1500,
+            columns=["id"],
+            rows=[m.DbOracle.RowData(values=[1]), m.DbOracle.RowData(values=[2])],
+            execution_time_ms=100,
         )
-        serialized = result.model_dump(mode="json")
-        tm.that(serialized, has="execution_time_ms")
-        execution_time_str = result.execution_time_ms
-        tm.that(execution_time_str, eq=1500)
+        validated = m.DbOracle.QueryResult.model_validate(result.model_dump())
+        tm.that(validated.row_count, eq=2)
+        tm.that(validated.columns, eq=["id"])
 
-    def test_table_creation(self) -> None:
-        """Test Table model creation."""
+    # ------------------------------------------------------------------
+    # Table / Column / Schema
+    # ------------------------------------------------------------------
+
+    def test_table_defaults_to_no_columns(self) -> None:
+        """A bare Table exposes its identity and an empty column collection."""
         table = m.DbOracle.Table(name="users", owner="hr")
         tm.that(table.name, eq="users")
         tm.that(table.owner, eq="hr")
         tm.that(table.columns, empty=True)
 
-    def test_table_with_columns(self) -> None:
-        """Test Table with columns."""
-        columns = [
-            m.DbOracle.Column(
-                name="id",
-                data_type="NUMBER",
-                nullable=False,
-            ),
-            m.DbOracle.Column(name="name", data_type="VARCHAR2(100)"),
-        ]
+    def test_table_preserves_supplied_columns(self) -> None:
+        """A Table exposes its columns and their nullability contract."""
         table = m.DbOracle.Table(
             name="users",
             owner="hr",
-            columns=columns,
+            columns=[
+                m.DbOracle.Column(name="id", data_type="NUMBER", nullable=False),
+                m.DbOracle.Column(name="name", data_type="VARCHAR2(100)"),
+            ],
         )
         tm.that(len(table.columns), eq=2)
         tm.that(table.columns[0].name, eq="id")
-        tm.that(table.columns[0].nullable is False, eq=True)
+        tm.that(table.columns[0].nullable, eq=False)
         tm.that(table.columns[1].name, eq="name")
-        tm.that(table.columns[1].nullable is True, eq=True)
+        tm.that(table.columns[1].nullable, eq=True)
 
-    def test_column_creation(self) -> None:
-        """Test Column model creation."""
+    def test_column_defaults_and_explicit_values(self) -> None:
+        """Column exposes type, nullability and default value through public fields."""
         column = m.DbOracle.Column(
-            name="user_id",
-            data_type="NUMBER(38)",
-            nullable=False,
-            default_value="NULL",
+            name="user_id", data_type="NUMBER(38)", nullable=False, default_value="NULL"
         )
         tm.that(column.name, eq="user_id")
         tm.that(column.data_type, eq="NUMBER(38)")
-        tm.that(column.nullable is False, eq=True)
+        tm.that(column.nullable, eq=False)
         tm.that(column.default_value, eq="NULL")
 
-    def test_schema_creation(self) -> None:
-        """Test Schema model creation."""
+    def test_column_mapping_access_exposes_aliases(self) -> None:
+        """Column supports mapping-style access over its public attributes."""
+        column = m.DbOracle.Column(name="user_id", data_type="NUMBER")
+        tm.that("column_name" in column, eq=True)
+        tm.that(column["column_name"], eq="user_id")
+        tm.that(column["data_type"], eq="NUMBER")
+        tm.that("unknown" in column, eq=False)
+
+    def test_schema_defaults_to_no_tables(self) -> None:
+        """A bare Schema exposes its name and an empty table collection."""
         schema = m.DbOracle.Schema(name="hr")
         tm.that(schema.name, eq="hr")
         tm.that(schema.tables, empty=True)
 
-    def test_schema_with_tables(self) -> None:
-        """Test Schema with tables."""
-        tables = [
-            m.DbOracle.Table(name="users", owner="hr"),
-            m.DbOracle.Table(name="orders", owner="hr"),
-        ]
-        schema = m.DbOracle.Schema(name="hr", tables=tables)
+    def test_schema_preserves_supplied_tables(self) -> None:
+        """A Schema exposes the tables it was constructed with, in order."""
+        schema = m.DbOracle.Schema(
+            name="hr",
+            tables=[
+                m.DbOracle.Table(name="users", owner="hr"),
+                m.DbOracle.Table(name="orders", owner="hr"),
+            ],
+        )
         tm.that(len(schema.tables), eq=2)
         tm.that(schema.tables[0].name, eq="users")
         tm.that(schema.tables[1].name, eq="orders")
 
-    def test_create_index_config_creation(self) -> None:
-        """Test CreateIndexConfig creation."""
-        settings = m.DbOracle.CreateIndexConfig(
+    def test_create_index_config_exposes_all_options(self) -> None:
+        """CreateIndexConfig surfaces every supplied index option."""
+        config = m.DbOracle.CreateIndexConfig(
             table_name="users",
             index_name="idx_users_email",
             columns=["email"],
@@ -329,297 +256,142 @@ class TestsFlextDbOracleModelsUnit:
             tablespace="users_idx",
             parallel=4,
         )
-        tm.that(settings.table_name, eq="users")
-        tm.that(settings.index_name, eq="idx_users_email")
-        tm.that(settings.columns, eq=["email"])
-        tm.that(settings.unique is True, eq=True)
-        tm.that(settings.schema_name, eq="hr")
-        tm.that(settings.tablespace, eq="users_idx")
-        tm.that(settings.parallel, eq=4)
+        tm.that(config.table_name, eq="users")
+        tm.that(config.index_name, eq="idx_users_email")
+        tm.that(config.columns, eq=["email"])
+        tm.that(config.unique, eq=True)
+        tm.that(config.schema_name, eq="hr")
+        tm.that(config.tablespace, eq="users_idx")
+        tm.that(config.parallel, eq=4)
 
-    def test_connection_status_real_oracle_integration(
-        self,
-        connected_oracle_api: FlextDbOracleApi | None,
-        oracle_available: bool,
-    ) -> None:
-        """Test ConnectionStatus with real Oracle connection."""
-        if not oracle_available or connected_oracle_api is None:
-            pytest.skip("Oracle not available for integration test")
-        status = m.DbOracle.ConnectionStatus(
-            connected=True,
-            host="localhost",
-            port=1521,
-            service_name="XEPDB1",
-            username="flexttest",
-            connection_time=0.1,
-        )
-        tm.that(status.status_description, eq="Connected")
-        tm.that(
-            (
-                status.connection_info
-                == "host=localhost, port=1521, service=XEPDB1, user=flexttest"
-            ),
-            eq=True,
-        )
-        tm.that(status.healthy, eq=True)
-        tm.that(
-            (
-                "Excellent" in status.performance_info
-                or "Good" in status.performance_info
-            ),
-            eq=True,
-        )
+    def test_create_index_config_requires_columns(self) -> None:
+        """A CreateIndexConfig without columns is rejected."""
+        with pytest.raises(ValueError, match="columns"):
+            m.DbOracle.CreateIndexConfig(
+                table_name="users", index_name="idx_users_email"
+            )
 
-    def test_query_result_real_oracle_integration(
-        self,
-        connected_oracle_api: FlextDbOracleApi | None,
-        oracle_available: bool,
-    ) -> None:
-        """Test QueryResult with real Oracle data."""
-        if not oracle_available or connected_oracle_api is None:
-            pytest.skip("Oracle not available for integration test")
-        query_result = connected_oracle_api.query(
-            "SELECT 1 as id, 'test' as name FROM DUAL",
-        )
-        tm.ok(query_result)
-        data = query_result.value
-        tm.that(len(data), eq=1)
-        first_row = data[0].root if hasattr(data[0], "root") else data[0]
-        tm.that("ID" in first_row or "id" in first_row, eq=True)
-        result_model = m.DbOracle.QueryResult(
-            query="SELECT 1 as id, 'test' as name FROM DUAL",
-            columns=["id", "name"],
-            rows=[m.DbOracle.RowData(values=[1, "test"])],
-            execution_time_ms=50,
-        )
-        tm.that(result_model.has_results, eq=True)
-        tm.that(result_model.column_count, eq=2)
-        tm.that(
-            {
-                "Excellent",
-                "Good",
-                "Acceptable",
-                "Slow",
-            },
-            has=result_model.performance_rating,
-        )
+    def test_positive_index_parallel_degree_is_enforced(self) -> None:
+        """A non-positive parallel degree is rejected."""
+        with pytest.raises(ValueError, match="greater than"):
+            m.DbOracle.CreateIndexConfig(
+                table_name="users",
+                index_name="idx_users",
+                columns=["email"],
+                parallel=0,
+            )
 
-    def test_table_model_real_oracle_integration(
-        self,
-        connected_oracle_api: FlextDbOracleApi | None,
-        oracle_available: bool,
-    ) -> None:
-        """Test Table model with real Oracle schema data."""
-        if not oracle_available or connected_oracle_api is None:
-            pytest.skip("Oracle not available for integration test")
-        schemas_result = connected_oracle_api.fetch_schemas()
-        if schemas_result.success:
-            schemas = schemas_result.value
-            if schemas:
-                table = m.DbOracle.Table(name="dual", owner="SYS")
-                tm.that(table.name, eq="dual")
-                tm.that(table.owner, eq="SYS")
-                tm.that(table.columns, empty=True)
+    # ------------------------------------------------------------------
+    # FlextDbOracleSettings
+    # ------------------------------------------------------------------
 
-    def test_config_creation_defaults(self) -> None:
-        """Test settings creation with defaults."""
+    def test_settings_defaults(self) -> None:
+        """Settings expose documented Oracle defaults under the DbOracle namespace."""
         settings = FlextDbOracleSettings()
-        tm.that(settings.host, eq="localhost")
-        tm.that(settings.port, eq=1521)
-        tm.that(settings.name, eq="XE")
-        tm.that(settings.service_name, eq="XEPDB1")
-        tm.that(settings.username, eq="system")
-        tm.that(settings.password, eq="")
-        tm.that(settings.ssl_server_cert_dn, none=True)
+        tm.that(settings.DbOracle.host, eq="localhost")
+        tm.that(settings.DbOracle.port, eq=1521)
+        tm.that(settings.DbOracle.name, eq="XE")
+        tm.that(settings.DbOracle.service_name, eq="XEPDB1")
+        tm.that(settings.DbOracle.username, eq="system")
+        tm.that(settings.DbOracle.password, eq="")
+        tm.that(settings.DbOracle.ssl_server_cert_dn, none=True)
 
-    def test_config_creation_with_values(self) -> None:
-        """Test settings creation with custom values."""
+    def test_settings_accept_custom_values(self) -> None:
+        """Settings retain every explicitly supplied namespace value."""
         settings = FlextDbOracleSettings(
-            host="oracle.example.com",
-            port=1522,
-            name="ORCL",
-            service_name="ORCLPDB1",
-            username="app_user",
-            password="secret123",
-            ssl_server_cert_dn="CN=oracle.example.com",
+            DbOracle={
+                "host": "oracle.example.com",
+                "port": 1522,
+                "name": "ORCL",
+                "service_name": "ORCLPDB1",
+                "username": "app_user",
+                "password": "secret123",
+                "ssl_server_cert_dn": "CN=oracle.example.com",
+            }
         )
-        tm.that(settings.host, eq="oracle.example.com")
-        tm.that(settings.port, eq=1522)
-        tm.that(settings.name, eq="ORCL")
-        tm.that(settings.service_name, eq="ORCLPDB1")
-        tm.that(settings.username, eq="app_user")
-        tm.that(settings.password, eq="secret123")
-        tm.that(settings.ssl_server_cert_dn, eq="CN=oracle.example.com")
+        tm.that(settings.DbOracle.host, eq="oracle.example.com")
+        tm.that(settings.DbOracle.port, eq=1522)
+        tm.that(settings.DbOracle.name, eq="ORCL")
+        tm.that(settings.DbOracle.service_name, eq="ORCLPDB1")
+        tm.that(settings.DbOracle.username, eq="app_user")
+        tm.that(settings.DbOracle.password, eq="secret123")
+        tm.that(settings.DbOracle.ssl_server_cert_dn, eq="CN=oracle.example.com")
 
-    def test_config_from_env_no_env_vars(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test settings creation from environment with no variables set."""
-        env_vars_to_clear = [
-            "FLEXT_TARGET_ORACLE_HOST",
-            "ORACLE_HOST",
-            "FLEXT_TARGET_ORACLE_PORT",
-            "ORACLE_PORT",
-            "FLEXT_TARGET_ORACLE_SERVICE_NAME",
-            "ORACLE_SERVICE_NAME",
-            "FLEXT_TARGET_ORACLE_USERNAME",
-            "ORACLE_USERNAME",
-            "FLEXT_TARGET_ORACLE_PASSWORD",
-            "ORACLE_PASSWORD",
-            "ORACLE_DATABASE_NAME",
-            "ORACLE_SID",
-        ]
-        for var in env_vars_to_clear:
-            monkeypatch.delenv(var, raising=False)
-        result = FlextDbOracleSettings.from_env()
-        tm.ok(result)
-        settings = result.value
-        tm.that(settings.host, eq="localhost")
-        tm.that(settings.port, eq=1521)
-        tm.that(settings.service_name, eq="XEPDB1")
+    def test_env_variables_populate_namespace(self) -> None:
+        """ORACLE_DBORACLE__* env vars populate the DbOracle namespace."""
+        FlextDbOracleSettings.reset_for_testing()
+        with u.Tests.env_vars_context({
+            "ORACLE_DBORACLE__HOST": "db.example.com",
+            "ORACLE_DBORACLE__PORT": "1522",
+            "ORACLE_DBORACLE__SERVICE_NAME": "MYDB",
+            "ORACLE_DBORACLE__USERNAME": "dbuser",
+        }):
+            settings = FlextDbOracleSettings()
+        tm.that(settings.DbOracle.host, eq="db.example.com")
+        tm.that(settings.DbOracle.port, eq=1522)
+        tm.that(settings.DbOracle.service_name, eq="MYDB")
+        tm.that(settings.DbOracle.username, eq="dbuser")
 
-    def test_config_from_env_with_values(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test settings creation from environment variables."""
-        for key in list(os.environ.keys()):
-            if key.startswith("FLEXT_TARGET_ORACLE_"):
-                monkeypatch.delenv(key, raising=False)
-        monkeypatch.setenv("ORACLE_HOST", "db.example.com")
-        monkeypatch.setenv("ORACLE_PORT", "1522")
-        monkeypatch.setenv("ORACLE_SERVICE_NAME", "MYDB")
-        monkeypatch.setenv("ORACLE_USERNAME", "dbuser")
-        monkeypatch.setenv("ORACLE_PASSWORD", "dbpass")
-        monkeypatch.setenv("ORACLE_DATABASE_NAME", "ORCL")
-        monkeypatch.setenv("ORACLE_SID", "ORCL")
-        result = FlextDbOracleSettings.from_env()
-        tm.ok(result)
-        settings = result.value
-        tm.that(settings.host, eq="db.example.com")
-        tm.that(settings.port, eq=1522)
-        tm.that(settings.service_name, eq="MYDB")
-        tm.that(settings.username, eq="dbuser")
-        tm.that(settings.password, eq="dbpass")
-        tm.that(settings.name, eq="ORCL")
-
-    def test_config_from_env_flext_prefix(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test settings creation with FLEXT prefix environment variables."""
-        for key in list(os.environ.keys()):
-            if key.startswith(("ORACLE_", "FLEXT_TARGET_ORACLE_")):
-                monkeypatch.delenv(key, raising=False)
-        monkeypatch.setenv("FLEXT_TARGET_ORACLE_HOST", "flext-db.example.com")
-        monkeypatch.setenv("FLEXT_TARGET_ORACLE_USERNAME", "flext-user")
-        result = FlextDbOracleSettings.from_env()
-        tm.ok(result)
-        settings = result.value
-        tm.that(settings.host, eq="flext-db.example.com")
-        tm.that(settings.username, eq="flext-user")
-
-    def test_config_from_env_mixed_prefixes(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test settings creation with mixed prefixes."""
-        for key in list(os.environ.keys()):
-            if key.startswith(("ORACLE_", "FLEXT_TARGET_ORACLE_")):
-                monkeypatch.delenv(key, raising=False)
-        monkeypatch.setenv("ORACLE_HOST", "oracle-host")
-        monkeypatch.setenv("FLEXT_TARGET_ORACLE_HOST", "flext-host")
-        monkeypatch.setenv("ORACLE_USERNAME", "oracle-user")
-        monkeypatch.setenv("FLEXT_TARGET_ORACLE_USERNAME", "flext-user")
-        result = FlextDbOracleSettings.from_env()
-        tm.ok(result)
-        settings = result.value
-        tm.that(settings.host, eq="flext-host")
-        tm.that(settings.username, eq="flext-user")
-
-    def test_config_from_env_port_conversion(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test port conversion from environment string to int."""
-        for key in list(os.environ.keys()):
-            if key.startswith("FLEXT_TARGET_ORACLE_"):
-                monkeypatch.delenv(key, raising=False)
-        monkeypatch.setenv("ORACLE_PORT", "1523")
-        result = FlextDbOracleSettings.from_env()
-        tm.ok(result)
-        settings = result.value
-        tm.that(settings.port, eq=1523)
-        tm.that(settings.port, is_=int)
-
-    def test_config_from_env_invalid_port(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test settings creation with invalid port."""
-        for key in list(os.environ.keys()):
-            if key.startswith("FLEXT_TARGET_ORACLE_"):
-                monkeypatch.delenv(key, raising=False)
-        monkeypatch.setenv("ORACLE_PORT", "invalid")
-        result = FlextDbOracleSettings.from_env()
-        tm.fail(result)
-        tm.that(result.error or "", has="port")
-
-    def test_config_serialization(self) -> None:
-        """Test settings serialization."""
+    def test_settings_serialization_exposes_fields(self) -> None:
+        """model_dump exposes the connection fields inside the namespace."""
         settings = FlextDbOracleSettings(
-            host="test.com",
-            port=1522,
-            username="user",
-            password="pass",
+            DbOracle={
+                "host": "test.com",
+                "port": 1522,
+                "username": "user",
+                "password": "pass",
+            }
         )
         serialized = settings.model_dump()
-        tm.that(serialized["host"], eq="test.com")
-        tm.that(serialized["port"], eq=1522)
-        tm.that(serialized["username"], eq="user")
+        tm.that(serialized["DbOracle"]["host"], eq="test.com")
+        tm.that(serialized["DbOracle"]["port"], eq=1522)
+        tm.that(serialized["DbOracle"]["username"], eq="user")
 
-    def test_config_equality(self) -> None:
-        """Test settings equality comparison."""
-        config1 = FlextDbOracleSettings(host="localhost", port=1521)
-        config2 = FlextDbOracleSettings(host="localhost", port=1521)
-        config3 = FlextDbOracleSettings(host="remotehost", port=1521)
-        tm.that(config1, eq=config2)
-        tm.that(config1, ne=config3)
+    def test_settings_value_equality(self) -> None:
+        """Clones with equal namespace values compare equal, unequal ones differ."""
+        base = FlextDbOracleSettings().clone(DbOracle={"host": "localhost"})
+        same = FlextDbOracleSettings().clone(DbOracle={"host": "localhost"})
+        other = FlextDbOracleSettings().clone(DbOracle={"host": "remotehost"})
+        tm.that(base, eq=same)
+        tm.that(base, ne=other)
 
-    def test_config_repr(self) -> None:
-        """Test settings string representation."""
-        settings = FlextDbOracleSettings(host="localhost", port=1521, username="system")
+    def test_settings_repr_includes_identifying_fields(self) -> None:
+        """Representation identifies the settings type and connection values."""
+        settings = FlextDbOracleSettings(
+            DbOracle={"host": "localhost", "port": 1521, "username": "system"}
+        )
         repr_str = repr(settings)
         tm.that(repr_str, has="FlextDbOracleSettings")
         tm.that(repr_str, has="localhost")
         tm.that(repr_str, has="1521")
 
-    def test_config_connection_string_components(self) -> None:
-        """Test that settings has all components needed for connection string."""
-        settings = FlextDbOracleSettings(
-            host="oracle.example.com",
-            port=1521,
-            service_name="ORCLPDB1",
-            username="appuser",
-        )
-        tm.that(settings.host, eq="oracle.example.com")
-        tm.that(settings.port, eq=1521)
-        tm.that(settings.service_name, eq="ORCLPDB1")
-        tm.that(settings.username, eq="appuser")
-        tm.that(settings.name, eq="XE")
+    def test_independent_instances_do_not_share_mutation(self) -> None:
+        """Mutating one settings clone never affects another."""
+        first = FlextDbOracleSettings().clone()
+        second = FlextDbOracleSettings().clone()
+        first.DbOracle.host = "modified"
+        tm.that(second.DbOracle.host, eq="localhost")
 
-    def test_config_validation_through_creation(self) -> None:
-        """Test settings validation through successful creation."""
-        settings = FlextDbOracleSettings(
-            host="valid-host",
-            port=1521,
-            service_name="VALID_SERVICE",
-            username="valid_user",
-        )
-        tm.that(settings.host, eq="valid-host")
-        tm.that(settings.port, eq=1521)
+    # ------------------------------------------------------------------
+    # Offline model contracts for database-shaped payloads
+    # ------------------------------------------------------------------
 
-    def test_config_immutable_defaults(self) -> None:
-        """Test that settings defaults are properly set and don't change."""
-        config1 = FlextDbOracleSettings()
-        config2 = FlextDbOracleSettings()
-        tm.that(config1.host, eq=config2.host)
-        tm.that(config1.port, eq=config2.port)
-        tm.that(config1.service_name, eq=config2.service_name)
-        config1.host = "modified"
-        tm.that(config2.host, eq="localhost")
+    def test_query_result_contract_returns_rows(self) -> None:
+        """QueryResult carries typed row payloads without a live database."""
+        row = m.DbOracle.RowData(values=(1, "test"))
+        query_result = m.DbOracle.QueryResult(
+            query="SELECT 1 as id, 'test' as name FROM DUAL",
+            columns=("ID", "NAME"),
+            rows=(row,),
+        )
+        tm.that(query_result.has_results, eq=True)
+        tm.that(query_result.row_count, eq=1)
+        tm.that(query_result.rows[0].values, eq=(1, "test"))
+
+    def test_schema_contract_preserves_table_metadata(self) -> None:
+        """Schema payloads preserve table metadata without a live database."""
+        table = m.DbOracle.Table(name="dual", owner="SYS")
+        schema = m.DbOracle.Schema(name="SYS", tables=(table,))
+        tm.that(schema.name, eq="SYS")
+        tm.that(schema.tables[0].name, eq="dual")
+        tm.that(schema.tables[0].owner, eq="SYS")

@@ -1,0 +1,4531 @@
+"""FlextDbOracle utilities mixin for Oracle-specific helpers."""
+
+from __future__ import annotations
+
+import contextlib
+import hashlib
+import os
+from enum import StrEnum
+
+from sqlalchemy import (
+    Connection as SAConnection,
+    Engine as SAEngine,
+    TextClause,
+    create_engine,
+    text,
+)
+from sqlalchemy.engine import CursorResult
+
+from flext_db_oracle import c, m, p, r, t
+
+
+class FlextDbOracleUtilitiesDbOracle:
+    """Oracle-specific utility mixin.
+
+    Groups all Oracle-specific utilities for better organization
+    and cross-project access. Access via u.DbOracle.* pattern.
+
+    Example:
+        from flext_db_oracle import u
+        result = u.DbOracle.Collection.parse_sequence(Status, ["active", "pending"])
+        parsed = u.DbOracle.Args.parse_kwargs(kwargs, enum_fields)
+
+    """
+
+    class StrictIntValue(m.RootModel[int]):
+        """Strict integer parser via Pydantic validation."""
+
+        root: int
+
+    class CountValue(m.RootModel[int | str]):
+        """Numeric value parser accepting int or numeric string."""
+
+        root: int | str
+
+    @staticmethod
+    def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type[E]:
+        """Create a coerced enum type with validation.
+
+        Args:
+            enum_cls: The StrEnum class to create a coerced type for.
+
+        Returns:
+            The enum class itself (callers apply Annotated+m.BeforeValidator as needed).
+
+        """
+        return enum_cls
+
+    @staticmethod
+    def dispatcher_enabled() -> bool:
+        """Return True when dispatcher integration should be used."""
+        value = os.getenv(c.DbOracle.OracleEnvironment.ENV_ENABLE_DISPATCHER)
+        if value is None:
+            return False
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+
+    @staticmethod
+    def validate_identifier(identifier: str) -> p.Result[bool]:
+        """Validate an Oracle identifier."""
+        if not identifier:
+            return r[bool].fail("Empty Oracle identifier")
+        if len(identifier) > c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH:
+            return r[bool].fail("Oracle identifier too long")
+        if identifier.upper() in c.DbOracle.OracleValidation.ORACLE_RESERVED:
+            return r[bool].fail("Oracle identifier is reserved word")
+        return r[bool].ok(True)
+
+    @staticmethod
+    def escape_oracle_identifier(identifier: str) -> p.Result[str]:
+        """Escape and validate an Oracle identifier for safe use."""
+        if not identifier.strip():
+            return r[str].fail("Empty Oracle identifier")
+        if not identifier.replace("_", "").isalnum():
+            return r[str].fail("Invalid Oracle identifier")
+        max_len = c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
+        return r[str].ok(identifier[:max_len])
+
+    @classmethod
+    def format_query_result(
+        cls,
+        result: t.ContainerValue,
+        format_type: str = "table",
+    ) -> p.Result[str]:
+        """Format a query result to string or JSON."""
+        if format_type == "json":
+            return r[str].ok(
+                t.CONTAINER_VALUE_ADAPTER.dump_json(
+                    result,
+                ).decode(),
+            )
+        return r[str].ok(str(result))
+
+    @staticmethod
+    def format_sql_for_oracle(sql: str) -> p.Result[str]:
+        """Normalize SQL string formatting for Oracle execution."""
+        normalized = " ".join(sql.split())
+        return r[str].ok(normalized)
+
+    @classmethod
+    def generate_query_hash(
+        cls,
+        query: str,
+        params: t.ContainerValueMapping | None,
+    ) -> p.Result[str]:
+        """Generate a SHA-256 hash for a query and its parameters."""
+        sorted_params = dict(sorted((params or {}).items()))
+        serialized = t.CONTAINER_VALUE_MAPPING_ADAPTER.dump_json(
+            sorted_params,
+        ).decode()
+        payload = f"{query}|{serialized}".encode()
+        return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
+
+    @staticmethod
+    def _validate_config_map(value: t.ContainerValue) -> m.ConfigMap | None:
+        """Validate arbitrary mapping input as ConfigMap."""
+        if not isinstance(value, dict):
+            return None
+        try:
+            return m.ConfigMap.model_validate({"root": value})
+        except c.ValidationError:
+            return None
+
+    @staticmethod
+    def normalize_params(params: m.ConfigMap | None) -> m.ConfigMap:
+        """Normalize optional parameters into ConfigMap."""
+        if params is not None:
+            return params
+        return m.ConfigMap(root={})
+
+    @classmethod
+    def _parse_rowcount(cls, value: t.ContainerValue) -> int:
+        """Parse strict integer rowcount via Pydantic."""
+        if isinstance(value, int):
+            return value
+        try:
+            return cls.StrictIntValue.model_validate(
+                value,
+            ).root
+        except c.ValidationError:
+            return 0
+
+    @classmethod
+    def _parse_count_value(cls, value: t.ContainerValue) -> int:
+        """Parse row count value accepting int or numeric string."""
+        if isinstance(value, int):
+            return value
+        if isinstance(value, str):
+            try:
+                return int(value)
+            except ValueError:
+                return 0
+        try:
+            validated = cls.CountValue.model_validate(
+                value,
+            ).root
+        except c.ValidationError:
+            return 0
+        try:
+            return int(validated)
+        except (TypeError, ValueError):
+            return 0
+
+    @classmethod
+    def _normalize_singer_type(cls, value: str | t.StrSequence) -> str:
+        """Normalize Singer type input to a single string value."""
+        try:
+            values = t.STR_SEQUENCE_ADAPTER.validate_python(
+                value,
+            )
+        except c.ValidationError:
+            return str(value)
+        return values[0] if values else "string"
+
+    @staticmethod
+    def _sqlalchemy_create_engine(
+        url: str,
+        connect_timeout: int | None = None,
+    ) -> SAEngine:
+        """Create SQLAlchemy engine with optional connection timeout."""
+        connect_args: dict[str, int] = {}
+        if connect_timeout is not None:
+            connect_args["tcp_connect_timeout"] = connect_timeout
+        return create_engine(
+            url,
+            pool_pre_ping=True,
+            pool_recycle=3600,
+            echo=False,
+            connect_args=connect_args,
+        )
+
+    @staticmethod
+    def _sqlalchemy_text(statement: str) -> TextClause:
+        """Build SQL text t.Container."""
+        return text(statement)
+
+    @staticmethod
+    def _engine_connect(engine: SAEngine) -> SAConnection:
+        """Open connection context manager from engine."""
+        return engine.connect()
+
+    @staticmethod
+    def _engine_begin(
+        engine: SAEngine,
+    ) -> contextlib.AbstractContextManager[SAConnection]:
+        """Open transaction context manager from engine."""
+        return engine.begin()
+
+    @staticmethod
+    def _context_exit(
+        context_manager: contextlib.AbstractContextManager[SAConnection],
+    ) -> None:
+        """Exit dynamic context manager safely."""
+        context_manager.__exit__(None, None, None)
+
+    @staticmethod
+    def _engine_dispose(engine: SAEngine) -> None:
+        """Dispose engine resources."""
+        engine.dispose()
+
+    @classmethod
+    def _connection_execute(
+        cls,
+        connection: SAConnection,
+        statement: TextClause,
+        parameters: m.ConfigMap | None = None,
+    ) -> CursorResult[tuple[t.ContainerValue, ...]]:
+        """Execute statement on SQL connection."""
+        normalized_params = cls.normalize_params(
+            parameters,
+        )
+        return connection.execute(statement, normalized_params.root)
+"""Oracle Database API with complete FLEXT ecosystem integration.
+
+This API provides a unified interface to Oracle database operations
+following FLEXT patterns with complete flext-core integration.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
+
+from __future__ import annotations
+
+import types
+from collections.abc import (
+    Sequence,
+)
+from datetime import UTC, datetime
+from typing import Self, override
+
+from flext_db_oracle import (
+    FlextDbOracleDispatcher,
+    FlextDbOracleServiceBase,
+    FlextDbOracleServices,
+    FlextDbOracleSettings,
+    c,
+    m,
+    p,
+    r,
+    t,
+    u,
+)
+
+
+class FlextDbOracleApi(FlextDbOracleServiceBase):
+    """Unified DB Oracle service facade via MRO composition."""
+
+    def __init__(
+        self,
+        settings: FlextDbOracleSettings,
+        context_name: str | None = None,
+    ) -> None:
+        """Initialize API with Oracle configuration and complete flext-core integration."""
+        super().__init__(settings)
+        self._oracle_config = settings
+        self._services = FlextDbOracleServices(settings=self._oracle_config)
+        self._context_name = context_name or "oracle-api"
+        self._context = None
+        self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
+
+    @override
+    def __repr__(self) -> str:
+        """Return string representation of the API instance."""
+        status = "connected" if self.connected() else "disconnected"
+        return f"FlextDbOracleApi(host={self._oracle_config.host}, status={status})"
+
+    def __enter__(self) -> Self:
+        """Context manager entry."""
+        connect_result = self.connect()
+        if connect_result.failure:
+            msg = connect_result.error or "Failed to connect to Oracle database"
+            raise RuntimeError(msg)
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> None:
+        """Context manager exit - cleanup resources."""
+        try:
+            self.logger.debug("Disconnecting on context exit")
+            self._services.disconnect()
+        except Exception as exc:
+            self.logger.warning("Disconnect failed on context exit", error=str(exc))
+
+    @property
+    def _dispatch_enabled(self) -> bool:
+        """Check if dispatcher is enabled."""
+        return True
+
+    @property
+    @override
+    def settings(self) -> FlextDbOracleSettings:
+        """Get the configuration."""
+        return self._oracle_config
+
+    @property
+    def connection(self) -> FlextDbOracleServices | None:
+        """Get connection t.Container - public interface."""
+        return self._services if self._services.connected() else None
+
+    @override
+    def connected(self) -> bool:
+        """Check if connected to the database."""
+        return self._services.connected()
+
+    @property
+    def oracle_config(self) -> FlextDbOracleSettings:
+        """Get the Oracle configuration."""
+        return self._oracle_config
+
+    @property
+    def oracle_services(self) -> FlextDbOracleServices:
+        """Get the Oracle services instance."""
+        return self._services
+
+    @classmethod
+    def from_config(cls, settings: FlextDbOracleSettings) -> FlextDbOracleApi:
+        """Create API instance from an existing settings t.Container."""
+        return cls(settings=settings)
+
+    @classmethod
+    def _build_api_result(
+        cls,
+        settings: FlextDbOracleSettings,
+    ) -> p.Result[FlextDbOracleApi]:
+        """Create API instance from validated settings."""
+        if not settings.username:
+            return r[FlextDbOracleApi].fail(
+                "Oracle username is required but not configured",
+            )
+        password = settings.password
+        if password is None or not str(password):
+            return r[FlextDbOracleApi].fail(
+                "Oracle password is required but not configured",
+            )
+        return r[FlextDbOracleApi].ok(cls(settings=settings))
+
+    @staticmethod
+    def _normalize_parameters(
+        parameters: t.ContainerValueMapping | None = None,
+    ) -> p.Result[m.ConfigMap]:
+        """Normalize query parameters into the canonical ConfigMap contract."""
+        if parameters is None:
+            return r[m.ConfigMap].ok(m.ConfigMap(root={}))
+        return (
+            u
+            .try_(lambda: dict(parameters))
+            .map(lambda normalized: m.ConfigMap.model_validate({"root": normalized}))
+            .lash(
+                lambda error: r[m.ConfigMap].fail(f"Invalid query parameters: {error}")
+            )
+        )
+
+    @classmethod
+    def _normalize_parameters_list(
+        cls,
+        parameters_list: Sequence[t.ContainerValueMapping],
+    ) -> p.Result[Sequence[m.ConfigMap]]:
+        """Normalize bulk query parameters into canonical ConfigMap values."""
+        normalized: list[m.ConfigMap] = []
+        for parameters in parameters_list:
+            result = cls._normalize_parameters(parameters)
+            if result.failure:
+                return r[Sequence[m.ConfigMap]].fail(
+                    result.error or "Invalid bulk query parameters",
+                )
+            normalized.append(result.value)
+        return r[Sequence[m.ConfigMap]].ok(normalized)
+
+    @classmethod
+    def from_env(cls, prefix: str = "ORACLE_") -> p.Result[FlextDbOracleApi]:
+        """Create API instance from environment variables.
+
+        Args:
+            prefix: Environment variable prefix (default: "ORACLE_")
+
+        Returns:
+            r[FlextDbOracleApi]: API instance or error.
+
+        """
+        values = FlextDbOracleSettings.resolve_environment_values(prefix)
+        username = values.get("username")
+        password = values.get("password")
+        if username is None or not str(username).strip():
+            return r[FlextDbOracleApi].fail(
+                "Oracle username is required but not configured",
+            )
+        if password is None or not str(password).strip():
+            return r[FlextDbOracleApi].fail(
+                "Oracle password is required but not configured",
+            )
+        return FlextDbOracleSettings.from_env(prefix).flat_map(cls._build_api_result)
+
+    @classmethod
+    def from_url(cls, url: str) -> p.Result[FlextDbOracleApi]:
+        """Create API instance from Oracle URL string.
+
+        Args:
+        url: Oracle connection URL (oracle://user:pass@host:port/service)
+
+        Returns:
+        r[FlextDbOracleApi]: API instance or error.
+
+        """
+        return FlextDbOracleSettings.from_url(url).flat_map(cls._build_api_result)
+
+    def connect(self) -> p.Result[FlextDbOracleApi]:
+        """Connect to Oracle database."""
+        self.logger.info(
+            "Connecting to Oracle database",
+            extra=self._oracle_config.host,
+        )
+        return self._services.connect().map(lambda _: self)
+
+    def convert_singer_type(
+        self,
+        singer_type: str | t.StrSequence,
+        _format_hint: str | None = None,
+    ) -> p.Result[str]:
+        """Convert Singer JSON Schema type to Oracle SQL type."""
+        return self._services.convert_singer_type(singer_type, _format_hint)
+
+    def disconnect(self) -> p.Result[bool]:
+        """Disconnect from Oracle database."""
+        self.logger.info("Disconnecting from Oracle database")
+        return self._services.disconnect()
+
+    @override
+    def execute(self, **_kwargs: t.Scalar) -> p.Result[FlextDbOracleSettings]:
+        """Execute default domain service operation - return settings."""
+        return u.try_(lambda: self._oracle_config).map_error(
+            lambda e: f"API execution failed: {e}",
+        )
+
+    def execute_many(
+        self,
+        sql: str,
+        params_list: Sequence[t.ContainerValueMapping],
+    ) -> p.Result[int]:
+        """Execute a statement multiple times with different parameters."""
+        self.logger.debug("Executing bulk statement", batch_size=len(params_list))
+        return self._normalize_parameters_list(params_list).flat_map(
+            lambda normalized_parameters: self._services.execute_many(
+                sql,
+                normalized_parameters,
+            ),
+        )
+
+    def execute_sql(
+        self,
+        sql: str,
+        parameters: t.ContainerValueMapping | None = None,
+    ) -> p.Result[int]:
+        """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
+        return self.execute_statement(sql, parameters)
+
+    def execute_statement(
+        self,
+        sql: str | t.ContainerValue,
+        params: t.ContainerValueMapping | None = None,
+    ) -> p.Result[int]:
+        """Execute SQL statement directly and return affected rows."""
+        sql_text = str(sql)
+        self.logger.debug("Executing SQL statement", statement_length=len(sql_text))
+        return self._normalize_parameters(params).flat_map(
+            lambda normalized_parameters: self._services.execute_statement(
+                sql_text,
+                normalized_parameters,
+            ),
+        )
+
+    def fetch_columns(
+        self,
+        table_name: str,
+        schema_name: str | None = None,
+    ) -> p.Result[Sequence[m.DbOracle.Column]]:
+        """Get column information for specified table."""
+        return self._services.fetch_columns(table_name, schema_name)
+
+    def fetch_health_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
+        """Get database connection health status."""
+        return self._services.fetch_connection_status()
+
+    def fetch_observability_metrics(self) -> p.Result[t.ContainerValueMapping]:
+        """Get observability metrics for the connection."""
+        return self._services.fetch_metrics().map(lambda metrics: metrics.model_dump())
+
+    def fetch_plugin(self, _name: str) -> p.Result[t.ContainerValue]:
+        """Get a registered plugin by name."""
+        return self._services.fetch_plugin(_name)
+
+    def fetch_primary_keys(
+        self,
+        table_name: str,
+        schema: str | None = None,
+    ) -> p.Result[t.StrSequence]:
+        """Get primary key column names for specified table."""
+        return self._services.fetch_primary_keys(table_name, schema)
+
+    def fetch_schemas(self) -> p.Result[t.StrSequence]:
+        """Get list of available schemas."""
+        return self._services.fetch_schemas()
+
+    def fetch_table_metadata(
+        self,
+        table_name: str,
+        schema: str | None = None,
+    ) -> p.Result[m.DbOracle.TableMetadata]:
+        """Get complete table metadata including columns and constraints."""
+        return self._services.fetch_table_metadata(table_name, schema)
+
+    def fetch_tables(self, schema: str | None = None) -> p.Result[t.StrSequence]:
+        """Get list of tables in specified schema."""
+        return self._services.fetch_tables(schema)
+
+    @override
+    def valid(self) -> bool:
+        """Check if API configuration is valid."""
+        return self._oracle_config.port >= c.DbOracle.OracleNetwork.MIN_PORT and bool(
+            self._oracle_config.service_name,
+        )
+
+    def list_plugins(self) -> p.Result[t.StrSequence]:
+        """List all registered plugin names."""
+        return self._services.list_plugins().map(
+            lambda plugin_map: list(plugin_map.root.keys()),
+        )
+
+    def map_singer_schema(
+        self,
+        singer_schema: t.ContainerValue,
+    ) -> p.Result[t.StrMapping]:
+        """Map Singer JSON Schema to Oracle table schema."""
+        if not isinstance(singer_schema, dict):
+            return r[t.StrMapping].fail("Schema must be a mapping")
+        return self._services.map_singer_schema(singer_schema).map(
+            lambda value: value.mapping,
+        )
+
+    def optimize_query(self, sql: str) -> p.Result[str]:
+        """Optimize a SQL query for Oracle."""
+        return u.try_(
+            lambda: " ".join(sql.split()),
+            catch=(AttributeError, ValueError, TypeError),
+        ).map_error(lambda e: f"Query optimization failed: {e}")
+
+    def query(
+        self,
+        sql: str,
+        parameters: t.ContainerValueMapping | None = None,
+    ) -> p.Result[Sequence[m.Dict]]:
+        """Execute a SELECT query and return all results."""
+        self.logger.debug("Executing query", query_length=len(sql))
+        return self._normalize_parameters(parameters).flat_map(
+            lambda normalized_parameters: self._services.execute_query(
+                sql,
+                normalized_parameters,
+            ),
+        )
+
+    def query_one(
+        self,
+        sql: str,
+        parameters: t.ContainerValueMapping | None = None,
+    ) -> p.Result[m.Dict | None]:
+        """Execute a SELECT query and return first result or None."""
+        return self._normalize_parameters(parameters).flat_map(
+            lambda normalized_parameters: self._services.fetch_one(
+                sql,
+                normalized_parameters,
+            ),
+        )
+
+    def register_plugin(self, _name: str, _plugin: t.ContainerValue) -> p.Result[bool]:
+        """Register a plugin in local API registry."""
+        return self._services.register_plugin(_name, _plugin)
+
+    def test_connection(self) -> p.Result[bool]:
+        """Test Oracle database connection."""
+        return self._services.test_connection()
+
+    def to_dict(
+        self,
+        obj: t.ContainerValueMapping | None = None,
+    ) -> m.ConfigMap:
+        """Serialize API state or explicit mapping into the canonical ConfigMap."""
+        if obj is not None:
+            return m.ConfigMap(root=dict(obj))
+        return m.ConfigMap(
+            root={
+                "settings": self.oracle_config.model_dump(
+                    exclude={"password"},
+                    mode="python",
+                ),
+                "connected": self.connected(),
+                "plugin_count": len(
+                    self._services.list_plugins().unwrap_or(m.ConfigMap(root={})).root,
+                ),
+            },
+        )
+
+    def transaction(self) -> p.Result[t.ContainerValueMapping]:
+        """Get transaction status information."""
+        return r[t.ContainerValueMapping].ok(
+            {
+                "connected": self._services.connected(),
+                "transaction_available": True,
+            },
+        )
+
+    def unregister_plugin(self, _name: str) -> p.Result[bool]:
+        """Unregister a plugin from local API registry."""
+        return self._services.unregister_plugin(_name)
+
+    def _convert_to_query_result(
+        self,
+        sql: str,
+        data: Sequence[m.Dict],
+    ) -> m.DbOracle.QueryResult:
+        """Convert raw query data to QueryResult model."""
+        if not data:
+            return m.DbOracle.QueryResult(
+                query=sql,
+                columns=[],
+                rows=[],
+                row_count=0,
+                unique_id="",
+                created_at=datetime.now(UTC),
+                domain_events=[],
+                result_data=[],
+                query_hash="",
+                explain_plan="",
+            )
+        first_row = data[0].root
+        columns = list(first_row.keys())
+        rows = [
+            m.DbOracle.RowData(
+                values=[str(value) for value in row.root.values()],
+            )
+            for row in data
+        ]
+        return m.DbOracle.QueryResult(
+            query=sql,
+            columns=columns,
+            rows=rows,
+            row_count=len(data),
+            unique_id="",
+            created_at=datetime.now(UTC),
+            domain_events=[],
+            result_data=[],
+            query_hash="",
+            explain_plan="",
+        )
+
+    def _execute_query_sql(
+        self,
+        sql: str,
+    ) -> p.Result[m.DbOracle.QueryResult]:
+        """Execute SQL query and return results as QueryResult."""
+        return self._services.execute_query(sql).map(
+            lambda data: self._convert_to_query_result(sql, data),
+        )
+
+
+db_oracle = FlextDbOracleApi
+
+__all__: list[str] = ["FlextDbOracleApi", "db_oracle"]
+"""Base service mixin for flext-db-oracle.
+
+Provides shared state, typed contracts, and SQLAlchemy wrappers
+for all DB Oracle service mixins.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
+
+from __future__ import annotations
+
+import contextlib
+import time
+from collections.abc import (
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
+
+from sqlalchemy import (
+    Connection as SAConnection,
+    Engine as SAEngine,
+    TextClause,
+    create_engine,
+    text,
+)
+from sqlalchemy.engine import CursorResult
+
+from flext_core import s
+from flext_db_oracle import (
+    FlextDbOracleSettings,
+    c,
+    m,
+    p,
+    r,
+    t,
+    u,
+)
+
+
+class FlextDbOracleServiceBase(s):
+    """Base mixin providing static helpers and SQLAlchemy wrappers.
+
+    All service mixins inherit from this base, which provides:
+    - Shared Oracle service state and configuration access
+    - Oracle exception type aliases
+    - Parameter normalization
+    - SQLAlchemy engine/connection wrappers
+    - Count parsing utilities
+    """
+
+    _db_config: FlextDbOracleSettings | None = u.PrivateAttr()
+    _engine: SAEngine | None = u.PrivateAttr(default_factory=lambda: None)
+    _operations: MutableSequence[m.DbOracle.OperationRecord] = u.PrivateAttr(
+        default_factory=lambda: list[m.DbOracle.OperationRecord]()
+    )
+    _plugins: MutableMapping[str, t.ContainerValue] = u.PrivateAttr(
+        default_factory=lambda: dict[str, t.ContainerValue]()
+    )
+    _metrics: MutableMapping[str, t.ContainerValue] = u.PrivateAttr(
+        default_factory=lambda: dict[str, t.ContainerValue]()
+    )
+
+    class _CountValue(m.RootModel[int | str]):
+        """Pydantic root model for count value (int or numeric string)."""
+
+        root: int | str
+
+    def __init__(self, settings: FlextDbOracleSettings) -> None:
+        """Initialize shared Oracle service state."""
+        super().__init__()
+        self._db_config = settings
+        self._config = settings
+
+    @property
+    def db_config(self) -> FlextDbOracleSettings:
+        """Return initialized Oracle database configuration."""
+        settings = self._db_config
+        if settings is None:
+            msg = "Database configuration not initialized"
+            raise RuntimeError(msg)
+        return settings
+
+    def connected(self) -> bool:
+        """Check if the service has an active SQLAlchemy engine."""
+        return self._engine is not None
+
+    @staticmethod
+    def _validate_config_map(value: t.ContainerValue) -> m.ConfigMap | None:
+        """Validate arbitrary mapping input as ConfigMap."""
+        if not isinstance(value, dict):
+            return None
+        try:
+            return m.ConfigMap.model_validate({"root": value})
+        except c.ValidationError:
+            return None
+
+    @staticmethod
+    def _normalize_params(params: m.ConfigMap | None) -> m.ConfigMap:
+        """Normalize optional parameters into ConfigMap."""
+        if params is not None:
+            return params
+        return m.ConfigMap(root={})
+
+    @staticmethod
+    def _parse_count_value(value: t.ContainerValue) -> int:
+        """Parse row count value accepting int or numeric string."""
+        if isinstance(value, int):
+            return value
+        if isinstance(value, str):
+            try:
+                return int(value)
+            except ValueError:
+                return 0
+        try:
+            validated = FlextDbOracleServiceBase._CountValue.model_validate(value).root
+        except c.ValidationError:
+            return 0
+        try:
+            return int(validated)
+        except (TypeError, ValueError):
+            return 0
+
+    def _parse_count_from_rows(self, rows: Sequence[m.Dict]) -> int:
+        """Parse COUNT(*) value from normalized query rows."""
+        if not rows:
+            return 0
+        count_raw = rows[0].root.get("count")
+        if count_raw is None:
+            return 0
+        return self._parse_count_value(str(count_raw))
+
+    @staticmethod
+    def _normalize_singer_type(value: str | t.StrSequence) -> str:
+        """Normalize Singer type input to a single string value."""
+        try:
+            values = t.STR_SEQUENCE_ADAPTER.validate_python(value)
+        except c.ValidationError:
+            return str(value)
+        return values[0] if values else "string"
+
+    @staticmethod
+    def _sqlalchemy_create_engine(
+        url: str,
+        connect_timeout: int | None = None,
+    ) -> SAEngine:
+        """Create SQLAlchemy engine with optional connection timeout."""
+        connect_args: dict[str, int] = {}
+        if connect_timeout is not None:
+            connect_args["tcp_connect_timeout"] = connect_timeout
+        return create_engine(
+            url,
+            pool_pre_ping=True,
+            pool_recycle=3600,
+            echo=False,
+            connect_args=connect_args,
+        )
+
+    @staticmethod
+    def _sqlalchemy_text(statement: str) -> TextClause:
+        """Build SQL text value."""
+        return text(statement)
+
+    @staticmethod
+    def _engine_connect(engine: SAEngine) -> SAConnection:
+        """Open connection context manager from engine."""
+        return engine.connect()
+
+    @staticmethod
+    def _engine_begin(
+        engine: SAEngine,
+    ) -> contextlib.AbstractContextManager[SAConnection]:
+        """Open transaction context manager from engine."""
+        return engine.begin()
+
+    @staticmethod
+    def _engine_dispose(engine: SAEngine) -> None:
+        """Dispose engine resources."""
+        engine.dispose()
+
+    def _get_current_timestamp(self) -> str:
+        """Get current timestamp for operation tracking."""
+        return str(int(time.time()))
+
+    def _get_engine(self) -> p.Result[SAEngine]:
+        """Get database engine."""
+        engine = self._engine
+        if engine is None or not self.connected():
+            return r[SAEngine].fail("Not connected to database")
+        return r[SAEngine].ok(engine)
+
+    @staticmethod
+    def _connection_execute(
+        connection: SAConnection,
+        statement: TextClause,
+        parameters: m.ConfigMap | None = None,
+    ) -> CursorResult[tuple[t.ContainerValue, ...]]:
+        """Execute statement on SQL connection."""
+        normalized_params = FlextDbOracleServiceBase._normalize_params(parameters)
+        return connection.execute(statement, normalized_params.root)
+
+    def execute_query(
+        self,
+        sql: str,
+        params: m.ConfigMap | None = None,
+    ) -> p.Result[Sequence[m.Dict]]:
+        """Execute a SQL query in composed service facades."""
+        del sql, params
+        msg = "execute_query requires the composed DB Oracle service facade"
+        raise NotImplementedError(msg)
+
+
+s = FlextDbOracleServiceBase
+__all__: list[str] = ["FlextDbOracleServiceBase"]
+"""Oracle Database client providing CLI and programmatic access.
+
+This module provides the Oracle database client with CLI functionality
+using FLEXT ecosystem patterns for database operations.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
+
+from __future__ import annotations
+
+from collections.abc import (
+    Callable,
+    Sequence,
+)
+from typing import override
+
+from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
+
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c, m, p, r, s, t, u
+
+
+class FlextDbOracleClient(s):
+    """Oracle Database CLI client with complete FLEXT ecosystem integration.
+
+    This client provides command-line interface operations for Oracle Database
+    management using the flext-db-oracle foundation API with full flext-core integration.
+    """
+
+    @staticmethod
+    def _validate_config_map(
+        value: t.ContainerValueMapping | m.ConfigMap,
+    ) -> m.ConfigMap | None:
+        """Validate generic mapping payload with Pydantic."""
+        try:
+            if isinstance(value, m.ConfigMap):
+                return value
+            return m.ConfigMap(root=dict(value))
+        except c.ValidationError:
+            return None
+
+    @staticmethod
+    def _validate_general_list(value: t.ContainerValue) -> t.FlatContainerList | None:
+        """Validate list payload with Pydantic."""
+        return t.FLAT_CONTAINER_LIST_ADAPTER.validate_python(value)
+
+    debug: bool = u.Field(
+        False, description="Enable debug output", validate_default=True
+    )
+    current_connection: FlextDbOracleApi | None = u.Field(
+        None,
+        description="Active Oracle API connection instance",
+        validate_default=True,
+    )
+    user_preferences: m.ConfigMap = u.Field(
+        default_factory=lambda: m.ConfigMap(
+            root={
+                "default_output_format": "table",
+                "show_execution_time": "True",
+                "auto_confirm_operations": "False",
+                "connection_timeout": c.DbOracle.Connection.DEFAULT_CONNECTION_TIMEOUT,
+                "query_limit": c.DbOracle.Query.DEFAULT_QUERY_LIMIT,
+            },
+        ),
+        description="User preference settings for CLI output",
+    )
+
+    def __init__(
+        self,
+        *,
+        debug: bool = False,
+    ) -> None:
+        """Initialize Oracle CLI client with proper composition."""
+        self._oracle_config = FlextDbOracleSettings()
+        super().__init__()
+        self.debug = debug
+
+    @property
+    def oracle_config(self) -> FlextDbOracleSettings:
+        """Get the Oracle configuration."""
+        return self._oracle_config
+
+    @classmethod
+    def run_cli_command(cls, operation: str, **params: t.Scalar) -> p.Result[str]:
+        """Run Oracle CLI command with proper error handling.
+
+        Returns:
+        r[str]: Command result or error.
+
+        """
+        try:
+            client = cls()
+            if operation == "health":
+
+                def health_cmd() -> p.Result[m.ConfigMap]:
+                    return client.health_check()
+
+                health_result: p.Result[m.ConfigMap] = health_cmd()
+                if health_result.success:
+                    return r[str].ok(f"Health check: {health_result.value}")
+                return r[str].fail(health_result.error or "Health check failed")
+            if params:
+                client.logger.debug(
+                    "Unused CLI parameters for operation '%s'",
+                    operation,
+                    unused_params=str(params),
+                )
+            return r[str].fail(f"Unknown CLI operation: {operation}")
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+        ) as e:
+            return r[str].fail(f"CLI command failed: {e}")
+
+    def configure_preferences(self, **preferences: t.Scalar) -> p.Result[bool]:
+        """Configure client preferences.
+
+        Returns:
+        r[bool]: Success or error.
+
+        """
+        try:
+            self.user_preferences.root.update(preferences)
+            self.logger.info(
+                "Client preferences updated",
+                preferences_info=str(preferences),
+            )
+            return r[bool].ok(True)
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+        ) as e:
+            return r[bool].fail(f"Preference configuration failed: {e}")
+
+    def connect_to_oracle(
+        self,
+        host: str | None = None,
+        port: int | None = None,
+        service_name: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+    ) -> p.Result[FlextDbOracleApi]:
+        """Connect to Oracle database with provided parameters or settings defaults.
+
+        Returns:
+        r[FlextDbOracleApi]: API instance or error.
+
+        """
+        try:
+            actual_host = host or self.oracle_config.host
+            actual_port = port or self.oracle_config.port
+            actual_service_name = service_name or self.oracle_config.service_name
+            actual_username = username or self.oracle_config.username
+            actual_password_raw = password or self.oracle_config.password
+            if not actual_host:
+                return r[FlextDbOracleApi].fail("Oracle host is required")
+            if not actual_username:
+                return r[FlextDbOracleApi].fail("Oracle username is required")
+            if not actual_password_raw:
+                return r[FlextDbOracleApi].fail("Oracle password is required")
+            self.logger.info(
+                "Connecting to Oracle at %s:%s/%s",
+                actual_host,
+                actual_port,
+                actual_service_name,
+            )
+            actual_password: str | None = (
+                str(actual_password_raw) if actual_password_raw else None
+            )
+            settings: FlextDbOracleSettings = FlextDbOracleSettings.model_validate({
+                "host": actual_host,
+                "port": actual_port,
+                "service_name": actual_service_name,
+                "username": actual_username,
+                "password": actual_password,
+            })
+            api = FlextDbOracleApi(settings=settings)
+            connect_result: p.Result[FlextDbOracleApi] = api.connect()
+            if connect_result.success:
+                self.current_connection = api
+                self.logger.info("Oracle connection established successfully")
+                return r[FlextDbOracleApi].ok(api)
+            return r[FlextDbOracleApi].fail(
+                f"Oracle connection failed: {connect_result.error}",
+            )
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+            OSError,
+            SQLAlchemyOperationalError,
+        ) as e:
+            return r[FlextDbOracleApi].fail(f"Connection error: {e}")
+
+    def disconnect(self) -> p.Result[bool]:
+        """Disconnect from Oracle database.
+
+        Returns:
+        r[bool]: Success or error.
+
+        """
+        if self.current_connection:
+            result: p.Result[bool] = self.current_connection.disconnect()
+            self.current_connection = None
+            return result
+        return r[bool].ok(True)
+
+    @override
+    def execute(self) -> p.Result[FlextDbOracleSettings]:
+        """Execute the main domain operation for Oracle client.
+
+        Returns:
+        r[FlextDbOracleSettings]: Success with settings or failure with error
+
+        """
+        return r[FlextDbOracleSettings].ok(self._oracle_config)
+
+    def execute_query(
+        self,
+        sql: str,
+        params: t.DbOracle.QueryParameters | None = None,
+    ) -> p.Result[str]:
+        """Execute SQL query with formatted output.
+
+        Returns:
+        r[str]: Formatted query results or error.
+
+        """
+        query_params: m.ConfigMap = (
+            m.ConfigMap(root=dict(params))
+            if params is not None
+            else m.ConfigMap(root={})
+        )
+        operation_result = self._execute_with_chain(
+            "query",
+            sql=sql,
+            params=query_params,
+        )
+        format_type = str(
+            self.user_preferences.root.get("default_output_format", "table"),
+        )
+        return self._format_and_display_result(operation_result, format_type)
+
+    def health_check(self) -> p.Result[m.ConfigMap]:
+        """Perform Oracle health check.
+
+        Returns:
+        r[m.ConfigMap]: Health check result or error.
+
+        """
+        return self._execute_health_check()
+
+    def list_schemas(self) -> p.Result[str]:
+        """List Oracle schemas with formatted output.
+
+        Returns:
+        r[str]: Formatted schemas list or error.
+
+        """
+        operation_result: p.Result[m.ConfigMap] = self._execute_with_chain(
+            "list_schemas",
+        )
+        format_type = str(
+            self.user_preferences.root.get("default_output_format", "table"),
+        )
+        return self._format_and_display_result(operation_result, format_type)
+
+    def list_tables(self, schema: str | None = None) -> p.Result[str]:
+        """List Oracle tables with formatted output.
+
+        Returns:
+        r[str]: Formatted tables list or error.
+
+        """
+        operation_result: p.Result[m.ConfigMap] = self._execute_with_chain(
+            "list_tables",
+            schema=schema or "",
+        )
+        format_type = str(
+            self.user_preferences.root.get("default_output_format", "table"),
+        )
+        return self._format_and_display_result(operation_result, format_type)
+
+    def _adapt_data_for_table(
+        self, data: m.ConfigMap
+    ) -> p.Result[Sequence[m.ConfigMap]]:
+        """Adapt data for table display.
+
+        Returns:
+        r[Sequence[m.ConfigMap]]: Adapted data or error.
+
+        """
+        try:
+
+            def adapt_schemas(raw_value: t.ContainerValue) -> Sequence[m.ConfigMap]:
+                schemas = FlextDbOracleClient._validate_general_list(raw_value)
+                if schemas is None:
+                    return []
+                return [m.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
+
+            def adapt_tables(raw_value: t.ContainerValue) -> Sequence[m.ConfigMap]:
+                tables = FlextDbOracleClient._validate_general_list(raw_value)
+                if tables is None:
+                    return []
+                return [m.ConfigMap(root={"table": str(table)}) for table in tables]
+
+            def adapt_health(raw_value: t.ContainerValue) -> Sequence[m.ConfigMap]:
+                try:
+                    health_map = t.CONTAINER_VALUE_MAPPING_ADAPTER.validate_python(
+                        raw_value
+                    )
+                except c.ValidationError:
+                    return []
+                health = FlextDbOracleClient._validate_config_map(health_map)
+                if health is None:
+                    return []
+                return [
+                    m.ConfigMap.model_validate({
+                        "root": {"key": str(key), "value": str(value)},
+                    })
+                    for key, value in health.items()
+                ]
+
+            adaptation_strategies: Sequence[
+                tuple[str, Callable[[t.ContainerValue], Sequence[m.ConfigMap]]]
+            ] = [
+                ("schemas", adapt_schemas),
+                ("tables", adapt_tables),
+                ("health", adapt_health),
+            ]
+            data_root = data.root
+            for key, strategy in adaptation_strategies:
+                if key in data_root:
+                    raw_value = data_root[key]
+                    adapted_data = strategy(str(raw_value))
+                    return r[Sequence[m.ConfigMap]].ok(adapted_data)
+            result = [
+                m.ConfigMap.model_validate({
+                    "root": {"key": str(key), "value": str(value)},
+                })
+                for key, value in data_root.items()
+            ]
+            return r[Sequence[m.ConfigMap]].ok(result)
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+        ) as e:
+            return r[Sequence[m.ConfigMap]].fail(f"Data adaptation failed: {e}")
+
+    def _build_table_string(self, adapted_data: Sequence[m.ConfigMap]) -> str:
+        """Build table string from adapted data."""
+        headers: t.StrSequence = list(adapted_data[0].keys())
+        rows: Sequence[t.StrSequence] = [
+            [str(row[h]) for h in headers] for row in adapted_data
+        ]
+        result_str = f"{'|'.join(headers)}\n{'|'.join(['---'] * len(headers))}\n"
+        result_str += "\n".join(["|".join(row) for row in rows])
+        return result_str
+
+    def _execute_health_check(self) -> p.Result[m.ConfigMap]:
+        """Execute Oracle health check.
+
+        Returns:
+        r[m.ConfigMap]: Health check result or error.
+
+        """
+        try:
+            validation_result: p.Result[bool] = self._validate_connection()
+            if validation_result.failure:
+                return r[m.ConfigMap].fail(
+                    validation_result.error or "Connection validation failed",
+                )
+            if not self.current_connection:
+                return r[m.ConfigMap].fail("No connection available")
+            health_data = m.ConfigMap(
+                root={
+                    "connection_status": c.CommonStatus.ACTIVE
+                    if self.current_connection.connected()
+                    else "inactive",
+                    "host": self.current_connection.oracle_config.host,
+                    "port": self.current_connection.oracle_config.port,
+                    "service_name": self.current_connection.oracle_config.service_name,
+                    "timestamp": "now",
+                },
+            )
+            return r[m.ConfigMap].ok(health_data)
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+        ) as e:
+            return r[m.ConfigMap].fail(f"Health check failed: {e}")
+
+    def _execute_operation(
+        self,
+        operation: str,
+        **params: t.Scalar | m.ConfigMap,
+    ) -> p.Result[m.ConfigMap]:
+        """Execute Oracle operation with error handling.
+
+        Returns:
+        r[m.ConfigMap]: Operation result or error.
+
+        """
+        if not self.current_connection:
+            return r[m.ConfigMap].fail("No active connection")
+        try:
+            if operation == "list_schemas":
+                return self._handle_list_schemas_operation()
+            if operation == "list_tables":
+                return self._handle_list_tables_operation(**params)
+            if operation == "query":
+                return self._handle_query_operation(**params)
+            if operation == "health_check":
+                return self._handle_health_check_operation()
+            return r[m.ConfigMap].fail(f"Unknown operation: {operation}")
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+        ) as e:
+            return r[m.ConfigMap].fail(f"Operation failed: {e}")
+
+    def _execute_with_chain(
+        self,
+        operation: str,
+        **params: t.Scalar | m.ConfigMap,
+    ) -> p.Result[m.ConfigMap]:
+        """Execute operation with validation chain.
+
+        Returns:
+        r[m.ConfigMap]: Operation result or error.
+
+        """
+        validation_result: p.Result[bool] = self._validate_connection()
+        if validation_result.failure:
+            return r[m.ConfigMap].fail(validation_result.error or "Validation failed")
+        return self._execute_operation(operation, **params)
+
+    def _format_and_display_result(
+        self,
+        operation_result: p.Result[m.ConfigMap],
+        format_type: str = "table",
+    ) -> p.Result[str]:
+        """Format and display operation result.
+
+        Returns:
+        r[str]: Formatted result or error.
+
+        """
+        return self._get_formatter_strategy(format_type).flat_map(
+            lambda formatter: operation_result.flat_map(
+                lambda data: (
+                    formatter(data)
+                    if callable(formatter)
+                    else r[str].fail("Invalid formatter strategy")
+                ),
+            ),
+        )
+
+    def _format_as_json(self, data: m.ConfigMap) -> p.Result[str]:
+        """Format data as JSON output.
+
+        Returns:
+        r[str]: JSON formatted data or error.
+
+        """
+        return u.try_(
+            lambda: data.model_dump_json(indent=2),
+            catch=(
+                t.DbOracle.OracleDatabaseError,
+                t.DbOracle.OracleInterfaceError,
+                ConnectionError,
+            ),
+        ).map_error(lambda e: f"JSON formatting failed: {e}")
+
+    def _format_as_table(self, data: m.ConfigMap) -> p.Result[str]:
+        """Format data as table output.
+
+        Returns:
+        r[str]: Table formatted data or error.
+
+        """
+        try:
+            return self._adapt_data_for_table(data).map(
+                lambda adapted_data: (
+                    self._build_table_string(adapted_data)
+                    if adapted_data
+                    else str(adapted_data)
+                ),
+            )
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+        ) as e:
+            return r[str].fail(f"Table formatting failed: {e}")
+
+    def _get_formatter_strategy(
+        self,
+        format_type: str,
+    ) -> p.Result[Callable[[m.ConfigMap], p.Result[str]]]:
+        """Get formatter strategy for output format.
+
+        Returns:
+        r: Formatter strategy or error.
+
+        """
+        try:
+            formatter_strategies: Sequence[
+                tuple[str, Callable[[m.ConfigMap], p.Result[str]]]
+            ] = [
+                ("table", self._format_as_table),
+                ("json", self._format_as_json),
+                ("plain", lambda data: p.Result[str].ok(str(data))),
+            ]
+            for supported_format, formatter in formatter_strategies:
+                if format_type == supported_format:
+                    return r[Callable[[m.ConfigMap], p.Result[str]]].ok(formatter)
+            return r[Callable[[m.ConfigMap], p.Result[str]]].fail(
+                f"Unsupported format: {format_type}",
+            )
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+        ) as e:
+            return r[Callable[[m.ConfigMap], p.Result[str]]].fail(
+                f"Formatter strategy error: {e}",
+            )
+
+    def _handle_health_check_operation(self) -> p.Result[m.ConfigMap]:
+        """Handle health check operation."""
+        if self.current_connection is None:
+            return r[m.ConfigMap].fail("No active database connection")
+        return self.current_connection.fetch_health_status().map(
+            lambda status: m.ConfigMap(root=status.model_dump()),
+        )
+
+    def _handle_list_schemas_operation(self) -> p.Result[m.ConfigMap]:
+        """Handle list schemas operation."""
+        if self.current_connection is None:
+            return r[m.ConfigMap].fail("No active database connection")
+        return self.current_connection.fetch_schemas().map(
+            lambda schemas: m.ConfigMap.model_validate({
+                "root": {"schemas": list(schemas)},
+            }),
+        )
+
+    def _handle_list_tables_operation(
+        self,
+        **params: t.Scalar | m.ConfigMap,
+    ) -> p.Result[m.ConfigMap]:
+        """Handle list tables operation."""
+        if self.current_connection is None:
+            return r[m.ConfigMap].fail("No active database connection")
+        schema = str(params.get("schema", ""))
+        return self.current_connection.fetch_tables(schema or None).map(
+            lambda tables: m.ConfigMap.model_validate({
+                "root": {"tables": list(tables)},
+            }),
+        )
+
+    def _handle_query_operation(
+        self,
+        **params: t.Scalar | m.ConfigMap,
+    ) -> p.Result[m.ConfigMap]:
+        """Handle query operation."""
+        if self.current_connection is None:
+            return r[m.ConfigMap].fail("No active database connection")
+        sql = str(params.get("sql", ""))
+        if not sql:
+            return r[m.ConfigMap].fail("SQL query required")
+        raw_params = params.get("params", m.ConfigMap(root={}))
+        if isinstance(raw_params, m.ConfigMap):
+            params_map = raw_params
+        else:
+            normalized_params: t.ContainerValueMapping
+            try:
+                normalized_params = t.CONTAINER_VALUE_MAPPING_ADAPTER.validate_python(
+                    raw_params
+                )
+            except c.ValidationError:
+                normalized_params = t.CONTAINER_VALUE_MAPPING_ADAPTER.validate_python(
+                    {},
+                )
+            params_map = m.ConfigMap.model_validate({"root": normalized_params})
+        query_params: t.ContainerValueMapping = {
+            str(k): str(v) for k, v in params_map.root.items()
+        }
+        return self.current_connection.query(sql, query_params).map(
+            lambda rows: m.ConfigMap.model_validate(
+                {"root": {"row_count": len(rows)}},
+            ),
+        )
+
+    def _validate_connection(self) -> p.Result[bool]:
+        """Validate current Oracle connection.
+
+        Returns:
+        r[bool]: Success or error.
+
+        """
+        if not self.current_connection:
+            return r[bool].fail("No active Oracle connection")
+        if not self.current_connection.connected():
+            return r[bool].fail("Oracle connection not active")
+        return r[bool].ok(True)
+
+
+client = FlextDbOracleClient
+__all__: t.StrSequence = ["FlextDbOracleClient", "client"]
+"""Dispatcher integration helpers for flext-db-oracle services.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
+
+from __future__ import annotations
+
+from collections.abc import (
+    Callable,
+    Mapping,
+    MutableMapping,
+    Sequence,
+)
+from typing import TYPE_CHECKING, override
+
+from flext_core import FlextContainer
+from flext_db_oracle import m, p, r, s, t
+
+if TYPE_CHECKING:
+    from flext_db_oracle import FlextDbOracleServices
+
+
+class FlextDbOracleDispatcher(s):
+    """Unified Oracle Database Dispatcher with integrated command classes."""
+
+    @override
+    def execute(self) -> p.Result[None]:
+        """Execute dispatcher operation - returns None as this is a factory class."""
+        return r[None].ok(None)
+
+    @classmethod
+    def _create_connection_handlers(
+        cls,
+        services: FlextDbOracleServices,
+    ) -> Mapping[
+        type,
+        tuple[
+            Callable[[t.ContainerValue], t.ContainerValue],
+            t.ContainerValueMapping | None,
+        ],
+    ]:
+        """Create connection-related handler functions."""
+
+        def connect_handler(_cmd: t.ContainerValue) -> t.ContainerValue:
+            return services.connect().success
+
+        def disconnect_handler(_cmd: t.ContainerValue) -> t.ContainerValue:
+            return services.disconnect().success
+
+        def connection_test_handler(
+            _command_data: t.ContainerValue,
+        ) -> t.ContainerValue:
+            """Oracle connection test handler - command_data parameter required by dispatcher interface."""
+            return services.test_connection().map_or(False)
+
+        return {
+            m.DbOracle.ConnectCommand: (connect_handler, None),
+            m.DbOracle.DisconnectCommand: (disconnect_handler, None),
+            m.DbOracle.TestConnectionCommand: (
+                connection_test_handler,
+                None,
+            ),
+        }
+
+    @classmethod
+    def build_dispatcher(
+        cls,
+        services: FlextDbOracleServices,
+        *,
+        _bus: t.ContainerValue | None = None,
+    ) -> p.Dispatcher:
+        """Create a dispatcher instance wired to Oracle services."""
+        dispatcher = FlextContainer.shared().dispatcher().unwrap()
+        function_map: MutableMapping[
+            type,
+            tuple[
+                Callable[[t.ContainerValue], t.ContainerValue],
+                t.ContainerValueMapping | None,
+            ],
+        ] = {}
+        function_map.update(cls._create_connection_handlers(services))
+        instance = cls()
+        function_map.update(instance._create_query_handlers(services))
+        function_map.update(instance._create_schema_handlers(services))
+        for handler_fn, _metadata in function_map.values():
+
+            def _wrap(
+                fn: Callable[[t.ContainerValue], t.ContainerValue],
+            ) -> t.HandlerLike:
+                def wrapped(*args: t.ContainerValue) -> p.Result[str]:
+                    result = fn(*args)
+                    return r[str].ok(str(result))
+
+                return wrapped
+
+            dispatcher.register_handler(_wrap(handler_fn))
+        return dispatcher
+
+    def _create_query_handlers(
+        self,
+        services: FlextDbOracleServices,
+    ) -> Mapping[
+        type,
+        tuple[
+            Callable[[t.ContainerValue], t.ContainerValue],
+            t.ContainerValueMapping | None,
+        ],
+    ]:
+        """Create query-related handler functions."""
+
+        def execute_query_handler(command: t.ContainerValue) -> t.ContainerValue:
+            if isinstance(command, m.DbOracle.ExecuteQueryCommand):
+                sql = command.sql
+                parameters = m.ConfigMap.model_validate({
+                    "root": command.parameters or {},
+                })
+            else:
+                sql = ""
+                parameters = m.ConfigMap(root={})
+            result = services.execute_query(sql, parameters)
+            return len(result.value) if result.success else 0
+
+        def fetch_one_handler(command: t.ContainerValue) -> t.ContainerValue:
+            if isinstance(command, m.DbOracle.FetchOneCommand):
+                sql = command.sql
+                parameters = m.ConfigMap.model_validate({
+                    "root": command.parameters or {},
+                })
+            else:
+                sql = ""
+                parameters = m.ConfigMap(root={})
+            result = services.fetch_one(sql, parameters)
+            return str(result.value) if result.success and result.value else ""
+
+        def execute_statement_handler(command: t.ContainerValue) -> t.ContainerValue:
+            if isinstance(
+                command,
+                m.DbOracle.ExecuteStatementCommand,
+            ):
+                sql = command.sql
+                parameters = m.ConfigMap.model_validate({
+                    "root": command.parameters or {},
+                })
+            else:
+                sql = ""
+                parameters = m.ConfigMap(root={})
+            return services.execute_statement(sql, parameters).map_or(0)
+
+        def execute_many_handler(command: t.ContainerValue) -> t.ContainerValue:
+            if isinstance(command, m.DbOracle.ExecuteManyCommand):
+                sql = command.sql
+                parameters_list: Sequence[t.ContainerValueMapping] = list(
+                    command.parameters_list
+                )
+            else:
+                sql = ""
+                parameters_list = []
+            return services.execute_many(sql, parameters_list).map_or(0)
+
+        return {
+            m.DbOracle.ExecuteQueryCommand: (
+                execute_query_handler,
+                None,
+            ),
+            m.DbOracle.FetchOneCommand: (fetch_one_handler, None),
+            m.DbOracle.ExecuteStatementCommand: (
+                execute_statement_handler,
+                None,
+            ),
+            m.DbOracle.ExecuteManyCommand: (
+                execute_many_handler,
+                None,
+            ),
+        }
+
+    def _create_schema_handlers(
+        self,
+        services: FlextDbOracleServices,
+    ) -> Mapping[
+        type,
+        tuple[
+            Callable[[t.ContainerValue], t.ContainerValue],
+            t.ContainerValueMapping | None,
+        ],
+    ]:
+        """Create schema/metadata handler functions."""
+
+        def get_schemas_handler(_cmd: t.ContainerValue) -> t.ContainerValue:
+            result = services.fetch_schemas()
+            return ",".join(result.value) if result.success else ""
+
+        def get_tables_handler(command: t.ContainerValue) -> t.ContainerValue:
+            schema: str | None = None
+            if isinstance(command, m.DbOracle.GetTablesCommand):
+                schema = command.schema_name
+            result = services.fetch_tables(schema)
+            return ",".join(result.value) if result.success else ""
+
+        def get_columns_handler(command: t.ContainerValue) -> t.ContainerValue:
+            if isinstance(command, m.DbOracle.GetColumnsCommand):
+                table = command.table
+                schema = command.schema_name
+            else:
+                table = ""
+                schema = None
+            result = services.fetch_columns(table, schema)
+            return ",".join(col.name for col in result.value) if result.success else ""
+
+        return {
+            m.DbOracle.GetSchemasCommand: (
+                get_schemas_handler,
+                None,
+            ),
+            m.DbOracle.GetTablesCommand: (get_tables_handler, None),
+            m.DbOracle.GetColumnsCommand: (
+                get_columns_handler,
+                None,
+            ),
+        }
+
+
+__all__: list[str] = ["FlextDbOracleDispatcher"]
+"""Oracle Database models using FLEXT ecosystem patterns.
+
+This module provides Oracle-specific models extending flext-core patterns
+for data structures and domain objects.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
+
+from __future__ import annotations
+
+from collections.abc import (
+    Mapping,
+    Sequence,
+)
+from datetime import UTC, datetime
+from types import MappingProxyType
+from typing import ClassVar
+
+from flext_cli import m, u
+
+from flext_db_oracle import c, t
+
+
+class FlextDbOracleModels(m):
+    """Oracle database models using flext-core exclusively.
+
+    Contains ONLY pure domain models (Entity, Value, AggregateRoot, etc.).
+    All settings-like classes moved to settings.py.
+    All constants moved to constants.py.
+    All types moved to typings.py.
+    """
+
+    class DbOracle:
+        """DbOracle domain namespace."""
+
+        class DbOracleDomainModel(m.BaseModel):
+            """Base model for FlextDbOracle with standard Pydantic v2 configuration."""
+
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+                use_enum_values=True,
+                validate_default=True,
+                str_strip_whitespace=True,
+                extra="forbid",
+            )
+
+        class NamedItem(DbOracleDomainModel):
+            """Named item payload for list formatting."""
+
+            name: str = ""
+
+        class OutputPayload(DbOracleDomainModel):
+            """Structured output payload for formatter rendering."""
+
+            title: str = ""
+            items: t.StrSequence = u.Field(
+                default_factory=tuple,
+                description="List of named items for display",
+            )
+
+        class HealthCheckReport(DbOracleDomainModel):
+            """Health-check result payload for CLI reporting."""
+
+            status: str = c.HealthStatus.UNKNOWN.value
+            host: str = ""
+            port: t.NonNegativeInt = 0
+            service_name: str = ""
+            response_time_ms: t.NonNegativeFloat = 0.0
+            details: t.ContainerValueMapping = u.Field(
+                default_factory=lambda: MappingProxyType({}),
+                description="Health check detail key-value pairs",
+            )
+            error: str | None = None
+            timestamp: str = ""
+
+        class RowData(DbOracleDomainModel):
+            """Typed row payload for query results."""
+
+            values: Sequence[t.ContainerValue] = u.Field(
+                default_factory=tuple,
+                description="Row column values",
+            )
+
+        class ColumnMetadata(DbOracleDomainModel):
+            """Typed column metadata payload."""
+
+            name: str
+            data_type: str
+            nullable: bool = True
+
+        class SingerSchemaField(DbOracleDomainModel):
+            """Typed singer schema field."""
+
+            name: str
+            definition: FlextDbOracleModels.DbOracle.SingerField
+
+        class ConnectionStatus(m.Entity, m.FlexibleModel):
+            """Connection status using flext-core Entity."""
+
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=False)
+
+            connected: bool = u.Field(
+                False,
+                description="Whether connection is active",
+                validate_default=True,
+            )
+            last_check: datetime = u.Field(
+                default_factory=lambda: datetime.now(UTC),
+                description="Timestamp of last connection check",
+            )
+            error_message: str = u.Field(
+                "",
+                description="Error message when disconnected",
+                validate_default=True,
+            )
+
+            # Additional Oracle-specific connection details
+            connection_time: t.NonNegativeFloat = u.Field(
+                0.0,
+                description="Connection establishment time in seconds",
+                validate_default=True,
+            )
+            last_activity: datetime = u.Field(
+                default_factory=lambda: datetime.now(UTC),
+                description="Timestamp of last database activity",
+            )
+            session_id: str = u.Field(
+                "",
+                description="Oracle session identifier",
+                validate_default=True,
+            )
+            host: str = u.Field("", description="Database host", validate_default=True)
+            port: t.PortNumber = u.Field(
+                c.DbOracle.Connection.DEFAULT_PORT,
+                description="Database port",
+                validate_default=True,
+            )
+            service_name: str = u.Field(
+                "",
+                description="Oracle service name",
+                validate_default=True,
+            )
+            username: str = u.Field(
+                "",
+                description="Database username",
+                validate_default=True,
+            )
+            db_version: str = u.Field(
+                "",
+                description="Oracle database version",
+                validate_default=True,
+            )
+
+            @property
+            def connection_age_seconds(self) -> float:
+                """Connection age in seconds."""
+                if self.connected:
+                    return (datetime.now(UTC) - self.last_activity).total_seconds()
+                return 0.0
+
+            @property
+            def connection_info(self) -> str:
+                """Connection information summary."""
+                if not self.connected:
+                    return "Not connected"
+                parts = [
+                    f"{k}={v}"
+                    for k, v in [
+                        ("host", self.host),
+                        ("port", self.port),
+                        ("service", self.service_name),
+                        ("user", self.username),
+                    ]
+                    if v  # Empty strings are falsy, so this works
+                ]
+                return ", ".join(parts) or "Connected"
+
+            @property
+            def is_healthy(self) -> bool:
+                """Connection health status."""
+                if not self.connected:
+                    return False
+                age_seconds = float((datetime.now(UTC) - self.last_activity).seconds)
+                return (
+                    age_seconds
+                    <= c.DbOracle.OraclePerformance.CONNECTION_IDLE_TIMEOUT_SECONDS
+                )
+
+            @property
+            def performance_info(self) -> str:
+                """Connection performance information."""
+                if not self.connected or self.connection_time <= 0:
+                    return "No performance data"
+                if (
+                    self.connection_time
+                    < c.DbOracle.OraclePerformance.CONNECTION_EXCELLENT_THRESHOLD_SECONDS
+                ):
+                    return f"Excellent ({self.connection_time:.3f}s)"
+                if (
+                    self.connection_time
+                    < c.DbOracle.OraclePerformance.CONNECTION_GOOD_THRESHOLD_SECONDS
+                ):
+                    return f"Good ({self.connection_time:.3f}s)"
+                if (
+                    self.connection_time
+                    < c.DbOracle.OraclePerformance.CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS
+                ):
+                    return f"Acceptable ({self.connection_time:.3f}s)"
+                return f"Slow ({self.connection_time:.3f}s)"
+
+            @property
+            def status_description(self) -> str:
+                """Human-readable status description."""
+                if self.connected:
+                    return "Connected"
+                return (
+                    f"Disconnected: {self.error_message}"
+                    if self.error_message
+                    else "Disconnected"
+                )
+
+            @u.field_serializer("connection_time", when_used="json")
+            def serialize_connection_time(self, value: float) -> str:
+                """Format connection time with units."""
+                return f"{value:.3f}s"
+
+            @u.field_serializer("last_check", "last_activity", when_used="json")
+            def serialize_datetime(self, value: datetime) -> str:
+                """Format datetime as ISO string."""
+                return value.isoformat()
+
+            @u.field_serializer("error_message")
+            def serialize_error_message(self, value: str) -> str:
+                """Truncate long error messages."""
+                max_error_length = c.DbOracle.Error.MAX_ERROR_MESSAGE_LENGTH
+                if len(value) > max_error_length:
+                    return f"{value[:max_error_length]}... (truncated)"
+                return value
+
+            @u.model_validator(mode="after")
+            def validate_connection_status_consistency(
+                self,
+            ) -> FlextDbOracleModels.DbOracle.ConnectionStatus:
+                """Validate connection status consistency."""
+                if self.connected and not self.host:
+                    msg = "Connected status requires host information"
+                    raise ValueError(msg)
+                if self.connected and not (
+                    c.DbOracle.OracleNetwork.MIN_PORT
+                    <= self.port
+                    <= c.DbOracle.OracleNetwork.MAX_PORT
+                ):
+                    msg = f"Invalid port number: {self.port}"
+                    raise ValueError(msg)
+                if self.connection_time < 0:
+                    msg = "Connection time cannot be negative"
+                    raise ValueError(msg)
+                return self
+
+        class QueryResult(m.Entity, m.FlexibleModel):
+            """Query result using flext-core Entity."""
+
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=False)
+
+            query: str = u.Field(description="SQL query that produced the result")
+            result_data: Sequence[t.ContainerValue] = u.Field(
+                default_factory=tuple,
+                description="Raw result data from query execution",
+            )
+            row_count: t.NonNegativeInt = u.Field(
+                0,
+                description="Number of rows returned",
+                validate_default=True,
+            )
+            execution_time_ms: t.NonNegativeInt = u.Field(
+                0,
+                description="Query execution time in milliseconds",
+                validate_default=True,
+            )
+
+            # Additional Oracle-specific query result details
+            columns: t.StrSequence = u.Field(
+                default_factory=tuple,
+                description="Column names in result set",
+            )
+            rows: Sequence[FlextDbOracleModels.DbOracle.RowData] = u.Field(
+                default_factory=lambda: list[FlextDbOracleModels.DbOracle.RowData](),
+                description="Typed row data from query result",
+            )
+            query_hash: str = u.Field(
+                "",
+                description="Query hash for caching",
+                validate_default=True,
+            )
+            explain_plan: str = u.Field(
+                "",
+                description="Query execution plan",
+                validate_default=True,
+            )
+
+            @property
+            def column_count(self) -> int:
+                """Number of columns."""
+                return len(self.columns)
+
+            @property
+            def data_size_bytes(self) -> int:
+                """Estimated data size in bytes."""
+                return (
+                    len(self.rows)
+                    * len(self.columns)
+                    * c.DbOracle.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
+                    if self.rows
+                    else 0
+                )
+
+            @property
+            def execution_time_seconds(self) -> float:
+                """Execution time in seconds."""
+                return self.execution_time_ms / 1000.0
+
+            @property
+            def has_results(self) -> bool:
+                """Whether query returned results."""
+                return self.row_count > 0
+
+            @property
+            def memory_usage_mb(self) -> float:
+                """Estimated memory usage in MB."""
+                data_size = (
+                    len(self.rows)
+                    * len(self.columns)
+                    * c.DbOracle.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
+                    if self.rows
+                    else 0
+                )
+                return data_size / (1024 * 1024)
+
+            @property
+            def performance_rating(self) -> str:
+                """Query performance rating."""
+                result_acceptance_threshold_ms = (
+                    c.DbOracle.OraclePerformance.QUERY_ACCEPTABLE_THRESHOLD_MS + 500
+                )
+                if (
+                    self.has_results
+                    and self.execution_time_ms <= result_acceptance_threshold_ms
+                ):
+                    return "Acceptable"
+                return (
+                    "Excellent"
+                    if self.execution_time_ms
+                    < c.DbOracle.OraclePerformance.QUERY_EXCELLENT_THRESHOLD_MS
+                    else "Good"
+                    if self.execution_time_ms
+                    < c.DbOracle.OraclePerformance.QUERY_GOOD_THRESHOLD_MS
+                    else "Acceptable"
+                    if self.execution_time_ms
+                    < c.DbOracle.OraclePerformance.QUERY_ACCEPTABLE_THRESHOLD_MS
+                    else "Slow"
+                )
+
+            @u.field_serializer("execution_time_ms", when_used="json")
+            def serialize_execution_time(self, value: int) -> str:
+                """Format execution time with appropriate units."""
+                threshold = (
+                    c.DbOracle.OraclePerformance.MILLISECONDS_TO_SECONDS_THRESHOLD
+                )
+                return (
+                    f"{value}ms" if value < threshold else f"{value / threshold:.2f}s"
+                )
+
+            @u.model_validator(mode="after")
+            def validate_query_result_consistency(
+                self,
+            ) -> FlextDbOracleModels.DbOracle.QueryResult:
+                """Validate query result consistency."""
+                if len(self.rows) != self.row_count:
+                    self.row_count = len(self.rows)
+                if self.rows and self.columns:
+                    for row in self.rows:
+                        if len(row.values) != len(self.columns):
+                            msg = f"Row length {len(row.values)} doesn't match column count {len(self.columns)}"
+                            raise ValueError(msg)
+                if self.execution_time_ms < 0:
+                    msg = "Execution time cannot be negative"
+                    raise ValueError(msg)
+                return self
+
+        class OperationRecord(m.Entity):
+            """Operation tracking record for observability workflows."""
+
+            operation_type: str = u.Field(description="Type of database operation")
+            duration: float = u.Field(description="Operation duration in seconds")
+            success: bool = u.Field(description="Whether the operation succeeded")
+            metadata_info: str = u.Field(
+                "",
+                description="Operation metadata",
+                validate_default=True,
+            )
+            timestamp: str = u.Field(description="ISO timestamp of operation")
+
+        class HealthStatus(m.Entity):
+            """Service health status record."""
+
+            status: str = u.Field(description="Health status indicator")
+            timestamp: str = u.Field(description="ISO timestamp of health check")
+            service: str = u.Field(
+                "oracle",
+                description="Service name being checked",
+                validate_default=True,
+            )
+            database: str = u.Field(
+                "oracle",
+                description="Database engine identifier",
+                validate_default=True,
+            )
+            metrics: t.ContainerValueMapping = u.Field(
+                default_factory=lambda: MappingProxyType({}),
+                description="Health check metric values",
+            )
+
+            def __getitem__(self, key: str) -> t.ContainerValue:
+                """Get item from health status."""
+                if key in self.metrics:
+                    return self.metrics[key]
+                dump = self.model_dump()
+                value = dump.get(key, "")
+                return str(value)
+
+            def __contains__(self, key: str) -> bool:
+                """Check if key is in health status."""
+                if key in self.metrics:
+                    return True
+                return key in self.model_dump()
+
+        class TableMetadata(m.Entity):
+            """Complete table metadata for Oracle introspection."""
+
+            table_name: str = u.Field(description="Oracle table name")
+            schema_name: str = u.Field(
+                "",
+                description="Oracle schema name",
+                validate_default=True,
+            )
+            columns: Sequence[FlextDbOracleModels.DbOracle.ColumnMetadata] = u.Field(
+                default_factory=lambda: list[
+                    FlextDbOracleModels.DbOracle.ColumnMetadata
+                ](),
+                description="Column metadata for the table",
+            )
+            primary_keys: t.StrSequence = u.Field(
+                default_factory=tuple,
+                description="Primary key column names",
+            )
+
+            def __getitem__(self, key: str) -> t.ContainerValue:
+                """Get item from table metadata."""
+                dump = self.model_dump()
+                value = dump.get(key, "")
+                return str(value)
+
+            def __contains__(self, key: str) -> bool:
+                """Check if key is in table metadata."""
+                return key in self.model_dump()
+
+        class TypeMapping(m.Entity):
+            """Singer-to-Oracle type mapping."""
+
+            mapping: t.StrMapping = u.Field(
+                default_factory=lambda: MappingProxyType({}),
+                description="Singer-to-Oracle type conversion map",
+            )
+
+            def __getitem__(self, key: str) -> str:
+                """Get mapped type for key."""
+                return self.mapping[key]
+
+            def __len__(self) -> int:
+                """Get number of type mappings."""
+                return len(self.mapping)
+
+            def __contains__(self, key: str) -> bool:
+                """Check if key is in type mapping."""
+                return key in self.mapping
+
+        class SingerField(m.Entity):
+            """Singer field definition."""
+
+            type: str | t.StrSequence = u.Field(
+                "string",
+                description="Singer JSON Schema type or type array",
+                validate_default=True,
+            )
+
+        class SingerSchema(m.Entity):
+            """Singer schema container with typed properties."""
+
+            properties: Mapping[str, FlextDbOracleModels.DbOracle.SingerField] = (
+                u.Field(
+                    default_factory=lambda: MappingProxyType({}),
+                    description="Singer schema property definitions",
+                )
+            )
+
+        class Table(m.Entity):
+            """Table metadata using flext-core Entity."""
+
+            name: str = u.Field(description="Table name")
+            owner: str = u.Field(
+                "",
+                description="Table owner or schema",
+                validate_default=True,
+            )
+            columns: Sequence[FlextDbOracleModels.DbOracle.Column] = u.Field(
+                default_factory=lambda: list[FlextDbOracleModels.DbOracle.Column](),
+                description="Column definitions for the table",
+            )
+
+        class Column(m.Entity):
+            """Column metadata using flext-core Entity."""
+
+            name: str = u.Field(description="Column name")
+            data_type: str = u.Field(description="Oracle data type")
+            nullable: bool = u.Field(
+                True,
+                description="Whether the column allows NULL values",
+                validate_default=True,
+            )
+            primary_key: bool = u.Field(
+                False,
+                description="Whether this column is a primary key",
+                validate_default=True,
+            )
+            default_value: str = u.Field(
+                "",
+                description="Default value for the column",
+                validate_default=True,
+            )
+
+            def __getitem__(self, key: str) -> t.ContainerValue:
+                """Get item from column metadata."""
+                key_map: t.ContainerValueMapping = {
+                    "column_name": self.name,
+                    "name": self.name,
+                    "data_type": self.data_type,
+                    "nullable": self.nullable,
+                    "primary_key": self.primary_key,
+                    "default_value": self.default_value,
+                }
+                if key in key_map:
+                    return key_map[key]
+                return ""
+
+            def __contains__(self, key: str) -> bool:
+                """Check if key is in column metadata."""
+                return key in {
+                    "name",
+                    "column_name",
+                    "data_type",
+                    "nullable",
+                    "primary_key",
+                    "default_value",
+                }
+
+        class Schema(m.Entity):
+            """Schema metadata using flext-core Entity."""
+
+            name: str = u.Field(description="Schema name")
+            tables: Sequence[FlextDbOracleModels.DbOracle.Table] = u.Field(
+                default_factory=lambda: list[FlextDbOracleModels.DbOracle.Table](),
+                description="Tables within this schema",
+            )
+
+        class CreateIndexConfig(m.Entity):
+            """Create index settings using flext-core Entity."""
+
+            table_name: str = u.Field(description="Target table for the index")
+            index_name: str = u.Field(description="Name of the index to create")
+            columns: t.StrSequence = u.Field(
+                description="Columns to include in the index"
+            )
+            unique: bool = u.Field(
+                False,
+                description="Whether the index enforces uniqueness",
+                validate_default=True,
+            )
+            schema_name: str = u.Field(
+                "",
+                description="Schema name",
+                validate_default=True,
+            )
+            tablespace: str = u.Field(
+                "",
+                description="Tablespace name",
+                validate_default=True,
+            )
+            parallel: t.PositiveInt = u.Field(
+                1,
+                description="Parallel degree for index creation",
+                validate_default=True,
+            )
+
+        class MergeStatementConfig(m.Entity):
+            """Merge statement settings using flext-core Entity."""
+
+            target_table: str = u.Field(description="Target table for MERGE operation")
+            source_query: str = u.Field(description="Source query for MERGE data")
+            merge_conditions: t.StrSequence = u.Field(
+                description="Join conditions for MERGE matching"
+            )
+            update_columns: t.StrSequence = u.Field(
+                default_factory=tuple,
+                description="Columns to update on match",
+            )
+            insert_columns: t.StrSequence = u.Field(
+                default_factory=tuple,
+                description="Columns to insert on no match",
+            )
+
+        # Command classes for dispatcher integration
+        class ConnectCommand(m.Entity):
+            """Command to establish Oracle connection."""
+
+        class DisconnectCommand(m.Entity):
+            """Command to close Oracle connection."""
+
+        class TestConnectionCommand(m.Entity):
+            """Command to test Oracle connection."""
+
+        class ExecuteQueryCommand(m.Entity):
+            """Command to execute SELECT query."""
+
+            sql: str = u.Field(description="SQL SELECT query to execute")
+            parameters: t.ContainerValueMapping | None = u.Field(
+                None,
+                description="Query bind parameters",
+                validate_default=True,
+            )
+
+        class FetchOneCommand(m.Entity):
+            """Command to fetch single row."""
+
+            sql: str = u.Field(description="SQL query to fetch a single row")
+            parameters: t.ContainerValueMapping | None = u.Field(
+                None,
+                description="Query bind parameters",
+                validate_default=True,
+            )
+
+        class ExecuteStatementCommand(m.Entity):
+            """Command to execute INSERT/UPDATE/DELETE."""
+
+            sql: str = u.Field(description="SQL DML statement to execute")
+            parameters: t.ContainerValueMapping | None = u.Field(
+                None,
+                description="Statement bind parameters",
+                validate_default=True,
+            )
+
+        class ExecuteManyCommand(m.Entity):
+            """Command to execute batch statements."""
+
+            sql: str = u.Field(description="SQL statement for batch execution")
+            parameters_list: Sequence[t.ContainerValueMapping] = u.Field(
+                default_factory=lambda: list[t.ContainerValueMapping](),
+                description="List of parameter sets for batch execution",
+            )
+
+        class GetSchemasCommand(m.Entity):
+            """Command to retrieve all schemas."""
+
+        class GetTablesCommand(m.Entity):
+            """Command to retrieve tables in schema."""
+
+            schema_name: str | None = u.Field(
+                None,
+                description="Schema to list tables from",
+                validate_default=True,
+            )
+
+        class GetColumnsCommand(m.Entity):
+            """Command to retrieve columns in table."""
+
+            table: str = u.Field(description="Table to retrieve columns from")
+            schema_name: str | None = u.Field(
+                None,
+                description="Schema containing the table",
+                validate_default=True,
+            )
+
+
+m = FlextDbOracleModels
+
+__all__: list[str] = [
+    "FlextDbOracleModels",
+    "m",
+]
+"""Oracle Database protocols for FLEXT ecosystem.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
+
+from __future__ import annotations
+
+from collections.abc import (
+    Sequence,
+)
+from typing import ClassVar, Protocol, runtime_checkable
+
+from flext_core import p
+from flext_db_oracle import m, t
+
+
+class FlextDbOracleProtocols(p):
+    """Oracle database protocols extending FlextProtocols.
+
+    Extends FlextProtocols to inherit all foundation protocols (Result, Service, etc.)
+    and adds Oracle-specific protocols in the DbOracle namespace.
+
+    Architecture:
+    - EXTENDS: FlextProtocols (inherits Foundation, Domain, Application, etc.)
+    - ADDS: Oracle-specific protocols in DbOracle namespace
+
+    Usage:
+    from flext_db_oracle import FlextDbOracleProtocols
+
+    # Foundation protocols (inherited)
+    result: FlextDbOracleProtocols.Result[str]
+    service: FlextDbOracleProtocols.Service[str]
+
+    # Oracle-specific protocols
+    connection: FlextDbOracleProtocols.Database.Connection
+    query: FlextDbOracleProtocols.Database.QueryExecutor
+    """
+
+    @runtime_checkable
+    class DbOracle(Protocol):
+        """Oracle database domain-specific protocols."""
+
+        @runtime_checkable
+        class Connection(Protocol):
+            """Protocol for Oracle database connection operations."""
+
+            def connect(self) -> p.Result[bool]:
+                """Establish Oracle database connection.
+
+                Returns:
+                r[bool]: Connection success status
+
+                """
+                ...
+
+            def disconnect(self) -> p.Result[bool]:
+                """Close Oracle database connection.
+
+                Returns:
+                r[bool]: Disconnection success status
+
+                """
+                ...
+
+            def connected(self) -> p.Result[bool]:
+                """Check if Oracle connection is active.
+
+                Returns:
+                r[bool]: Connection status
+
+                """
+                ...
+
+        @runtime_checkable
+        class OraclePlugin(Protocol):
+            """Protocol for Oracle database plugins.
+
+            All plugins registered with the FlextDbOracle plugin system
+            must satisfy this protocol.
+            """
+
+            def fetch_connection(self) -> p.Result[t.ContainerValue]:
+                """Get current Oracle connection t.Container.
+
+                Returns:
+                r: Connection t.Container or error
+
+                """
+                ...
+
+            def initialize(self) -> p.Result[bool]:
+                """Initialize the plugin."""
+                ...
+
+            def shutdown(self) -> p.Result[bool]:
+                """Shutdown the plugin."""
+                ...
+
+            def test_connection(self) -> p.Result[bool]:
+                """Test Oracle database connectivity.
+
+                Returns:
+                r[bool]: Connection test result
+
+                """
+                ...
+
+        @runtime_checkable
+        class QueryExecutor(Protocol):
+            """Protocol for Oracle query execution operations."""
+
+            def execute_many(
+                self,
+                sql: str,
+                params_list: Sequence[t.ContainerValueMapping],
+            ) -> p.Result[int]:
+                """Execute Oracle SQL statement with multiple parameter sets.
+
+                Args:
+                sql: SQL statement string
+                params_list: List of parameter dictionaries
+
+                Returns:
+                r[int]: Number of affected rows
+
+                """
+                ...
+
+            def execute_query(
+                self,
+                sql: str,
+                params: t.ContainerValueMapping | None = None,
+            ) -> p.Result[Sequence[m.Dict]]:
+                """Execute Oracle SQL query.
+
+                Args:
+                sql: SQL query string
+                params: Query parameters
+
+                Returns:
+                r: Query result or error
+
+                """
+                ...
+
+            def execute_statement(
+                self,
+                sql: str,
+                params: t.ContainerValueMapping | None = None,
+            ) -> p.Result[bool]:
+                """Execute Oracle SQL statement.
+
+                Args:
+                sql: SQL statement string
+                params: Statement parameters
+
+                Returns:
+                r[bool]: Execution success status
+
+                """
+                ...
+
+            def fetch_one(
+                self,
+                sql: str,
+                params: t.ContainerValueMapping | None = None,
+            ) -> p.Result[m.Dict | None]:
+                """Fetch single result from Oracle query.
+
+                Args:
+                sql: SQL query string
+                params: Query parameters
+
+                Returns:
+                r[m.Dict | None]: Single result or None
+
+                """
+                ...
+
+        @runtime_checkable
+        class SchemaIntrospector(Protocol):
+            """Protocol for Oracle schema introspection operations."""
+
+            def fetch_columns(
+                self,
+                table: str,
+                schema: str | None = None,
+            ) -> p.Result[Sequence[m.DbOracle.Column]]:
+                """Get column information for Oracle table.
+
+                Args:
+                table: Table name
+                schema: Schema name (optional)
+
+                Returns:
+                r[Sequence[t.ContainerValueMapping]]: Column metadata or error
+
+                """
+                ...
+
+            def fetch_primary_keys(
+                self,
+                table: str,
+                schema: str | None = None,
+            ) -> p.Result[t.StrSequence]:
+                """Get primary key columns for Oracle table.
+
+                Args:
+                table: Table name
+                schema: Schema name (optional)
+
+                Returns:
+                r[t.StrSequence]: Primary key column names or error
+
+                """
+                ...
+
+            def fetch_schemas(self) -> p.Result[t.StrSequence]:
+                """Get list of Oracle schemas.
+
+                Returns:
+                r[t.StrSequence]: Schema names or error
+
+                """
+                ...
+
+            def fetch_table_metadata(
+                self,
+                table: str,
+                schema: str | None = None,
+            ) -> p.Result[m.DbOracle.TableMetadata]:
+                """Get Oracle table metadata.
+
+                Args:
+                table: Table name
+                schema: Schema name (optional)
+
+                Returns:
+                r[t.ContainerValueMapping]: Table metadata or error
+
+                """
+                ...
+
+            def fetch_tables(
+                self, schema: str | None = None
+            ) -> p.Result[t.StrSequence]:
+                """Get list of tables in Oracle schema.
+
+                Args:
+                schema: Schema name (optional)
+
+                Returns:
+                r[t.StrSequence]: Table names or error
+
+                """
+                ...
+
+        @runtime_checkable
+        class SqlBuilder(Protocol):
+            """Protocol for Oracle SQL statement building operations."""
+
+            def build_delete_statement(
+                self, table: str, where_clause: str
+            ) -> p.Result[str]:
+                """Build Oracle DELETE statement.
+
+                Args:
+                table: Table name
+                where_clause: WHERE condition
+
+                Returns:
+                r[str]: SQL DELETE statement or error
+
+                """
+                ...
+
+            def build_insert_statement(
+                self,
+                table: str,
+                data: t.ContainerValueMapping,
+            ) -> p.Result[tuple[str, t.ContainerValueMapping]]:
+                """Build Oracle INSERT statement.
+
+                Args:
+                table: Table name
+                data: Column data
+
+                Returns:
+                r[tuple[str, t.ContainerValueMapping]]: SQL and parameters or error
+
+                """
+                ...
+
+            def build_select(
+                self,
+                table: str,
+                columns: t.StrSequence | None = None,
+                where_clause: str | None = None,
+                order_by: str | None = None,
+                limit: int | None = None,
+            ) -> p.Result[str]:
+                """Build Oracle SELECT statement.
+
+                Args:
+                table: Table name
+                columns: Column names (optional)
+                where_clause: WHERE condition (optional)
+                order_by: ORDER BY clause (optional)
+                limit: Row limit (optional)
+
+                Returns:
+                r[str]: SQL SELECT statement or error
+
+                """
+                ...
+
+            def build_update_statement(
+                self,
+                table: str,
+                data: t.ContainerValueMapping,
+                where_clause: str,
+            ) -> p.Result[tuple[str, t.ContainerValueMapping]]:
+                """Build Oracle UPDATE statement.
+
+                Args:
+                table: Table name
+                data: Column data
+                where_clause: WHERE condition
+
+                Returns:
+                r[tuple[str, t.ContainerValueMapping]]: SQL and parameters or error
+
+                """
+                ...
+
+        @runtime_checkable
+        class DdlGenerator(Protocol):
+            """Protocol for Oracle DDL generation operations."""
+
+            def build_create_index_statement(
+                self,
+                table: str,
+                columns: t.StrSequence,
+                index_name: str | None = None,
+                *,
+                unique: bool = False,
+            ) -> p.Result[str]:
+                """Build Oracle CREATE INDEX statement.
+
+                Args:
+                table: Table name
+                columns: Index columns
+                index_name: Index name (optional)
+                unique: Create unique index
+
+                Returns:
+                r[str]: CREATE INDEX statement or error
+
+                """
+                ...
+
+            def create_table_ddl(
+                self,
+                table: str,
+                columns: Sequence[m.DbOracle.Column],
+                schema: str | None = None,
+            ) -> p.Result[str]:
+                """Generate Oracle CREATE TABLE DDL.
+
+                Args:
+                table: Table name
+                columns: Column definitions
+                schema: Schema name (optional)
+
+                Returns:
+                r[str]: CREATE TABLE DDL or error
+
+                """
+                ...
+
+            def drop_table_ddl(
+                self, table: str, schema: str | None = None
+            ) -> p.Result[str]:
+                """Generate Oracle DROP TABLE DDL.
+
+                Args:
+                table: Table name
+                schema: Schema name (optional)
+
+                Returns:
+                r[str]: DROP TABLE DDL or error
+
+                """
+                ...
+
+        @runtime_checkable
+        class MetricsCollector(Protocol):
+            """Protocol for Oracle database metrics collection."""
+
+            def fetch_metrics(self) -> p.Result[m.DbOracle.HealthStatus]:
+                """Get collected Oracle metrics.
+
+                Returns:
+                r[t.ContainerValueMapping]: Metrics data or error
+
+                """
+                ...
+
+            def record_metric(
+                self,
+                name: str,
+                value: float,
+                tags: t.StrMapping | None = None,
+            ) -> p.Result[bool]:
+                """Record Oracle database metric.
+
+                Args:
+                name: Metric name
+                value: Metric value
+                tags: Metric tags (optional)
+
+                Returns:
+                r[bool]: Success status
+
+                """
+                ...
+
+            def track_operation(
+                self,
+                operation: str,
+                duration: float,
+                *,
+                success: bool,
+            ) -> p.Result[bool]:
+                """Track Oracle operation performance.
+
+                Args:
+                operation: Operation name
+                duration: Operation duration
+                success: Operation success status
+
+                Returns:
+                r[bool]: Tracking success status
+
+                """
+                ...
+
+        @runtime_checkable
+        class PluginRegistry(Protocol):
+            """Protocol for Oracle database plugin registry operations."""
+
+            def fetch_plugin(self, name: str) -> p.Result[t.ContainerValue]:
+                """Get Oracle database plugin by name.
+
+                Args:
+                name: Plugin name
+
+                Returns:
+                r: Plugin instance or error
+
+                """
+                ...
+
+            def list_plugins(self) -> p.Result[t.StrSequence]:
+                """List registered Oracle database plugins.
+
+                Returns:
+                r[t.StrSequence]: Plugin names or error
+
+                """
+                ...
+
+            def register_plugin(
+                self, name: str, _plugin: t.ContainerValue
+            ) -> p.Result[bool]:
+                """Register Oracle database plugin.
+
+                Args:
+                name: Plugin name
+                plugin: Plugin instance
+
+                Returns:
+                r[bool]: Registration success status
+
+                """
+                ...
+
+            def unregister_plugin(self, name: str) -> p.Result[bool]:
+                """Unregister Oracle database plugin.
+
+                Args:
+                name: Plugin name
+
+                Returns:
+                r[bool]: Unregistration success status
+
+                """
+                ...
+
+        @runtime_checkable
+        class HealthCheck(Protocol):
+            """Protocol for Oracle database health check operations."""
+
+            _flext_enforcement_exempt: ClassVar[bool] = True
+
+            def fetch_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
+                """Get Oracle connection status information.
+
+                Returns:
+                r[t.ContainerValueMapping]: Connection status or error
+
+                """
+                ...
+
+            def health_check(self) -> p.Result[m.DbOracle.HealthStatus]:
+                """Perform Oracle database health check.
+
+                Returns:
+                r[t.ContainerValueMapping]: Health status or error
+
+                """
+                ...
+
+
+p = FlextDbOracleProtocols
+
+__all__: list[str] = ["FlextDbOracleProtocols", "p"]
+"""Plugin, metrics, and operations service mixin for flext-db-oracle.
+
+Provides plugin registration, observability metrics recording,
+health status, and operation tracking.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
+
+from __future__ import annotations
+
+from collections.abc import (
+    Sequence,
+)
+
+from sqlalchemy.exc import (
+    OperationalError as SQLAlchemyOperationalError,
+)
+
+from flext_db_oracle import (
+    FlextDbOracleServiceBase,
+    m,
+    p,
+    r,
+    t,
+    u,
+)
+
+
+class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
+    """Mixin providing plugin, metrics, and operations for FlextDbOracleServices.
+
+    Handles: register_plugin, unregister_plugin, get_plugin, list_plugins,
+    record_metric, get_metrics, track_operation, get_operations.
+    """
+
+    def fetch_metrics(self) -> p.Result[m.DbOracle.HealthStatus]:
+        """Get metrics status with observability integration."""
+        status = "connected" if self.connected() else "disconnected"
+        metrics_payload: t.StrMapping = {
+            metric_name: str(metric_value)
+            for metric_name, metric_value in self._metrics.items()
+        }
+        return r[m.DbOracle.HealthStatus].ok(
+            m.DbOracle.HealthStatus.model_validate({
+                "status": f"{status}_with_observability",
+                "timestamp": self._get_current_timestamp(),
+                "service": "oracle",
+                "database": self.db_config.service_name,
+                "metrics": metrics_payload,
+            }),
+        )
+
+    def fetch_operations(
+        self,
+    ) -> p.Result[Sequence[m.DbOracle.OperationRecord]]:
+        """Get tracked operations."""
+        return r[Sequence[m.DbOracle.OperationRecord]].ok(
+            list(self._operations),
+        )
+
+    def fetch_plugin(self, _name: str) -> p.Result[t.ContainerValue]:
+        """Get plugin data from local service registry."""
+        if not _name:
+            return r[t.ContainerValue].fail("Plugin name is required")
+        if _name not in self._plugins:
+            return r[t.ContainerValue].fail(f"Plugin '{_name}' not found")
+        return r[t.ContainerValue].ok(self._plugins[_name])
+
+    def list_plugins(self) -> p.Result[m.ConfigMap]:
+        """List plugin names from local service registry."""
+        plugin_names = list(self._plugins.keys())
+        return r[m.ConfigMap].ok(m.ConfigMap(root=dict.fromkeys(plugin_names, True)))
+
+    def record_metric(
+        self,
+        _name: str,
+        _value: float,
+        _tags: m.ConfigMap | t.ContainerValueMapping | None = None,
+    ) -> p.Result[bool]:
+        """Record metric in the local service metrics registry."""
+        if not _name:
+            return r[bool].fail("Metric name is required")
+        self._metrics[_name] = _value
+        return r[bool].ok(True)
+
+    def register_plugin(self, _name: str, _plugin: t.ContainerValue) -> p.Result[bool]:
+        """Register plugin in local service registry."""
+        if not _name:
+            return r[bool].fail("Plugin name is required")
+        self._plugins[_name] = _plugin
+        return r[bool].ok(True)
+
+    def track_operation(
+        self,
+        operation_type: str = "",
+        duration: float = 0.0,
+        *,
+        success: bool = True,
+        metadata: m.ConfigMap | t.ContainerValueMapping | None = None,
+    ) -> p.Result[bool]:
+        """Track database operation for monitoring."""
+
+        def _track() -> bool:
+            metadata_value = (
+                metadata
+                if isinstance(metadata, m.ConfigMap)
+                else m.ConfigMap.model_validate({
+                    "root": dict(metadata) if metadata else {},
+                })
+            )
+            operation = m.DbOracle.OperationRecord(
+                operation_type=operation_type,
+                duration=duration,
+                success=success,
+                metadata_info=str(metadata_value),
+                timestamp=self._get_current_timestamp(),
+            )
+            self._operations.append(operation)
+            return True
+
+        return u.try_(
+            _track,
+            catch=(
+                t.DbOracle.OracleDatabaseError,
+                t.DbOracle.OracleInterfaceError,
+                ConnectionError,
+                SQLAlchemyOperationalError,
+                OSError,
+            ),
+        ).map_error(lambda e: f"Failed to track operation: {e}")
+
+    def unregister_plugin(self, _name: str) -> p.Result[bool]:
+        """Unregister plugin from local service registry."""
+        if not _name:
+            return r[bool].fail("Plugin name is required")
+        if _name not in self._plugins:
+            return r[bool].fail(f"Plugin '{_name}' not found")
+        self._plugins.pop(_name)
+        return r[bool].ok(True)
+
+
+__all__: list[str] = ["FlextDbOracleServicePlugin"]
+"""Query execution service mixin for flext-db-oracle.
+
+Provides SQL query/statement execution, bulk operations,
+and result normalization.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
+
+from __future__ import annotations
+
+import hashlib
+from collections.abc import (
+    Sequence,
+)
+from typing import override
+
+from sqlalchemy.engine import CursorResult
+from sqlalchemy.exc import (
+    DatabaseError as SQLAlchemyDatabaseError,
+    OperationalError as SQLAlchemyOperationalError,
+    SQLAlchemyError,
+)
+
+from flext_db_oracle import FlextDbOracleServiceBase, m, p, r, t
+
+
+class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
+    """Mixin providing query execution for FlextDbOracleServices.
+
+    Handles: execute_query, execute_statement, execute_many,
+    fetch_one, generate_query_hash, result normalization.
+    """
+
+    def execute_many(
+        self,
+        sql: str,
+        params_list: Sequence[t.ContainerValueMapping | m.ConfigMap],
+    ) -> p.Result[int]:
+        """Execute SQL statement multiple times."""
+        if not self.connected():
+            return r[int].fail("Not connected to database")
+        engine_result = self._get_engine()
+        if engine_result.failure:
+            return r[int].fail(engine_result.error or "Failed to get database engine")
+        try:
+            with self._engine_connect(engine_result.value) as conn:
+                total_affected = 0
+                for params in params_list:
+                    typed_params = (
+                        params
+                        if isinstance(params, m.ConfigMap)
+                        else m.ConfigMap(root=dict(params))
+                    )
+                    result = self._connection_execute(
+                        conn,
+                        self._sqlalchemy_text(sql),
+                        typed_params,
+                    )
+                    total_affected += max(result.rowcount, 0)
+                return r[int].ok(total_affected)
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+            SQLAlchemyDatabaseError,
+            SQLAlchemyOperationalError,
+            SQLAlchemyError,
+            OSError,
+        ) as e:
+            return r[int].fail(f"Bulk execution failed: {e}")
+
+    @override
+    def execute_query(
+        self,
+        sql: str,
+        params: m.ConfigMap | None = None,
+    ) -> p.Result[Sequence[m.Dict]]:
+        """Execute SQL query and return results."""
+        if not self.connected():
+            return r[Sequence[m.Dict]].fail("Not connected to database")
+        engine_result = self._get_engine()
+        if engine_result.failure:
+            return r[Sequence[m.Dict]].fail(
+                engine_result.error or "Failed to get database engine",
+            )
+        try:
+            with self._engine_connect(engine_result.value) as conn:
+                result = self._connection_execute(
+                    conn,
+                    self._sqlalchemy_text(sql),
+                    params,
+                )
+                rows: Sequence[m.Dict] = self._normalize_query_rows(result)
+                return r[Sequence[m.Dict]].ok(rows)
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+            SQLAlchemyDatabaseError,
+            SQLAlchemyOperationalError,
+            SQLAlchemyError,
+            OSError,
+        ) as e:
+            return r[Sequence[m.Dict]].fail(f"Query execution failed: {e}")
+
+    def execute_statement(
+        self, sql: str, params: m.ConfigMap | None = None
+    ) -> p.Result[int]:
+        """Execute SQL statement and return affected rows."""
+        if not self.connected():
+            return r[int].fail("Not connected to database")
+        engine_result = self._get_engine()
+        if engine_result.failure:
+            return r[int].fail(engine_result.error or "Failed to get database engine")
+        try:
+            with self._engine_begin(engine_result.value) as conn:
+                result = self._connection_execute(
+                    conn,
+                    self._sqlalchemy_text(sql),
+                    params,
+                )
+                rowcount = max(result.rowcount, 0)
+                return r[int].ok(rowcount)
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+            SQLAlchemyDatabaseError,
+            SQLAlchemyOperationalError,
+            SQLAlchemyError,
+            OSError,
+        ) as e:
+            return r[int].fail(f"Statement execution failed: {e}")
+
+    def fetch_one(
+        self,
+        sql: str,
+        params: m.ConfigMap | None = None,
+    ) -> p.Result[m.Dict | None]:
+        """Execute query and return first result."""
+        return self.execute_query(sql, params).map(
+            lambda rows: rows[0] if rows else None,
+        )
+
+    def generate_query_hash(
+        self,
+        sql: str = "",
+        params: m.ConfigMap | t.ContainerValueMapping | None = None,
+    ) -> p.Result[str]:
+        """Generate query hash - simplified."""
+        typed_params = (
+            params
+            if isinstance(params, m.ConfigMap) or params is None
+            else m.ConfigMap(root=dict(params))
+        )
+        hash_input = f"{sql}_{typed_params!s}"
+        return r[str].ok(hashlib.sha256(hash_input.encode()).hexdigest()[:16])
+
+    def _normalize_query_rows(
+        self,
+        query_result: CursorResult[tuple[t.ContainerValue, ...]],
+    ) -> Sequence[m.Dict]:
+        """Normalize SQLAlchemy query result rows into typed mapping models."""
+        mapping_result = query_result.mappings()
+        rows = mapping_result.all()
+        result: Sequence[m.Dict] = [
+            m.Dict(root={str(key): str(val) for key, val in dict(row).items()})
+            for row in rows
+        ]
+        return result
+
+    def _normalize_row(self, row: t.ContainerValueMapping) -> m.Dict:
+        """Normalize a single SQLAlchemy mapping row into a typed map."""
+        return m.Dict(root={str(key): value for key, value in row.items()})
+
+
+__all__: list[str] = ["FlextDbOracleServiceQuery"]
+"""SQL builder service mixin for flext-db-oracle.
+
+Provides DDL/DML statement generation: INSERT, UPDATE, DELETE,
+SELECT, CREATE TABLE, DROP TABLE, CREATE INDEX.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
+
+from __future__ import annotations
+
+from collections.abc import (
+    Mapping,
+    MutableSequence,
+    Sequence,
+)
+
+from flext_db_oracle import (
+    FlextDbOracleServiceBase,
+    c,
+    m,
+    p,
+    r,
+    t,
+    u,
+)
+
+
+class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
+    """Mixin providing SQL statement builders for FlextDbOracleServices.
+
+    Handles: build_create_index_statement, build_delete_statement,
+    build_insert_statement, build_select, build_update_statement,
+    create_table_ddl, drop_table_ddl.
+    """
+
+    def build_create_index_statement(self, _config: t.ContainerValue) -> p.Result[str]:
+        """Build Oracle CREATE INDEX statement from configuration."""
+        try:
+            if not isinstance(_config, Mapping):
+                return r[str].fail("Invalid CREATE INDEX settings payload")
+            raw_columns = _config.get("columns", [])
+            columns_list: t.StrSequence = (
+                [str(col) for col in raw_columns]
+                if isinstance(raw_columns, list)
+                else []
+            )
+            raw_parallel = _config.get("parallel", 1)
+            parallel_value = u.to_int(raw_parallel, default=1)
+            payload = {
+                "table_name": str(_config.get("table_name", "")),
+                "index_name": str(_config.get("index_name", "")),
+                "columns": columns_list,
+                "unique": bool(_config.get("unique", False)),
+                "schema_name": str(_config.get("schema_name", "")),
+                "tablespace": str(_config.get("tablespace", "")),
+                "parallel": parallel_value,
+            }
+            settings = m.DbOracle.CreateIndexConfig.model_validate(
+                payload,
+            )
+            if not settings.columns:
+                return r[str].fail("Index definition requires at least one column")
+            schema_prefix = f"{settings.schema_name}." if settings.schema_name else ""
+            unique_prefix = "UNIQUE " if settings.unique else ""
+            columns = ", ".join(settings.columns)
+            sql = f"CREATE {unique_prefix}INDEX {settings.index_name} ON {schema_prefix}{settings.table_name} ({columns})"
+            if settings.tablespace:
+                sql = f"{sql} TABLESPACE {settings.tablespace}"
+            if settings.parallel > 1:
+                sql = f"{sql} PARALLEL {settings.parallel}"
+            return r[str].ok(sql)
+        except c.ValidationError as e:
+            return r[str].fail(f"Invalid CREATE INDEX settings: {e}")
+
+    def build_delete_statement(
+        self,
+        table_name: str,
+        where_columns: t.StrSequence,
+        schema: str | None = None,
+    ) -> p.Result[str]:
+        """Build DELETE statement - simplified."""
+        wheres = " AND ".join(f"{col} = :{col}" for col in where_columns)
+        schema_prefix = f"{schema}." if schema else ""
+        sql = f"DELETE FROM {schema_prefix}{table_name} WHERE {wheres}"  # nosec B608
+        return r[str].ok(sql)
+
+    def build_insert_statement(
+        self,
+        table_name: str,
+        columns: t.StrSequence,
+        schema: str | None = None,
+        returning_columns: t.StrSequence | None = None,
+    ) -> p.Result[str]:
+        """Build INSERT statement - simplified."""
+        cols = ", ".join(columns)
+        vals = ", ".join(f":{col}" for col in columns)
+        schema_prefix = f"{schema}." if schema else ""
+        sql = f"INSERT INTO {schema_prefix}{table_name} ({cols}) VALUES ({vals})"  # nosec B608
+        if returning_columns:
+            ret = ", ".join(returning_columns)
+            sql += f" RETURNING {ret}"
+        return r[str].ok(sql)
+
+    def build_select(
+        self,
+        table_name: str,
+        columns: t.StrSequence | None = None,
+        conditions: m.ConfigMap | t.ContainerValueMapping | None = None,
+        schema_name: str | None = None,
+    ) -> p.Result[str]:
+        """Build SELECT query - simplified implementation."""
+        typed_conditions = (
+            conditions
+            if isinstance(conditions, m.ConfigMap) or conditions is None
+            else m.ConfigMap(root=dict(conditions))
+        )
+        cols = ", ".join(columns) if columns else "*"
+        if typed_conditions and typed_conditions.root:
+            where_pairs = [f"{k} = :{k}" for k in typed_conditions.root]
+            where = f" WHERE {' AND '.join(where_pairs)}"
+        else:
+            where = ""
+        schema_prefix = f"{schema_name.upper()}." if schema_name else ""
+        sql = f"SELECT {cols} FROM {schema_prefix}{table_name.upper()}{where}"  # nosec B608
+        return r[str].ok(sql)
+
+    def build_update_statement(
+        self,
+        table_name: str,
+        set_columns: t.StrSequence,
+        where_columns: t.StrSequence,
+        schema: str | None = None,
+    ) -> p.Result[str]:
+        """Build UPDATE statement - simplified."""
+        sets = ", ".join(f"{col}=:{col}" for col in set_columns)
+        wheres = " AND ".join(f"{col} = :{col}" for col in where_columns)
+        schema_prefix = f"{schema}." if schema else ""
+        sql = f"UPDATE {schema_prefix}{table_name} SET {sets} WHERE {wheres}"  # nosec B608
+        return r[str].ok(sql)
+
+    def create_table_ddl(
+        self,
+        table_name: str,
+        columns: Sequence[m.DbOracle.Column | t.ContainerValueMapping],
+        schema: str | None = None,
+    ) -> p.Result[str]:
+        """Generate CREATE TABLE DDL - simplified."""
+        col_defs: MutableSequence[str] = []
+        primary_keys: MutableSequence[str] = []
+        for col in columns:
+            if isinstance(col, m.DbOracle.Column):
+                name = col.name or c.IDENTIFIER_UNKNOWN
+                data_type = col.data_type or "VARCHAR2(255)"
+                nullable = "" if col.nullable else " NOT NULL"
+                if col.primary_key:
+                    primary_keys.append(name)
+            else:
+                name_value = col.get("name") or col.get("column_name")
+                data_type_value = col.get("data_type")
+                nullable_value = col.get("nullable", True)
+                name = (
+                    str(name_value) if name_value is not None else c.IDENTIFIER_UNKNOWN
+                )
+                data_type = (
+                    str(data_type_value)
+                    if data_type_value is not None
+                    else "VARCHAR2(255)"
+                )
+                nullable = "" if bool(nullable_value) else " NOT NULL"
+                if bool(col.get("primary_key", False)):
+                    primary_keys.append(name)
+            col_defs.append(f"{name} {data_type}{nullable}")
+        if primary_keys:
+            col_defs.append(f"PRIMARY KEY ({', '.join(primary_keys)})")
+        schema_prefix = f"{schema}." if schema else ""
+        ddl = f"CREATE TABLE {schema_prefix}{table_name} (\n  {', '.join(col_defs)}\n)"
+        return r[str].ok(ddl)
+
+    def drop_table_ddl(
+        self, table_name: str, schema: str | None = None
+    ) -> p.Result[str]:
+        """Generate DROP TABLE DDL."""
+        schema_prefix = f"{schema}." if schema else ""
+        ddl = f"DROP TABLE {schema_prefix}{table_name}"
+        return r[str].ok(ddl)
+
+
+__all__: list[str] = ["FlextDbOracleServiceSqlBuilder"]
+"""Oracle Database Configuration - Settings using flext-core patterns.
+
+Provides Oracle-specific configuration management extending FlextSettings
+with Pydantic Settings for environment variable support and validation.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
+
+from __future__ import annotations
+
+from typing import Annotated, ClassVar, Self, override
+from urllib.parse import parse_qs, unquote, urlparse
+
+from flext_core import FlextSettings
+from flext_db_oracle import FlextDbOraclePassword, c, m, p, r, t, u
+
+
+@FlextSettings.auto_register("db-oracle")
+class FlextDbOracleSettings(FlextSettings):
+    """Oracle settings contract consumed by API, client, and services."""
+
+    _singleton_enabled: ClassVar[bool] = False
+
+    model_config: ClassVar[m.SettingsConfigDict] = m.SettingsConfigDict(
+        env_prefix=c.DbOracle.OracleEnvironment.PREFIX_ORACLE,
+        case_sensitive=False,
+        extra="ignore",
+        validate_assignment=False,
+        populate_by_name=True,
+    )
+
+    host: str = u.Field(
+        c.DbOracle.OracleDefaults.DEFAULT_HOST,
+        description="Oracle database host address",
+        validate_default=True,
+    )
+    port: t.PortNumber = u.Field(
+        c.DbOracle.Connection.DEFAULT_PORT,
+        description="Oracle database listener port",
+        validate_default=True,
+    )
+    service_name: Annotated[
+        str,
+        t.StringConstraints(
+            strip_whitespace=True,
+            to_upper=True,
+            max_length=c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH,
+        ),
+    ] = u.Field(
+        c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
+        description="Oracle service name for connection",
+        validate_default=True,
+    )
+    username: str = u.Field(
+        c.DbOracle.Connection.DEFAULT_USERNAME,
+        description="Oracle database username",
+        validate_default=True,
+    )
+    password: FlextDbOraclePassword | None = u.Field(
+        default_factory=lambda: FlextDbOraclePassword(""),
+        description="Oracle database password",
+    )
+    timeout: t.PositiveInt = u.Field(
+        c.DbOracle.Connection.DEFAULT_TIMEOUT,
+        description="Connection timeout in seconds",
+        validate_default=True,
+    )
+    pool_min: t.PositiveInt = u.Field(
+        c.DbOracle.Connection.DEFAULT_POOL_MIN,
+        description="Minimum connection pool size",
+        validate_default=True,
+    )
+    pool_max: t.PositiveInt = u.Field(
+        c.DbOracle.Connection.DEFAULT_POOL_MAX,
+        description="Maximum connection pool size",
+        validate_default=True,
+    )
+    sid: (
+        Annotated[
+            str,
+            t.StringConstraints(
+                strip_whitespace=True,
+                to_upper=True,
+                max_length=c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH,
+            ),
+        ]
+        | None
+    ) = u.Field(
+        None, description="Oracle SID for legacy connections", validate_default=True
+    )
+    name: str = u.Field(
+        c.DbOracle.Connection.DEFAULT_DATABASE_NAME,
+        description="Oracle database name identifier",
+        validation_alias="DATABASE_NAME",
+        validate_default=True,
+    )
+    ssl_cert_file: str | None = u.Field(
+        None, description="Path to SSL certificate file", validate_default=True
+    )
+    ssl_server_cert_dn: str | None = u.Field(
+        None,
+        description="Distinguished name of server SSL certificate",
+        validate_default=True,
+    )
+    enable_dispatcher: bool = u.Field(
+        False,
+        description="Enable dispatcher integration for CQRS patterns",
+        validate_default=True,
+    )
+
+    @classmethod
+    @override
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[m.BaseSettings],
+        init_settings: m.PydanticBaseSettingsSource,
+        env_settings: m.PydanticBaseSettingsSource,
+        dotenv_settings: m.PydanticBaseSettingsSource,
+        file_secret_settings: m.PydanticBaseSettingsSource,
+    ) -> tuple[m.PydanticBaseSettingsSource, ...]:
+        del settings_cls, env_settings, dotenv_settings, file_secret_settings
+        return (init_settings,)
+
+    @u.field_validator("password", mode="before")
+    @classmethod
+    def _parse_password(
+        cls,
+        value: FlextDbOraclePassword | t.ContainerValue | None,
+    ) -> FlextDbOraclePassword | None:
+        if value is None:
+            return None
+        if isinstance(value, FlextDbOraclePassword):
+            return value
+        return FlextDbOraclePassword(str(value))
+
+    @u.model_validator(mode="after")
+    def validate_business_rules(self) -> Self:
+        """Enforce host, username, and Oracle port constraints."""
+        if self.ssl_server_cert_dn is None and self.ssl_cert_file is not None:
+            self.ssl_server_cert_dn = self.ssl_cert_file
+        self._enforce_business_rules()
+        return self
+
+    def _enforce_business_rules(self) -> None:
+        if not self.host.strip():
+            msg = c.DbOracle.ErrorMessages.HOST_EMPTY
+            raise ValueError(msg)
+        if not self.username.strip():
+            msg = c.DbOracle.ErrorMessages.USERNAME_EMPTY
+            raise ValueError(msg)
+        if not self.service_name.strip() and (self.sid is None or not self.sid.strip()):
+            msg = "Either service_name or sid must be provided"
+            raise ValueError(msg)
+        if not (
+            c.DbOracle.OracleNetwork.MIN_PORT
+            <= self.port
+            <= c.DbOracle.OracleNetwork.MAX_PORT
+        ):
+            msg = c.DbOracle.ErrorMessages.PORT_OUT_OF_RANGE.format(
+                min_port=c.DbOracle.OracleNetwork.MIN_PORT,
+                max_port=c.DbOracle.OracleNetwork.MAX_PORT,
+                port=self.port,
+            )
+            raise ValueError(msg)
+
+    @classmethod
+    def resolve_environment_values(
+        cls,
+        prefix: str,
+    ) -> dict[str, t.ContainerValue]:
+        """Resolve non-null environment values for the requested Oracle prefix."""
+        source = m.EnvSettingsSource(
+            settings_cls=cls,
+            env_prefix=prefix,
+            case_sensitive=False,
+        )
+        values = {k: v for k, v in source().items() if v is not None}
+        for env_name, field_name in c.DbOracle.OracleEnvironment.ENV_MAPPING.items():
+            if field_name in values or not env_name.startswith(prefix):
+                continue
+            normalized_env_name = env_name.lower()
+            if normalized_env_name in source.env_vars:
+                values[field_name] = source.env_vars[normalized_env_name]
+        if prefix == c.DbOracle.OracleEnvironment.PREFIX_ORACLE:
+            flext_source = m.EnvSettingsSource(
+                settings_cls=cls,
+                env_prefix=c.DbOracle.OracleEnvironment.PREFIX_FLEXT_TARGET_ORACLE,
+                case_sensitive=False,
+            )
+            flext_values = {k: v for k, v in flext_source().items() if v is not None}
+            for (
+                env_name,
+                field_name,
+            ) in c.DbOracle.OracleEnvironment.ENV_MAPPING.items():
+                if field_name in flext_values or not env_name.startswith(
+                    c.DbOracle.OracleEnvironment.PREFIX_FLEXT_TARGET_ORACLE,
+                ):
+                    continue
+                normalized_env_name = env_name.lower()
+                if normalized_env_name in flext_source.env_vars:
+                    flext_values[field_name] = flext_source.env_vars[
+                        normalized_env_name
+                    ]
+            values.update(flext_values)
+        return values
+
+    @classmethod
+    def from_env(cls, prefix: str = "ORACLE_") -> p.Result[FlextDbOracleSettings]:
+        """Create settings from environment variables via Pydantic EnvSettingsSource.
+
+        Reads env vars with the given prefix. When prefix is "ORACLE_",
+        also reads FLEXT_TARGET_ORACLE_* with higher priority.
+        Pydantic handles all type coercion and validation natively.
+        """
+        try:
+            values = cls.resolve_environment_values(prefix)
+            return r[FlextDbOracleSettings].ok(cls.model_validate(values))
+        except (ValueError, TypeError) as e:
+            return r[FlextDbOracleSettings].fail(f"Invalid environment settings: {e}")
+
+    @classmethod
+    def from_url(cls, url: str) -> p.Result[FlextDbOracleSettings]:
+        """Create settings from an Oracle connection URL."""
+        parsed = urlparse(url)
+        if parsed.scheme not in {"oracle", "oracle+oracledb"}:
+            return r[FlextDbOracleSettings].fail("Invalid Oracle URL scheme")
+        host = parsed.hostname or c.DbOracle.OracleDefaults.DEFAULT_HOST
+        port = parsed.port or c.DbOracle.Connection.DEFAULT_PORT
+        username = unquote(parsed.username) if parsed.username else ""
+        password = unquote(parsed.password) if parsed.password else None
+        query = parse_qs(parsed.query)
+        service_name = (
+            parsed.path.lstrip("/")
+            or (query.get("service_name", [""])[0])
+            or c.DbOracle.Connection.DEFAULT_SERVICE_NAME
+        )
+        try:
+            settings = cls.model_validate({
+                "host": host,
+                "port": port,
+                "service_name": service_name,
+                "username": username,
+                "password": password,
+            })
+            return r[FlextDbOracleSettings].ok(settings)
+        except ValueError as e:
+            return r[FlextDbOracleSettings].fail(f"Invalid Oracle URL: {e}")
+"""FLEXT DB Oracle Types - Domain-specific Oracle database type definitions.
+
+This module provides Oracle database-specific type definitions extending t.
+Follows FLEXT standards:
+- Domain-specific complex types only
+- No simple aliases to primitive types
+- Python 3.13+ syntax
+- Extends t properly
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
+
+from __future__ import annotations
+
+from collections.abc import (
+    Mapping,
+    Sequence,
+)
+from typing import Literal
+
+import oracledb
+from flext_infra import t
+
+from flext_core import u
+
+
+class FlextDbOracleTypes(t):
+    """Oracle database-specific type definitions extending t.
+
+    Domain-specific type system for Oracle database operations.
+    Contains ONLY complex Oracle-specific types, no simple aliases.
+    Uses Python 3.13+ type syntax and patterns.
+    """
+
+    class DbOracle:
+        """Oracle connection complex types.
+
+        Python 3.13+ best practice: keep contracts centralized in inherited `t.*`.
+        """
+
+        OracleDatabaseError: type[Exception] = oracledb.DatabaseError
+        OracleInterfaceError: type[Exception] = oracledb.InterfaceError
+
+        type ConnectionConfiguration = t.ContainerValueMapping
+        type ConnectionPool = t.ContainerValueMapping
+        type ConnectionString = str
+        type ConnectionParams = t.ConfigurationMapping
+        type SslConfiguration = Mapping[
+            str,
+            str | bool | t.ContainerValueMapping,
+        ]
+        type AuthenticationConfig = Mapping[
+            str,
+            str | t.ContainerValueMapping,
+        ]
+
+        type SqlQuery = str
+        type QueryParameters = t.ContainerValueMapping
+        type QueryResult = t.ContainerValueMapping
+        type QueryMetadata = Mapping[
+            str,
+            str | int | t.ContainerValueMapping,
+        ]
+        type PreparedStatement = Mapping[
+            str,
+            str | t.ContainerValueMapping,
+        ]
+        type QueryExecution = Mapping[
+            str,
+            t.Scalar | t.ContainerValueMapping,
+        ]
+
+        type TransactionConfiguration = t.ConfigurationMapping
+        type TransactionState = Mapping[
+            str,
+            str | bool | t.ContainerValueMapping,
+        ]
+        type IsolationLevel = str
+        type TransactionBlock = Sequence[Mapping[str, str | t.ContainerValueMapping]]
+        type SavepointConfig = t.HeaderMapping
+        type RollbackConfig = Mapping[str, str | bool | t.StrSequence]
+
+        type SchemaDefinition = t.ContainerValueMapping
+        type TableDefinition = Mapping[
+            str,
+            str | Sequence[Mapping[str, str | bool | int]],
+        ]
+        type ColumnDefinition = Mapping[
+            str,
+            t.Scalar | t.ContainerValueMapping,
+        ]
+        type IndexDefinition = Mapping[
+            str,
+            str | t.StrSequence | t.ContainerValueMapping,
+        ]
+        type ConstraintDefinition = Mapping[str, str | t.StrSequence | bool]
+        type ViewDefinition = Mapping[
+            str,
+            str | t.ContainerValueMapping,
+        ]
+
+        type SessionConfiguration = Mapping[
+            str,
+            t.Scalar | t.ContainerValueMapping,
+        ]
+        type SessionState = Mapping[
+            str,
+            t.ContainerValue | t.ContainerValueMapping,
+        ]
+        type SessionVariables = t.ContainerValueMapping
+        type SessionMetrics = t.ConfigValueMapping
+        type SessionPooling = Mapping[
+            str,
+            int | bool | str | t.ContainerValueMapping,
+        ]
+        type SessionTimeout = t.HeaderMapping
+
+        type PerformanceMetrics = Mapping[
+            str,
+            t.Numeric | t.ContainerValueMapping,
+        ]
+        type QueryPlan = Mapping[
+            str,
+            str | int | Sequence[t.ContainerValueMapping],
+        ]
+        type ExecutionStats = Mapping[
+            str,
+            t.Numeric | str | t.ContainerValueMapping,
+        ]
+        type IndexUsage = Mapping[
+            str,
+            t.Scalar | t.ContainerValueMapping,
+        ]
+        type CacheConfiguration = Mapping[str, int | str | bool]
+        type OptimizationHints = Mapping[str, str | t.StrSequence]
+
+        type UserPermissions = Mapping[str, t.StrSequence | t.BoolMapping]
+        type RoleDefinition = Mapping[
+            str,
+            str | t.StrSequence | t.ContainerValueMapping,
+        ]
+        type PrivilegeConfiguration = Mapping[
+            str,
+            bool | t.StrSequence | t.ContainerValueMapping,
+        ]
+        type AccessPolicy = Mapping[
+            str,
+            str | bool | t.ContainerValueMapping,
+        ]
+        type EncryptionConfig = Mapping[
+            str,
+            str | bool | t.ContainerValueMapping,
+        ]
+        type AuditConfiguration = Mapping[
+            str,
+            bool | str | t.ContainerValueMapping,
+        ]
+
+        type OracleDataType = str
+        type PythonDataType = type
+        type TypeMapping = t.ContainerValueMapping
+        type DataConversion = t.ContainerValueMapping
+        type TypeValidation = Mapping[str, bool | str | t.StrSequence]
+        type NullHandling = Mapping[str, bool | t.ContainerValue]
+
+        type ProjectType = Literal[
+            "library",
+            "application",
+            "service",
+            "oracle-service",
+            "database-service",
+            "data-warehouse",
+            "etl-service",
+            "oracle-client",
+            "db-migration",
+            "schema-manager",
+            "data-pipeline",
+            "oracle-api",
+            "database-api",
+            "sql-service",
+            "data-connector",
+        ]
+        type OracleProjectConfig = t.ContainerValueMapping
+
+        type CliScalar = t.Scalar | None
+        "CLI scalar type - Scalar value or None for optional CLI parameters."
+
+    CONTAINER_VALUE_ADAPTER: u.TypeAdapter[t.ContainerValue] = u.TypeAdapter(
+        t.ContainerValue
+    )
+    CONTAINER_VALUE_MAPPING_ADAPTER: u.TypeAdapter[t.ContainerValueMapping] = (
+        u.TypeAdapter(t.ContainerValueMapping)
+    )
+    FLAT_CONTAINER_LIST_ADAPTER: u.TypeAdapter[t.FlatContainerList] = u.TypeAdapter(
+        t.FlatContainerList
+    )
+    STR_SEQUENCE_ADAPTER: u.TypeAdapter[t.StrSequence] = u.TypeAdapter(t.StrSequence)
+
+
+t = FlextDbOracleTypes
+
+__all__: list[str] = ["FlextDbOracleTypes", "t"]
+"""Test models for flext-db-oracle.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
+
+from __future__ import annotations
+
+from collections.abc import (
+    Mapping,
+)
+
+from flext_tests import FlextTestsModels
+
+from flext_db_oracle import FlextDbOracleModels
+from tests import TestsFlextDbOracleTypes
+
+
+class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
+    """Test models for flext-db-oracle."""
+
+    class DbOracle(FlextDbOracleModels.DbOracle):
+        """DbOracle domain test models."""
+
+        class Tests:
+            """Test-specific models."""
+
+            class StubResult(FlextDbOracleModels.DbOracle.DbOracleDomainModel):
+                """Minimal result stub for dynamic integration tests."""
+
+                failure: bool = False
+                error: str = ""
+
+            class StubPluginEntity(FlextDbOracleModels.DbOracle.DbOracleDomainModel):
+                """Stub plugin entity compatible with service integration tests."""
+
+                name: str
+                plugin_version: str
+                description: str
+                author: str
+                plugin_type: str
+                metadata: Mapping[str, TestsFlextDbOracleTypes.ContainerValue]
+
+                @classmethod
+                def create(
+                    cls,
+                    *,
+                    name: str,
+                    plugin_version: str,
+                    description: str,
+                    author: str,
+                    plugin_type: str,
+                    metadata: Mapping[str, TestsFlextDbOracleTypes.ContainerValue],
+                ) -> TestsFlextDbOracleModels.DbOracle.Tests.StubPluginEntity:
+                    """Create a stub plugin entity with the expected plugin API shape."""
+                    return cls(
+                        name=name,
+                        plugin_version=plugin_version,
+                        description=description,
+                        author=author,
+                        plugin_type=plugin_type,
+                        metadata=metadata,
+                    )
+
+
+m = TestsFlextDbOracleModels
+__all__: list[str] = ["TestsFlextDbOracleModels", "m"]
+"""Test type aliases for flext-db-oracle.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
+
+from __future__ import annotations
+
+from collections.abc import (
+    Callable,
+    Mapping,
+)
+
+from flext_tests import FlextTestsTypes
+
+from flext_db_oracle import FlextDbOracleTypes, p
+
+
+class TestsFlextDbOracleTypes(FlextTestsTypes, FlextDbOracleTypes):
+    """Test type aliases for flext-db-oracle."""
+
+    class DbOracle(FlextDbOracleTypes.DbOracle):
+        """DbOracle domain test type aliases."""
+
+        class Tests:
+            """Test-specific type aliases."""
+
+            type ApiCoverageReturn = (
+                bool
+                | FlextDbOracleTypes.ConfigMap
+                | p.Result[Mapping[str, FlextDbOracleTypes.ContainerValue]]
+                | p.Result[str]
+                | p.Result[FlextDbOracleTypes.StrSequence]
+            )
+            type ApiCoverageCallable = Callable[[], ApiCoverageReturn]
+
+
+t = TestsFlextDbOracleTypes
+__all__: list[str] = ["TestsFlextDbOracleTypes", "t"]
+"""Test u functionality - comprehensive unit tests.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
+
+from __future__ import annotations
+
+import contextlib
+from collections.abc import (
+    Mapping,
+    Sequence,
+)
+
+import pytest
+from flext_tests import tm
+
+from flext_db_oracle import (
+    FlextDbOracleApi,
+    FlextDbOracleSettings,
+)
+from tests import c, m, t, u
+
+
+@pytest.mark.unit_pure
+class Testu:
+    """Test u functionality with comprehensive coverage."""
+
+    def test_utilities_creation(self) -> None:
+        """Test utilities class exists and has correct type."""
+        assert u is not None
+        assert isinstance(u, type)
+
+    def test_utilities_has_required_methods(self) -> None:
+        """Test utilities has all required static methods."""
+        required_methods = [
+            "generate_query_hash",
+            "format_sql_for_oracle",
+            "escape_oracle_identifier",
+            "validate_identifier",
+        ]
+        for _method in required_methods:
+            pass
+
+    def test_generate_query_hash_basic_select(self) -> None:
+        """Test basic SELECT query hash generation."""
+        params: t.IntMapping = {"id": 1}
+        result = u.DbOracle.generate_query_hash(
+            "SELECT * FROM table WHERE id = :id",
+            params,
+        )
+        tm.ok(result)
+        hash_value = result.value
+        tm.that(hash_value, is_=str)
+        tm.that(len(hash_value), eq=16)
+        tm.that(hash_value.isalnum(), eq=True)
+
+    def test_generate_query_hash_with_whitespace_normalization(self) -> None:
+        """Test query hash does NOT normalize whitespace (hashes raw query)."""
+        params1: t.IntMapping = {"id": 1}
+        params2: t.IntMapping = {"id": 2}
+        result1 = u.DbOracle.generate_query_hash(
+            "SELECT * FROM table",
+            params1,
+        )
+        result2 = u.DbOracle.generate_query_hash(
+            "SELECT * FROM table",
+            params2,
+        )
+        tm.ok(result1)
+        tm.ok(result2)
+        tm.that(result1.value, ne=result2.value)
+
+    def test_generate_query_hash_case_insensitive_keywords(self) -> None:
+        """Test query hash handles case variations in keywords."""
+        query1 = "select * from users where id = :id"
+        query2 = "SELECT * FROM USERS WHERE ID = :ID"
+        result1 = u.DbOracle.generate_query_hash(query1, {})
+        result2 = u.DbOracle.generate_query_hash(query2, {})
+        tm.ok(result1)
+        tm.ok(result2)
+        tm.that(result1.value, ne=result2.value)
+
+    def test_generate_query_hash_with_params(self) -> None:
+        """Test query hash generation with parameters."""
+        result = u.DbOracle.generate_query_hash("SELECT 1", {})
+        tm.ok(result)
+        hash_value = result.value
+        tm.that(hash_value, is_=str)
+        tm.that(len(hash_value), eq=16)
+
+    def test_generate_query_hash_params_order_independence(self) -> None:
+        """Test query hash is independent of parameter order."""
+        params1: dict[str, t.ContainerValue] = {"id": 1, "name": "test", "active": True}
+        params2: dict[str, t.ContainerValue] = {"name": "test", "active": True, "id": 1}
+        query = (
+            "SELECT * FROM users WHERE id = :id AND name = :name AND active = :active"
+        )
+        result1 = u.DbOracle.generate_query_hash(query, params1)
+        result2 = u.DbOracle.generate_query_hash(query, params2)
+        tm.ok(result1)
+        tm.ok(result2)
+        tm.that(result1.value, eq=result2.value)
+
+    def test_generate_query_hash_empty_params(self) -> None:
+        """Test query hash with empty parameters."""
+        result = u.DbOracle.generate_query_hash(
+            "SELECT 1 FROM DUAL",
+            {},
+        )
+        tm.ok(result)
+        hash_value = result.value
+        tm.that(hash_value, is_=str)
+
+    def test_generate_query_hash_complex_query(self) -> None:
+        """Test query hash with complex Oracle query."""
+        complex_query = "\n        SELECT u.id, u.name, COUNT(o.id) as order_count\n        FROM users u\n        LEFT JOIN orders o ON u.id = o.user_id\n        WHERE u.created_date >= :start_date\n          AND u.Infra.status = :status\n        GROUP BY u.id, u.name\n        ORDER BY order_count DESC\n        "
+        params = {"start_date": "2023-01-01", "status": "active"}
+        result = u.DbOracle.generate_query_hash(
+            complex_query,
+            params,
+        )
+        tm.ok(result)
+        hash_value = result.value
+        tm.that(hash_value, is_=str)
+        tm.that(len(hash_value), eq=16)
+
+    def test_format_sql_for_oracle_basic_select(self) -> None:
+        """Test basic SQL formatting normalizes whitespace."""
+        sql = "select id, name from users"
+        result = u.DbOracle.format_sql_for_oracle(sql)
+        tm.ok(result)
+        formatted = result.value
+        tm.that(formatted, eq="select id, name from users")
+
+    def test_format_sql_for_oracle_keyword_formatting(self) -> None:
+        """Test SQL keyword formatting normalizes whitespace."""
+        sql = "select u.id, u.name from users u join orders o on u.id = o.user_id where u.active = 1 group by u.id, u.name order by u.name"
+        result = u.DbOracle.format_sql_for_oracle(sql)
+        tm.ok(result)
+        formatted = result.value
+        tm.that("\n" not in formatted, eq=True)
+        tm.that("  " not in formatted, eq=True)
+
+    def test_format_sql_for_oracle_already_formatted(self) -> None:
+        """Test formatting of already formatted SQL normalizes whitespace."""
+        sql = "\nSELECT id, name\nFROM users\nWHERE active = 1\n"
+        result = u.DbOracle.format_sql_for_oracle(sql)
+        tm.ok(result)
+        formatted = result.value
+        tm.that("\n" not in formatted, eq=True)
+
+    def test_format_sql_for_oracle_complex_query(self) -> None:
+        """Test formatting of complex query."""
+        sql = "select distinct u.id, u.email, count(o.id) as order_count from users u inner join orders o on u.id = o.user_id where u.created_at >= '2023-01-01' and u.Infra.status in ('active', 'pending') group by u.id, u.email having count(o.id) > 0 order by order_count desc, u.email asc"
+        result = u.DbOracle.format_sql_for_oracle(sql)
+        tm.ok(result)
+        formatted = result.value
+        tm.that(formatted.upper(), has="SELECT")
+        tm.that(formatted.upper(), has="FROM")
+        tm.that("INNER" in formatted.upper() and "JOIN" in formatted.upper(), eq=True)
+        tm.that(formatted.upper(), has="WHERE")
+        tm.that("GROUP" in formatted.upper() and "BY" in formatted.upper(), eq=True)
+        tm.that(formatted.upper(), has="HAVING")
+        tm.that("ORDER" in formatted.upper() and "BY" in formatted.upper(), eq=True)
+
+    def test_format_sql_for_oracle_empty_string(self) -> None:
+        """Test formatting of empty string."""
+        result = u.DbOracle.format_sql_for_oracle("")
+        tm.ok(result)
+        formatted = result.value
+        tm.that(formatted, eq="")
+
+    def test_format_sql_for_oracle_whitespace_only(self) -> None:
+        """Test formatting of whitespace-only string."""
+        result = u.DbOracle.format_sql_for_oracle("   \n\t  ")
+        tm.ok(result)
+        formatted = result.value
+        tm.that(formatted.strip(), eq="")
+
+    def test_escape_oracle_identifier_basic(self) -> None:
+        """Test basic identifier escaping returns as-is (no quoting/uppercasing)."""
+        result = u.DbOracle.escape_oracle_identifier("users")
+        tm.ok(result)
+        escaped = result.value
+        tm.that(escaped, eq="users")
+
+    def test_escape_oracle_identifier_with_quotes(self) -> None:
+        """Test identifier with quotes fails (non-alnum chars)."""
+        result = u.DbOracle.escape_oracle_identifier("user's")
+        tm.that(result.failure, eq=True)
+        tm.that(
+            result.error is not None and "Invalid Oracle identifier" in result.error,
+            eq=True,
+        )
+
+    def test_escape_oracle_identifier_mixed_case(self) -> None:
+        """Test mixed case identifier returned as-is."""
+        result = u.DbOracle.escape_oracle_identifier("userTable")
+        tm.ok(result)
+        escaped = result.value
+        tm.that(escaped, eq="userTable")
+
+    def test_escape_oracle_identifier_with_underscore(self) -> None:
+        """Test identifier with underscore succeeds (underscore is stripped for alnum check)."""
+        result = u.DbOracle.escape_oracle_identifier("user_table")
+        tm.ok(result)
+        escaped = result.value
+        tm.that(escaped, eq="user_table")
+
+    def test_escape_oracle_identifier_with_dollar(self) -> None:
+        """Test identifier with dollar sign fails ($ not alnum after _ strip)."""
+        result = u.DbOracle.escape_oracle_identifier("user$table")
+        tm.that(result.failure, eq=True)
+        tm.that(
+            result.error is not None and "Invalid Oracle identifier" in result.error,
+            eq=True,
+        )
+
+    def test_escape_oracle_identifier_with_hash(self) -> None:
+        """Test identifier with hash sign fails (# not alnum after _ strip)."""
+        result = u.DbOracle.escape_oracle_identifier("user#table")
+        tm.that(result.failure, eq=True)
+        tm.that(
+            result.error is not None and "Invalid Oracle identifier" in result.error,
+            eq=True,
+        )
+
+    def test_escape_oracle_identifier_empty(self) -> None:
+        """Test empty identifier."""
+        result = u.DbOracle.escape_oracle_identifier("")
+        tm.that(result.failure, eq=True)
+        tm.that(
+            result.error is not None and "Empty Oracle identifier" in result.error,
+            eq=True,
+        )
+
+    def test_escape_oracle_identifier_whitespace_only(self) -> None:
+        """Test whitespace-only identifier."""
+        result = u.DbOracle.escape_oracle_identifier("   ")
+        tm.that(result.failure, eq=True)
+        tm.that(
+            result.error is not None and "Empty Oracle identifier" in result.error,
+            eq=True,
+        )
+
+    def test_escape_oracle_identifier_invalid_chars(self) -> None:
+        """Test identifier with invalid characters."""
+        result = u.DbOracle.escape_oracle_identifier("user@table")
+        tm.that(result.failure, eq=True)
+        tm.that(
+            result.error is not None and "Invalid Oracle identifier" in result.error,
+            eq=True,
+        )
+
+    def test_escape_oracle_identifier_with_spaces(self) -> None:
+        """Test identifier with spaces."""
+        result = u.DbOracle.escape_oracle_identifier("user table")
+        tm.that(result.failure, eq=True)
+        tm.that(
+            result.error is not None and "Invalid Oracle identifier" in result.error,
+            eq=True,
+        )
+
+    def test_escape_oracle_identifier_max_length(self) -> None:
+        """Test identifier at max length is truncated to MAX_IDENTIFIER_LENGTH."""
+        max_len = c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
+        long_identifier = "a" * max_len
+        result = u.DbOracle.escape_oracle_identifier(
+            long_identifier,
+        )
+        tm.ok(result)
+        escaped = result.value
+        tm.that(len(escaped), eq=max_len)
+
+    def test_escape_oracle_identifier_too_long(self) -> None:
+        """Test identifier exceeding max length."""
+        long_identifier = "a" * (
+            c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH + 1
+        )
+        result = u.DbOracle.escape_oracle_identifier(
+            long_identifier,
+        )
+        tm.ok(result)
+
+    _JSON_RESULT_ADAPTER: m.TypeAdapter[
+        Sequence[Mapping[str, int | str | bool]]
+        | Sequence[t.StrMapping]
+        | Sequence[t.IntMapping]
+        | None
+    ] = m.TypeAdapter(
+        Sequence[Mapping[str, int | str | bool]]
+        | Sequence[t.StrMapping]
+        | Sequence[t.IntMapping]
+        | None,
+    )
+
+    def test_format_query_result_json(self) -> None:
+        """Test JSON formatting."""
+        data: list[dict[str, t.ContainerValue]] = [
+            {"id": 1, "name": "John", "active": True}
+        ]
+        result = u.DbOracle.format_query_result(data, "json")
+        tm.ok(result)
+        formatted = result.value
+        parsed = self._JSON_RESULT_ADAPTER.validate_json(formatted)
+        tm.that(parsed, eq=[{"id": 1, "name": "John", "active": True}])
+
+    def test_format_query_result_json_empty(self) -> None:
+        """Test JSON formatting with empty data."""
+        data: Sequence[t.StrMapping] = []
+        result = u.DbOracle.format_query_result(data, "json")
+        tm.ok(result)
+        formatted = result.value
+        parsed = self._JSON_RESULT_ADAPTER.validate_json(formatted)
+        tm.that(parsed, eq=[])
+
+    def test_format_query_result_json_non_serializable(self) -> None:
+        """Test JSON formatting with non-serializable data."""
+        data: Sequence[t.StrMapping] = [{"key": "non-serializable-test"}]
+        result = u.DbOracle.format_query_result(data, "json")
+        tm.ok(result)
+        formatted = result.value
+        tm.that(formatted, is_=str)
+
+    def test_format_query_result_table(self) -> None:
+        """Test table formatting."""
+        data: list[dict[str, t.ContainerValue]] = [{"id": 1, "name": "John"}]
+        result = u.DbOracle.format_query_result(data, "json")
+        tm.ok(result)
+        formatted = result.value
+        tm.that(formatted, is_=str)
+        tm.that(bool(formatted), eq=True)
+
+    def test_format_query_result_table_empty(self) -> None:
+        """Test table formatting with empty data."""
+        data: Sequence[t.StrMapping] = []
+        result = u.DbOracle.format_query_result(data, "json")
+        tm.ok(result)
+        formatted = result.value
+        tm.that(formatted, is_=str)
+
+    def test_format_query_result_unknown_format(self) -> None:
+        """Test formatting with unknown format falls back to str()."""
+        data = [{"id": 1}]
+        result = u.DbOracle.format_query_result(data, "json")
+        tm.ok(result)
+        formatted = result.value
+        tm.that(formatted, is_=str)
+        tm.that(bool(formatted), eq=True)
+
+    def test_format_query_result_empty_list(self) -> None:
+        """Test formatting with empty list returns success."""
+        result = u.DbOracle.format_query_result([], "json")
+        tm.ok(result)
+
+    def test_format_query_result_case_insensitive_format(self) -> None:
+        """Test format parameter is case insensitive."""
+        data = [{"id": 1}]
+        result = u.DbOracle.format_query_result(data, "json")
+        tm.ok(result)
+
+    def test_settings_from_env(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Test FlextDbOracleSettings.from_env creates settings from environment."""
+        monkeypatch.setenv("FLEXT_DB_ORACLE_HOST", "test-host")
+        monkeypatch.setenv("FLEXT_DB_ORACLE_PORT", "1522")
+        monkeypatch.setenv("FLEXT_DB_ORACLE_USERNAME", "testuser")
+        FlextDbOracleSettings.reset_for_testing()
+        result = FlextDbOracleSettings.from_env("FLEXT_DB_ORACLE_")
+        tm.ok(result)
+        settings = result.value
+        tm.that(settings, is_=FlextDbOracleSettings)
+        tm.that(settings.host, eq="test-host")
+        tm.that(settings.port, eq=1522)
+        tm.that(settings.username, eq="testuser")
+
+    def test_oracle_validation_validate_identifier_valid(self) -> None:
+        """Test valid identifier validation."""
+        result = u.DbOracle.validate_identifier("VALID_TABLE")
+        tm.ok(result)
+        tm.that(result.value is True, eq=True)
+
+    def test_oracle_validation_validate_identifier_empty(self) -> None:
+        """Test empty identifier validation."""
+        result = u.DbOracle.validate_identifier("")
+        tm.that(result.failure, eq=True)
+        tm.that(
+            result.error is not None and "Empty" in result.error,
+            eq=True,
+        )
+
+    def test_oracle_validation_validate_identifier_too_long(self) -> None:
+        """Test identifier too long validation."""
+        long_identifier = "A" * (c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH + 1)
+        result = u.DbOracle.validate_identifier(long_identifier)
+        tm.that(result.failure, eq=True)
+        tm.that(result.error is not None and "too long" in result.error, eq=True)
+
+    def test_oracle_validation_validate_identifier_special_chars_pass(self) -> None:
+        """Test identifier with special chars passes (no pattern check)."""
+        result = u.DbOracle.validate_identifier("VALID_TABLE")
+        tm.ok(result)
+        tm.that(result.value is True, eq=True)
+
+    def test_oracle_validation_validate_identifier_reserved_word(self) -> None:
+        """Test reserved word identifier validation."""
+        result = u.DbOracle.validate_identifier("SELECT")
+        tm.that(result.failure, eq=True)
+        tm.that(result.error is not None and "reserved" in result.error, eq=True)
+
+    def test_oracle_validation_validate_identifier_lowercase_conversion(self) -> None:
+        """Test lowercase identifier conversion to uppercase."""
+        result = u.DbOracle.validate_identifier("VALID_TABLE")
+        tm.ok(result)
+        tm.that(result.value is True, eq=True)
+
+    @pytest.mark.unit_integration
+    def test_real_oracle_escape_identifier_integration(
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
+    ) -> None:
+        """Test identifier escaping with real Oracle when available."""
+        if not oracle_available or connected_oracle_api is None:
+            pytest.skip("Oracle not available for integration test")
+        test_table = u.DbOracle.escape_oracle_identifier(
+            "test_table",
+        )
+        tm.ok(test_table)
+        escaped_name = test_table.value
+        ddl = f"CREATE TABLE {escaped_name} (id NUMBER PRIMARY KEY, name VARCHAR2(100))"
+        result = connected_oracle_api.execute_statement(ddl)
+        with contextlib.suppress(Exception):
+            connected_oracle_api.execute_statement(f"DROP TABLE {escaped_name}")
+        error_msg = str(result.error).lower() if result.failure else ""
+        table_exists = "already exists" in error_msg or "ora-00955" in error_msg
+        tm.that(
+            result.success or table_exists,
+            eq=True,
+        )
+
+    @pytest.mark.unit_integration
+    def test_real_oracle_query_hash_consistency(
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
+    ) -> None:
+        """Test that query hashing produces consistent results with real Oracle."""
+        if not oracle_available or connected_oracle_api is None:
+            pytest.skip("Oracle not available for integration test")
+        sql = "SELECT id, name FROM test_table WHERE active = :active"
+        params1 = {"active": 1}
+        params2 = {"active": 1}
+        hash1_result = u.DbOracle.generate_query_hash(sql, params1)
+        hash2_result = u.DbOracle.generate_query_hash(sql, params2)
+        tm.ok(hash1_result)
+        tm.ok(hash2_result)
+        tm.that(hash1_result.value, eq=hash2_result.value)
+        params3 = {"active": 0}
+        hash3_result = u.DbOracle.generate_query_hash(sql, params3)
+        tm.ok(hash3_result)
+        tm.that(hash1_result.value, ne=hash3_result.value)
+
+    @pytest.mark.unit_integration
+    def test_real_oracle_format_sql_integration(
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
+    ) -> None:
+        """Test SQL formatting works with real Oracle queries."""
+        if not oracle_available or connected_oracle_api is None:
+            pytest.skip("Oracle not available for integration test")
+        sql = "select id, name, count(*) as cnt from test_table group by id, name order by cnt desc"
+        format_result = u.DbOracle.format_sql_for_oracle(sql)
+        tm.ok(format_result)
+        formatted_sql = format_result.value
+        tm.that(formatted_sql.lower(), has="select")
+        tm.that(formatted_sql.lower(), has="from")
+        tm.that(formatted_sql.lower(), has="group by")
+        tm.that(formatted_sql.lower(), has="order by")

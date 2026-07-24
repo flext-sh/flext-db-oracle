@@ -21,21 +21,31 @@ def create_oracle_config() -> FlextDbOracleSettings:
 
     """
     try:
-        config_result = FlextDbOracleSettings.from_env()
-        if config_result.success:
-            settings_value: FlextDbOracleSettings = config_result.value
+        settings_value = FlextDbOracleSettings.fetch_global()
+        if settings_value.DbOracle.password:
             return settings_value
     except (ValueError, OSError, RuntimeError):
         logger.debug("Could not load settings from environment, using demo settings")
-    return FlextDbOracleSettings.model_validate(
-        {
+    return FlextDbOracleSettings.model_validate({
+        "DbOracle": {
             "host": "demo-oracle.example.com",
             "port": 1521,
             "service_name": "DEMO",
             "username": "demo_user",
             "password": "demo_password",
-        },
+        }
+    })
+
+
+def _display_sqlalchemy_setup(settings: FlextDbOracleSettings) -> None:
+    """Display SQLAlchemy 2.0 configuration details."""
+    logger.info(
+        f"✅ Configuration created: {settings.DbOracle.host}:{settings.DbOracle.port}"
     )
+    logger.info("🔗 SQLAlchemy connection URL format configured")
+    logger.info(f"📍 Host: {settings.DbOracle.host}:{settings.DbOracle.port}")
+    logger.info(f"📚 Service: {settings.DbOracle.service_name}")
+    logger.info("📚 Ready for SQLAlchemy 2.0 integration")
 
 
 def demonstrate_sqlalchemy_setup() -> None:
@@ -43,17 +53,13 @@ def demonstrate_sqlalchemy_setup() -> None:
     logger.info("=== FLEXT Oracle SQLAlchemy 2.0 Setup ===")
     try:
         settings = create_oracle_config()
-        logger.info(f"✅ Configuration created: {settings.host}:{settings.port}")
-        logger.info("🔗 SQLAlchemy connection URL format configured")
-        logger.info(f"📍 Host: {settings.host}:{settings.port}")
-        logger.info(f"📚 Service: {settings.service_name}")
-        logger.info("📚 Ready for SQLAlchemy 2.0 integration")
+        _display_sqlalchemy_setup(settings)
     except (ValueError, OSError, RuntimeError):
         logger.exception("❌ Configuration setup failed")
 
 
 def main() -> None:
-    """Main entry point."""
+    """Run the main entry point."""
     demonstrate_sqlalchemy_setup()
 
 

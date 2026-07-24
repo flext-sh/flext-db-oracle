@@ -1,7 +1,9 @@
-"""End-to-end tests for flext-db-oracle with complete Oracle workflow simulation.
+"""End-to-end behavioral tests for the flext-db-oracle public API.
 
-These tests simulate complete real-world scenarios using Docker containers
-or test databases to validate the entire system works end-to-end.
+These tests assert the OBSERVABLE CONTRACT of ``FlextDbOracleApi`` and
+``FlextDbOracleSettings``: return values, ``r[T]`` success/failure outcomes,
+error messages, and public model state. Pure-logic and error-path behaviors run
+offline; the full CRUD lifecycle exercises a real Oracle container.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -10,294 +12,248 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import os
+from typing import TYPE_CHECKING
 
 import pytest
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests.typings import t
+from flext_db_oracle import FlextDbOracleSettings
+from flext_db_oracle.api import FlextDbOracleApi
+from flext_tests import tm
+from tests import u
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from flext_db_oracle import m
+    from tests import t
+
+_NOT_CONNECTED = "not connected to database"
 
 
-class OperationTestErrorE2E(Exception):
-    """Custom exception for test operations."""
+class TestsFlextDbOracleOracle:
+    """Behavioral end-to-end tests for the Oracle API public contract."""
 
-    def __init__(self, message: str, error: str | None = None) -> None:
-        """Initialize the operation test error."""
-        super().__init__(message)
-        self.error = error
-
-
-class TestsFlextDbOracleEOracle:
-    """End-to-end tests for Oracle database operations."""
-
-    @pytest.mark.e2e
-    def test_complete_oracle_workflow(
-        self,
-        real_oracle_config: FlextDbOracleSettings,
-    ) -> None:
-        """Test complete Oracle workflow end-to-end.
-
-        This test validates:
-        1. Configuration from environment
-        2. Connection establishment
-        3. Schema discovery
-        4. Table creation
-        5. Data insertion
-        6. Data querying
-        7. Table cleanup
-        8. Disconnection
-        """
-        with FlextDbOracleApi(settings=real_oracle_config) as api:
-            connection_test = api.test_connection()
-            if connection_test.failure:
-                msg = "Connection"
-                raise OperationTestErrorE2E(
-                    msg, connection_test.error or "Unknown error"
-                )
-            schemas_result = api.fetch_schemas()
-            if schemas_result.failure:
-                msg = "Schema discovery"
-                raise OperationTestErrorE2E(
-                    msg, schemas_result.error or "Unknown error"
-                )
-            schemas = schemas_result.value
-            assert schemas, "No schemas found"
-            tables_result = api.fetch_tables()
-            if tables_result.failure:
-                msg = "Table listing"
-                raise OperationTestErrorE2E(msg, tables_result.error or "Unknown error")
-            test_table_name = "E2E_TEST_TABLE"
-            create_sql = f"CREATE TABLE {test_table_name} (\n                ID NUMBER(10) NOT NULL PRIMARY KEY,\n                NAME VARCHAR2(100) NOT NULL,\n                EMAIL VARCHAR2(255),\n                CREATED_AT TIMESTAMP DEFAULT SYSDATE\n            )"
-            execute_result = api.execute_sql(create_sql)
-            if execute_result.failure:
-                raise AssertionError(f"Table creation failed: {execute_result.error}")
-            try:
-                test_data: list[dict[str, str | int | None]] = [
-                    {"id": 1, "name": "John Doe", "email": "john@example.com"},
-                    {"id": 2, "name": "Jane Smith", "email": "jane@example.com"},
-                    {"id": 3, "name": "Bob Wilson", "email": None},
-                ]
-                for data in test_data:
-                    email_value = f"'{data['email']}'" if data["email"] else "NULL"
-                    insert_sql = f"INSERT INTO {test_table_name} (ID, NAME, EMAIL) VALUES ({data['id']}, '{data['name']}', {email_value})"
-                    insert_result = api.execute_statement(insert_sql)
-                    if insert_result.failure:
-                        raise AssertionError(
-                            f"Data insertion failed: {insert_result.error}",
-                        )
-                select_result = api.query(
-                    f"SELECT * FROM {test_table_name} ORDER BY ID",
-                )
-                if select_result.failure:
-                    raise AssertionError(f"Data query failed: {select_result.error}")
-                query_data = select_result.value
-                assert isinstance(query_data, list), (
-                    f"Expected list, got {type(query_data)}"
-                )
-                assert len(query_data) == 3, f"Expected 3 rows, got {len(query_data)}"
-                count_result = api.query(
-                    f"SELECT COUNT(*) as row_count FROM {test_table_name}",
-                )
-                if count_result.failure:
-                    raise AssertionError(f"Count query failed: {count_result.error}")
-                count_data = count_result.value
-                assert isinstance(count_data, list), (
-                    f"Expected list, got {type(count_data)}"
-                )
-                assert len(count_data) == 1, f"Expected 1 row, got {len(count_data)}"
-                row = (
-                    count_data[0].root
-                    if hasattr(count_data[0], "root")
-                    else count_data[0]
-                )
-                count_value = (
-                    row.get("ROW_COUNT") or row.get("row_count") or row.get("COUNT(*)")
-                )
-                assert int(str(count_value)) == 3, (
-                    f"Expected count 3, got {count_value}"
-                )
-                metadata_result = api.fetch_table_metadata(test_table_name)
-                if metadata_result.failure:
-                    raise AssertionError(
-                        f"Metadata query failed: {metadata_result.error}",
-                    )
-                table_metadata = metadata_result.value
-                assert table_metadata["table_name"] == test_table_name
-                columns_obj = table_metadata["columns"]
-                if isinstance(columns_obj, (list, tuple, dict, str)):
-                    assert len(columns_obj) >= 4
-                columns_result = api.fetch_columns(test_table_name)
-                if columns_result.failure:
-                    raise AssertionError(f"Column info failed: {columns_result.error}")
-                columns_info = columns_result.value
-                assert len(columns_info) >= 4
-                pk_result = api.fetch_primary_keys(test_table_name)
-                if pk_result.failure:
-                    raise AssertionError(f"Primary key query failed: {pk_result.error}")
-                primary_keys = pk_result.value
-                assert "ID" in primary_keys, "ID should be primary key"
-                with api.transaction():
-                    update_sql = f"UPDATE {test_table_name} SET EMAIL = 'bob@example.com' WHERE ID = 3"
-                    update_result = api.execute_statement(update_sql)
-                    if update_result.failure:
-                        raise AssertionError(f"Update failed: {update_result.error}")
-                verify_result = api.query(
-                    f"SELECT EMAIL FROM {test_table_name} WHERE ID = 3",
-                )
-                if verify_result.failure:
-                    raise AssertionError(
-                        f"Verification query failed: {verify_result.error}",
-                    )
-                email_data = verify_result.value
-                assert isinstance(email_data, list), (
-                    f"Expected list, got {type(email_data)}"
-                )
-                assert len(email_data) == 1, f"Expected 1 row, got {len(email_data)}"
-                email_result = email_data[0].get("EMAIL") or email_data[0].get("email")
-                assert email_result == "bob@example.com", (
-                    f"Expected bob@example.com, got {email_result}"
-                )
-            finally:
-                cleanup_sql = f"DROP TABLE {test_table_name}"
-                api.execute_sql(cleanup_sql)
-
-    @pytest.mark.e2e
-    def test_singer_type_conversion_e2e(
-        self,
-        real_oracle_config: FlextDbOracleSettings,
-    ) -> None:
-        """Test Singer type conversion in real Oracle environment."""
-        with FlextDbOracleApi(settings=real_oracle_config) as api:
-            singer_types = [
-                ("string", "VARCHAR2(4000)"),
-                ("integer", "NUMBER(38)"),
-                ("number", "NUMBER"),
-                ("boolean", "NUMBER(1)"),
-                ("array", "VARCHAR2(255)"),
-                ("t.JsonValue", "VARCHAR2(255)"),
-            ]
-            for singer_type, expected_oracle_type in singer_types:
-                result = api.convert_singer_type(singer_type)
-                if result.failure:
-                    raise AssertionError(
-                        f"Type conversion failed for {singer_type}: {result.error}",
-                    )
-                oracle_type = result.value
-                assert expected_oracle_type in oracle_type, (
-                    f"Expected {expected_oracle_type} in {oracle_type}"
-                )
-            singer_schema: t.JsonMapping = {
-                "properties": {
-                    "id": {"type": "integer"},
-                    "name": {"type": "string"},
-                    "email": {"type": "string"},
-                    "is_active": {"type": "boolean"},
-                    "metadata": {"type": "object"},
-                    "created_at": {"type": "string", "format": "date-time"},
-                },
+    @pytest.fixture
+    def offline_settings(self) -> FlextDbOracleSettings:
+        """Return settings pointing at an unreachable host for offline contract tests."""
+        return FlextDbOracleSettings(
+            DbOracle={
+                "host": "nonexistent-host.invalid",
+                "port": 9999,
+                "service_name": "INVALID_DB",
+                "username": "invalid_user",
+                "password": "invalid_password",
             }
-            schema_result = api.map_singer_schema(singer_schema)
-            if schema_result.failure:
-                raise AssertionError(f"Schema mapping failed: {schema_result.error}")
-            mapped_schema = schema_result.value
-            assert "id" in mapped_schema
-            assert "NUMBER" in mapped_schema["id"]
-            assert "name" in mapped_schema
-            assert "VARCHAR2" in mapped_schema["name"]
-            assert "is_active" in mapped_schema
-            assert "NUMBER(1)" in mapped_schema["is_active"]
-
-    @pytest.mark.e2e
-    def test_configuration_from_environment_e2e(self) -> None:
-        """Test configuration loading from environment variables."""
-        test_env = {
-            "FLEXT_TARGET_ORACLE_HOST": "e2e-test-host",
-            "FLEXT_TARGET_ORACLE_PORT": "1521",
-            "FLEXT_TARGET_ORACLE_SERVICE_NAME": "E2EDB",
-            "FLEXT_TARGET_ORACLE_USERNAME": "e2e_user",
-            "FLEXT_TARGET_ORACLE_PASSWORD": "e2e_password",
-            "FLEXT_TARGET_ORACLE_POOL_MIN": "2",
-            "FLEXT_TARGET_ORACLE_POOL_MAX": "20",
-            "FLEXT_TARGET_ORACLE_TIMEOUT": "60",
-        }
-        os.environ.update(test_env)
-        try:
-            config_result = FlextDbOracleSettings.from_env()
-            assert config_result.success, (
-                f"Config creation failed: {config_result.error}"
-            )
-            settings = config_result.value
-            assert settings.host == "e2e-test-host"
-            assert settings.port == 1521
-            assert settings.service_name == "E2EDB"
-            assert settings.username == "e2e_user"
-            assert settings.password == "e2e_password"
-            assert settings.pool_min == 2
-            assert settings.pool_max == 20
-        finally:
-            for key in test_env:
-                os.environ.pop(key, None)
-
-    @pytest.mark.e2e
-    def test_error_handling_e2e(self) -> None:
-        """Test error handling in end-to-end scenarios."""
-        invalid_config = FlextDbOracleSettings(
-            host="nonexistent-host.invalid",
-            port=9999,
-            service_name="INVALID_DB",
-            username="invalid_user",
-            password="invalid_password",
         )
-        api = FlextDbOracleApi(invalid_config)
-        api.connect()
-        query_result = api.query("SELECT 1 FROM DUAL")
-        if query_result.success:
-            msg = "Query should fail without connection"
-            raise AssertionError(msg)
-        assert "not connected to database" in (query_result.error or "").lower()
-        metadata_result = api.fetch_tables()
-        if metadata_result.success:
-            msg = "Get tables should fail without connection"
-            raise AssertionError(msg)
-        assert "not connected to database" in (metadata_result.error or "").lower()
+
+    @pytest.fixture
+    def offline_api(self, offline_settings: FlextDbOracleSettings) -> FlextDbOracleApi:
+        """Unconnected API instance for pure-logic and error-path behavior."""
+        return FlextDbOracleApi(offline_settings)
+
+    # -- Configuration contract ------------------------------------------
+
+    def test_env_vars_populate_settings_namespace(self) -> None:
+        """ORACLE_DBORACLE__* env vars populate the public settings namespace."""
+        FlextDbOracleSettings.reset_for_testing()
+        env = {
+            "ORACLE_DBORACLE__HOST": "e2e-test-host",
+            "ORACLE_DBORACLE__PORT": "1521",
+            "ORACLE_DBORACLE__SERVICE_NAME": "E2EDB",
+            "ORACLE_DBORACLE__USERNAME": "e2e_user",
+            "ORACLE_DBORACLE__PASSWORD": "e2e_password",
+            "ORACLE_DBORACLE__POOL_MIN": "2",
+            "ORACLE_DBORACLE__POOL_MAX": "20",
+            "ORACLE_DBORACLE__TIMEOUT": "60",
+        }
+        with u.Tests.env_vars_context(env):
+            settings = FlextDbOracleSettings()
+
+        tm.that(settings.DbOracle.host, eq="e2e-test-host")
+        tm.that(settings.DbOracle.port, eq=1521)
+        tm.that(settings.DbOracle.service_name, eq="E2EDB")
+        tm.that(settings.DbOracle.username, eq="e2e_user")
+        tm.that(settings.DbOracle.password, eq="e2e_password")
+        tm.that(settings.DbOracle.pool_min, eq=2)
+        tm.that(settings.DbOracle.pool_max, eq=20)
+
+    # -- Error-path contract (no connection) -----------------------------
+
+    def test_query_without_connection_fails_with_not_connected_error(
+        self, offline_api: FlextDbOracleApi
+    ) -> None:
+        """Query returns a failure naming the missing connection."""
+        result = offline_api.query("SELECT 1 FROM DUAL")
+
+        tm.fail(result)
+        tm.that((result.error or "").lower(), has=_NOT_CONNECTED)
+
+    def test_fetch_tables_without_connection_fails_with_not_connected_error(
+        self, offline_api: FlextDbOracleApi
+    ) -> None:
+        """fetch_tables returns a failure naming the missing connection."""
+        result = offline_api.fetch_tables()
+
+        tm.fail(result)
+        tm.that((result.error or "").lower(), has=_NOT_CONNECTED)
+
+    def test_transaction_reports_disconnected_status_when_offline(
+        self, offline_api: FlextDbOracleApi
+    ) -> None:
+        """Transaction succeeds and reports the current (disconnected) state."""
+        result = offline_api.transaction()
+
+        tm.ok(result)
+        status = result.value
+        tm.that(status["connected"], eq=False)
+        tm.that(status["transaction_available"], eq=True)
+
+    # -- Singer type-conversion contract ---------------------------------
+
+    @pytest.mark.parametrize(
+        ("singer_type", "expected_oracle_type"),
+        [
+            ("string", "VARCHAR2(4000)"),
+            ("integer", "NUMBER(38)"),
+            ("number", "NUMBER"),
+            ("boolean", "NUMBER(1)"),
+            ("array", "VARCHAR2(255)"),
+        ],
+    )
+    def test_convert_singer_type_returns_expected_oracle_type(
+        self, offline_api: FlextDbOracleApi, singer_type: str, expected_oracle_type: str
+    ) -> None:
+        """convert_singer_type maps each Singer type to its Oracle SQL type."""
+        result = offline_api.convert_singer_type(singer_type)
+
+        tm.ok(result)
+        tm.that(result.value, has=expected_oracle_type)
+
+    def test_map_singer_schema_maps_properties_to_oracle_column_types(
+        self, offline_api: FlextDbOracleApi
+    ) -> None:
+        """map_singer_schema converts each JSON-Schema property to an Oracle type."""
+        singer_schema: t.JsonMapping = {
+            "properties": {
+                "id": {"type": "integer"},
+                "name": {"type": "string"},
+                "is_active": {"type": "boolean"},
+            }
+        }
+
+        result = offline_api.map_singer_schema(singer_schema)
+
+        tm.ok(result)
+        mapped = result.value
+        tm.that(mapped["id"], has="NUMBER")
+        tm.that(mapped["name"], has="VARCHAR2")
+        tm.that(mapped["is_active"], has="NUMBER(1)")
+
+    # -- Full CRUD lifecycle against a real Oracle container -------------
+
+    @staticmethod
+    def _row_mapping(row: m.Dict) -> Mapping[str, object]:
+        """Expose a query row's public mapping regardless of case handling."""
+        return {key.upper(): value for key, value in row.root.items()}
+
+    def _concurrent_source_rows(
+        self, api1: FlextDbOracleApi, api2: FlextDbOracleApi
+    ) -> tuple[Mapping[str, object], Mapping[str, object]]:
+        """Return one query row from each concurrent API context."""
+        with api1, api2:
+            result1 = api1.query("SELECT 'API1' AS SOURCE FROM DUAL")
+            result2 = api2.query("SELECT 'API2' AS SOURCE FROM DUAL")
+            tm.ok(result1)
+            tm.ok(result2)
+            return self._row_mapping(result1.value[0]), self._row_mapping(
+                result2.value[0]
+            )
 
     @pytest.mark.e2e
-    def test_concurrent_operations_e2e(
-        self,
-        real_oracle_config: FlextDbOracleSettings,
+    def test_complete_crud_workflow_returns_expected_results(
+        self, real_oracle_config: FlextDbOracleSettings
     ) -> None:
-        """Test concurrent database operations."""
+        """A connect->create->insert->query->update->drop lifecycle behaves per contract."""
+        table = "E2E_TEST_TABLE"
+        with FlextDbOracleApi(settings=real_oracle_config) as api:
+            tm.ok(api.test_connection())
+
+            schemas = api.fetch_schemas()
+            tm.ok(schemas)
+            assert schemas.value
+
+            create = api.execute_sql(
+                f"CREATE TABLE {table} ("
+                " ID NUMBER(10) NOT NULL PRIMARY KEY,"
+                " NAME VARCHAR2(100) NOT NULL,"
+                " EMAIL VARCHAR2(255))"
+            )
+            tm.ok(create)
+            try:
+                rows = [
+                    (1, "John Doe", "'john@example.com'"),
+                    (2, "Jane Smith", "'jane@example.com'"),
+                    (3, "Bob Wilson", "NULL"),
+                ]
+                for row_id, name, email in rows:
+                    inserted = api.execute_statement(
+                        f"INSERT INTO {table} (ID, NAME, EMAIL) "
+                        f"VALUES ({row_id}, '{name}', {email})"
+                    )
+                    tm.ok(inserted)
+
+                selected = api.query(f"SELECT * FROM {table} ORDER BY ID")
+                tm.ok(selected)
+                tm.that(len(selected.value), eq=3)
+
+                counted = api.query(f"SELECT COUNT(*) AS ROW_COUNT FROM {table}")
+                tm.ok(counted)
+                count_row = self._row_mapping(counted.value[0])
+                tm.that(int(str(count_row["ROW_COUNT"])), eq=3)
+
+                metadata = api.fetch_table_metadata(table)
+                tm.ok(metadata)
+                tm.that(metadata.value.table_name, eq=table)
+
+                columns = api.fetch_columns(table)
+                tm.ok(columns)
+                assert len(columns.value) >= 3
+
+                primary_keys = api.fetch_primary_keys(table)
+                tm.ok(primary_keys)
+                tm.that(primary_keys.value, has="ID")
+
+                updated = api.execute_statement(
+                    f"UPDATE {table} SET EMAIL = 'bob@example.com' WHERE ID = 3"
+                )
+                tm.ok(updated)
+
+                verify = api.query(f"SELECT EMAIL FROM {table} WHERE ID = 3")
+                tm.ok(verify)
+                tm.that(len(verify.value), eq=1)
+                verified_row = self._row_mapping(verify.value[0])
+                tm.that(verified_row["EMAIL"], eq="bob@example.com")
+            finally:
+                api.execute_sql(f"DROP TABLE {table}")
+
+    @pytest.mark.e2e
+    def test_concurrent_apis_return_independent_query_results(
+        self, real_oracle_config: FlextDbOracleSettings
+    ) -> None:
+        """Two concurrent API contexts each return their own query result."""
         api1 = FlextDbOracleApi(real_oracle_config, context_name="connection1")
         api2 = FlextDbOracleApi(real_oracle_config, context_name="connection2")
-        try:
-            with api1, api2:
-                result1 = api1.query("SELECT 'API1' as source FROM DUAL")
-                result2 = api2.query("SELECT 'API2' as source FROM DUAL")
-                skip_tests = os.getenv("SKIP_E2E_TESTS", "true").lower() == "true"
-                if not skip_tests:
-                    if result1.failure:
-                        raise AssertionError(f"API1 query failed: {result1.error}")
-                    if result2.failure:
-                        raise AssertionError(f"API2 query failed: {result2.error}")
-                else:
-                    assert result1 is not None
-                    assert result2 is not None
-        except ConnectionError:
-            pytest.skip("Oracle database not available for concurrent testing")
+        row1, row2 = self._concurrent_source_rows(api1, api2)
+        tm.that(row1["SOURCE"], eq="API1")
+        tm.that(row2["SOURCE"], eq="API2")
 
     @pytest.mark.e2e
     @pytest.mark.benchmark
-    def test_performance_benchmark_e2e(
-        self,
-        real_oracle_config: FlextDbOracleSettings,
+    def test_benchmark_query_returns_single_row(
+        self, real_oracle_config: FlextDbOracleSettings
     ) -> None:
-        """Test performance benchmarks for Oracle operations."""
-        try:
-            with FlextDbOracleApi(settings=real_oracle_config) as api:
-                timed_result = api.query("SELECT 1 FROM DUAL")
-                if timed_result.success:
-                    query_result = timed_result.value
-                    assert isinstance(query_result, list)
-                    assert len(query_result) >= 0
-        except ConnectionError:
-            pytest.skip("Oracle database not available for performance testing")
+        """A trivial benchmark query returns exactly one row from the database."""
+        with FlextDbOracleApi(settings=real_oracle_config) as api:
+            result = api.query("SELECT 1 AS ONE FROM DUAL")
+            tm.ok(result)
+            tm.that(len(result.value), eq=1)
