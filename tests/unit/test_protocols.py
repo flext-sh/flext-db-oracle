@@ -109,10 +109,7 @@ class TestsFlextDbOracleProtocols:
         ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
     )
     def test_protocol_is_runtime_checkable(
-        self,
-        name: str,
-        protocol: type,
-        methods: tuple[str, ...],
+        self, name: str, protocol: type, methods: tuple[str, ...]
     ) -> None:
         """Each protocol supports isinstance() — its public runtime-check contract."""
         implementer = _implementer(methods)
@@ -126,10 +123,7 @@ class TestsFlextDbOracleProtocols:
         ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
     )
     def test_full_method_surface_satisfies_protocol(
-        self,
-        name: str,
-        protocol: type,
-        methods: tuple[str, ...],
+        self, name: str, protocol: type, methods: tuple[str, ...]
     ) -> None:
         """An object with the full promised surface is recognised as implementer."""
         implementer = _implementer(methods)
@@ -142,10 +136,7 @@ class TestsFlextDbOracleProtocols:
         ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
     )
     def test_missing_any_single_method_breaks_conformance(
-        self,
-        name: str,
-        protocol: type,
-        methods: tuple[str, ...],
+        self, name: str, protocol: type, methods: tuple[str, ...]
     ) -> None:
         """Dropping any one promised method makes the object a non-implementer."""
         for dropped in methods:

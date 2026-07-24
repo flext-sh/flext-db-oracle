@@ -49,8 +49,7 @@ class FlextDbOracleModels(m):
             """Typed row payload for query results."""
 
             values: t.JsonList = u.Field(
-                default_factory=tuple,
-                description="Row column values",
+                default_factory=tuple, description="Row column values"
             )
 
         class ColumnMetadata(DbOracleDomainModel):
@@ -66,18 +65,13 @@ class FlextDbOracleModels(m):
             model_config: ClassVar[t.ConfigDict] = m.ConfigDict(frozen=False)
 
             connected: bool = u.Field(
-                False,
-                description="Whether connection is active",
-                validate_default=True,
+                False, description="Whether connection is active", validate_default=True
             )
             last_check: datetime = u.Field(
-                default_factory=u.now,
-                description="Timestamp of last connection check",
+                default_factory=u.now, description="Timestamp of last connection check"
             )
             error_message: str = u.Field(
-                "",
-                description="Error message when disconnected",
-                validate_default=True,
+                "", description="Error message when disconnected", validate_default=True
             )
 
             # Additional Oracle-specific connection details
@@ -87,13 +81,10 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
             last_activity: datetime = u.Field(
-                default_factory=u.now,
-                description="Timestamp of last database activity",
+                default_factory=u.now, description="Timestamp of last database activity"
             )
             session_id: str = u.Field(
-                "",
-                description="Oracle session identifier",
-                validate_default=True,
+                "", description="Oracle session identifier", validate_default=True
             )
             host: str = u.Field("", description="Database host", validate_default=True)
             port: t.PortNumber = u.Field(
@@ -102,19 +93,13 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
             service_name: str = u.Field(
-                "",
-                description="Oracle service name",
-                validate_default=True,
+                "", description="Oracle service name", validate_default=True
             )
             username: str = u.Field(
-                "",
-                description="Database username",
-                validate_default=True,
+                "", description="Database username", validate_default=True
             )
             db_version: str = u.Field(
-                "",
-                description="Oracle database version",
-                validate_default=True,
+                "", description="Oracle database version", validate_default=True
             )
 
             @u.computed_field(return_type=float)
@@ -154,7 +139,7 @@ class FlextDbOracleModels(m):
                 if not self.connected:
                     return False
                 idle_timeout_seconds: float = float(
-                    c.DbOracle.CONNECTION_IDLE_TIMEOUT_SECONDS,
+                    c.DbOracle.CONNECTION_IDLE_TIMEOUT_SECONDS
                 )
                 age_seconds: float = self.connection_age_seconds
                 is_healthy: bool = age_seconds <= idle_timeout_seconds
@@ -239,9 +224,7 @@ class FlextDbOracleModels(m):
                 description="Raw result data from query execution",
             )
             row_count: t.NonNegativeInt = u.Field(
-                0,
-                description="Number of rows returned",
-                validate_default=True,
+                0, description="Number of rows returned", validate_default=True
             )
             execution_time_ms: t.NonNegativeInt = u.Field(
                 0,
@@ -251,22 +234,16 @@ class FlextDbOracleModels(m):
 
             # Additional Oracle-specific query result details
             columns: t.StrSequence = u.Field(
-                default_factory=tuple,
-                description="Column names in result set",
+                default_factory=tuple, description="Column names in result set"
             )
             rows: t.SequenceOf[FlextDbOracleModels.DbOracle.RowData] = u.Field(
-                default_factory=tuple,
-                description="Typed row data from query result",
+                default_factory=tuple, description="Typed row data from query result"
             )
             query_hash: str = u.Field(
-                "",
-                description="Query hash for caching",
-                validate_default=True,
+                "", description="Query hash for caching", validate_default=True
             )
             explain_plan: str = u.Field(
-                "",
-                description="Query execution plan",
-                validate_default=True,
+                "", description="Query execution plan", validate_default=True
             )
 
             @property
@@ -362,9 +339,7 @@ class FlextDbOracleModels(m):
             duration: float = u.Field(description="Operation duration in seconds")
             success: bool = u.Field(description="Whether the operation succeeded")
             metadata_info: str = u.Field(
-                "",
-                description="Operation metadata",
-                validate_default=True,
+                "", description="Operation metadata", validate_default=True
             )
             timestamp: str = u.Field(description="ISO timestamp of operation")
 
@@ -407,19 +382,15 @@ class FlextDbOracleModels(m):
 
             table_name: str = u.Field(description="Oracle table name")
             schema_name: str = u.Field(
-                "",
-                description="Oracle schema name",
-                validate_default=True,
+                "", description="Oracle schema name", validate_default=True
             )
             columns: t.SequenceOf[FlextDbOracleModels.DbOracle.ColumnMetadata] = (
                 u.Field(
-                    default_factory=tuple,
-                    description="Column metadata for the table",
+                    default_factory=tuple, description="Column metadata for the table"
                 )
             )
             primary_keys: t.StrSequence = u.Field(
-                default_factory=tuple,
-                description="Primary key column names",
+                default_factory=tuple, description="Primary key column names"
             )
 
             def __getitem__(self, key: str) -> t.JsonValue:
@@ -477,13 +448,10 @@ class FlextDbOracleModels(m):
 
             name: str = u.Field(description="Table name")
             owner: str = u.Field(
-                "",
-                description="Table owner or schema",
-                validate_default=True,
+                "", description="Table owner or schema", validate_default=True
             )
             columns: t.SequenceOf[FlextDbOracleModels.DbOracle.Column] = u.Field(
-                default_factory=tuple,
-                description="Column definitions for the table",
+                default_factory=tuple, description="Column definitions for the table"
             )
 
         class Column(m.Entity):
@@ -502,9 +470,7 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
             default_value: str = u.Field(
-                "",
-                description="Default value for the column",
-                validate_default=True,
+                "", description="Default value for the column", validate_default=True
             )
 
             def __getitem__(self, key: str) -> t.JsonValue:
@@ -537,8 +503,7 @@ class FlextDbOracleModels(m):
 
             name: str = u.Field(description="Schema name")
             tables: t.SequenceOf[FlextDbOracleModels.DbOracle.Table] = u.Field(
-                default_factory=tuple,
-                description="Tables within this schema",
+                default_factory=tuple, description="Tables within this schema"
             )
 
         class CreateIndexConfig(m.Entity):
@@ -547,7 +512,7 @@ class FlextDbOracleModels(m):
             table_name: str = u.Field(description="Target table for the index")
             index_name: str = u.Field(description="Name of the index to create")
             columns: t.StrSequence = u.Field(
-                description="Columns to include in the index",
+                description="Columns to include in the index"
             )
             unique: bool = u.Field(
                 False,
@@ -555,14 +520,10 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
             schema_name: str = u.Field(
-                "",
-                description="Schema name",
-                validate_default=True,
+                "", description="Schema name", validate_default=True
             )
             tablespace: str = u.Field(
-                "",
-                description="Tablespace name",
-                validate_default=True,
+                "", description="Tablespace name", validate_default=True
             )
             parallel: t.PositiveInt = u.Field(
                 1,
@@ -585,9 +546,7 @@ class FlextDbOracleModels(m):
 
             sql: str = u.Field(description="SQL SELECT query to execute")
             parameters: t.JsonMapping | None = u.Field(
-                None,
-                description="Query bind parameters",
-                validate_default=True,
+                None, description="Query bind parameters", validate_default=True
             )
 
         class FetchOneCommand(m.Entity):
@@ -595,9 +554,7 @@ class FlextDbOracleModels(m):
 
             sql: str = u.Field(description="SQL query to fetch a single row")
             parameters: t.JsonMapping | None = u.Field(
-                None,
-                description="Query bind parameters",
-                validate_default=True,
+                None, description="Query bind parameters", validate_default=True
             )
 
         class ExecuteStatementCommand(m.Entity):
@@ -605,9 +562,7 @@ class FlextDbOracleModels(m):
 
             sql: str = u.Field(description="SQL DML statement to execute")
             parameters: t.JsonMapping | None = u.Field(
-                None,
-                description="Statement bind parameters",
-                validate_default=True,
+                None, description="Statement bind parameters", validate_default=True
             )
 
         class ExecuteManyCommand(m.Entity):
@@ -626,9 +581,7 @@ class FlextDbOracleModels(m):
             """Command to retrieve tables in schema."""
 
             schema_name: str | None = u.Field(
-                None,
-                description="Schema to list tables from",
-                validate_default=True,
+                None, description="Schema to list tables from", validate_default=True
             )
 
         class GetColumnsCommand(m.Entity):
@@ -636,15 +589,10 @@ class FlextDbOracleModels(m):
 
             table: str = u.Field(description="Table to retrieve columns from")
             schema_name: str | None = u.Field(
-                None,
-                description="Schema containing the table",
-                validate_default=True,
+                None, description="Schema containing the table", validate_default=True
             )
 
 
 m = FlextDbOracleModels
 
-__all__: list[str] = [
-    "FlextDbOracleModels",
-    "m",
-]
+__all__: list[str] = ["FlextDbOracleModels", "m"]

@@ -42,23 +42,18 @@ class TestsFlextDbOracleMetadata:
                 "service_name": "TEST",
                 "username": "test",
                 "password": "test",
-            },
+            }
         )
 
     @pytest.fixture
-    def services(
-        self,
-        settings: FlextDbOracleSettings,
-    ) -> FlextDbOracleServices:
+    def services(self, settings: FlextDbOracleSettings) -> FlextDbOracleServices:
         """Return a freshly composed, unconnected services facade."""
         return FlextDbOracleServices(settings=settings)
 
     # -- facade contract ---------------------------------------------------
 
     def test_settings_property_exposes_supplied_connection_config(
-        self,
-        services: FlextDbOracleServices,
-        settings: FlextDbOracleSettings,
+        self, services: FlextDbOracleServices, settings: FlextDbOracleSettings
     ) -> None:
         """The settings property returns the exact configuration supplied."""
         bound = services.settings
@@ -70,16 +65,13 @@ class TestsFlextDbOracleMetadata:
         tm.that(bound.DbOracle.username, eq="test")
 
     def test_new_facade_reports_not_connected(
-        self,
-        services: FlextDbOracleServices,
+        self, services: FlextDbOracleServices
     ) -> None:
         """A freshly built facade is not connected until connect succeeds."""
         tm.that(services.connected(), eq=False)
 
     def test_execute_returns_active_settings_as_success(
-        self,
-        services: FlextDbOracleServices,
-        settings: FlextDbOracleSettings,
+        self, services: FlextDbOracleServices, settings: FlextDbOracleSettings
     ) -> None:
         """execute() succeeds and yields the active Oracle configuration."""
         value = tm.ok(services.execute())
@@ -117,8 +109,7 @@ class TestsFlextDbOracleMetadata:
         tm.that(bool(error), eq=True)
 
     def test_failed_op_recovers_via_unwrap_or_default(
-        self,
-        services: FlextDbOracleServices,
+        self, services: FlextDbOracleServices
     ) -> None:
         """A failed result yields the caller default via unwrap_or."""
         fallback: list[str] = ["<none>"]
@@ -128,8 +119,7 @@ class TestsFlextDbOracleMetadata:
         tm.that(recovered, eq=fallback)
 
     def test_map_does_not_run_transform_on_failure(
-        self,
-        services: FlextDbOracleServices,
+        self, services: FlextDbOracleServices
     ) -> None:
         """map() is skipped for a failure and the error is preserved intact."""
         mapped = services.fetch_tables("APP_SCHEMA").map(len)
@@ -137,8 +127,7 @@ class TestsFlextDbOracleMetadata:
         tm.fail(mapped, has="Not connected")
 
     def test_recover_swaps_a_failed_metadata_op_for_success(
-        self,
-        services: FlextDbOracleServices,
+        self, services: FlextDbOracleServices
     ) -> None:
         """Recover turns a failure into a success carrying the fallback."""
         recovered = services.fetch_schemas().recover(lambda _error: ["RECOVERED"])
@@ -150,23 +139,13 @@ class TestsFlextDbOracleMetadata:
 
     @pytest.mark.parametrize(
         ("data_type", "nullable"),
-        [
-            ("NUMBER", False),
-            ("VARCHAR2", True),
-            ("DATE", True),
-        ],
+        [("NUMBER", False), ("VARCHAR2", True), ("DATE", True)],
     )
     def test_column_exposes_public_field_state(
-        self,
-        data_type: str,
-        nullable: bool,
+        self, data_type: str, nullable: bool
     ) -> None:
         """Column reflects the field values supplied through its public API."""
-        column = m.DbOracle.Column(
-            name="ID",
-            data_type=data_type,
-            nullable=nullable,
-        )
+        column = m.DbOracle.Column(name="ID", data_type=data_type, nullable=nullable)
 
         tm.that(column.name, eq="ID")
         tm.that(column.data_type, eq=data_type)
@@ -188,10 +167,7 @@ class TestsFlextDbOracleMetadata:
     def test_column_model_dump_roundtrips_public_fields(self) -> None:
         """model_dump surfaces the public column fields for serialization."""
         column = m.DbOracle.Column(
-            name="AMOUNT",
-            data_type="NUMBER",
-            nullable=True,
-            primary_key=True,
+            name="AMOUNT", data_type="NUMBER", nullable=True, primary_key=True
         )
 
         dumped = column.model_dump()
@@ -210,9 +186,7 @@ class TestsFlextDbOracleMetadata:
             m.DbOracle.Column(name="NAME", data_type="VARCHAR2", nullable=True),
         ]
         table = m.DbOracle.Table(
-            name="COMPLEX_TABLE",
-            owner="APP_SCHEMA",
-            columns=columns,
+            name="COMPLEX_TABLE", owner="APP_SCHEMA", columns=columns
         )
 
         tm.that(table.name, eq="COMPLEX_TABLE")

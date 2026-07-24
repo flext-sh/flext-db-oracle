@@ -23,61 +23,37 @@ class FlextDbOracleConfigModels:
         model_config = ConfigDict(frozen=True, extra="forbid")
 
         name: str = Field(
-            default="flext-db-oracle",
-            description="Project name identifier.",
+            default="flext-db-oracle", description="Project name identifier."
         )
         version: str = Field(
-            default="0.20.0-dev",
-            description="Project version string.",
+            default="0.20.0-dev", description="Project version string."
         )
         host: str = Field(
-            default="localhost",
-            description="Oracle database host address.",
+            default="localhost", description="Oracle database host address."
         )
         port: int = Field(
-            default=1521,
-            ge=1,
-            le=65535,
-            description="Oracle database listener port.",
+            default=1521, ge=1, le=65535, description="Oracle database listener port."
         )
         service_name: str = Field(
-            default="XEPDB1",
-            description="Oracle service name for connection.",
+            default="XEPDB1", description="Oracle service name for connection."
         )
-        username: str = Field(
-            default="system",
-            description="Oracle database username.",
-        )
-        password: str = Field(
-            default="",
-            description="Oracle database password.",
-        )
-        timeout: int = Field(
-            default=30,
-            ge=1,
-            description="Connection timeout (s).",
-        )
+        username: str = Field(default="system", description="Oracle database username.")
+        password: str = Field(default="", description="Oracle database password.")
+        timeout: int = Field(default=30, ge=1, description="Connection timeout (s).")
         pool_min: int = Field(
-            default=2,
-            ge=0,
-            description="Minimum connection pool size.",
+            default=2, ge=0, description="Minimum connection pool size."
         )
         pool_max: int = Field(
-            default=20,
-            ge=0,
-            description="Maximum connection pool size.",
+            default=20, ge=0, description="Maximum connection pool size."
         )
         sid: str | None = Field(
-            default=None,
-            description="Oracle SID for legacy connections.",
+            default=None, description="Oracle SID for legacy connections."
         )
         ssl_cert_file: str | None = Field(
-            default=None,
-            description="Path to SSL certificate file.",
+            default=None, description="Path to SSL certificate file."
         )
         ssl_server_cert_dn: str | None = Field(
-            default=None,
-            description="Distinguished name of server SSL certificate.",
+            default=None, description="Distinguished name of server SSL certificate."
         )
         enable_dispatcher: bool = Field(
             default=False,
@@ -90,7 +66,7 @@ class FlextDbOracleConfigModels:
         model_config = ConfigDict(frozen=True, extra="ignore")
 
         DbOracle: FlextDbOracleConfigModels.DbOracle = Field(
-            description="Oracle business-rule config namespace.",
+            description="Oracle business-rule config namespace."
         )
 
 

@@ -23,15 +23,13 @@ from flext_db_oracle._models.config import FlextDbOracleConfigModels
 class FlextDbOracleConfig(FlextCliConfig):
     """DbOracle config auto-loaded from ``config/*.yaml`` and validated via models."""
 
-    CONFIG_DIR: ClassVar[str] = str(
-        Path(__file__).resolve().parent / "config",
-    )
+    CONFIG_DIR: ClassVar[str] = str(Path(__file__).resolve().parent / "config")
 
     @cached_property
     def DbOracle(self) -> FlextDbOracleConfigModels.DbOracle:
         """Validated ``DbOracle`` business-rule config namespace."""
         root = FlextDbOracleConfigModels.Root.model_validate(
-            dict(self.model_extra or {}),
+            dict(self.model_extra or {})
         )
         return root.DbOracle
 

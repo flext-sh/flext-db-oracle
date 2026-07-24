@@ -18,18 +18,16 @@ def _resolve_settings() -> FlextDbOracleSettings:
     settings = FlextDbOracleSettings.fetch_global()
     if settings.DbOracle.password:
         logger.info(
-            f"✅ Configuration created: {settings.DbOracle.host}:{settings.DbOracle.port}",
+            f"✅ Configuration created: {settings.DbOracle.host}:{settings.DbOracle.port}"
         )
     else:
-        settings = FlextDbOracleSettings.model_validate(
-            {
-                "DbOracle": {
-                    "host": "demo-host",
-                    "username": "demo-user",
-                    "password": "demo-password",
-                },
-            },
-        )
+        settings = FlextDbOracleSettings.model_validate({
+            "DbOracle": {
+                "host": "demo-host",
+                "username": "demo-user",
+                "password": "demo-password",
+            }
+        })
         logger.info("✅ Demo configuration created")
     return settings
 

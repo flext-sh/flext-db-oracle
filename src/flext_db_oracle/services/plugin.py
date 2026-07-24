@@ -37,16 +37,12 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
                 "service": "oracle",
                 "database": self.db_config.DbOracle.service_name,
                 "metrics": metrics_payload,
-            }),
+            })
         )
 
-    def fetch_operations(
-        self,
-    ) -> p.Result[Sequence[m.DbOracle.OperationRecord]]:
+    def fetch_operations(self) -> p.Result[Sequence[m.DbOracle.OperationRecord]]:
         """Get tracked operations."""
-        return r[Sequence[m.DbOracle.OperationRecord]].ok(
-            list(self._operations),
-        )
+        return r[Sequence[m.DbOracle.OperationRecord]].ok(list(self._operations))
 
     def fetch_plugin(self, name: str) -> p.Result[t.JsonPayload]:
         """Get plugin data from local service registry."""
@@ -62,10 +58,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         return r[m.ConfigMap].ok(m.ConfigMap(root=dict.fromkeys(plugin_names, True)))
 
     def record_metric(
-        self,
-        name: str,
-        value: float,
-        tags: m.ConfigMap | t.JsonMapping | None = None,
+        self, name: str, value: float, tags: m.ConfigMap | t.JsonMapping | None = None
     ) -> p.Result[bool]:
         """Record metric in the local service metrics registry."""
         if not name:
@@ -76,10 +69,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
                 tag_name: u.normalize_to_metadata(tag_value)
                 for tag_name, tag_value in tags.items()
             }
-            metric_payload = {
-                "value": value,
-                "tags": normalized_tags,
-            }
+            metric_payload = {"value": value, "tags": normalized_tags}
         self._metrics[name] = metric_payload
         return r[bool].ok(True)
 

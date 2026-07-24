@@ -47,9 +47,7 @@ class TestsFlextDbOracleTypings:
         ],
     )
     def test_oracle_exception_bindings_map_to_driver(
-        self,
-        attribute: str,
-        expected: type[Exception],
+        self, attribute: str, expected: type[Exception]
     ) -> None:
         """Oracle exception aliases bind to the driver's exception classes."""
         bound = getattr(FlextDbOracleTypes.DbOracle, attribute)

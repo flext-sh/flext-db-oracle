@@ -34,7 +34,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         t.SequenceOf[Mapping[str, int | str | bool]]
         | t.SequenceOf[t.StrMapping]
         | t.SequenceOf[t.IntMapping]
-        | None,
+        | None
     )
 
     # ------------------------------------------------------------------ #
@@ -45,10 +45,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         """A hash is a 16-character alphanumeric (hex) string."""
         params: t.IntMapping = {"id": 1}
         hash_value: str = tm.ok(
-            u.DbOracle.generate_query_hash(
-                "SELECT * FROM table WHERE id = :id",
-                params,
-            ),
+            u.DbOracle.generate_query_hash("SELECT * FROM table WHERE id = :id", params)
         )
         tm.that(hash_value, is_=str)
         tm.that(len(hash_value), eq=16)
@@ -71,10 +68,10 @@ class TestsFlextDbOracleUtilitiesUnit:
     def test_generate_query_hash_is_case_sensitive_on_query(self) -> None:
         """The query text is hashed verbatim, so case changes change the hash."""
         h1: str = tm.ok(
-            u.DbOracle.generate_query_hash("select * from users where id = :id", {}),
+            u.DbOracle.generate_query_hash("select * from users where id = :id", {})
         )
         h2: str = tm.ok(
-            u.DbOracle.generate_query_hash("SELECT * FROM USERS WHERE ID = :ID", {}),
+            u.DbOracle.generate_query_hash("SELECT * FROM USERS WHERE ID = :ID", {})
         )
         tm.that(h1, ne=h2)
 
@@ -122,7 +119,7 @@ class TestsFlextDbOracleUtilitiesUnit:
     def test_format_sql_collapses_internal_whitespace(self) -> None:
         """Single-spaced SQL is returned unchanged."""
         formatted: str = tm.ok(
-            u.DbOracle.format_sql_for_oracle("select id, name from users"),
+            u.DbOracle.format_sql_for_oracle("select id, name from users")
         )
         tm.that(formatted, eq="select id, name from users")
 
@@ -164,9 +161,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         ids=["empty", "whitespace-only"],
     )
     def test_format_sql_empty_or_blank_yields_empty_string(
-        self,
-        raw: str,
-        expected: str,
+        self, raw: str, expected: str
     ) -> None:
         """Empty or whitespace-only input normalizes to an empty string."""
         tm.that(tm.ok(u.DbOracle.format_sql_for_oracle(raw)), eq=expected)
@@ -177,16 +172,10 @@ class TestsFlextDbOracleUtilitiesUnit:
 
     @pytest.mark.parametrize(
         ("identifier", "expected"),
-        [
-            ("users", "users"),
-            ("userTable", "userTable"),
-            ("user_table", "user_table"),
-        ],
+        [("users", "users"), ("userTable", "userTable"), ("user_table", "user_table")],
     )
     def test_escape_identifier_returns_valid_identifier_unchanged(
-        self,
-        identifier: str,
-        expected: str,
+        self, identifier: str, expected: str
     ) -> None:
         """Valid alphanumeric/underscore identifiers pass through unchanged."""
         tm.that(tm.ok(u.DbOracle.escape_oracle_identifier(identifier)), eq=expected)
@@ -204,9 +193,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         ],
     )
     def test_escape_identifier_rejects_invalid_input(
-        self,
-        identifier: str,
-        error_substring: str,
+        self, identifier: str, error_substring: str
     ) -> None:
         """Invalid/empty identifiers fail with the matching diagnostic message."""
         tm.fail(u.DbOracle.escape_oracle_identifier(identifier), has=error_substring)
@@ -220,9 +207,7 @@ class TestsFlextDbOracleUtilitiesUnit:
     def test_escape_identifier_over_max_length_is_truncated(self) -> None:
         """An over-length identifier is truncated to exactly the max length."""
         max_len = c.DbOracle.MAX_IDENTIFIER_LENGTH
-        escaped: str = tm.ok(
-            u.DbOracle.escape_oracle_identifier("a" * (max_len + 25)),
-        )
+        escaped: str = tm.ok(u.DbOracle.escape_oracle_identifier("a" * (max_len + 25)))
         tm.that(len(escaped), eq=max_len)
 
     # ------------------------------------------------------------------ #
@@ -243,9 +228,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         ids=["empty", "too-long", "reserved-word"],
     )
     def test_validate_identifier_rejects_invalid_name(
-        self,
-        identifier: str,
-        error_substring: str,
+        self, identifier: str, error_substring: str
     ) -> None:
         """Empty, over-length, and reserved names fail with matching diagnostics."""
         tm.fail(u.DbOracle.validate_identifier(identifier), has=error_substring)
@@ -266,8 +249,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         ids=["full", "empty", "non-serializable", "table", "single"],
     )
     def test_format_query_result_json_is_reparseable(
-        self,
-        data: list[t.JsonValue],
+        self, data: list[t.JsonValue]
     ) -> None:
         """JSON formatting yields a string that re-parses to the same shape."""
         formatted: str = tm.ok(u.DbOracle.format_query_result(data, "json"))

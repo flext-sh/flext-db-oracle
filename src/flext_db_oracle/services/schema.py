@@ -34,15 +34,13 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
     """
 
     def fetch_columns(
-        self,
-        table_name: str,
-        schema_name: str | None = None,
+        self, table_name: str, schema_name: str | None = None
     ) -> p.Result[Sequence[m.DbOracle.Column]]:
         """Get column information for Oracle table."""
         if schema_name:
             sql = "\nSELECT column_name, data_type, data_length, data_precision, data_scale, nullable\nFROM all_tab_columns\nWHERE table_name = UPPER(:table_name) AND owner = UPPER(:schema_name)\nORDER BY column_id\n"
             params = m.ConfigMap(
-                root={"table_name": table_name, "schema_name": schema_name},
+                root={"table_name": table_name, "schema_name": schema_name}
             )
         else:
             sql = "\nSELECT column_name, data_type, data_length, data_precision, data_scale, nullable\nFROM user_tab_columns\nWHERE table_name = UPPER(:table_name)\nORDER BY column_id\n"
@@ -51,37 +49,32 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             lambda rows: [
                 m.DbOracle.Column(
                     name=str(
-                        row.root.get("COLUMN_NAME") or row.root.get("column_name", ""),
+                        row.root.get("COLUMN_NAME") or row.root.get("column_name", "")
                     ),
                     data_type=str(
-                        row.root.get("DATA_TYPE") or row.root.get("data_type", ""),
+                        row.root.get("DATA_TYPE") or row.root.get("data_type", "")
                     ),
                     nullable=str(
-                        row.root.get("NULLABLE") or row.root.get("nullable", "Y"),
+                        row.root.get("NULLABLE") or row.root.get("nullable", "Y")
                     )
                     == "Y",
                     primary_key=False,
                     default_value=str(
-                        row.root.get("DATA_DEFAULT")
-                        or row.root.get("data_default", ""),
+                        row.root.get("DATA_DEFAULT") or row.root.get("data_default", "")
                     ),
                 )
                 for row in rows
-            ],
+            ]
         )
 
     def fetch_primary_key_columns(
-        self,
-        table_name: str,
-        schema_name: str | None = None,
+        self, table_name: str, schema_name: str | None = None
     ) -> p.Result[t.StrSequence]:
         """Alias for get_primary_keys."""
         return self.fetch_primary_keys(table_name, schema_name)
 
     def fetch_primary_keys(
-        self,
-        table_name: str,
-        schema: str | None = None,
+        self, table_name: str, schema: str | None = None
     ) -> p.Result[t.StrSequence]:
         """Get primary key column names for specified table."""
 
@@ -118,13 +111,11 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             lambda rows: [
                 str(row.root.get("SCHEMA_NAME") or row.root.get("schema_name", ""))
                 for row in rows
-            ],
+            ]
         )
 
     def fetch_table_metadata(
-        self,
-        table_name: str,
-        schema: str | None = None,
+        self, table_name: str, schema: str | None = None
     ) -> p.Result[m.DbOracle.TableMetadata]:
         """Get complete table metadata."""
 
@@ -164,9 +155,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         ).map_error(lambda e: f"Failed to get table metadata: {e}")
 
     def fetch_table_row_count(
-        self,
-        table_name: str,
-        schema_name: str | None = None,
+        self, table_name: str, schema_name: str | None = None
     ) -> p.Result[int]:
         """Get row count through SQLAlchemy Core Oracle compilation."""
 
@@ -184,10 +173,10 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
                         if schema_name
                         else None
                     ),
-                ),
+                )
             )
             sql = c.DbOracle.collapse_whitespace(
-                str(statement.compile(dialect=oracle_dialect())),
+                str(statement.compile(dialect=oracle_dialect()))
             ).strip()
             query_result = self.execute_query(sql)
             if query_result.failure:
@@ -218,7 +207,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             lambda rows: [
                 str(row.root.get("TABLE_NAME") or row.root.get("table_name", ""))
                 for row in rows
-            ],
+            ]
         )
 
 

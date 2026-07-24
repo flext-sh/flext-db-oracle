@@ -26,17 +26,13 @@ def real_oracle_config(
 
 
 @pytest.fixture
-def oracle_api(
-    real_oracle_config: FlextDbOracleSettings,
-) -> FlextDbOracleApi:
+def oracle_api(real_oracle_config: FlextDbOracleSettings) -> FlextDbOracleApi:
     """Return an Oracle API configured by the workspace fixture."""
     return FlextDbOracleApi(settings=real_oracle_config)
 
 
 @pytest.fixture
-def connected_oracle_api(
-    oracle_api: FlextDbOracleApi,
-) -> Generator[FlextDbOracleApi]:
+def connected_oracle_api(oracle_api: FlextDbOracleApi) -> Generator[FlextDbOracleApi]:
     """Return a connected Oracle API or fail with the real error."""
     connect_result = oracle_api.connect()
     if connect_result.failure:

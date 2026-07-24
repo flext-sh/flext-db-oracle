@@ -35,11 +35,7 @@ class TestsFlextDbOracleFields:
     def test_settings_model_dump_round_trips_overrides(self) -> None:
         """Public model_dump reflects caller-provided namespace values."""
         settings = FlextDbOracleSettings(
-            DbOracle={
-                "host": "db.example.com",
-                "port": 1600,
-                "username": "app_user",
-            },
+            DbOracle={"host": "db.example.com", "port": 1600, "username": "app_user"}
         )
 
         dumped = settings.model_dump()
@@ -123,9 +119,7 @@ class TestsFlextDbOracleFields:
     def test_column_metadata_respects_non_nullable_flag(self) -> None:
         """Explicit nullable=False is preserved on the public field."""
         column = m.DbOracle.ColumnMetadata(
-            name="ID",
-            data_type="NUMBER",
-            nullable=False,
+            name="ID", data_type="NUMBER", nullable=False
         )
 
         tm.that(column.nullable, eq=False)

@@ -91,21 +91,12 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @classmethod
     def format_query_result(
-        cls,
-        result: t.JsonPayload,
-        format_type: str = "table",
+        cls, result: t.JsonPayload, format_type: str = "table"
     ) -> p.Result[str]:
         """Format a query result to string or JSON."""
         if format_type == "json":
             json_payload: t.JsonValue = u.normalize_to_json_value(result)
-            return r[str].ok(
-                t
-                .json_value_adapter()
-                .dump_json(
-                    json_payload,
-                )
-                .decode(),
-            )
+            return r[str].ok(t.json_value_adapter().dump_json(json_payload).decode())
         return r[str].ok(str(result))
 
     @staticmethod
@@ -116,20 +107,11 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @classmethod
     def generate_query_hash(
-        cls,
-        query: str,
-        params: t.JsonMapping | None,
+        cls, query: str, params: t.JsonMapping | None
     ) -> p.Result[str]:
         """Generate a SHA-256 hash for a query and its parameters."""
         sorted_params = dict(sorted((params or {}).items()))
-        serialized = (
-            t
-            .json_mapping_adapter()
-            .dump_json(
-                sorted_params,
-            )
-            .decode()
-        )
+        serialized = t.json_mapping_adapter().dump_json(sorted_params).decode()
         payload = f"{query}|{serialized}".encode()
         return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
 
@@ -185,17 +167,14 @@ class FlextDbOracleUtilitiesDbOracle:
     def _normalize_singer_type(cls, value: str | t.StrSequence) -> str:
         """Normalize Singer type input to a single string value."""
         try:
-            values = t.str_sequence_adapter().validate_python(
-                value,
-            )
+            values = t.str_sequence_adapter().validate_python(value)
         except c.ValidationError:
             return str(value)
         return values[0] if values else "string"
 
     @staticmethod
     def _sqlalchemy_create_engine(
-        url: str,
-        connect_timeout: int | None = None,
+        url: str, connect_timeout: int | None = None
     ) -> SAEngine:
         """Create SQLAlchemy engine with optional connection timeout."""
         connect_args: t.MutableMappingKV[str, int] = {}
@@ -241,7 +220,5 @@ class FlextDbOracleUtilitiesDbOracle:
         parameters: m.ConfigMap | None = None,
     ) -> CursorResult[tuple[t.JsonValue, ...]]:
         """Execute statement on SQL connection."""
-        normalized_params = cls.normalize_params(
-            parameters,
-        )
+        normalized_params = cls.normalize_params(parameters)
         return connection.execute(statement, normalized_params.root)

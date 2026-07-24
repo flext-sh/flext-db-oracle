@@ -40,9 +40,7 @@ class TestsFlextDbOracleConftestConstants:
         ],
     )
     def test_oracle_container_config_exposes_connection_contract(
-        self,
-        key: str,
-        expected: str | int,
+        self, key: str, expected: str | int
     ) -> None:
         # Public contract: oracle container advertises its connection metadata.
         config = c.Tests.SHARED_CONTAINERS[c.Tests.ORACLE_CONTAINER]

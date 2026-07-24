@@ -36,10 +36,10 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
     _db_config: FlextDbOracleSettings | None = u.PrivateAttr()
     _engine: SAEngine | None = u.PrivateAttr(default_factory=lambda: None)
     _operations: MutableSequence[m.DbOracle.OperationRecord] = u.PrivateAttr(
-        default_factory=list[m.DbOracle.OperationRecord],
+        default_factory=list[m.DbOracle.OperationRecord]
     )
     _plugins: MutableMapping[str, t.JsonPayload] = u.PrivateAttr(
-        default_factory=dict[str, t.JsonPayload],
+        default_factory=dict[str, t.JsonPayload]
     )
     _metrics: t.MutableJsonMapping = u.PrivateAttr(default_factory=dict)
 
@@ -82,9 +82,7 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
         return r[SAEngine].ok(engine)
 
     def execute_query(
-        self,
-        sql: str,
-        params: m.ConfigMap | None = None,
+        self, sql: str, params: m.ConfigMap | None = None
     ) -> p.Result[Sequence[m.Dict]]:
         """Execute a SQL query in composed service facades."""
         del sql, params

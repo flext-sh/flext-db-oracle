@@ -64,7 +64,7 @@ class TestsFlextDbOracleSettings:
                 "username": "appuser",
                 "service_name": "PRODSVC",
                 "password": "apppass",
-            },
+            }
         )
 
         tm.that(settings.DbOracle.host, eq="db.internal")
@@ -97,7 +97,7 @@ class TestsFlextDbOracleSettings:
             DbOracle={
                 "ssl_cert_file": "/etc/oracle/cert.pem",
                 "ssl_server_cert_dn": "CN=oracle,O=flext",
-            },
+            }
         )
 
         tm.that(settings.DbOracle.ssl_cert_file, eq="/etc/oracle/cert.pem")
@@ -114,7 +114,7 @@ class TestsFlextDbOracleSettings:
         """fetch_global with overrides returns a clone; the singleton is untouched."""
         singleton = FlextDbOracleSettings.fetch_global()
         clone = FlextDbOracleSettings.fetch_global(
-            overrides={"DbOracle": {"host": "clone-host"}},
+            overrides={"DbOracle": {"host": "clone-host"}}
         )
 
         assert clone is not singleton
@@ -124,7 +124,7 @@ class TestsFlextDbOracleSettings:
     def test_clone_preserves_canonical_type(self) -> None:
         """The namespaced clone returns the canonical settings type."""
         clone = FlextDbOracleSettings.fetch_global().clone(
-            DbOracle={"host": "test", "port": 9000},
+            DbOracle={"host": "test", "port": 9000}
         )
 
         tm.that(clone, is_=FlextDbOracleSettings)

@@ -47,9 +47,7 @@ class TestsFlextDbOracleConstants:
         ],
     )
     def test_flat_default_constant_exposes_expected_value(
-        self,
-        name: str,
-        expected: str | int,
+        self, name: str, expected: str | int
     ) -> None:
         """Each flat default constant resolves to its documented value."""
         tm.that(getattr(c.DbOracle, name), eq=expected)
@@ -95,9 +93,7 @@ class TestsFlextDbOracleConstants:
         ],
     )
     def test_query_and_performance_constant_value(
-        self,
-        name: str,
-        expected: str | int,
+        self, name: str, expected: str | int
     ) -> None:
         """Query/performance constants resolve to their documented values."""
         tm.that(getattr(c.DbOracle, name), eq=expected)
@@ -111,11 +107,7 @@ class TestsFlextDbOracleConstants:
             ("CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS", 2.0),
         ],
     )
-    def test_float_threshold_constant_value(
-        self,
-        name: str,
-        expected: float,
-    ) -> None:
+    def test_float_threshold_constant_value(self, name: str, expected: float) -> None:
         """Float threshold constants resolve within floating-point tolerance."""
         tm.that(abs(getattr(c.DbOracle, name) - expected), lt=1e-9)
 
@@ -176,9 +168,7 @@ class TestsFlextDbOracleConstants:
         ],
     )
     def test_singer_type_map_translation(
-        self,
-        singer_type: str,
-        oracle_type: str,
+        self, singer_type: str, oracle_type: str
     ) -> None:
         """SINGER_TYPE_MAP translates each Singer type to its Oracle type."""
         tm.that(c.DbOracle.SINGER_TYPE_MAP[singer_type], eq=oracle_type)
@@ -209,9 +199,7 @@ class TestsFlextDbOracleConstants:
         ],
     )
     def test_validation_limit_or_pattern_value(
-        self,
-        name: str,
-        expected: str | int,
+        self, name: str, expected: str | int
     ) -> None:
         """Validation limits and regex patterns resolve to documented values."""
         tm.that(getattr(c.DbOracle, name), eq=expected)
@@ -254,9 +242,7 @@ class TestsFlextDbOracleConstants:
         ],
     )
     def test_error_message_contains_expected_fragment(
-        self,
-        name: str,
-        fragment: str,
+        self, name: str, fragment: str
     ) -> None:
         """Templated error messages carry their identifying fragment."""
         tm.that(getattr(c.DbOracle, name), has=fragment)
@@ -315,10 +301,7 @@ class TestsFlextDbOracleConstants:
         ],
     )
     def test_env_mapping_resolves_both_prefixes_to_same_field(
-        self,
-        field: str,
-        oracle_key: str,
-        target_key: str,
+        self, field: str, oracle_key: str, target_key: str
     ) -> None:
         """ENV_MAPPING routes both env prefixes onto the same settings field."""
         mapping = c.DbOracle.ENV_MAPPING
@@ -330,10 +313,7 @@ class TestsFlextDbOracleConstants:
     def test_connection_type_literal_matches_documented_order(self) -> None:
         """CONNECTION_TYPE_LITERAL exposes the ordered connection-type tuple."""
         tm.that(c.DbOracle.CONNECTION_TYPE_LITERAL, is_=tuple)
-        tm.that(
-            c.DbOracle.CONNECTION_TYPE_LITERAL,
-            eq=("service_name", "sid", "tns"),
-        )
+        tm.that(c.DbOracle.CONNECTION_TYPE_LITERAL, eq=("service_name", "sid", "tns"))
 
     @pytest.mark.parametrize(
         ("literal_name", "valid_name", "member"),
@@ -345,10 +325,7 @@ class TestsFlextDbOracleConstants:
         ],
     )
     def test_valid_set_is_the_frozenset_of_its_literal(
-        self,
-        literal_name: str,
-        valid_name: str,
-        member: str,
+        self, literal_name: str, valid_name: str, member: str
     ) -> None:
         """Each VALID_* frozenset equals the membership of its ordered literal."""
         literal = getattr(c.DbOracle, literal_name)
@@ -366,8 +343,7 @@ class TestsFlextDbOracleConstants:
     # ---- enums ----------------------------------------------------------
 
     @pytest.mark.parametrize(
-        "enum_name",
-        ["ConnectionType", "QueryType", "DataType", "IsolationLevel"],
+        "enum_name", ["ConnectionType", "QueryType", "DataType", "IsolationLevel"]
     )
     def test_enum_is_str_enum(self, enum_name: str) -> None:
         """Each exposed Oracle enum is a StrEnum subclass."""
@@ -392,9 +368,7 @@ class TestsFlextDbOracleConstants:
         ],
     )
     def test_collapse_whitespace_reduces_runs_to_single_space(
-        self,
-        raw: str,
-        expected: str,
+        self, raw: str, expected: str
     ) -> None:
         """collapse_whitespace replaces any whitespace run with one space."""
         tm.that(c.DbOracle.collapse_whitespace(raw), eq=expected)
@@ -409,21 +383,18 @@ class TestsFlextDbOracleConstants:
 
     @pytest.mark.parametrize("enabled", [True, False])
     def test_enable_dispatcher_flag_round_trips_through_settings(
-        self,
-        enabled: bool,
+        self, enabled: bool
     ) -> None:
         """The dispatcher feature flag is readable via settings public state."""
-        settings = FlextDbOracleSettings.model_validate(
-            {"DbOracle": {"enable_dispatcher": enabled}},
-        )
+        settings = FlextDbOracleSettings.model_validate({
+            "DbOracle": {"enable_dispatcher": enabled}
+        })
         tm.that(settings.DbOracle.enable_dispatcher, eq=enabled)
 
     # ---- real Oracle integration (public API, fail-loud when unavailable) -
 
     def test_oracle_constants_real_connection_validation(
-        self,
-        connected_oracle_api: FlextDbOracleApi,
-        oracle_available: bool,
+        self, connected_oracle_api: FlextDbOracleApi, oracle_available: bool
     ) -> None:
         """TEST_QUERY and DUAL_TABLE drive a real Oracle round-trip."""
         tm.that(oracle_available, eq=True)
@@ -434,9 +405,7 @@ class TestsFlextDbOracleConstants:
         tm.ok(connected_oracle_api.query(dual_query))
 
     def test_oracle_constants_default_values_real_validation(
-        self,
-        connected_oracle_api: FlextDbOracleApi,
-        oracle_available: bool,
+        self, connected_oracle_api: FlextDbOracleApi, oracle_available: bool
     ) -> None:
         """Default connection constants are valid against a real Oracle."""
         _ = connected_oracle_api
@@ -449,9 +418,7 @@ class TestsFlextDbOracleConstants:
         tm.that(in_range, eq=True)
 
     def test_oracle_data_types_real_validation(
-        self,
-        connected_oracle_api: FlextDbOracleApi,
-        oracle_available: bool,
+        self, connected_oracle_api: FlextDbOracleApi, oracle_available: bool
     ) -> None:
         """Data-type constants form a DDL statement a real Oracle accepts."""
         tm.that(oracle_available, eq=True)
@@ -471,9 +438,7 @@ class TestsFlextDbOracleConstants:
         tm.that(accepted, eq=True)
 
     def test_oracle_validation_constants_real_usage(
-        self,
-        connected_oracle_api: FlextDbOracleApi,
-        oracle_available: bool,
+        self, connected_oracle_api: FlextDbOracleApi, oracle_available: bool
     ) -> None:
         """Identifier limits produce an escapable identifier on real Oracle."""
         _ = connected_oracle_api
@@ -486,9 +451,7 @@ class TestsFlextDbOracleConstants:
         tm.that(c.DbOracle.MAX_VARCHAR_LENGTH, eq=4000)
 
     def test_oracle_performance_constants_real_timing(
-        self,
-        connected_oracle_api: FlextDbOracleApi,
-        oracle_available: bool,
+        self, connected_oracle_api: FlextDbOracleApi, oracle_available: bool
     ) -> None:
         """Query timing is classified by the documented ms thresholds."""
         tm.that(oracle_available, eq=True)
@@ -504,9 +467,7 @@ class TestsFlextDbOracleConstants:
             tm.that(execution_ms, lt=2000)
 
     def test_oracle_reserved_words_real_validation(
-        self,
-        connected_oracle_api: FlextDbOracleApi,
-        oracle_available: bool,
+        self, connected_oracle_api: FlextDbOracleApi, oracle_available: bool
     ) -> None:
         """Reserved words are rejected by the public identifier validator."""
         _ = connected_oracle_api
