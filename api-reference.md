@@ -163,7 +163,13 @@ result = api.fetch_health_status()
 
 All methods return r for type-safe error handling.
 
-```python
+```python notest
+from __future__ import annotations
+
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+
+settings = FlextDbOracleSettings(host="localhost", port=1521, service_name="XEPDB1")
+api = FlextDbOracleApi(settings)
 result = api.query("SELECT 1 FROM DUAL")
 if result.success:
     data = result.value
