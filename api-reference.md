@@ -19,7 +19,9 @@ Oracle Database integration API for FLEXT ecosystem - version 0.9.9.
 ## Core Imports
 
 ```python
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels, OracleConfig
+from __future__ import annotations
+
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 ```
 
 ## FlextDbOracleApi
@@ -28,52 +30,80 @@ Oracle database interface providing 36 methods for connection management, query 
 
 ### Connection Methods
 
-```python
+```python notest
+from __future__ import annotations
+
+from typing import Self
+from flext_core import p
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+
+settings = FlextDbOracleSettings(host="localhost", port=1521, service_name="XEPDB1")
 api = FlextDbOracleApi(settings)
 
-# Test connection
-result = api.test_connection() -> p.Result[bool]
+# Test connection returns p.Result[bool]
+result = api.test_connection()
 
-# Connect to database
-result = api.connect() -> p.Result[Self]
+# Connect to database returns p.Result[FlextDbOracleApi]
+result = api.connect()
 
-# Disconnect from database
-result = api.disconnect() -> p.Result[bool]
+# Disconnect from database returns p.Result[bool]
+result = api.disconnect()
 
-# Check connection status
-status = api.is_connected() -> bool
+# Check connection status returns bool
+status = api.is_connected()
 ```
 
 ### Query Methods
 
-```python
+```python notest
+from __future__ import annotations
+
+from typing import Sequence
+from flext_core import m, p
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+
+settings = FlextDbOracleSettings(host="localhost", port=1521, service_name="XEPDB1")
+api = FlextDbOracleApi(settings)
+
+sql = "SELECT 1 FROM DUAL"
+parameters = None
+parameters_list = []
+
 # Execute SELECT queries
-result = api.query(sql, parameters=None) -> p.Result[Sequence[m.Dict]]
+result = api.query(sql, parameters=parameters)
 
 # Execute single row SELECT
-result = api.query_one(sql, parameters=None) -> p.Result[dict | None]
+result = api.query_one(sql, parameters=parameters)
 
 # Execute INSERT/UPDATE/DELETE
-result = api.execute(sql, parameters=None) -> p.Result[int]
+result = api.execute(sql, parameters=parameters)
 
 # Execute multiple statements
-result = api.execute_many(sql, parameters_list) -> p.Result[int]
+result = api.execute_many(sql, parameters_list)
 ```
 
 ### Schema Methods
 
-```python
+```python notest
+from __future__ import annotations
+
+from flext_core import p
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+
+settings = FlextDbOracleSettings(host="localhost", port=1521, service_name="XEPDB1")
+api = FlextDbOracleApi(settings)
+
 # Get available schemas
-result = api.get_schemas() -> p.Result[t.StringList]
+result = api.fetch_schemas()
 
 # Get tables in schema
-result = api.get_tables(schema=None) -> p.Result[Sequence[m.Dict]]
+result = api.fetch_tables(schema=None)
 
 # Get column information
-result = api.get_columns(table, schema=None) -> p.Result[Sequence[m.Dict]]
+result = api.fetch_columns(table="DUAL", schema=None)
 
 # Get table metadata
-result = api.get_table_metadata(table, schema=None) -> p.Result[m.Dict]
+result = api.fetch_table_metadata(table="DUAL", schema=None)
 ```
 
 ### Configuration Methods
