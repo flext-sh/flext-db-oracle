@@ -174,10 +174,14 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         try:
             env_settings = env_settings_cls()
         except Exception as exc:
-            return r[Self].fail(f"Invalid settings: {exc}")
+            fail_result: p.Result[Self] = r.fail(f"Invalid settings: {exc}")
+            return fail_result
 
         if not env_settings.DbOracle.password:
-            return r[Self].fail("password is required for database connection")
+            password_result: p.Result[Self] = r.fail(
+                "password is required for database connection"
+            )
+            return password_result
 
         return cls._build_api_result(env_settings)
 
