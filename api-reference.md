@@ -42,7 +42,7 @@ settings = FlextDbOracleSettings(
         "service_name": "XEPDB1",
         "username": "system",
         "password": "Oracle123",
-    },
+    }
 )
 api = FlextDbOracleApi(settings)
 
@@ -104,7 +104,7 @@ settings = FlextDbOracleSettings(
         "service_name": "XEPDB1",
         "username": "system",
         "password": "Oracle123",
-    },
+    }
 )
 api = FlextDbOracleApi(settings)
 

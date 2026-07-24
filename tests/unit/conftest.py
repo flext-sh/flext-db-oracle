@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import os
 import socket
 from typing import TYPE_CHECKING
 
@@ -16,6 +17,25 @@ if TYPE_CHECKING:
 
 # Prevent unit tests from hanging on network failures.
 socket.setdefaulttimeout(2)
+
+
+@pytest.fixture(autouse=True)
+def _isolate_oracle_env_vars() -> Generator[None]:
+    """Remove Oracle env vars during unit tests so defaults are observable."""
+    prefixes = ("ORACLE_", "FLEXT_TARGET_ORACLE_")
+    saved: dict[str, str | None] = {}
+    for key in list(os.environ):
+        if key.startswith(prefixes):
+            saved[key] = os.environ[key]
+            del os.environ[key]
+    try:
+        yield
+    finally:
+        for key, value in saved.items():
+            if value is not None:
+                os.environ[key] = value
+            elif key in os.environ:
+                del os.environ[key]
 
 
 @pytest.fixture
