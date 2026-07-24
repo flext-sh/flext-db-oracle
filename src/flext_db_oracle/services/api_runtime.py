@@ -6,6 +6,8 @@ from collections.abc import MutableSequence, Sequence
 from typing import TYPE_CHECKING, Self, override
 from urllib.parse import parse_qs, urlparse
 
+from pydantic_settings import SettingsConfigDict
+
 from flext_db_oracle import (
     FlextDbOracleDispatcher,
     FlextDbOracleServiceBase,
@@ -154,18 +156,30 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
 
     @classmethod
     def from_env(cls, prefix: str = "ORACLE_") -> p.Result[Self]:
-        """Create API instance from the resolved settings singleton.
+        """Create API instance from environment variables with the given prefix.
 
-        The settings contract reads ``ORACLE_DBORACLE__*`` env vars via
-        ``pydantic-settings`` at construction; the ``prefix`` argument is kept
-        for signature compatibility and is not applied (the singleton uses the
-        fixed ``ORACLE_`` prefix).
+        Reads ``<prefix>DBORACLE__*`` env vars via pydantic-settings. When the
+        requested prefix yields no Oracle password, the result fails closed with
+        a clear message.
         """
-        # NOTE (multi-agent): ADR-005 singleton discipline — resolve the live
-        # singleton via fetch_global() instead of the import-time module object,
-        # which goes stale after tests reset the singleton slot.
-        _ = prefix
-        return cls._build_api_result(FlextDbOracleSettings.fetch_global())
+        env_settings_cls = type(
+            "_FlextDbOracleEnvSettings",
+            (FlextDbOracleSettings,),
+            {
+                "model_config": SettingsConfigDict(
+                    env_prefix=prefix, env_nested_delimiter="__", extra="ignore"
+                )
+            },
+        )
+        try:
+            env_settings = env_settings_cls()
+        except Exception as exc:
+            return r[Self].fail(f"Invalid settings: {exc}")
+
+        if not env_settings.DbOracle.password:
+            return r[Self].fail("password is required for database connection")
+
+        return cls._build_api_result(env_settings)
 
     @classmethod
     def from_url(cls, url: str) -> p.Result[Self]:
