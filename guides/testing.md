@@ -75,6 +75,8 @@ tests/
 Test individual functions and classes in isolation:
 
 ```python
+from __future__ import annotations
+
 import pytest
 from flext_ldif import ldif
 
@@ -107,6 +109,8 @@ objectClass: inetOrgPerson"""
 Test component interactions and workflows:
 
 ```python
+from __future__ import annotations
+
 import pytest
 from flext_core import FlextContainer
 from flext_ldif import FlextLdifSettings, ldif

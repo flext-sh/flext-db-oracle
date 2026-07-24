@@ -159,7 +159,7 @@ settings = FlextApiSettings(
 ### flext-auth Configuration
 
 ```python
-from flext_auth import FlextAuthSettings
+from flext_auth import FlextAuthSettings, c
 
 settings = FlextAuthSettings(
     secret_key="your-secret-key",
@@ -228,7 +228,6 @@ except c.ValidationError as e:
 FLEXT supports configuration inheritance for complex setups:
 
 ```python
-from flext_cli import u
 from flext_core import FlextSettings
 
 # Base configuration
@@ -236,7 +235,7 @@ base_config = FlextSettings(log_level="INFO", environment="production")
 
 # Extended configuration
 extended_config = FlextSettings(
-    **base_config.model_dump(),
+    **base_config.model_dump(exclude={"debug"}),
     debug=True,  # Override for development
     custom_setting="value",
 )
@@ -256,15 +255,14 @@ export FLEXT_API_KEY=your_api_key
 
 ```python
 from __future__ import annotations
-from flext_cli import u
-from flext_core import FlextSettings
+from flext_core import FlextSettings, c
 
 
 def main():
-    # Validate configuration at startup
-    settings = FlextSettings()
-
-    if not settings.is_valid():
+    # Validate configuration at startup (FlextSettings validates on construction)
+    try:
+        settings = FlextSettings()
+    except c.ValidationError:
         print("Invalid configuration")
         return 1
 
@@ -276,8 +274,7 @@ def main():
 
 ```python
 from __future__ import annotations
-from flext_cli import u
-from flext_core import FlextSettings
+from flext_core import FlextSettings, u
 
 
 class MyAppConfig(FlextSettings):
@@ -296,6 +293,8 @@ class MyAppConfig(FlextSettings):
 
 ```python
 from __future__ import annotations
+
+from flext_core import m, u
 
 
 class FlextLdifSettings(m.BaseModel):
