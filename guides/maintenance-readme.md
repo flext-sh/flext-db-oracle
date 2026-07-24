@@ -395,7 +395,10 @@ make docs DOCS_PHASE=audit | grep "broken_link\|forbidden_term"
 
 ### Adding New Validation Rules
 
-```python notest
+```python
+from __future__ import annotations
+
+
 # Extend DocumentationAuditor class
 def _validate_custom_rule(self, content: str) -> List[Dict[str, t.JsonValue]]:
     """Implement custom validation logic."""
@@ -415,7 +418,7 @@ def _validate_custom_rule(self, content: str) -> List[Dict[str, t.JsonValue]]:
 
 ### Custom Quality Metrics
 
-```python notest
+```python
 # Add to maintenance_config.yaml
 custom_rules:
   project_specific:
@@ -432,7 +435,10 @@ custom_rules:
 
 ### Extending Reports
 
-```python notest
+```python
+from __future__ import annotations
+
+
 # Add custom report sections
 def generate_custom_report_section(self, results: List[AuditResult]) -> str:
     """Generate custom report content."""
@@ -534,7 +540,7 @@ PYTHONPATH=src python -m compileall scripts/documentation
 
 ```bash
 # Validate YAML syntax
-python -c "import yaml; u.Cli.print('Valid YAML')" && yaml.safe_load(open('docs/maintenance_config.yaml'))
+python -c "import yaml; print('Valid YAML')" && yaml.safe_load(open('docs/maintenance_config.yaml'))
 
 # Check file permissions
 ls -la docs/maintenance_config.yaml

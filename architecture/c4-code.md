@@ -208,7 +208,8 @@ __all__: list[str] = [
 
 **Key Methods**:
 
-```python notest
+```python
+from __future__ import annotations
 def connect(self, settings: OracleConfig) -> p.Result[Connection]
 def execute_query(self, sql: str, params: t.JsonMapping = None) -> p.Result[QueryResult]
 def get_schema_info(self, schema: str) -> p.Result[SchemaInfo]

@@ -221,7 +221,7 @@ Presentation Layer → Application Layer → Domain Layer ← Infrastructure Lay
 
 #### Error Handling Flow
 
-```python notest
+```python
 # Railway Pattern Implementation
 result = (
     validate_input(data)

@@ -149,7 +149,8 @@ graph TB
 
 **Key Interfaces**:
 
-```python notest
+```python
+from __future__ import annotations
 class FlextDbOracleApi(s):
     def connect(self, settings: OracleConfig) -> p.Result[Connection]
     def execute_query(self, sql: str, params: t.JsonMapping = None) -> p.Result[QueryResult]
@@ -202,7 +203,10 @@ class FlextDbOracleApi(s):
 
 **Key Models**:
 
-```python notest
+```python
+from __future__ import annotations
+
+
 class OracleConfig(m.BaseModel):
     host: str
     port: int = 1521

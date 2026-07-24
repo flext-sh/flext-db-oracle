@@ -129,7 +129,10 @@ ______________________________________________________________________
 
 #### Test r Operations
 
-```python notest
+```python
+from __future__ import annotations
+
+
 def test_flext_result_success_path(flext_db_oracle_api):
     """Test successful operation returns r.ok()."""
     result = flext_db_oracle_api.connect(valid_config)
@@ -149,7 +152,10 @@ def test_flext_result_error_path(flext_db_oracle_api):
 
 #### Comprehensive Test Fixtures
 
-```python notest
+```python
+from __future__ import annotations
+
+
 @pytest.fixture(scope="session")
 def oracle_container():
     """Provides Oracle XE 21c container for integration tests."""
@@ -174,7 +180,10 @@ def flext_db_oracle_api(oracle_config) -> FlextDbOracleApi:
 
 #### Test Multiple Scenarios
 
-```python notest
+```python
+from __future__ import annotations
+
+
 @pytest.mark.parametrize(
     "sql_query,expected_result",
     [
@@ -194,7 +203,10 @@ def test_sql_query_validation(flext_db_oracle_api, sql_query, expected_result):
 
 #### Minimal Mocking Approach
 
-```python notest
+```python
+from __future__ import annotations
+
+
 # Prefer real implementations over mocks
 def test_real_connection_pool():
     """Test with actual connection pool (preferred)."""

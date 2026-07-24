@@ -25,7 +25,7 @@ export ORACLE_PASSWORD="Oracle123"
 
 ### Code Configuration
 
-```python notest
+```python
 from flext_db_oracle import FlextDbOracleApi
 from flext_db_oracle import FlextDbOracleModels
 
@@ -57,13 +57,13 @@ api = FlextDbOracleApi(settings)
 
 ## Testing Connection
 
-```python notest
+```python
 # Test connection
 result = api.test_connection()
 if result.success:
-    u.Cli.print("Connected to Oracle")
+    print("Connected to Oracle")
 else:
-    u.Cli.print(f"Connection failed: {result.error}")
+    print(f"Connection failed: {result.error}")
 ```
 
 ## CLI Configuration

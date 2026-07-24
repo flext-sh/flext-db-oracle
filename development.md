@@ -396,7 +396,7 @@ make oracle-connect
 PYTHONPATH=src poetry run python -c "
 from flext_db_oracle import FlextDbOracleSettings
 settings = FlextDbOracleSettings()
-u.Cli.print(f'Host: {settings.oracle_host}:{settings.oracle_port}')
+print(f'Host: {settings.oracle_host}:{settings.oracle_port}')
 "
 ```
 
@@ -436,7 +436,7 @@ u.Cli.print(f'Host: {settings.oracle_host}:{settings.oracle_port}')
 
 ```bash
 # Check what's available in flext-core test utilities
-PYTHONPATH=src python -c "from flext_tests import *; u.Cli.print(dir())"
+PYTHONPATH=src python -c "from flext_tests import *; print(dir())"
 
 # Fix: Update test imports to use correct flext-core utilities
 # Replace: from flext_tests import TestsFlextBuilders
@@ -466,7 +466,7 @@ class ExceptionParams(FlextModels.Entity):
 
 ```bash
 # Check actual constant values
-PYTHONPATH=src python -c "from flext_db_oracle import FlextDbOracleConstants; u.Cli.print(FlextDbOracleConstants.Network.MIN_PORT)"
+PYTHONPATH=src python -c "from flext_db_oracle import FlextDbOracleConstants; print(FlextDbOracleConstants.Network.MIN_PORT)"
 
 # Fix: Either update constants or correct test expectations
 # Option 1: Update constant to match test expectation
@@ -485,7 +485,7 @@ PYTHONPATH=src poetry run pytest tests/unit/test_constants.py -v
 PYTHONPATH=src python -c "import tests.unit.test_api" 2>&1
 
 # Check flext-core compatibility
-PYTHONPATH=src python -c "import flext_core; u.Cli.print(flext_core.__version__)"
+PYTHONPATH=src python -c "import flext_core; print(flext_core.__version__)"
 ```
 
 ______________________________________________________________________

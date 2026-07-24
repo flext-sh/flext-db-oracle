@@ -136,7 +136,8 @@ graph TB
 
 All operations use r for railway-oriented programming:
 
-```python notest
+```python
+from __future__ import annotations
 from flext_cli import u
 from flext_core import FlextSettings
 
@@ -156,7 +157,7 @@ def query_operation() -> p.Result[List[Dict]]:
 
 ### Exception Hierarchy
 
-```python notest
+```python
 FlextDbOracleException (base)
 ├── ConnectionException
 ├── QueryException
@@ -200,7 +201,7 @@ FlextDbOracleException (base)
 
 ### SQLAlchemy Integration
 
-```python notest
+```python
 # Connection string format
 oracle+oracledb://username:password@host:port/service_name
 
@@ -229,7 +230,10 @@ engine = create_engine(
 
 ### Extension Points
 
-```python notest
+```python
+from __future__ import annotations
+
+
 class OraclePlugin(ABC):
     @abstractmethod
     def validate_query(self, sql: str) -> p.Result[str]:

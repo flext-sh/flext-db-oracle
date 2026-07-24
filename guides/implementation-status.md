@@ -212,7 +212,7 @@ ______________________________________________________________________
 
 #### 1. **Railway Pattern Throughout**
 
-```python notest
+```python
 # All operations return r
 result = api.connect(settings)
 if result.success:
