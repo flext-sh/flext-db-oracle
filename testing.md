@@ -130,6 +130,9 @@ ______________________________________________________________________
 #### Test r Operations
 
 ```python
+from __future__ import annotations
+
+
 def test_flext_result_success_path(flext_db_oracle_api):
     """Test successful operation returns r.ok()."""
     result = flext_db_oracle_api.connect(valid_config)
@@ -150,6 +153,8 @@ def test_flext_result_error_path(flext_db_oracle_api):
 #### Comprehensive Test Fixtures
 
 ```python
+from __future__ import annotations
+
 import pytest
 from unittest.mock import MagicMock
 
@@ -179,6 +184,8 @@ def flext_db_oracle_api(oracle_config):
 #### Test Multiple Scenarios
 
 ```python
+from __future__ import annotations
+
 import pytest
 
 
@@ -202,6 +209,8 @@ def test_sql_query_validation(flext_db_oracle_api, sql_query, expected_result):
 #### Minimal Mocking Approach
 
 ```python
+from __future__ import annotations
+
 import pytest
 
 

@@ -75,36 +75,31 @@ tests/
 Test individual functions and classes in isolation:
 
 ```python
-from __future__ import annotations
-
 import pytest
-from flext_cli import u
-from flext_core import FlextSettings
 from flext_ldif import ldif
 
 
 class TestLdifParsing:
     def test_parse_valid_ldif(self):
         """Test parsing valid LDIF content."""
-                content = """dn: cn=test,dc=example,dc=com
+        content = """dn: cn=test,dc=example,dc=com
 cn: test
 objectClass: inetOrgPerson"""
 
-        result = ldif.parse(content)
+        result = ldif.parse_string(content)
 
         assert result.success
-        entries = result.unwrap()
+        entries = result.unwrap().entries
         assert len(entries) == 1
         assert entries[0].dn == "cn=test,dc=example,dc=com"
 
     def test_parse_invalid_ldif(self):
         """Test parsing invalid LDIF content."""
-                content = "invalid ldif content"
+        content = "invalid ldif content"
 
-        result = ldif.parse(content)
+        result = ldif.parse_string(content)
 
-        assert result.failure
-        assert "parsing" in str(result.failure()).lower()
+        assert not result.unwrap().entries
 ```
 
 ### Integration Tests
@@ -112,11 +107,9 @@ objectClass: inetOrgPerson"""
 Test component interactions and workflows:
 
 ```python
-from __future__ import annotations
 import pytest
-from flext_cli import u
-from flext_core import FlextSettings
-from flext_ldif import ldif, FlextLdifSettings
+from flext_core import FlextContainer
+from flext_ldif import FlextLdifSettings, ldif
 
 
 class TestLdifIntegration:
@@ -126,16 +119,16 @@ class TestLdifIntegration:
 
         # Register LDIF service
         settings = FlextLdifSettings(batch_size=100)
-        ldif = ldif(settings=settings)
-        _ = container.bind("ldif", ldif)
+        ldif_service = ldif(settings=settings)
+        _ = container.bind("ldif", ldif_service)
 
         # Retrieve and use service
         ldif_result = container.resolve("ldif")
         assert ldif_result.success
 
-        ldif_service = ldif_result.unwrap()
+        resolved_service = ldif_result.unwrap()
         # Test LDIF operations
-        result = ldif_service.parse("dn: test")
+        result = resolved_service.parse_string("dn: test")
         assert result.success
 ```
 
@@ -144,10 +137,9 @@ class TestLdifIntegration:
 Test complete workflows and user scenarios:
 
 ```python
-from __future__ import annotations
 import pytest
 from pathlib import Path
-from flext_ldif import ldif, FlextLdifSettings
+from flext_ldif import FlextLdifSettings, ldif
 
 
 class TestLdifMigration:
@@ -173,8 +165,8 @@ objectClass: inetOrgPerson"""
             source_server="oid", target_server="oud", preserve_oid_modifiers=True
         )
 
-        ldif = ldif(settings=settings)
-        result = ldif.migrate(input_dir, output_dir, "oid", "oud")
+        ldif_service = ldif(settings=settings)
+        result = ldif_service.migrate(input_dir, output_dir, "oid", "oud")
 
         # Verify migration
         assert result.success
@@ -188,7 +180,6 @@ objectClass: inetOrgPerson"""
 FLEXT uses pytest markers to categorize tests:
 
 ```python
-from __future__ import annotations
 import pytest
 
 

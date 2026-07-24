@@ -424,14 +424,16 @@ make docs DOCS_PHASE=audit | grep "broken_link\|forbidden_term"
 
 ### Adding New Validation Rules
 
-```text
+```python
 from __future__ import annotations
+
+from flext_core import t
 
 
 # Extend DocumentationAuditor class
-def _validate_custom_rule(self, content: str) -> List[Dict[str, t.JsonValue]]:
+def _validate_custom_rule(self, content: str) -> list[dict[str, t.JsonValue]]:
     """Implement custom validation logic."""
-    issues = []
+    issues: list[dict[str, t.JsonValue]] = []
 
     # Your custom validation logic here
     if "deprecated_feature" in content:
