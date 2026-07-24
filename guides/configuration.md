@@ -7,6 +7,7 @@
 > Project profile: `flext-db-oracle`
 
 <!-- TOC START -->
+
 - [Overview](#overview)
 - [Configuration Sources](#configuration-sources)
 - [Basic Configuration](#basic-configuration)
@@ -33,14 +34,14 @@
 - [Examples](#examples)
   - [Complete Configuration Example](#complete-configuration-example)
 - [Reference](#reference)
+
 <!-- TOC END -->
 
 This guide covers how to configure FLEXT for your specific environment and requirements.
 
 ## Overview
 
-FLEXT uses a hierarchical configuration system that supports environment variables, configuration files,
-and programmatic configuration. All configuration is validated using Pydantic v2 models for type safety and validation.
+FLEXT uses a hierarchical configuration system that supports environment variables, configuration files, and programmatic configuration. All configuration is validated using Pydantic v2 models for type safety and validation.
 
 ## Configuration Sources
 
@@ -104,7 +105,6 @@ api:
 Configure FLEXT programmatically in your code:
 
 ```python
-from flext_cli import u
 from flext_core import FlextSettings
 from flext_ldif import FlextLdifSettings
 
@@ -212,12 +212,11 @@ api:
 All configuration is validated using Pydantic v2 models:
 
 ```python
-from flext_cli import u
-from flext_core import FlextSettings
+from flext_core import FlextSettings, c
 
 try:
     settings = FlextSettings(
-        log_level="INVALID_LEVEL"  # This will raise ValidationError
+        log_level="INVALID_LEVEL"  # Pydantic will raise ValidationError for invalid values
     )
 except c.ValidationError as e:
     print(f"Configuration error: {e}")

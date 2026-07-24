@@ -141,6 +141,8 @@ class TestLdifIntegration:
 Test complete workflows and user scenarios:
 
 ```python
+from __future__ import annotations
+
 import pytest
 from pathlib import Path
 from flext_ldif import FlextLdifSettings, ldif
@@ -184,6 +186,8 @@ objectClass: inetOrgPerson"""
 FLEXT uses pytest markers to categorize tests:
 
 ```python
+from __future__ import annotations
+
 import pytest
 
 
@@ -257,6 +261,8 @@ pytest -n 4
 ### Pytest Fixtures
 
 ```python
+from __future__ import annotations
+
 import pytest
 from pathlib import Path
 from flext_ldif import FlextLdifSettings, ldif
@@ -298,6 +304,8 @@ def temp_directories(tmp_path):
 ### Using Fixtures
 
 ```python
+from __future__ import annotations
+
 
 def test_ldif_parsing(ldif_service, sample_ldif_content):
     """Test LDIF parsing with fixtures."""
@@ -323,6 +331,8 @@ def test_file_migration(ldif_service, temp_directories):
 ### Unit Test Mocking
 
 ```python
+from __future__ import annotations
+
 from unittest.mock import Mock, patch
 from flext_core import r
 
@@ -349,6 +359,8 @@ def test_with_mocked_dependency():
 ### Integration Test Stubbing
 
 ```python
+from __future__ import annotations
+
 from unittest.mock import Mock
 from flext_core import FlextContainer, r
 
@@ -379,6 +391,8 @@ def test_with_stubbed_service():
 ### Load Testing
 
 ```python
+from __future__ import annotations
+
 import pytest
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -412,6 +426,8 @@ def test_concurrent_processing():
 ### Memory Testing
 
 ```python
+from __future__ import annotations
+
 import pytest
 import psutil
 import os
@@ -521,6 +537,9 @@ jobs:
 ### 1. Test Naming
 
 ```python
+from __future__ import annotations
+
+
 # ✅ GOOD - Descriptive test names
 def test_parse_valid_ldif_returns_success():
     """Test that parsing valid LDIF returns success result."""
@@ -544,6 +563,9 @@ def test_ldif():
 ### 2. Test Organization
 
 ```python
+from __future__ import annotations
+
+
 class TestLdifParsing:
     """Test LDIF parsing functionality."""
 
@@ -571,6 +593,8 @@ class TestLdifMigration:
 ### 3. Assertion Quality
 
 ```python
+from __future__ import annotations
+
 from flext_ldif import ldif
 
 
