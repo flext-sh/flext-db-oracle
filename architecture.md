@@ -212,7 +212,7 @@ FlextDbOracleException (base)
 from sqlalchemy import create_engine
 
 # Connection string format
-connection_string = "oracle+oracledb://username:password@host:port/service_name"
+connection_string = "oracle+oracledb://username:password@localhost:1521/XEPDB1"
 
 # Engine configuration
 engine = create_engine(
@@ -223,6 +223,7 @@ engine = create_engine(
     pool_recycle=3600,
     echo=False,  # Production setting
 )
+print(engine.name)
 ```
 
 ### Pool Configuration
