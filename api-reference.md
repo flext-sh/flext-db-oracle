@@ -30,7 +30,7 @@ Oracle database interface providing 36 methods for connection management, query 
 
 ### Connection Methods
 
-```python notest
+```python
 from __future__ import annotations
 
 from typing import Self
@@ -55,7 +55,7 @@ status = api.is_connected()
 
 ### Query Methods
 
-```python notest
+```python
 from __future__ import annotations
 
 from typing import Sequence
@@ -84,7 +84,7 @@ result = api.execute_many(sql, parameters_list)
 
 ### Schema Methods
 
-```python notest
+```python
 from __future__ import annotations
 
 from flext_core import p
@@ -108,45 +108,55 @@ result = api.fetch_table_metadata(table="DUAL", schema=None)
 
 ### Configuration Methods
 
-```python
+```python notest
+from __future__ import annotations
+
+from flext_core import p
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+
 # Create from environment variables
-result = FlextDbOracleApi.from_env() -> p.Result[FlextDbOracleApi]
+result = FlextDbOracleApi.from_env()
 
 # Create from URL
-result = FlextDbOracleApi.from_url(url) -> p.Result[FlextDbOracleApi]
+result = FlextDbOracleApi.from_url("oracle://user:pass@host:1521/service")
 
 # Get current settings
-settings = api.settings -> OracleConfig
+settings = FlextDbOracleApi.settings
 ```
 
 ## OracleConfig
 
 Configuration for Oracle database connections.
 
-```python
-from flext_db_oracle import FlextDbOracleModels
+```python notest
+from __future__ import annotations
 
-settings = FlextDbOracleModels.OracleConfig(
+from flext_db_oracle import FlextDbOracleSettings
+
+settings = FlextDbOracleSettings(
     host="localhost",
     port=1521,
     service_name="XEPDB1",
-    user="system",
+    username="system",
     password="Oracle123",
 )
 
 # From environment variables
-config_result = FlextDbOracleModels.OracleConfig.from_env()
+config_result = FlextDbOracleSettings.from_env()
 ```
 
 ## CLI Interface
 
 Command-line interface with SimpleNamespace placeholders.
 
-```python
-from flext_db_oracle import FlextDbOracleCliService
+```python notest
+from __future__ import annotations
 
-cli = FlextDbOracleCliService()
-result = cli.execute_health_check()
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+
+settings = FlextDbOracleSettings(host="localhost", port=1521, service_name="XEPDB1")
+api = FlextDbOracleApi(settings)
+result = api.fetch_health_status()
 ```
 
 ## Error Handling
