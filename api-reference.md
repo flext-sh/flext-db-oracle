@@ -63,13 +63,11 @@ from flext_core import m
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 settings = FlextDbOracleSettings(
-    DbOracle={
-        "host": "localhost",
-        "port": 1521,
-        "service_name": "XEPDB1",
-        "username": "system",
-        "password": "Oracle123",
-    },
+    host="localhost",
+    port=1521,
+    service_name="XEPDB1",
+    username="system",
+    password="Oracle123",
 )
 api = FlextDbOracleApi(settings)
 
@@ -100,13 +98,11 @@ from __future__ import annotations
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 settings = FlextDbOracleSettings(
-    DbOracle={
-        "host": "localhost",
-        "port": 1521,
-        "service_name": "XEPDB1",
-        "username": "system",
-        "password": "Oracle123",
-    },
+    host="localhost",
+    port=1521,
+    service_name="XEPDB1",
+    username="system",
+    password="Oracle123",
 )
 api = FlextDbOracleApi(settings)
 
@@ -153,16 +149,14 @@ from __future__ import annotations
 from flext_db_oracle import FlextDbOracleSettings
 
 settings = FlextDbOracleSettings(
-    DbOracle={
-        "host": "localhost",
-        "port": 1521,
-        "service_name": "XEPDB1",
-        "username": "system",
-        "password": "Oracle123",
-    },
+    host="localhost",
+    port=1521,
+    service_name="XEPDB1",
+    username="system",
+    password="Oracle123",
 )
 
-print(settings.host)
+print(settings.DbOracle.host)
 ```
 
 ## CLI Interface
