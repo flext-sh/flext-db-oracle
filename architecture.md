@@ -240,6 +240,8 @@ engine = create_engine(
 ### Extension Points
 
 ```python
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 
 from flext_core import p

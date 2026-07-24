@@ -16,9 +16,18 @@ FLEXT ecosystem integration patterns for flext-db-oracle.
 ## FLEXT Core Integration
 
 ```python
-from flext_cli import u
-from flext_core import FlextSettings
-from flext_db_oracle import FlextDbOracleApi, OracleConfig
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, u
+
+settings = FlextDbOracleSettings.model_validate({
+    "DbOracle": {
+        "host": "localhost",
+        "port": 1521,
+        "service_name": "XEPDB1",
+        "username": "system",
+        "password": "Oracle123",
+    }
+})
+api = FlextDbOracleApi(settings)
 
 # r error handling
 result = api.query("SELECT 1 FROM DUAL")
@@ -53,26 +62,39 @@ Uses FlextDbOracleApi for Oracle SQL transformations.
 Integrates with flext-cli but uses SimpleNamespace placeholders:
 
 ```python
-from flext_db_oracle import FlextDbOracleCliService
+from flext_db_oracle import FlextDbOracleServices, FlextDbOracleSettings
 
-cli = FlextDbOracleCliService()
-result = cli.execute_health_check()
+settings = FlextDbOracleSettings.model_validate({
+    "DbOracle": {
+        "host": "localhost",
+        "port": 1521,
+        "service_name": "XEPDB1",
+        "username": "system",
+        "password": "Oracle123",
+    }
+})
+cli = FlextDbOracleServices(settings)
+result = cli.health_check()
 ```
 
 ## Connection Patterns
 
 ```python
-# Environment-based configuration
-api = FlextDbOracleApi.from_env()
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+
+# Environment-based configuration (returns a Result)
+api_result = FlextDbOracleApi.from_env()
 
 # Direct configuration
-settings = OracleConfig(
-    host="localhost",
-    port=1521,
-    service_name="XEPDB1",
-    user="system",
-    password="Oracle123",
-)
+settings = FlextDbOracleSettings.model_validate({
+    "DbOracle": {
+        "host": "localhost",
+        "port": 1521,
+        "service_name": "XEPDB1",
+        "username": "system",
+        "password": "Oracle123",
+    }
+})
 api = FlextDbOracleApi(settings)
 ```
 

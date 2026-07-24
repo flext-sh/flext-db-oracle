@@ -119,7 +119,7 @@ ______________________________________________________________________
 
 #### Implementation Approach
 
-```python
+```text
 # Current (BROKEN)
 self._formatters = SimpleNamespace(
     table=lambda data: data,  # PLACEHOLDER
@@ -173,7 +173,7 @@ ______________________________________________________________________
 
 #### Current Broken Implementation
 
-```python
+```text
 # client.py:60-74 - PLACEHOLDER CODE
 self._formatters = SimpleNamespace(
     table=lambda data, headers=None: SimpleNamespace(

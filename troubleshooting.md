@@ -53,7 +53,10 @@ Check service_name parameter matches Oracle database configuration.
 CLI formatter and interactions use placeholder implementations:
 
 ```python
+from types import SimpleNamespace
+
 # client.py lines 60-67 contain SimpleNamespace placeholders
+self = SimpleNamespace()
 self.formatter = SimpleNamespace()
 self.interactions = SimpleNamespace()
 ```

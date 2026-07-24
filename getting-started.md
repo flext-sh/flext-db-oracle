@@ -43,16 +43,18 @@ make setup
 ## Quick Connection Test
 
 ```python
-from flext_db_oracle import FlextDbOracleApi, OracleConfig
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 # Configure Oracle connection
-settings = OracleConfig(
-    host="localhost",
-    port=1521,
-    service_name="XEPDB1",
-    username="system",
-    password="Oracle123",
-)
+settings = FlextDbOracleSettings.model_validate({
+    "DbOracle": {
+        "host": "localhost",
+        "port": 1521,
+        "service_name": "XEPDB1",
+        "username": "system",
+        "password": "Oracle123",
+    }
+})
 
 # Create API instance with FLEXT patterns
 api = FlextDbOracleApi(settings)
@@ -70,6 +72,19 @@ else:
 ### Query Execution
 
 ```python
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+
+settings = FlextDbOracleSettings.model_validate({
+    "DbOracle": {
+        "host": "localhost",
+        "port": 1521,
+        "service_name": "XEPDB1",
+        "username": "system",
+        "password": "Oracle123",
+    }
+})
+api = FlextDbOracleApi(settings)
+
 # Execute SELECT query with parameters
 result = api.query(
     "SELECT table_name FROM user_tables WHERE rownum <= :limit", {"limit": 5}
@@ -79,20 +94,33 @@ if result.success:
     tables = result.unwrap()
     print(f"Found {len(tables)} tables")
     for table in tables:
-        print(f"  - {table.get('table_name')}")
+        print(f"  - {table.root.get('table_name')}")
 ```
 
 ### Schema Operations
 
 ```python
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+
+settings = FlextDbOracleSettings.model_validate({
+    "DbOracle": {
+        "host": "localhost",
+        "port": 1521,
+        "service_name": "XEPDB1",
+        "username": "system",
+        "password": "Oracle123",
+    }
+})
+api = FlextDbOracleApi(settings)
+
 # List available schemas
-schemas_result = api.get_schemas()
+schemas_result = api.fetch_schemas()
 if schemas_result.success:
     schemas = schemas_result.unwrap()
     print(f"Available schemas: {schemas}")
 
 # Get tables in a schema
-tables_result = api.get_tables("SYSTEM")
+tables_result = api.fetch_tables("SYSTEM")
 if tables_result.success:
     tables = tables_result.unwrap()
     print(f"SYSTEM schema has {len(tables)} tables")

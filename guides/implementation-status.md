@@ -233,10 +233,25 @@ ______________________________________________________________________
 #### 1. **Railway Pattern Throughout**
 
 ```python
-# All operations return r
-result = api.connect(settings)
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+
+settings = FlextDbOracleSettings(
+    DbOracle={
+        "host": "localhost",
+        "port": 1521,
+        "service_name": "XEPDB1",
+        "username": "system",
+        "password": "",
+    }
+)
+api = FlextDbOracleApi(settings)
+
+# All operations return r[T]
+result = api.connect()
 if result.success:
     connection = result.unwrap()
+else:
+    print(f"Guarded: {result.error}")
 ```
 
 #### 2. **Single Responsibility Modules**
