@@ -210,12 +210,55 @@ __all__: list[str] = [
 
 ```python
 from __future__ import annotations
-def connect(self, settings: OracleConfig) -> p.Result[Connection]
-def execute_query(self, sql: str, params: t.JsonMapping = None) -> p.Result[QueryResult]
-def get_schema_info(self, schema: str) -> p.Result[SchemaInfo]
-def begin_transaction(self) -> p.Result[Transaction]
-def commit_transaction(self) -> p.Result[bool]
-def rollback_transaction(self) -> p.Result[bool]
+
+from flext_core import p, r, t
+
+
+class OracleConfig:
+    pass
+
+
+class Connection:
+    pass
+
+
+class QueryResult:
+    pass
+
+
+class SchemaInfo:
+    pass
+
+
+class Transaction:
+    pass
+
+
+class FlextDbOracleApi:
+    def connect(self, settings: OracleConfig) -> p.Result[Connection]:
+        return r[Connection].ok(Connection())
+
+    def execute_query(
+        self, sql: str, params: t.JsonMapping | None = None
+    ) -> p.Result[QueryResult]:
+        return r[QueryResult].ok(QueryResult())
+
+    def get_schema_info(self, schema: str) -> p.Result[SchemaInfo]:
+        return r[SchemaInfo].ok(SchemaInfo())
+
+    def begin_transaction(self) -> p.Result[Transaction]:
+        return r[Transaction].ok(Transaction())
+
+    def commit_transaction(self) -> p.Result[bool]:
+        return r[bool].ok(True)
+
+    def rollback_transaction(self) -> p.Result[bool]:
+        return r[bool].ok(True)
+
+
+api = FlextDbOracleApi()
+print(api.connect(OracleConfig()))
+print(api.commit_transaction())
 ```
 
 ### Service Layer

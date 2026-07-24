@@ -151,11 +151,20 @@ graph TB
 
 ```python
 from __future__ import annotations
+
+from flext_core import p, s, t
+
+
 class FlextDbOracleApi(s):
-    def connect(self, settings: OracleConfig) -> p.Result[Connection]
-    def execute_query(self, sql: str, params: t.JsonMapping = None) -> p.Result[QueryResult]
-    def get_schema_info(self, schema: str) -> p.Result[SchemaInfo]
-    def close_connection(self) -> p.Result[bool]
+    def connect(self, settings: OracleConfig) -> p.Result[Connection]: ...
+
+    def execute_query(
+        self, sql: str, params: t.JsonMapping | None = None
+    ) -> p.Result[QueryResult]: ...
+
+    def get_schema_info(self, schema: str) -> p.Result[SchemaInfo]: ...
+
+    def close_connection(self) -> p.Result[bool]: ...
 ```
 
 **Dependencies**: Services, Models, Connection, Exceptions, Logger, Container
@@ -206,6 +215,9 @@ class FlextDbOracleApi(s):
 ```python
 from __future__ import annotations
 
+from pydantic import SecretStr
+from flext_core import m, t
+
 
 class OracleConfig(m.BaseModel):
     host: str
@@ -216,10 +228,20 @@ class OracleConfig(m.BaseModel):
 
 
 class QueryResult(m.BaseModel):
-    rows: List[List[t.JsonValue]]
-    columns: t.StringList
+    rows: list[list[t.JsonValue]]
+    columns: list[str]
     row_count: int
     execution_time: float
+
+
+config = OracleConfig(
+    host="localhost", service_name="XEPDB1", username="system", password="Oracle123"
+)
+result = QueryResult(
+    rows=[[1, "test"]], columns=["id", "name"], row_count=1, execution_time=0.05
+)
+print(config.service_name)
+print(result.row_count)
 ```
 
 #### FlextDbOracleServices (Business Logic)

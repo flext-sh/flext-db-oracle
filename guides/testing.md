@@ -623,7 +623,7 @@ objectClass: inetOrgPerson"""
 
 ### 4. Test Independence
 
-```python notest
+```python
 from __future__ import annotations
 
 from flext_ldif import ldif

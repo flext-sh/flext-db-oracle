@@ -223,13 +223,42 @@ Presentation Layer → Application Layer → Domain Layer ← Infrastructure Lay
 
 ```python
 # Railway Pattern Implementation
+from __future__ import annotations
+
+from flext_core import r
+
+
+def validate_input(data: dict[str, str]) -> r[dict[str, str]]:
+    return r[dict[str, str]].ok(data)
+
+
+def process_data(data: dict[str, str]) -> r[dict[str, str]]:
+    return r[dict[str, str]].ok(data)
+
+
+def save_to_database(data: dict[str, str]) -> r[dict[str, str]]:
+    return r[dict[str, str]].ok(data)
+
+
+def format_response(data: dict[str, str]) -> r[str]:
+    return r[str].ok(str(data))
+
+
+def log_and_enrich_error(error: Exception) -> r[str]:
+    return r[str].fail(error)
+
+
+data = {"id": "123"}
+
 result = (
     validate_input(data)
     .flat_map(lambda d: process_data(d))
-    .flat_map(lambda p: save_to_database(p))
-    .map(lambda s: format_response(s))
-    .map_error(lambda e: log_and_enrich_error(e))
+    .flat_map(lambda payload: save_to_database(payload))
+    .map(lambda saved: format_response(saved))
+    .map_error(lambda exc: log_and_enrich_error(exc))
 )
+
+print(result)
 ```
 
 ### Type Safety Mandate

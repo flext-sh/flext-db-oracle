@@ -208,7 +208,7 @@ FlextDbOracleException (base)
 
 ### SQLAlchemy Integration
 
-```python notest
+```python
 from sqlalchemy import create_engine
 
 # Connection string format

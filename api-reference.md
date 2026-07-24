@@ -18,7 +18,7 @@ Oracle Database integration API for FLEXT ecosystem - version 0.9.9.
 
 ## Core Imports
 
-```python notest
+```python
 from __future__ import annotations
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
@@ -30,7 +30,7 @@ Oracle database interface providing 36 methods for connection management, query 
 
 ### Connection Methods
 
-```python notest
+```python
 from __future__ import annotations
 
 from typing import Self
@@ -55,7 +55,7 @@ status = api.is_connected()
 
 ### Query Methods
 
-```python notest
+```python
 from __future__ import annotations
 
 from typing import Sequence
@@ -84,7 +84,7 @@ result = api.execute_many(sql, parameters_list)
 
 ### Schema Methods
 
-```python notest
+```python
 from __future__ import annotations
 
 from flext_core import p
@@ -108,7 +108,7 @@ result = api.fetch_table_metadata(table="DUAL", schema=None)
 
 ### Configuration Methods
 
-```python notest
+```python
 from __future__ import annotations
 
 from flext_core import p
@@ -128,7 +128,7 @@ settings = FlextDbOracleApi.settings
 
 Configuration for Oracle database connections.
 
-```python notest
+```python
 from __future__ import annotations
 
 from flext_db_oracle import FlextDbOracleSettings
@@ -149,7 +149,7 @@ config_result = FlextDbOracleSettings.from_env()
 
 Command-line interface with SimpleNamespace placeholders.
 
-```python notest
+```python
 from __future__ import annotations
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
@@ -163,7 +163,7 @@ result = api.fetch_health_status()
 
 All methods return r for type-safe error handling.
 
-```python notest
+```python
 from __future__ import annotations
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings

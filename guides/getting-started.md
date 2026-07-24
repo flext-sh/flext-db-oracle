@@ -245,10 +245,7 @@ from flext_ldif import FlextLdif, FlextLdifSettings
 
 # Create custom configuration
 settings = FlextLdifSettings(
-    ldif={
-        "ldif_encoding": "utf-8",
-        "ldif_strict_validation": True,
-    },
+    ldif={"ldif_encoding": "utf-8", "ldif_strict_validation": True}
 )
 
 # Use configuration
