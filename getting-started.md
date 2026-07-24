@@ -60,9 +60,9 @@ api = FlextDbOracleApi(settings)
 # Test connection using r pattern
 connection_result = api.test_connection()
 if connection_result.success:
-    print("✅ Connected to Oracle successfully")
+    u.Cli.print("✅ Connected to Oracle successfully")
 else:
-    print(f"❌ Connection failed: {connection_result.error}")
+    u.Cli.print(f"❌ Connection failed: {connection_result.error}")
 ```
 
 ## Basic Operations
@@ -77,9 +77,9 @@ result = api.query(
 
 if result.success:
     tables = result.unwrap()
-    print(f"Found {len(tables)} tables")
+    u.Cli.print(f"Found {len(tables)} tables")
     for table in tables:
-        print(f"  - {table.get('table_name')}")
+        u.Cli.print(f"  - {table.get('table_name')}")
 ```
 
 ### Schema Operations
@@ -89,13 +89,13 @@ if result.success:
 schemas_result = api.get_schemas()
 if schemas_result.success:
     schemas = schemas_result.unwrap()
-    print(f"Available schemas: {schemas}")
+    u.Cli.print(f"Available schemas: {schemas}")
 
 # Get tables in a schema
 tables_result = api.get_tables("SYSTEM")
 if tables_result.success:
     tables = tables_result.unwrap()
-    print(f"SYSTEM schema has {len(tables)} tables")
+    u.Cli.print(f"SYSTEM schema has {len(tables)} tables")
 ```
 
 ## Oracle XE Development Container
@@ -142,7 +142,7 @@ from flext_db_oracle import FlextDbOracleApi
 api_result = FlextDbOracleApi.from_env()
 if api_result.success:
     api = api_result.unwrap()
-    print("API configured from environment")
+    u.Cli.print("API configured from environment")
 ```
 
 ## CLI Interface

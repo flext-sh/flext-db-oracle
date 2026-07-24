@@ -534,7 +534,7 @@ PYTHONPATH=src python -m compileall scripts/documentation
 
 ```bash
 # Validate YAML syntax
-python -c "import yaml; print('Valid YAML')" && yaml.safe_load(open('docs/maintenance_config.yaml'))
+python -c "import yaml; u.Cli.print('Valid YAML')" && yaml.safe_load(open('docs/maintenance_config.yaml'))
 
 # Check file permissions
 ls -la docs/maintenance_config.yaml

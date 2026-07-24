@@ -61,9 +61,9 @@ api = FlextDbOracleApi(settings)
 # Test connection
 result = api.test_connection()
 if result.success:
-    print("Connected to Oracle")
+    u.Cli.print("Connected to Oracle")
 else:
-    print(f"Connection failed: {result.error}")
+    u.Cli.print(f"Connection failed: {result.error}")
 ```
 
 ## CLI Configuration
