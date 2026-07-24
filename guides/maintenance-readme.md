@@ -1,49 +1,78 @@
 # Documentation Maintenance & Quality Assurance
 
 <!-- TOC START -->
-- [📊 System Overview](#system-overview)
-  - [Current Documentation Health](#current-documentation-health)
-  - [Quick Health Check](#quick-health-check)
-- [🚀 Quick Start](#quick-start)
-  - [Automated Maintenance](#automated-maintenance)
-  - [Manual Operation](#manual-operation)
-- [📋 Maintenance Framework](#maintenance-framework)
-  - [Core Components](#core-components)
-  - [Configuration System](#configuration-system)
-- [📈 Quality Metrics & KPIs](#quality-metrics-kpis)
-  - [Health Score Components](#health-score-components)
-  - [Key Performance Indicators](#key-performance-indicators)
-- [🔧 Integration & Automation](#integration-automation)
-  - [CI/CD Pipeline Integration](#cicd-pipeline-integration)
-  - [Pre-commit Hook Integration](#pre-commit-hook-integration)
-  - [Project Management Integration](#project-management-integration)
-- [📋 Maintenance Procedures](#maintenance-procedures)
-  - [Daily Maintenance (Automated)](#daily-maintenance-automated)
-  - [Weekly Review Process](#weekly-review-process)
-  - [Monthly Comprehensive Review](#monthly-comprehensive-review)
-- [🚨 Issue Classification & Response](#issue-classification-response)
-  - [Severity Levels](#severity-levels)
-  - [Common Issues & Solutions](#common-issues-solutions)
-- [🛠️ Customization & Extension](#customization-extension)
-  - [Adding New Validation Rules](#adding-new-validation-rules)
-  - [Custom Quality Metrics](#custom-quality-metrics)
-  - [Extending Reports](#extending-reports)
-- [📊 Monitoring & Analytics](#monitoring-analytics)
-  - [Real-time Dashboards](#real-time-dashboards)
-  - [Automated Notifications](#automated-notifications)
-- [🎯 Best Practices](#best-practices)
-  - [Documentation Standards](#documentation-standards)
-  - [Quality Assurance](#quality-assurance)
-- [🔍 Troubleshooting](#troubleshooting)
-  - [Common Issues](#common-issues)
-- [📈 Success Metrics](#success-metrics)
-  - [Quality Improvements Tracked](#quality-improvements-tracked)
-  - [Process Efficiency](#process-efficiency)
-- [📚 Resources](#resources)
-- [🤝 Contributing](#contributing)
-  - [Adding New Validation Rules](#adding-new-validation-rules)
-  - [Improving Reports](#improving-reports)
-  - [System Extensions](#system-extensions)
+- [Documentation Maintenance \& Quality Assurance](#documentation-maintenance--quality-assurance)
+  - [📊 System Overview](#-system-overview)
+    - [Current Documentation Health](#current-documentation-health)
+    - [Quick Health Check](#quick-health-check)
+  - [🚀 Quick Start](#-quick-start)
+    - [Automated Maintenance](#automated-maintenance)
+    - [Manual Operation](#manual-operation)
+  - [📋 Maintenance Framework](#-maintenance-framework)
+    - [Core Components](#core-components)
+      - [1. **Content Quality Audit System**](#1-content-quality-audit-system)
+      - [2. **Validation Engine**](#2-validation-engine)
+      - [3. **Content Optimization**](#3-content-optimization)
+      - [4. **Reporting \& Analytics**](#4-reporting--analytics)
+    - [Configuration System](#configuration-system)
+      - [Maintenance Configuration (`docs/maintenance_config.yaml`)](#maintenance-configuration-docsmaintenance_configyaml)
+  - [📈 Quality Metrics \& KPIs](#-quality-metrics--kpis)
+    - [Health Score Components](#health-score-components)
+    - [Key Performance Indicators](#key-performance-indicators)
+      - [Quality Metrics](#quality-metrics)
+      - [Process Metrics](#process-metrics)
+  - [🔧 Integration \& Automation](#-integration--automation)
+    - [CI/CD Pipeline Integration](#cicd-pipeline-integration)
+    - [Pre-commit Hook Integration](#pre-commit-hook-integration)
+    - [Project Management Integration](#project-management-integration)
+      - [GitHub Integration](#github-integration)
+      - [Slack Integration](#slack-integration)
+  - [📋 Maintenance Procedures](#-maintenance-procedures)
+    - [Daily Maintenance (Automated)](#daily-maintenance-automated)
+    - [Weekly Review Process](#weekly-review-process)
+      - [1. Review Audit Reports](#1-review-audit-reports)
+      - [2. Address High-Priority Issues](#2-address-high-priority-issues)
+      - [3. Content Enhancement](#3-content-enhancement)
+    - [Monthly Comprehensive Review](#monthly-comprehensive-review)
+      - [Quality Assessment](#quality-assessment)
+      - [Stakeholder Communication](#stakeholder-communication)
+  - [🚨 Issue Classification \& Response](#-issue-classification--response)
+    - [Severity Levels](#severity-levels)
+    - [Common Issues \& Solutions](#common-issues--solutions)
+      - [Content Freshness Issues](#content-freshness-issues)
+      - [Link Integrity Problems](#link-integrity-problems)
+      - [Style Consistency Issues](#style-consistency-issues)
+  - [🛠️ Customization \& Extension](#️-customization--extension)
+    - [Adding New Validation Rules](#adding-new-validation-rules)
+    - [Custom Quality Metrics](#custom-quality-metrics)
+    - [Extending Reports](#extending-reports)
+  - [📊 Monitoring \& Analytics](#-monitoring--analytics)
+    - [Real-time Dashboards](#real-time-dashboards)
+      - [Health Score Dashboard](#health-score-dashboard)
+      - [Trend Analysis](#trend-analysis)
+    - [Automated Notifications](#automated-notifications)
+      - [Alert System](#alert-system)
+  - [🎯 Best Practices](#-best-practices)
+    - [Documentation Standards](#documentation-standards)
+      - [Content Guidelines](#content-guidelines)
+      - [Maintenance Guidelines](#maintenance-guidelines)
+    - [Quality Assurance](#quality-assurance)
+      - [Automated Checks](#automated-checks)
+      - [Manual Reviews](#manual-reviews)
+  - [🔍 Troubleshooting](#-troubleshooting)
+    - [Common Issues](#common-issues)
+      - [Maintenance Script Failures](#maintenance-script-failures)
+      - [Configuration Problems](#configuration-problems)
+      - [Performance Issues](#performance-issues)
+      - [Report Generation Issues](#report-generation-issues)
+  - [📈 Success Metrics](#-success-metrics)
+    - [Quality Improvements Tracked](#quality-improvements-tracked)
+    - [Process Efficiency](#process-efficiency)
+  - [📚 Resources](#-resources)
+  - [🤝 Contributing](#-contributing)
+    - [Adding New Validation Rules](#adding-new-validation-rules-1)
+    - [Improving Reports](#improving-reports)
+    - [System Extensions](#system-extensions)
 <!-- TOC END -->
 
 **Automated documentation maintenance system for flext-db-oracle with comprehensive quality assurance, validation, and continuous improvement.**
@@ -56,13 +85,13 @@
 
 ### Current Documentation Health
 
-| Metric                   | Value | Status              |
-| ------------------------ | ----- | ------------------- |
-| **Files Audited**        | 21    | ✅ Complete          |
+| Metric                   | Value | Status                |
+| ------------------------ | ----- | --------------------- |
+| **Files Audited**        | 21    | ✅ Complete           |
 | **Total Issues**         | 92    | ⚠️ Attention Needed |
-| **Critical Issues**      | 0     | ✅ Good              |
+| **Critical Issues**      | 0     | ✅ Good               |
 | **Average Health Score** | 83.4% | 🟡 Needs Improvement |
-| **Status Indicators**    | 199+  | ✅ Well Tracked      |
+| **Status Indicators**    | 199+  | ✅ Well Tracked       |
 
 ### Quick Health Check
 
@@ -576,21 +605,21 @@ df -h docs/reports/
 
 ### Quality Improvements Tracked
 
-| Metric          | Baseline | Current | Target | Status      |
-| --------------- | -------- | ------- | ------ | ----------- |
+| Metric          | Baseline | Current | Target | Status        |
+| --------------- | -------- | ------- | ------ | ------------- |
 | Health Score    | 75%      | 83.4%   | 90%    | 🟡 Improving |
-| Critical Issues | 5        | 0       | 0      | ✅ Achieved  |
+| Critical Issues | 5        | 0       | 0      | ✅ Achieved   |
 | Freshness Rate  | 70%      | 85%     | 95%    | 🟡 Improving |
 | Link Health     | 80%      | 95%     | 100%   | 🟢 Excellent |
 
 ### Process Efficiency
 
-| Metric              | Current | Target | Status      |
-| ------------------- | ------- | ------ | ----------- |
-| Audit Time          | 15s     | \<30s  | ✅ Excellent |
-| Report Generation   | 2s      | \<10s  | ✅ Excellent |
+| Metric              | Current | Target | Status        |
+| ------------------- | ------- | ------ | ------------- |
+| Audit Time          | 15s     | \<30s  | ✅ Excellent  |
+| Report Generation   | 2s      | \<10s  | ✅ Excellent  |
 | Automation Coverage | 85%     | >90%   | 🟡 Improving |
-| False Positives     | 3%      | \<5%   | ✅ Good      |
+| False Positives     | 3%      | \<5%   | ✅ Good       |
 
 ______________________________________________________________________
 
