@@ -51,7 +51,7 @@ result = api.test_connection()
 print(f"test_connection: {result.success}")
 
 # Check connection status returns bool
-print(f"connected: {api.connected}")
+print(f"connected: {api.connected()}")
 ```
 
 ### Query Methods
@@ -98,11 +98,13 @@ from __future__ import annotations
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 settings = FlextDbOracleSettings(
-    host="localhost",
-    port=1521,
-    service_name="XEPDB1",
-    username="system",
-    password="Oracle123",
+    DbOracle={
+        "host": "localhost",
+        "port": 1521,
+        "service_name": "XEPDB1",
+        "username": "system",
+        "password": "Oracle123",
+    },
 )
 api = FlextDbOracleApi(settings)
 
@@ -110,7 +112,7 @@ api = FlextDbOracleApi(settings)
 result = api.fetch_schemas()
 
 # Get tables in schema
-result = api.fetch_tables(schema_name=None)
+result = api.fetch_tables(schema=None)
 
 # Get column information
 result = api.fetch_columns(table_name="DUAL", schema_name=None)
