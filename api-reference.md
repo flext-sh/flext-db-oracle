@@ -93,23 +93,30 @@ print(result)
 ```python
 from __future__ import annotations
 
-from flext_core import p
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
-settings = FlextDbOracleSettings(host="localhost", port=1521, service_name="XEPDB1")
+settings = FlextDbOracleSettings(
+    host="localhost",
+    port=1521,
+    service_name="XEPDB1",
+    username="system",
+    password="Oracle123",
+)
 api = FlextDbOracleApi(settings)
 
 # Get available schemas
 result = api.fetch_schemas()
 
 # Get tables in schema
-result = api.fetch_tables(schema=None)
+result = api.fetch_tables(schema_name=None)
 
 # Get column information
-result = api.fetch_columns(table="DUAL", schema=None)
+result = api.fetch_columns(table_name="DUAL", schema_name=None)
 
 # Get table metadata
-result = api.fetch_table_metadata(table="DUAL", schema=None)
+result = api.fetch_table_metadata(table_name="DUAL", schema=None)
+
+print(result)
 ```
 
 ### Configuration Methods
@@ -147,8 +154,7 @@ settings = FlextDbOracleSettings(
     password="Oracle123",
 )
 
-# From environment variables
-config_result = FlextDbOracleSettings.from_env()
+print(settings.host)
 ```
 
 ## CLI Interface
