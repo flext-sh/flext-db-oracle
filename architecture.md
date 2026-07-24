@@ -138,26 +138,33 @@ All operations use r for railway-oriented programming:
 
 ```python
 from __future__ import annotations
-from flext_cli import u
-from flext_core import FlextSettings
+
+from flext_core import p, r
 
 
-def query_operation() -> p.Result[List[Dict]]:
-    # No try/catch - explicit error handling
-    connection_result = self._get_connection()
-    if connection_result.failure:
-        return r[List[Dict]].fail(connection_result.error)
+class QueryService:
+    def _get_connection(self) -> p.Result[str]:
+        return r[str].ok("connection established")
 
-    query_result = self._execute_query(sql)
-    if query_result.failure:
-        return r[List[Dict]].fail(query_result.error)
+    def _execute_query(self, sql: str) -> p.Result[str]:
+        return r[str].ok(f"query result for {sql}")
 
-    return r[List[Dict]].ok(query_result.value)
+    def query_operation(self, sql: str) -> p.Result[str]:
+        # No try/catch - explicit error handling
+        connection_result = self._get_connection()
+        if connection_result.failure:
+            return r[str].fail(connection_result.error)
+
+        query_result = self._execute_query(sql)
+        if query_result.failure:
+            return r[str].fail(query_result.error)
+
+        return r[str].ok(query_result.value)
 ```
 
 ### Exception Hierarchy
 
-```python
+```text
 FlextDbOracleException (base)
 ├── ConnectionException
 ├── QueryException
@@ -201,9 +208,11 @@ FlextDbOracleException (base)
 
 ### SQLAlchemy Integration
 
-```python
+```python notest
+from sqlalchemy import create_engine
+
 # Connection string format
-oracle+oracledb://username:password@host:port/service_name
+connection_string = "oracle+oracledb://username:password@host:port/service_name"
 
 # Engine configuration
 engine = create_engine(
@@ -212,7 +221,7 @@ engine = create_engine(
     max_overflow=30,
     pool_timeout=30,
     pool_recycle=3600,
-    echo=False  # Production setting
+    echo=False,  # Production setting
 )
 ```
 
@@ -231,17 +240,19 @@ engine = create_engine(
 ### Extension Points
 
 ```python
-from __future__ import annotations
+from abc import ABC, abstractmethod
+
+from flext_core import p
 
 
 class OraclePlugin(ABC):
     @abstractmethod
     def validate_query(self, sql: str) -> p.Result[str]:
-        """Validate and potentially modify SQL queries"""
+        """Validate and potentially modify SQL queries."""
 
     @abstractmethod
-    def monitor_performance(self, metrics: Dict) -> p.Result[bool]:
-        """Monitor query performance"""
+    def monitor_performance(self, metrics: dict[str, float]) -> p.Result[bool]:
+        """Monitor query performance."""
 ```
 
 **Current Plugin Support**:

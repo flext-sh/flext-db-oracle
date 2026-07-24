@@ -424,7 +424,7 @@ make docs DOCS_PHASE=audit | grep "broken_link\|forbidden_term"
 
 ### Adding New Validation Rules
 
-```python
+```text
 from __future__ import annotations
 
 
@@ -447,7 +447,7 @@ def _validate_custom_rule(self, content: str) -> List[Dict[str, t.JsonValue]]:
 
 ### Custom Quality Metrics
 
-```python
+```yaml
 # Add to maintenance_config.yaml
 custom_rules:
   project_specific:
@@ -464,7 +464,7 @@ custom_rules:
 
 ### Extending Reports
 
-```python
+```text
 from __future__ import annotations
 
 
