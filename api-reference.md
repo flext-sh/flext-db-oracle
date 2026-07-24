@@ -33,24 +33,23 @@ Oracle database interface providing 36 methods for connection management, query 
 ```python
 from __future__ import annotations
 
-from typing import Self
-from flext_core import p
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
-settings = FlextDbOracleSettings(host="localhost", port=1521, service_name="XEPDB1")
+settings = FlextDbOracleSettings(
+    host="localhost",
+    port=1521,
+    service_name="XEPDB1",
+    username="system",
+    password="Oracle123",
+)
 api = FlextDbOracleApi(settings)
 
 # Test connection returns p.Result[bool]
 result = api.test_connection()
-
-# Connect to database returns p.Result[FlextDbOracleApi]
-result = api.connect()
-
-# Disconnect from database returns p.Result[bool]
-result = api.disconnect()
+print(f"test_connection: {result.success}")
 
 # Check connection status returns bool
-status = api.is_connected()
+print(f"connected: {api.connected}")
 ```
 
 ### Query Methods
@@ -58,16 +57,21 @@ status = api.is_connected()
 ```python
 from __future__ import annotations
 
-from typing import Sequence
-from flext_core import m, p
+from flext_core import m
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
-settings = FlextDbOracleSettings(host="localhost", port=1521, service_name="XEPDB1")
+settings = FlextDbOracleSettings(
+    host="localhost",
+    port=1521,
+    service_name="XEPDB1",
+    username="system",
+    password="Oracle123",
+)
 api = FlextDbOracleApi(settings)
 
 sql = "SELECT 1 FROM DUAL"
 parameters = None
-parameters_list = []
+params_list = []
 
 # Execute SELECT queries
 result = api.query(sql, parameters=parameters)
@@ -76,10 +80,12 @@ result = api.query(sql, parameters=parameters)
 result = api.query_one(sql, parameters=parameters)
 
 # Execute INSERT/UPDATE/DELETE
-result = api.execute(sql, parameters=parameters)
+result = api.execute_sql(sql, parameters=parameters)
 
 # Execute multiple statements
-result = api.execute_many(sql, parameters_list)
+result = api.execute_many(sql, params_list)
+
+print(result)
 ```
 
 ### Schema Methods
