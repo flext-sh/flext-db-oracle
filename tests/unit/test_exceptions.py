@@ -78,9 +78,9 @@ class TestsFlextDbOracleExceptions:
         ("factory", "base"),
         [
             (FlextDbOracleExceptions.Error, e.BaseError),
-            (FlextDbOracleExceptions.OracleConnectionError, e.ConnectionError),
+            (FlextDbOracleExceptions.OracleConnectionError, e.FlextConnectionError),
             (FlextDbOracleExceptions.ProcessingError, e.OperationError),
-            (FlextDbOracleExceptions.OracleTimeoutError, e.TimeoutError),
+            (FlextDbOracleExceptions.OracleTimeoutError, e.FlextTimeoutError),
         ],
     )
     def test_each_error_extends_its_flext_core_base(

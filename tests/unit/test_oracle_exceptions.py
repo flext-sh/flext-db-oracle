@@ -53,10 +53,13 @@ class TestsFlextDbOracleOracleExceptions:
             (lambda: FlextDbOracleExceptions.Error("m"), e.BaseError),
             (
                 lambda: FlextDbOracleExceptions.OracleConnectionError("m"),
-                e.ConnectionError,
+                e.FlextConnectionError,
             ),
             (lambda: FlextDbOracleExceptions.ProcessingError("m"), e.OperationError),
-            (lambda: FlextDbOracleExceptions.OracleTimeoutError("m"), e.TimeoutError),
+            (
+                lambda: FlextDbOracleExceptions.OracleTimeoutError("m"),
+                e.FlextTimeoutError,
+            ),
         ],
         ids=["error", "connection", "processing", "timeout"],
     )
@@ -148,7 +151,7 @@ class TestsFlextDbOracleOracleExceptions:
         def _raise() -> None:
             raise exc
 
-        with pytest.raises(e.ConnectionError) as caught:
+        with pytest.raises(e.FlextConnectionError) as caught:
             _raise()
 
         assert caught.value is exc

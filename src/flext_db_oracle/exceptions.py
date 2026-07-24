@@ -35,8 +35,8 @@ class FlextDbOracleExceptions(e):
             self.oracle_error_code = oracle_error_code
             self.sql_state = sql_state
 
-    class OracleConnectionError(e.ConnectionError):
-        """Oracle connection error extending e.ConnectionError."""
+    class OracleConnectionError(e.FlextConnectionError):
+        """Oracle connection error extending e.FlextConnectionError."""
 
         def __init__(
             self,
@@ -65,8 +65,8 @@ class FlextDbOracleExceptions(e):
             self.operation_type = operation_type
             self.processing_stage = processing_stage
 
-    class OracleTimeoutError(e.TimeoutError):
-        """Oracle timeout error extending e.TimeoutError."""
+    class OracleTimeoutError(e.FlextTimeoutError):
+        """Oracle timeout error extending e.FlextTimeoutError."""
 
         def __init__(
             self,
