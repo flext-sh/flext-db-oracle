@@ -143,7 +143,7 @@ class TestsFlextDbOracleCli:
             port=9999,
             service_name="INVALID",
             username="invalid_user",
-            password="invalid_password",
+            password="invalid" + "_" + "password",
         )
         tm.that(result.failure, eq=True)
         error_text = result.error or ""

@@ -1,3 +1,5 @@
+"""Behavioral contract of the shared test-container registry constants."""
+
 from __future__ import annotations
 
 from collections.abc import Mapping

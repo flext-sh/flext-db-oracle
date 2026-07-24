@@ -383,7 +383,7 @@ class TestsFlextDbOracleConstants:
 
     @pytest.mark.parametrize("enabled", [True, False])
     def test_enable_dispatcher_flag_round_trips_through_settings(
-        self, enabled: bool
+        self, *, enabled: bool
     ) -> None:
         """The dispatcher feature flag is readable via settings public state."""
         settings = FlextDbOracleSettings.model_validate({
@@ -394,7 +394,7 @@ class TestsFlextDbOracleConstants:
     # ---- real Oracle integration (public API, fail-loud when unavailable) -
 
     def test_oracle_constants_real_connection_validation(
-        self, connected_oracle_api: FlextDbOracleApi, oracle_available: bool
+        self, connected_oracle_api: FlextDbOracleApi, *, oracle_available: bool
     ) -> None:
         """TEST_QUERY and DUAL_TABLE drive a real Oracle round-trip."""
         tm.that(oracle_available, eq=True)
@@ -405,7 +405,7 @@ class TestsFlextDbOracleConstants:
         tm.ok(connected_oracle_api.query(dual_query))
 
     def test_oracle_constants_default_values_real_validation(
-        self, connected_oracle_api: FlextDbOracleApi, oracle_available: bool
+        self, connected_oracle_api: FlextDbOracleApi, *, oracle_available: bool
     ) -> None:
         """Default connection constants are valid against a real Oracle."""
         _ = connected_oracle_api
@@ -418,7 +418,7 @@ class TestsFlextDbOracleConstants:
         tm.that(in_range, eq=True)
 
     def test_oracle_data_types_real_validation(
-        self, connected_oracle_api: FlextDbOracleApi, oracle_available: bool
+        self, connected_oracle_api: FlextDbOracleApi, *, oracle_available: bool
     ) -> None:
         """Data-type constants form a DDL statement a real Oracle accepts."""
         tm.that(oracle_available, eq=True)
@@ -438,7 +438,7 @@ class TestsFlextDbOracleConstants:
         tm.that(accepted, eq=True)
 
     def test_oracle_validation_constants_real_usage(
-        self, connected_oracle_api: FlextDbOracleApi, oracle_available: bool
+        self, connected_oracle_api: FlextDbOracleApi, *, oracle_available: bool
     ) -> None:
         """Identifier limits produce an escapable identifier on real Oracle."""
         _ = connected_oracle_api
@@ -451,7 +451,7 @@ class TestsFlextDbOracleConstants:
         tm.that(c.DbOracle.MAX_VARCHAR_LENGTH, eq=4000)
 
     def test_oracle_performance_constants_real_timing(
-        self, connected_oracle_api: FlextDbOracleApi, oracle_available: bool
+        self, connected_oracle_api: FlextDbOracleApi, *, oracle_available: bool
     ) -> None:
         """Query timing is classified by the documented ms thresholds."""
         tm.that(oracle_available, eq=True)
@@ -467,7 +467,7 @@ class TestsFlextDbOracleConstants:
             tm.that(execution_ms, lt=2000)
 
     def test_oracle_reserved_words_real_validation(
-        self, connected_oracle_api: FlextDbOracleApi, oracle_available: bool
+        self, connected_oracle_api: FlextDbOracleApi, *, oracle_available: bool
     ) -> None:
         """Reserved words are rejected by the public identifier validator."""
         _ = connected_oracle_api

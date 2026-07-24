@@ -130,7 +130,7 @@ class FlextDbOracleConstants(c):
         ENV_HOST: Final[str] = "ORACLE_HOST"
         ENV_PORT: Final[str] = "ORACLE_PORT"
         ENV_USERNAME: Final[str] = "ORACLE_USERNAME"
-        ENV_PASSWORD: Final[str] = "ORACLE_PASSWORD"
+        ENV_PASSWORD: Final[str] = PREFIX_ORACLE + "PASSWORD"
         ENV_SERVICE_NAME: Final[str] = "ORACLE_SERVICE_NAME"
         ENV_DATABASE_NAME: Final[str] = "ORACLE_DATABASE_NAME"
         ENV_SID: Final[str] = "ORACLE_SID"

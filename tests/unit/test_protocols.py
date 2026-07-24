@@ -102,12 +102,12 @@ class TestsFlextDbOracleProtocols:
         assert promised <= exposed
 
     @pytest.mark.parametrize(
-        ("name", "protocol", "methods"),
+        ("_name", "protocol", "methods"),
         _DB_ORACLE_CONTRACTS,
         ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
     )
     def test_protocol_is_runtime_checkable(
-        self, name: str, protocol: type, methods: tuple[str, ...]
+        self, _name: str, protocol: type, methods: tuple[str, ...]
     ) -> None:
         """Each protocol supports isinstance() — its public runtime-check contract."""
         implementer = _implementer(methods)
@@ -116,12 +116,12 @@ class TestsFlextDbOracleProtocols:
         tm.that(implementer, is_=protocol)
 
     @pytest.mark.parametrize(
-        ("name", "protocol", "methods"),
+        ("_name", "protocol", "methods"),
         _DB_ORACLE_CONTRACTS,
         ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
     )
     def test_full_method_surface_satisfies_protocol(
-        self, name: str, protocol: type, methods: tuple[str, ...]
+        self, _name: str, protocol: type, methods: tuple[str, ...]
     ) -> None:
         """An object with the full promised surface is recognised as implementer."""
         implementer = _implementer(methods)
@@ -129,19 +129,19 @@ class TestsFlextDbOracleProtocols:
         tm.that(implementer, is_=protocol)
 
     @pytest.mark.parametrize(
-        ("name", "protocol", "methods"),
+        ("_name", "protocol", "methods"),
         _DB_ORACLE_CONTRACTS,
         ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
     )
     def test_missing_any_single_method_breaks_conformance(
-        self, name: str, protocol: type, methods: tuple[str, ...]
+        self, _name: str, protocol: type, methods: tuple[str, ...]
     ) -> None:
         """Dropping any one promised method makes the object a non-implementer."""
         for dropped in methods:
             partial = tuple(m for m in methods if m != dropped)
             implementer = _implementer(partial)
 
-            assert not isinstance(implementer, protocol), f"{name}:{dropped}"
+            assert not isinstance(implementer, protocol), f"{_name}:{dropped}"
 
     def test_empty_object_conforms_to_no_db_oracle_protocol(self) -> None:
         """A bare object satisfies none of the Oracle protocols (structural gate)."""

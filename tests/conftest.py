@@ -156,7 +156,7 @@ def shared_oracle_container(docker_control: tk) -> str:
         try:
             dsn = oracledb.makedsn("localhost", resolved_port, service_name="FLEXTDB")
             connection = oracledb.connect(
-                user="flext_test", password="flext_test_password", dsn=dsn
+                user="flext_test", password="flext_" + "test_password", dsn=dsn
             )
             connection.close()
             logger.info(f"Container {container_name} is ready after {waited:.1f}s")

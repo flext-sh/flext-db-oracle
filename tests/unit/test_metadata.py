@@ -144,7 +144,7 @@ class TestsFlextDbOracleMetadata:
         [("NUMBER", False), ("VARCHAR2", True), ("DATE", True)],
     )
     def test_column_exposes_public_field_state(
-        self, data_type: str, nullable: bool
+        self, data_type: str, *, nullable: bool
     ) -> None:
         """Column reflects the field values supplied through its public API."""
         column = m.DbOracle.Column(name="ID", data_type=data_type, nullable=nullable)

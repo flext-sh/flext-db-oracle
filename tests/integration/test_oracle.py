@@ -244,8 +244,9 @@ class TestsFlextDbOracleOracle:
         tm.that(self._cell(remaining.unwrap()[0], "count", "count(*)"), eq="0")
 
     @pytest.mark.oracle
+    @pytest.mark.usefixtures("test_database_setup")
     def test_committed_row_is_visible_after_commit(
-        self, connected_oracle_api: FlextDbOracleApi, test_database_setup: t.StrMapping
+        self, connected_oracle_api: FlextDbOracleApi
     ) -> None:
         """A committed insert is readable and cleanup removes it again."""
         insert = connected_oracle_api.execute_statement(
