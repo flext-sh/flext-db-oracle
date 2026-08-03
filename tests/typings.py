@@ -6,14 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Callable,
-    Mapping,
-)
-
-from flext_tests import FlextTestsTypes
+from collections.abc import Callable, Mapping
 
 from flext_db_oracle import m, p, t
+from flext_tests import FlextTestsTypes
 
 
 class TestsFlextDbOracleTypes(FlextTestsTypes, t):
@@ -30,6 +26,7 @@ class TestsFlextDbOracleTypes(FlextTestsTypes, t):
             | p.Result[t.StrSequence]
         )
         type ApiCoverageCallable = Callable[[], ApiCoverageReturn]
+        type ProtocolContract = tuple[str, type, tuple[str, ...]]
 
 
 t = TestsFlextDbOracleTypes

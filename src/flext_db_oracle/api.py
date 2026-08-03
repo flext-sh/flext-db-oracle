@@ -10,17 +10,19 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle import FlextDbOracleSettings
+from typing import TYPE_CHECKING
+
 from flext_db_oracle.services.api_runtime import FlextDbOracleApiRuntime
+
+if TYPE_CHECKING:
+    from flext_db_oracle import FlextDbOracleSettings
 
 
 class FlextDbOracleApi(FlextDbOracleApiRuntime):
     """Unified DB Oracle service facade via MRO composition."""
 
     def __init__(
-        self,
-        settings: FlextDbOracleSettings,
-        context_name: str | None = None,
+        self, settings: FlextDbOracleSettings, context_name: str | None = None
     ) -> None:
         """Initialize facade with explicit runtime constructor contract."""
         super().__init__(settings=settings, context_name=context_name)

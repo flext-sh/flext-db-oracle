@@ -6,7 +6,6 @@ These pages are generated from public modules and their docstrings.
 
 - [flext_db_oracle.api](api.md)
 - [flext_db_oracle.base](base.md)
-- [flext_db_oracle.client](client.md)
 - [flext_db_oracle.constants](constants.md)
 - [flext_db_oracle.dispatcher](dispatcher.md)
 - [flext_db_oracle.exceptions](exceptions.md)
@@ -20,6 +19,5 @@ These pages are generated from public modules and their docstrings.
 - [flext_db_oracle.services.schema](services/schema.md)
 - [flext_db_oracle.services.singer](services/singer.md)
 - [flext_db_oracle.services.sql_builder](services/sql_builder.md)
-- [flext_db_oracle.settings](settings.md)
 - [flext_db_oracle.typings](typings.md)
 - [flext_db_oracle.utilities](utilities.md)

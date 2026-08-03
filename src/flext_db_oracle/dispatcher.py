@@ -6,20 +6,18 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Callable,
-    MutableMapping,
-)
 from typing import TYPE_CHECKING, ClassVar, override
 
 from flext_core import FlextContainer, FlextService
 from flext_db_oracle import m, p, r, t
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, MutableMapping
+
     from flext_db_oracle.services.facade import FlextDbOracleServices
 
 
-class FlextDbOracleDispatcher(FlextService):
+class FlextDbOracleDispatcher(FlextService[None]):
     """Unified Oracle Database Dispatcher with integrated command classes."""
 
     _container_type: ClassVar[p.ContainerType] = FlextContainer
@@ -31,14 +29,9 @@ class FlextDbOracleDispatcher(FlextService):
 
     @classmethod
     def _create_connection_handlers(
-        cls,
-        services: FlextDbOracleServices,
+        cls, services: FlextDbOracleServices
     ) -> t.MappingKV[
-        type,
-        tuple[
-            Callable[[t.JsonValue], t.JsonValue],
-            t.JsonMapping | None,
-        ],
+        type, tuple[Callable[[t.JsonValue], t.JsonValue], t.JsonMapping | None]
     ]:
         """Create connection-related handler functions."""
 
@@ -48,36 +41,24 @@ class FlextDbOracleDispatcher(FlextService):
         def disconnect_handler(_cmd: t.JsonValue) -> t.JsonValue:
             return services.disconnect().success
 
-        def connection_test_handler(
-            _command_data: t.JsonValue,
-        ) -> t.JsonValue:
+        def connection_test_handler(_command_data: t.JsonValue) -> t.JsonValue:
             """Oracle connection test handler - command_data parameter required by dispatcher interface."""
             return services.test_connection().map_or(False)
 
         return {
             m.DbOracle.ConnectCommand: (connect_handler, None),
             m.DbOracle.DisconnectCommand: (disconnect_handler, None),
-            m.DbOracle.TestConnectionCommand: (
-                connection_test_handler,
-                None,
-            ),
+            m.DbOracle.TestConnectionCommand: (connection_test_handler, None),
         }
 
     @classmethod
     def build_dispatcher(
-        cls,
-        services: FlextDbOracleServices,
-        *,
-        _bus: t.JsonValue | None = None,
+        cls, services: FlextDbOracleServices, *, _bus: t.JsonValue | None = None
     ) -> p.Dispatcher:
         """Create a dispatcher instance wired to Oracle services."""
         dispatcher = cls._container_type.shared().dispatcher().unwrap()
         function_map: MutableMapping[
-            type,
-            tuple[
-                Callable[[t.JsonValue], t.JsonValue],
-                t.JsonMapping | None,
-            ],
+            type, tuple[Callable[[t.JsonValue], t.JsonValue], t.JsonMapping | None]
         ] = {}
         function_map.update(cls._create_connection_handlers(services))
         instance = cls()
@@ -98,14 +79,9 @@ class FlextDbOracleDispatcher(FlextService):
         return dispatcher
 
     def _create_query_handlers(
-        self,
-        services: FlextDbOracleServices,
+        self, services: FlextDbOracleServices
     ) -> t.MappingKV[
-        type,
-        tuple[
-            Callable[[t.JsonValue], t.JsonValue],
-            t.JsonMapping | None,
-        ],
+        type, tuple[Callable[[t.JsonValue], t.JsonValue], t.JsonMapping | None]
     ]:
         """Create query-related handler functions."""
 
@@ -113,7 +89,7 @@ class FlextDbOracleDispatcher(FlextService):
             if isinstance(command, m.DbOracle.ExecuteQueryCommand):
                 sql = command.sql
                 parameters = m.ConfigMap.model_validate({
-                    "root": command.parameters or {},
+                    "root": command.parameters or {}
                 })
             else:
                 sql = ""
@@ -125,7 +101,7 @@ class FlextDbOracleDispatcher(FlextService):
             if isinstance(command, m.DbOracle.FetchOneCommand):
                 sql = command.sql
                 parameters = m.ConfigMap.model_validate({
-                    "root": command.parameters or {},
+                    "root": command.parameters or {}
                 })
             else:
                 sql = ""
@@ -134,13 +110,10 @@ class FlextDbOracleDispatcher(FlextService):
             return str(result.value) if result.success and result.value else ""
 
         def execute_statement_handler(command: t.JsonValue) -> t.JsonValue:
-            if isinstance(
-                command,
-                m.DbOracle.ExecuteStatementCommand,
-            ):
+            if isinstance(command, m.DbOracle.ExecuteStatementCommand):
                 sql = command.sql
                 parameters = m.ConfigMap.model_validate({
-                    "root": command.parameters or {},
+                    "root": command.parameters or {}
                 })
             else:
                 sql = ""
@@ -159,30 +132,16 @@ class FlextDbOracleDispatcher(FlextService):
             return services.execute_many(sql, parameters_list).map_or(0)
 
         return {
-            m.DbOracle.ExecuteQueryCommand: (
-                execute_query_handler,
-                None,
-            ),
+            m.DbOracle.ExecuteQueryCommand: (execute_query_handler, None),
             m.DbOracle.FetchOneCommand: (fetch_one_handler, None),
-            m.DbOracle.ExecuteStatementCommand: (
-                execute_statement_handler,
-                None,
-            ),
-            m.DbOracle.ExecuteManyCommand: (
-                execute_many_handler,
-                None,
-            ),
+            m.DbOracle.ExecuteStatementCommand: (execute_statement_handler, None),
+            m.DbOracle.ExecuteManyCommand: (execute_many_handler, None),
         }
 
     def _create_schema_handlers(
-        self,
-        services: FlextDbOracleServices,
+        self, services: FlextDbOracleServices
     ) -> t.MappingKV[
-        type,
-        tuple[
-            Callable[[t.JsonValue], t.JsonValue],
-            t.JsonMapping | None,
-        ],
+        type, tuple[Callable[[t.JsonValue], t.JsonValue], t.JsonMapping | None]
     ]:
         """Create schema/metadata handler functions."""
 
@@ -208,15 +167,9 @@ class FlextDbOracleDispatcher(FlextService):
             return ",".join(col.name for col in result.value) if result.success else ""
 
         return {
-            m.DbOracle.GetSchemasCommand: (
-                get_schemas_handler,
-                None,
-            ),
+            m.DbOracle.GetSchemasCommand: (get_schemas_handler, None),
             m.DbOracle.GetTablesCommand: (get_tables_handler, None),
-            m.DbOracle.GetColumnsCommand: (
-                get_columns_handler,
-                None,
-            ),
+            m.DbOracle.GetColumnsCommand: (get_columns_handler, None),
         }
 
 

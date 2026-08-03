@@ -1,108 +1,72 @@
-"""Unit test configuration with Docker/Oracle integration support.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
-Unit tests run with Oracle container integration when available.
-If Oracle is not available, tests gracefully skip or use mocks.
-"""
+"""Unit test Oracle fixtures backed by the workspace container fixture."""
 
 from __future__ import annotations
 
 import contextlib
 import os
 import socket
-from collections.abc import Generator
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
-from flext_tests import tk
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests.constants import c
-from tests.protocols import p
-from tests.utilities import u
 
-# Prevent unit tests from hanging on DNS resolution for fake hostnames.
-# Without this, socket operations to unresolvable hosts block indefinitely.
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+
+# Prevent unit tests from hanging on network failures.
 socket.setdefaulttimeout(2)
 
-logger: p.Logger = u.fetch_logger(__name__)
 
-
-def _is_oracle_container_running() -> bool:
-    """Check if Oracle container is running without heavy operations."""
+@pytest.fixture(autouse=True)
+def _isolate_oracle_env_vars() -> Generator[None]:
+    """Remove Oracle env vars during unit tests so defaults are observable."""
+    prefixes = ("ORACLE_", "FLEXT_TARGET_ORACLE_")
+    saved: dict[str, str | None] = {}
+    for key in list(os.environ):
+        if key.startswith(prefixes):
+            saved[key] = os.environ[key]
+            del os.environ[key]
     try:
-        docker_control = tk(workspace_root=Path(__file__).resolve().parents[3])
-        status_result = docker_control.fetch_container_status("flext-oracle-db-test")
-    except (ConnectionError, TimeoutError, OSError, RuntimeError):
-        return False
-    if not status_result.success:
-        return False
-    container_status: c.Tests.ContainerStatus | None = getattr(
-        status_result.value, "status", None
-    )
-    is_running: bool = container_status == c.Tests.ContainerStatus.RUNNING
-    return is_running
-
-
-def _get_oracle_config_from_container() -> FlextDbOracleSettings | None:
-    """Get Oracle settings from shared container configuration."""
-    if not _is_oracle_container_running():
-        return None
-    host: str = os.getenv("TEST_ORACLE_HOST", "localhost")
-    port_text = os.getenv("TEST_ORACLE_PORT", "1522")
-    if not port_text.isdigit():
-        return None
-    service: str = os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB")
-    username: str = os.getenv("TEST_ORACLE_USER", "flext_test")
-    password: str = os.getenv("TEST_ORACLE_PASSWORD", "flext_test_password")
-    return FlextDbOracleSettings.model_validate({
-        "host": host,
-        "port": int(port_text),
-        "name": service,
-        "username": username,
-        "password": password,
-        "service_name": service,
-    })
+        yield
+    finally:
+        for key, value in saved.items():
+            if value is not None:
+                os.environ[key] = value
+            elif key in os.environ:
+                del os.environ[key]
 
 
 @pytest.fixture
-def real_oracle_config() -> FlextDbOracleSettings | None:
-    """Provide real Oracle settings if container is running."""
-    if not _is_oracle_container_running():
-        pytest.skip("Oracle container not running")
-    return _get_oracle_config_from_container()
+def real_oracle_config(
+    real_oracle_settings: FlextDbOracleSettings,
+) -> FlextDbOracleSettings:
+    """Return the workspace-managed Oracle settings."""
+    return real_oracle_settings
 
 
 @pytest.fixture
-def oracle_api(
-    real_oracle_config: FlextDbOracleSettings | None,
-) -> FlextDbOracleApi | None:
-    """Provide Oracle API with real settings if available."""
-    if real_oracle_config is None:
-        pytest.skip("Oracle configuration unavailable for real API fixture")
+def oracle_api(real_oracle_config: FlextDbOracleSettings) -> FlextDbOracleApi:
+    """Return an Oracle API configured by the workspace fixture."""
     return FlextDbOracleApi(settings=real_oracle_config)
 
 
 @pytest.fixture
-def connected_oracle_api(
-    oracle_api: FlextDbOracleApi | None,
-) -> Generator[FlextDbOracleApi | None]:
-    """Return connected Oracle API if available."""
-    if oracle_api is None:
-        pytest.skip("Oracle API unavailable for connected fixture")
+def connected_oracle_api(oracle_api: FlextDbOracleApi) -> Generator[FlextDbOracleApi]:
+    """Return a connected Oracle API or fail with the real error."""
     connect_result = oracle_api.connect()
-    if connect_result.success:
-        connected_api = connect_result.value
-        yield connected_api
-        with contextlib.suppress(Exception):
-            connected_api.disconnect()
-    else:
-        pytest.skip("Oracle connection unavailable for connected fixture")
+    if connect_result.failure:
+        msg = f"Oracle connection unavailable for connected fixture: {connect_result.error}"
+        raise AssertionError(msg)
+    connected_api = connect_result.value
+    yield connected_api
+    with contextlib.suppress(Exception):
+        connected_api.disconnect()
 
 
 @pytest.fixture
-def oracle_available(connected_oracle_api: FlextDbOracleApi | None) -> bool:
-    """Check if Oracle is available for testing."""
-    return connected_oracle_api is not None
+def oracle_available(connected_oracle_api: FlextDbOracleApi) -> bool:
+    """Return True once the connected Oracle fixture exists."""
+    _ = connected_oracle_api
+    return True

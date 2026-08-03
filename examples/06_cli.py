@@ -135,9 +135,7 @@ def run_cli_command(cmd: t.StrSequence) -> tuple[int, str, str]:
             process = result.value
             return (process.exit_code, process.stdout, process.stderr)
         failed = m.Cli.CommandOutput(
-            stdout="",
-            stderr=result.error or "Command failed",
-            exit_code=1,
+            stdout="", stderr=result.error or "Command failed", exit_code=1
         )
         return (failed.exit_code, failed.stdout, failed.stderr)
 
