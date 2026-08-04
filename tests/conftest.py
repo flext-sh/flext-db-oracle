@@ -166,6 +166,7 @@ def shared_oracle_container(docker_control: tk) -> str:
         )
     resolved_port = u.Tests.resolve_oracle_test_port(docker_control, container_name)
     os.environ["TEST_ORACLE_PORT"] = str(resolved_port)
+<<<<<<< HEAD
     host = target.host if target is not None else c.LOCALHOST
     # TCP-only probe: oracledb.connect on a half-ready listener leaks sockets that
     # become PytestUnraisableExceptionWarning under filterwarnings=error.
@@ -178,6 +179,33 @@ def shared_oracle_container(docker_control: tk) -> str:
             f"not ready within {probe_budget}s probe budget"
         )
     logger.info("Container %s TCP ready on %s:%s", container_name, host, resolved_port)
+=======
+    target = docker_control.target_config
+    # After execute(), honor shared-container startup_timeout (Oracle boots long).
+    # Fail closed with skip — never hang past the fixture as AssertionError.
+    max_wait = float(target.startup_timeout if target is not None else 900)
+    wait_interval: float = 5.0
+    waited: float = 0.0
+    logger.info("Waiting for container %s to be ready...", container_name)
+    while waited < max_wait:
+        try:
+            dsn = oracledb.makedsn("localhost", resolved_port, service_name="FLEXTDB")
+            connection = oracledb.connect(
+                user="flext_test", password="flext_" + "test_password", dsn=dsn
+            )
+            connection.close()
+            logger.info(f"Container {container_name} is ready after {waited:.1f}s")
+            break
+        except (oracledb.Error, ConnectionError, TimeoutError, OSError) as e:
+            if waited % 30 == 0:
+                logger.debug(
+                    f"Container {container_name} not ready yet (waited {waited:.1f}s): {e}"
+                )
+        time.sleep(wait_interval)
+        waited += wait_interval
+    if waited >= max_wait:
+        pytest.skip(f"Oracle container {container_name} not ready within {max_wait}s")
+>>>>>>> origin/0.12.0-dev
     return container_name
 
 
