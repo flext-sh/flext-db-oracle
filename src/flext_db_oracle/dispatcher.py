@@ -31,17 +31,17 @@ class FlextDbOracleDispatcher(FlextService[None]):
     def _create_connection_handlers(
         cls, services: FlextDbOracleServices
     ) -> t.MappingKV[
-        type, tuple[Callable[[t.JsonValue], t.JsonValue], t.JsonMapping | None]
+        type, tuple[Callable[[p.Routable], t.JsonPayload], t.JsonMapping | None]
     ]:
         """Create connection-related handler functions."""
 
-        def connect_handler(_cmd: t.JsonValue) -> t.JsonValue:
+        def connect_handler(_cmd: p.Routable) -> t.JsonPayload:
             return services.connect().success
 
-        def disconnect_handler(_cmd: t.JsonValue) -> t.JsonValue:
+        def disconnect_handler(_cmd: p.Routable) -> t.JsonPayload:
             return services.disconnect().success
 
-        def connection_test_handler(_command_data: t.JsonValue) -> t.JsonValue:
+        def connection_test_handler(_command_data: p.Routable) -> t.JsonPayload:
             """Oracle connection test handler - command_data parameter required by dispatcher interface."""
             return services.test_connection().map_or(False)
 
@@ -58,7 +58,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
         """Create a dispatcher instance wired to Oracle services."""
         dispatcher = cls._container_type.shared().dispatcher().unwrap()
         function_map: MutableMapping[
-            type, tuple[Callable[[t.JsonValue], t.JsonValue], t.JsonMapping | None]
+            type, tuple[Callable[[p.Routable], t.JsonPayload], t.JsonMapping | None]
         ] = {}
         function_map.update(cls._create_connection_handlers(services))
         instance = cls()
@@ -67,11 +67,10 @@ class FlextDbOracleDispatcher(FlextService[None]):
         for handler_fn, _metadata in function_map.values():
 
             def _wrap(
-                fn: Callable[[t.JsonValue], t.JsonValue],
-            ) -> Callable[[t.JsonValue], p.Result[t.JsonValue]]:
-                def wrapped(*args: t.JsonValue) -> p.Result[t.JsonValue]:
-                    result = fn(*args)
-                    return r[t.JsonValue].ok(result)
+                fn: Callable[[p.Routable], t.JsonPayload],
+            ) -> Callable[[p.Routable], p.Result[t.JsonPayload]]:
+                def wrapped(message: p.Routable) -> p.Result[t.JsonPayload]:
+                    return r[t.JsonPayload].ok(fn(message))
 
                 return wrapped
 
@@ -81,11 +80,11 @@ class FlextDbOracleDispatcher(FlextService[None]):
     def _create_query_handlers(
         self, services: FlextDbOracleServices
     ) -> t.MappingKV[
-        type, tuple[Callable[[t.JsonValue], t.JsonValue], t.JsonMapping | None]
+        type, tuple[Callable[[p.Routable], t.JsonPayload], t.JsonMapping | None]
     ]:
         """Create query-related handler functions."""
 
-        def execute_query_handler(command: t.JsonValue) -> t.JsonValue:
+        def execute_query_handler(command: p.Routable) -> t.JsonPayload:
             if isinstance(command, m.DbOracle.ExecuteQueryCommand):
                 sql = command.sql
                 parameters = m.ConfigMap.model_validate({
@@ -97,7 +96,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
             result = services.execute_query(sql, parameters)
             return len(result.value) if result.success else 0
 
-        def fetch_one_handler(command: t.JsonValue) -> t.JsonValue:
+        def fetch_one_handler(command: p.Routable) -> t.JsonPayload:
             if isinstance(command, m.DbOracle.FetchOneCommand):
                 sql = command.sql
                 parameters = m.ConfigMap.model_validate({
@@ -109,7 +108,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
             result = services.fetch_one(sql, parameters)
             return str(result.value) if result.success and result.value else ""
 
-        def execute_statement_handler(command: t.JsonValue) -> t.JsonValue:
+        def execute_statement_handler(command: p.Routable) -> t.JsonPayload:
             if isinstance(command, m.DbOracle.ExecuteStatementCommand):
                 sql = command.sql
                 parameters = m.ConfigMap.model_validate({
@@ -120,7 +119,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
                 parameters = m.ConfigMap(root={})
             return services.execute_statement(sql, parameters).map_or(0)
 
-        def execute_many_handler(command: t.JsonValue) -> t.JsonValue:
+        def execute_many_handler(command: p.Routable) -> t.JsonPayload:
             if isinstance(command, m.DbOracle.ExecuteManyCommand):
                 sql = command.sql
                 parameters_list: t.SequenceOf[t.JsonMapping] = list(
@@ -141,22 +140,22 @@ class FlextDbOracleDispatcher(FlextService[None]):
     def _create_schema_handlers(
         self, services: FlextDbOracleServices
     ) -> t.MappingKV[
-        type, tuple[Callable[[t.JsonValue], t.JsonValue], t.JsonMapping | None]
+        type, tuple[Callable[[p.Routable], t.JsonPayload], t.JsonMapping | None]
     ]:
         """Create schema/metadata handler functions."""
 
-        def get_schemas_handler(_cmd: t.JsonValue) -> t.JsonValue:
+        def get_schemas_handler(_cmd: p.Routable) -> t.JsonPayload:
             result = services.fetch_schemas()
             return ",".join(result.value) if result.success else ""
 
-        def get_tables_handler(command: t.JsonValue) -> t.JsonValue:
+        def get_tables_handler(command: p.Routable) -> t.JsonPayload:
             schema: str | None = None
             if isinstance(command, m.DbOracle.GetTablesCommand):
                 schema = command.schema_name
             result = services.fetch_tables(schema)
             return ",".join(result.value) if result.success else ""
 
-        def get_columns_handler(command: t.JsonValue) -> t.JsonValue:
+        def get_columns_handler(command: p.Routable) -> t.JsonPayload:
             if isinstance(command, m.DbOracle.GetColumnsCommand):
                 table = command.table
                 schema = command.schema_name

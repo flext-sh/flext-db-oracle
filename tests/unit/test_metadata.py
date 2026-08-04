@@ -15,11 +15,8 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-
 from typing import TYPE_CHECKING
-
 import pytest
-
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.services.facade import FlextDbOracleServices
 from flext_tests import tm
@@ -27,7 +24,6 @@ from tests import m
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
     from flext_db_oracle import p
 
 
@@ -37,29 +33,26 @@ class TestsFlextDbOracleMetadata:
     @pytest.fixture
     def settings(self) -> FlextDbOracleSettings:
         """Return in-memory Oracle settings pointing at no reachable host."""
-        return FlextDbOracleSettings(
-            DbOracle={
+        return FlextDbOracleSettings.model_validate({
+            "DbOracle": {
                 "host": "test",
                 "port": 1521,
                 "service_name": "TEST",
                 "username": "test",
                 "password": "test",
             }
-        )
+        })
 
     @pytest.fixture
     def services(self, settings: FlextDbOracleSettings) -> FlextDbOracleServices:
         """Return a freshly composed, unconnected services facade."""
         return FlextDbOracleServices(settings=settings)
 
-    # -- facade contract ---------------------------------------------------
-
     def test_settings_property_exposes_supplied_connection_config(
         self, services: FlextDbOracleServices, settings: FlextDbOracleSettings
     ) -> None:
         """The settings property returns the exact configuration supplied."""
         bound = services.settings
-
         tm.that(bound, eq=settings)
         tm.that(bound.DbOracle.host, eq="test")
         tm.that(bound.DbOracle.port, eq=1521)
@@ -77,10 +70,7 @@ class TestsFlextDbOracleMetadata:
     ) -> None:
         """execute() succeeds and yields the active Oracle configuration."""
         value = tm.ok(services.execute())
-
         tm.that(value, eq=settings)
-
-    # -- fallible introspection: not-connected failure contract ------------
 
     @pytest.mark.parametrize(
         ("label", "call"),
@@ -106,7 +96,6 @@ class TestsFlextDbOracleMetadata:
         """Every introspection op returns a failure citing the missing link."""
         _ = label
         result = call(services)
-
         error = tm.fail(result, has="Not connected")
         tm.that(bool(error), eq=True)
 
@@ -115,9 +104,7 @@ class TestsFlextDbOracleMetadata:
     ) -> None:
         """A failed result yields the caller default via unwrap_or."""
         fallback: list[str] = ["<none>"]
-
         recovered = services.fetch_schemas().unwrap_or(fallback)
-
         tm.that(recovered, eq=fallback)
 
     def test_map_does_not_run_transform_on_failure(
@@ -125,7 +112,6 @@ class TestsFlextDbOracleMetadata:
     ) -> None:
         """map() is skipped for a failure and the error is preserved intact."""
         mapped = services.fetch_tables("APP_SCHEMA").map(len)
-
         tm.fail(mapped, has="Not connected")
 
     def test_recover_swaps_a_failed_metadata_op_for_success(
@@ -133,11 +119,8 @@ class TestsFlextDbOracleMetadata:
     ) -> None:
         """Recover turns a failure into a success carrying the fallback."""
         recovered = services.fetch_schemas().recover(lambda _error: ["RECOVERED"])
-
         value = tm.ok(recovered)
         tm.that(value, eq=["RECOVERED"])
-
-    # -- Column model public state -----------------------------------------
 
     @pytest.mark.parametrize(
         ("data_type", "nullable"),
@@ -148,7 +131,6 @@ class TestsFlextDbOracleMetadata:
     ) -> None:
         """Column reflects the field values supplied through its public API."""
         column = m.DbOracle.Column(name="ID", data_type=data_type, nullable=nullable)
-
         tm.that(column.name, eq="ID")
         tm.that(column.data_type, eq=data_type)
         tm.that(column.nullable, eq=nullable)
@@ -158,7 +140,6 @@ class TestsFlextDbOracleMetadata:
     def test_column_supports_mapping_access_contract(self) -> None:
         """Column exposes a public key lookup and membership contract."""
         column = m.DbOracle.Column(name="CODE", data_type="VARCHAR2")
-
         tm.that(column["name"], eq="CODE")
         tm.that(column["column_name"], eq="CODE")
         tm.that(column["data_type"], eq="VARCHAR2")
@@ -171,15 +152,11 @@ class TestsFlextDbOracleMetadata:
         column = m.DbOracle.Column(
             name="AMOUNT", data_type="NUMBER", nullable=True, primary_key=True
         )
-
         dumped = column.model_dump()
-
         tm.that(dumped["name"], eq="AMOUNT")
         tm.that(dumped["data_type"], eq="NUMBER")
         tm.that(dumped["nullable"], eq=True)
         tm.that(dumped["primary_key"], eq=True)
-
-    # -- Table model public state ------------------------------------------
 
     def test_table_aggregates_its_columns(self) -> None:
         """Table exposes its name, owner, and ordered column collection."""
@@ -190,7 +167,6 @@ class TestsFlextDbOracleMetadata:
         table = m.DbOracle.Table(
             name="COMPLEX_TABLE", owner="APP_SCHEMA", columns=columns
         )
-
         tm.that(table.name, eq="COMPLEX_TABLE")
         tm.that(table.owner, eq="APP_SCHEMA")
         tm.that(len(table.columns), eq=2)
@@ -200,7 +176,6 @@ class TestsFlextDbOracleMetadata:
     def test_table_defaults_owner_and_columns_when_omitted(self) -> None:
         """A table declared with only a name defaults owner and columns."""
         table = m.DbOracle.Table(name="BARE")
-
         tm.that(table.name, eq="BARE")
         tm.that(table.owner, eq="")
         tm.that(len(table.columns), eq=0)

@@ -13,7 +13,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 
 from pydantic_settings import SettingsConfigDict
 
@@ -27,11 +27,12 @@ class FlextDbOracleSettings(FlextCliSettings):
         env_prefix="ORACLE_", env_nested_delimiter="__", extra="ignore"
     )
 
-    class _DbOracle(m.BaseModel):
+    class DbOracleSettings(m.BaseModel):
         """Namespaced Oracle connection + pool settings (scalars only)."""
 
         host: Annotated[
-            str, m.Field(default="localhost", description="Oracle database host address")
+            str,
+            m.Field(default="localhost", description="Oracle database host address"),
         ]
         port: Annotated[
             int, m.Field(default=1521, description="Oracle database listener port")
@@ -46,7 +47,9 @@ class FlextDbOracleSettings(FlextCliSettings):
         password: Annotated[
             str, m.Field(default="", description="Oracle database password")
         ]
-        timeout: Annotated[int, m.Field(default=30, description="Connection timeout (s)")]
+        timeout: Annotated[
+            int, m.Field(default=30, description="Connection timeout (s)")
+        ]
         pool_min: Annotated[
             int, m.Field(default=2, description="Minimum connection pool size")
         ]
@@ -61,7 +64,8 @@ class FlextDbOracleSettings(FlextCliSettings):
             str, m.Field(default="XE", description="Oracle database name identifier")
         ]
         ssl_cert_file: Annotated[
-            str | None, m.Field(default=None, description="Path to SSL certificate file")
+            str | None,
+            m.Field(default=None, description="Path to SSL certificate file"),
         ]
         ssl_server_cert_dn: Annotated[
             str | None,
@@ -77,15 +81,14 @@ class FlextDbOracleSettings(FlextCliSettings):
             ),
         ]
 
-    if TYPE_CHECKING:
-        DbOracle: _DbOracle
-    else:
-        DbOracle: _DbOracle = m.Field(
-            default_factory=_DbOracle, description="Namespaced Oracle settings."
-        )
+    DbOracle: DbOracleSettings = m.Field(
+        default_factory=DbOracleSettings, description="Namespaced Oracle settings."
+    )
 
+
+DbOracleSettings = FlextDbOracleSettings.DbOracleSettings
 
 settings: FlextDbOracleSettings = FlextDbOracleSettings.fetch_global()
 """Pre-instantiated project settings singleton — ``from flext_db_oracle import settings``."""
 
-__all__: list[str] = ["FlextDbOracleSettings", "settings"]
+__all__: list[str] = ["DbOracleSettings", "FlextDbOracleSettings", "settings"]
