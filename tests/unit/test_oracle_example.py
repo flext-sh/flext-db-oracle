@@ -4,9 +4,9 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
 These tests exercise the public contract of :class:`FlextDbOracleApi` and
-:class:`FlextDbOracleServices`. Integration paths that require a live Oracle
-instance fail loudly when the shared test database is unreachable; the
-connection-error and not-connected paths are exercised without a server.
+:class:`FlextDbOracleServices`. Live paths are marked ``docker`` and skip when
+the shared Oracle container is unavailable within the probe budget. Offline
+error-path cases do not require a ready database.
 
 """
 
@@ -25,6 +25,9 @@ from tests import u
 
 if TYPE_CHECKING:
     from tests import m, t
+
+# Live Oracle paths pull the session docker fixture via real_oracle_settings.
+pytestmark = pytest.mark.docker
 
 
 class TestsFlextDbOracleOracleExample:

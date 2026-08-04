@@ -400,6 +400,7 @@ markers = [
   "integration: integration tests",
   "oracle: tests requiring a live Oracle database",
   "performance: performance and benchmark tests",
+  "remote: tests requiring remote/network services",
   "resilience: resilience tests",
   "slow: slow-running tests",
   "smoke: public-interface smoke tests",

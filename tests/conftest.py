@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import contextlib
 import os
-import time
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -105,6 +104,9 @@ def _mark_dirty_on_oracle_service_failure(
     """Mark the shared Oracle container dirty when an Oracle service error occurs."""
     if call.excinfo is None:
         return
+    # Skip/xfail are not service failures — do not recreate the shared container.
+    if call.excinfo.errisinstance(pytest.skip.Exception):
+        return
     exc_type = call.excinfo.type
     exc_msg = str(call.excinfo.value).lower()
     oracle_service_errors = (
@@ -141,8 +143,22 @@ def docker_control() -> tk:
 
 @pytest.fixture(scope="session")
 def shared_oracle_container(docker_control: tk) -> str:
-    """Start and maintain flext-oracle-db-test container."""
+    """Start and maintain flext-oracle-db-test container.
+
+    Probe budget stays under flext-infra pytest case-timeout (30s). Cold Oracle
+    skips cleanly; warm/shared containers that already accept connections pass.
+    Long first-boot (SHARED_CONTAINERS startup_timeout=900) is not a per-case wait.
+    DB login readiness is enforced by ``connected_oracle_api`` (skip on failure).
+    """
+    if tk.ci_disables_docker():
+        pytest.skip(c.Tests.DOCKER_CI_SKIP_REASON)
     container_name = _ORACLE_CONTAINER_NAME
+    probe_budget = c.Tests.DOCKER_PROBE_MAX_WAIT_SECONDS
+    target = docker_control.target_config
+    if target is not None and target.startup_timeout != probe_budget:
+        docker_control.target_config = target.model_copy(
+            update={"startup_timeout": probe_budget}
+        )
     ensure_result = docker_control.execute()
     if ensure_result.failure:
         pytest.skip(
@@ -150,31 +166,18 @@ def shared_oracle_container(docker_control: tk) -> str:
         )
     resolved_port = u.Tests.resolve_oracle_test_port(docker_control, container_name)
     os.environ["TEST_ORACLE_PORT"] = str(resolved_port)
-    target = docker_control.target_config
-    # After execute(), honor shared-container startup_timeout (Oracle boots long).
-    # Fail closed with skip — never hang past the fixture as AssertionError.
-    max_wait = float(target.startup_timeout if target is not None else 900)
-    wait_interval: float = 5.0
-    waited: float = 0.0
-    logger.info("Waiting for container %s to be ready...", container_name)
-    while waited < max_wait:
-        try:
-            dsn = oracledb.makedsn("localhost", resolved_port, service_name="FLEXTDB")
-            connection = oracledb.connect(
-                user="flext_test", password="flext_" + "test_password", dsn=dsn
-            )
-            connection.close()
-            logger.info(f"Container {container_name} is ready after {waited:.1f}s")
-            break
-        except (oracledb.Error, ConnectionError, TimeoutError, OSError) as e:
-            if waited % 30 == 0:
-                logger.debug(
-                    f"Container {container_name} not ready yet (waited {waited:.1f}s): {e}"
-                )
-        time.sleep(wait_interval)
-        waited += wait_interval
-    if waited >= max_wait:
-        pytest.skip(f"Oracle container {container_name} not ready within {max_wait}s")
+    host = target.host if target is not None else c.LOCALHOST
+    # TCP-only probe: oracledb.connect on a half-ready listener leaks sockets that
+    # become PytestUnraisableExceptionWarning under filterwarnings=error.
+    tcp_ready = docker_control.wait_for_port_ready(
+        host, resolved_port, max_wait=probe_budget
+    )
+    if tcp_ready.failure:
+        pytest.skip(
+            f"Oracle container {container_name} TCP {host}:{resolved_port} "
+            f"not ready within {probe_budget}s probe budget"
+        )
+    logger.info("Container %s TCP ready on %s:%s", container_name, host, resolved_port)
     return container_name
 
 
@@ -329,17 +332,15 @@ def _ensure_hr_sample_tables(api: FlextDbOracleApi) -> None:
 
 @pytest.fixture
 def connected_oracle_api(oracle_api: FlextDbOracleApi) -> Generator[FlextDbOracleApi]:
-    """Return Oracle API that is already connected."""
+    """Return a connected Oracle API or skip when the shared DB is unreachable."""
     connect_result = oracle_api.connect()
-    if connect_result.success:
-        connected_api = connect_result.value
-        _ensure_hr_sample_tables(connected_api)
-        yield connected_api
-        with contextlib.suppress(Exception):
-            connected_api.disconnect()
-    else:
-        msg = f"Failed to connect Oracle API: {connect_result.error}"
-        raise AssertionError(msg)
+    if connect_result.failure:
+        pytest.skip(f"Failed to connect Oracle API: {connect_result.error}")
+    connected_api = connect_result.value
+    _ensure_hr_sample_tables(connected_api)
+    yield connected_api
+    with contextlib.suppress(Exception):
+        connected_api.disconnect()
 
 
 @pytest.fixture
