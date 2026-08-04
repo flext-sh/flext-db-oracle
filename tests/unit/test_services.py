@@ -10,11 +10,8 @@ patching of internal collaborators, no private-attribute access.
 """
 
 from __future__ import annotations
-
 from typing import TYPE_CHECKING
-
 import pytest
-
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.services.facade import FlextDbOracleServices
@@ -31,24 +28,20 @@ class TestsFlextDbOracleServices:
     @pytest.fixture
     def settings(self) -> FlextDbOracleSettings:
         """Return a typed, non-routable Oracle configuration."""
-        return FlextDbOracleSettings(
-            DbOracle={
+        return FlextDbOracleSettings.model_validate({
+            "DbOracle": {
                 "host": "localhost",
                 "port": 1521,
                 "service_name": "TEST",
                 "username": "testuser",
                 "password": "testpass",
             }
-        )
+        })
 
     @pytest.fixture
     def service(self, settings: FlextDbOracleSettings) -> FlextDbOracleServices:
         """Return a fresh, unconnected services facade."""
         return FlextDbOracleServices(settings=settings)
-
-    # ------------------------------------------------------------------
-    # Configuration and connection lifecycle
-    # ------------------------------------------------------------------
 
     def test_facade_exposes_bound_settings(
         self, service: FlextDbOracleServices, settings: FlextDbOracleSettings
@@ -78,8 +71,8 @@ class TestsFlextDbOracleServices:
     def test_connect_fails_for_unreachable_host(self) -> None:
         """Connecting to an unreachable endpoint returns a failure result."""
         service = FlextDbOracleServices(
-            settings=FlextDbOracleSettings(
-                DbOracle={
+            settings=FlextDbOracleSettings.model_validate({
+                "DbOracle": {
                     "host": "127.0.0.1",
                     "port": 19999,
                     "service_name": "INVALID",
@@ -87,7 +80,7 @@ class TestsFlextDbOracleServices:
                     "password": "invalid",
                     "timeout": 1,
                 }
-            )
+            })
         )
         result = service.connect()
         tm.that(result.failure, eq=True)
@@ -110,10 +103,6 @@ class TestsFlextDbOracleServices:
         tm.that(result.value.service, eq="oracle")
         tm.that(result.value.status, eq="unhealthy")
         tm.that(result.value.database, eq="TEST")
-
-    # ------------------------------------------------------------------
-    # SELECT builder
-    # ------------------------------------------------------------------
 
     def test_build_select_emits_columns_and_table(
         self, service: FlextDbOracleServices
@@ -164,10 +153,6 @@ class TestsFlextDbOracleServices:
         tm.ok(result)
         tm.that(result.value, has=f'"{malicious}"')
 
-    # ------------------------------------------------------------------
-    # INSERT / UPDATE / DELETE builders
-    # ------------------------------------------------------------------
-
     def test_build_insert_statement_emits_named_binds(
         self, service: FlextDbOracleServices
     ) -> None:
@@ -214,10 +199,6 @@ class TestsFlextDbOracleServices:
         tm.that(result.value, has="id = :id")
         tm.that(result.value, has="status = :status")
 
-    # ------------------------------------------------------------------
-    # DDL builders
-    # ------------------------------------------------------------------
-
     def test_create_table_ddl_emits_constraints(
         self, service: FlextDbOracleServices
     ) -> None:
@@ -254,10 +235,7 @@ class TestsFlextDbOracleServices:
         tm.ok(result)
         tm.that(
             result.value,
-            eq=(
-                "CREATE UNIQUE INDEX APP.IDX_USERS_EMAIL "
-                "ON APP.USERS (EMAIL) TABLESPACE USERS_TS PARALLEL 2"
-            ),
+            eq="CREATE UNIQUE INDEX APP.IDX_USERS_EMAIL ON APP.USERS (EMAIL) TABLESPACE USERS_TS PARALLEL 2",
         )
 
     def test_build_create_index_statement_fails_for_empty_columns(
@@ -270,11 +248,7 @@ class TestsFlextDbOracleServices:
             "columns": [],
         })
         tm.that(result.failure, eq=True)
-        tm.that((result.error or ""), has="at least one column")
-
-    # ------------------------------------------------------------------
-    # Singer type mapping
-    # ------------------------------------------------------------------
+        tm.that(result.error or "", has="at least one column")
 
     @pytest.mark.parametrize(
         ("singer_type", "oracle_type"),
@@ -343,10 +317,6 @@ class TestsFlextDbOracleServices:
         result = service.map_singer_schema({})
         tm.that(result.failure or not result.value, eq=True)
 
-    # ------------------------------------------------------------------
-    # Metrics, operations, plugins
-    # ------------------------------------------------------------------
-
     def test_record_metric_succeeds(self, service: FlextDbOracleServices) -> None:
         """Recording a valid metric returns a success result."""
         result = service.record_metric("db_query_duration", 12.5)
@@ -363,7 +333,7 @@ class TestsFlextDbOracleServices:
         """An empty metric name is rejected with a required-name error."""
         result = service.record_metric("", 12.5)
         tm.that(result.failure, eq=True)
-        tm.that((result.error or ""), has="Metric name is required")
+        tm.that(result.error or "", has="Metric name is required")
 
     def test_fetch_metrics_reports_observability_status(
         self, service: FlextDbOracleServices
@@ -432,10 +402,6 @@ class TestsFlextDbOracleServices:
         tm.that(bool(first.value), eq=True)
         tm.that(first.value, eq=second.value)
 
-    # ------------------------------------------------------------------
-    # Metadata operations without a live connection
-    # ------------------------------------------------------------------
-
     def test_fetch_schemas_fails_when_not_connected(
         self, service: FlextDbOracleServices
     ) -> None:
@@ -460,11 +426,7 @@ class TestsFlextDbOracleServices:
         """Row counting fails while the service is not connected."""
         result = service.fetch_table_row_count("test_table", "test_schema")
         tm.that(result.failure, eq=True)
-        tm.that((result.error or ""), has="row count")
-
-    # ------------------------------------------------------------------
-    # Public model state
-    # ------------------------------------------------------------------
+        tm.that(result.error or "", has="row count")
 
     def test_column_model_exposes_public_fields(self) -> None:
         """A Column model reports its declared public field values."""
@@ -491,28 +453,24 @@ class TestsFlextDbOracleServices:
 
     def test_settings_roundtrip_public_fields(self) -> None:
         """Settings expose the host and port they were constructed with."""
-        settings = FlextDbOracleSettings(
-            DbOracle={
+        settings = FlextDbOracleSettings.model_validate({
+            "DbOracle": {
                 "host": "dbhost",
                 "port": 1522,
                 "service_name": "XE",
                 "username": "app",
                 "password": "secret",
             }
-        )
+        })
         tm.that(settings.DbOracle.host, eq="dbhost")
         tm.that(settings.DbOracle.port, eq=1522)
         tm.that(settings.DbOracle.service_name, eq="XE")
 
-    # ------------------------------------------------------------------
-    # API error propagation (no live database)
-    # ------------------------------------------------------------------
-
     def test_api_operations_fail_for_unreachable_config(self) -> None:
         """Every API read operation fails deterministically when offline."""
         api = FlextDbOracleApi(
-            FlextDbOracleSettings(
-                DbOracle={
+            FlextDbOracleSettings.model_validate({
+                "DbOracle": {
                     "host": "127.0.0.1",
                     "port": 19999,
                     "service_name": "INVALID",
@@ -520,7 +478,7 @@ class TestsFlextDbOracleServices:
                     "password": "invalid",
                     "timeout": 1,
                 }
-            )
+            })
         )
         tm.that(api.test_connection().failure, eq=True)
         tm.that(api.fetch_schemas().failure, eq=True)

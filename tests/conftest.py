@@ -186,16 +186,14 @@ def real_oracle_settings(oracle_container: str) -> FlextDbOracleSettings:
     _ = oracle_container
     # NOTE (multi-agent): ADR-005 — connection scalars live under the DbOracle
     # namespace; flat constructor kwargs no longer exist.
-    return FlextDbOracleSettings(
-        DbOracle={
+    return FlextDbOracleSettings.model_validate({"DbOracle": {
             "host": os.getenv("TEST_ORACLE_HOST", "localhost"),
             "port": int(os.getenv("TEST_ORACLE_PORT", "1522")),
             "name": os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB"),
             "username": os.getenv("TEST_ORACLE_USER", "flext_test"),
             "password": os.getenv("TEST_ORACLE_PASSWORD", "flext_test_password"),
             "service_name": os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB"),
-        }
-    )
+        }})
 
 
 @pytest.fixture

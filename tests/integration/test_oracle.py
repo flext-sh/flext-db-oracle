@@ -27,15 +27,13 @@ if TYPE_CHECKING:
 @pytest.fixture
 def mock_oracle_config() -> FlextDbOracleSettings:
     """Return a well-formed offline Oracle settings value."""
-    return FlextDbOracleSettings(
-        DbOracle={
+    return FlextDbOracleSettings.model_validate({"DbOracle": {
             "host": "mock-host",
             "port": 1521,
             "service_name": "mock-service",
             "username": "mock-user",
             "password": "mock-pass",
-        }
-    )
+        }})
 
 
 @pytest.mark.integration
