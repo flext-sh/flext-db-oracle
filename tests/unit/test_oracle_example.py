@@ -263,13 +263,15 @@ class TestsFlextDbOracleOracleExample:
 
     def test_connect_with_invalid_credentials_fails_with_reason(self) -> None:
         """Connecting with bad credentials yields a failure carrying a diagnostic reason."""
-        invalid_config = FlextDbOracleSettings.model_validate({"DbOracle": {
+        invalid_config = FlextDbOracleSettings.model_validate({
+            "DbOracle": {
                 "host": "localhost",
                 "port": 1521,
                 "service_name": "XEPDB1",
                 "username": "invalid_user",
                 "password": "invalid_password",
-            }})
+            }
+        })
         connection = FlextDbOracleServices(settings=invalid_config)
         result = connection.connect()
         tm.fail(result)
