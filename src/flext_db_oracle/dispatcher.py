@@ -23,9 +23,9 @@ class FlextDbOracleDispatcher(FlextService[None]):
     _container_type: ClassVar[p.ContainerType] = FlextContainer
 
     @override
-    def execute(self) -> p.Result[None]:
+    def execute(self) -> p.Result[bool]:
         """Execute dispatcher operation - returns None as this is a factory class."""
-        return r[None].ok(None)
+        return r[bool].ok(True)
 
     @classmethod
     def _create_connection_handlers(
