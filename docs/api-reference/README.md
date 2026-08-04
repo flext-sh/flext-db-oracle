@@ -1,6 +1,12 @@
-<!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
-
 # flext-db-oracle API Reference
+
+<!-- TOC START -->
+- [Source of Truth](#source-of-truth)
+- [Generated Pages](#generated-pages)
+- [Surface Summary](#surface-summary)
+<!-- TOC END -->
+
+<!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
 
 This section is generated from public exports and real docstrings.
 
@@ -19,7 +25,7 @@ This section is generated from public exports and real docstrings.
 
 ## Surface Summary
 
-- Primary facades: `FlextDbOracleApi`, `FlextDbOracleApiRuntime`, `FlextDbOracleConstants`, `FlextDbOracleDispatcher`, `FlextDbOracleExceptions`, `FlextDbOracleModels` (+12 more)
-- Generated module pages: `17`
+- Primary facades: _none_
+- Generated module pages: `0`
 
-- [Back to project docs](../index.md)
+Back to [project docs](../index.md).

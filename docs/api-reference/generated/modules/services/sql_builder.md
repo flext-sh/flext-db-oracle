@@ -2,6 +2,10 @@
 
 # flext_db_oracle.services.sql_builder
 
+<!-- TOC START -->
+- No sections found
+<!-- TOC END -->
+
 ::: flext_db_oracle.services.sql_builder
     options:
       show_root_heading: true
