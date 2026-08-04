@@ -174,9 +174,7 @@ def shared_oracle_container(docker_control: tk) -> str:
         time.sleep(wait_interval)
         waited += wait_interval
     if waited >= max_wait:
-        pytest.skip(
-            f"Oracle container {container_name} not ready within {max_wait}s"
-        )
+        pytest.skip(f"Oracle container {container_name} not ready within {max_wait}s")
     return container_name
 
 
