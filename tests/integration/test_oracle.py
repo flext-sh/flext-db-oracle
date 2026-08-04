@@ -39,6 +39,7 @@ def mock_oracle_config() -> FlextDbOracleSettings:
 
 
 @pytest.mark.integration
+@pytest.mark.docker
 class TestsFlextDbOracleOracle:
     """Behavioral contract of the Oracle settings and API public surface."""
 
