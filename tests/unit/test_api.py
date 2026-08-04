@@ -148,20 +148,20 @@ class TestsFlextDbOracleApi:
         self, api: FlextDbOracleApi, operation: str
     ) -> None:
         """Every data operation returns a failure mentioning the missing connection."""
-
-        def discard(_value: object) -> None:
-            return None
-
-        calls: Mapping[str, Callable[[], p.Result[None]]] = {
-            "query": lambda: api.query("SELECT 1 FROM DUAL").map(discard),
-            "query_one": lambda: api.query_one("SELECT 1 FROM DUAL").map(discard),
-            "execute_sql": lambda: api.execute_sql("CREATE TABLE t (id NUMBER)").map(
-                discard
+        calls: Mapping[str, Callable[[], p.Result[bool]]] = {
+            "query": lambda: api.query("SELECT 1 FROM DUAL").map(lambda _: True),
+            "query_one": lambda: api.query_one("SELECT 1 FROM DUAL").map(
+                lambda _: True
             ),
-            "fetch_schemas": lambda: api.fetch_schemas().map(discard),
-            "fetch_tables": lambda: api.fetch_tables().map(discard),
-            "fetch_columns": lambda: api.fetch_columns("test_table").map(discard),
-            "test_connection": lambda: api.test_connection().map(discard),
+            "execute_sql": lambda: api.execute_sql(
+                "CREATE TABLE t (id NUMBER)"
+            ).map(lambda _: True),
+            "fetch_schemas": lambda: api.fetch_schemas().map(lambda _: True),
+            "fetch_tables": lambda: api.fetch_tables().map(lambda _: True),
+            "fetch_columns": lambda: api.fetch_columns("test_table").map(
+                lambda _: True
+            ),
+            "test_connection": lambda: api.test_connection().map(lambda _: True),
         }
         result = calls[operation]()
         error = tm.fail(result)
