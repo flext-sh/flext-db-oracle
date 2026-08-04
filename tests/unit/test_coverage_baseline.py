@@ -11,9 +11,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-
 import pytest
-
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.services.facade import FlextDbOracleServices
 from flext_tests import tm
@@ -26,29 +24,21 @@ class TestsFlextDbOracleCoverageBaseline:
     @pytest.fixture
     def settings(self) -> FlextDbOracleSettings:
         """Return a valid Oracle settings instance for service construction."""
-        return FlextDbOracleSettings(
-            DbOracle={
+        return FlextDbOracleSettings.model_validate({
+            "DbOracle": {
                 "host": "localhost",
                 "port": 1521,
                 "service_name": "TEST",
                 "username": "testuser",
                 "password": "testpass",
             }
-        )
+        })
 
     @pytest.fixture
     def service(self, settings: FlextDbOracleSettings) -> FlextDbOracleServices:
         """Return a services facade bound to the valid settings."""
         return FlextDbOracleServices(settings=settings)
 
-    # ------------------------------------------------------------------
-    # FlextDbOracleSettings — construction and public field state
-    # ------------------------------------------------------------------
-
-    # NOTE (multi-agent): ADR-005 — settings is a layer-0 scalar namespace under
-    # settings.DbOracle.*. Flat fields, Password wrapping, uppercase/ssl fallback
-    # validators and the settings-level from_url/from_env factories were removed
-    # by design; the namespaced contract is what remains to cover.
     def test_settings_expose_provided_connection_fields(
         self, settings: FlextDbOracleSettings
     ) -> None:
@@ -66,21 +56,21 @@ class TestsFlextDbOracleCoverageBaseline:
 
     def test_settings_service_name_round_trips_verbatim(self) -> None:
         """service_name is stored verbatim (no case normalization in layer-0)."""
-        settings = FlextDbOracleSettings(
-            DbOracle={
+        settings = FlextDbOracleSettings.model_validate({
+            "DbOracle": {
                 "host": "localhost",
                 "port": 1521,
                 "service_name": "lower_svc",
                 "username": "testuser",
                 "password": "testpass",
             }
-        )
+        })
         tm.that(settings.DbOracle.service_name, eq="lower_svc")
 
     def test_settings_ssl_fields_are_independent(self) -> None:
         """ssl_cert_file and ssl_server_cert_dn keep their supplied values."""
-        settings = FlextDbOracleSettings(
-            DbOracle={
+        settings = FlextDbOracleSettings.model_validate({
+            "DbOracle": {
                 "host": "secure.example.com",
                 "port": 2484,
                 "service_name": "SECURE_DB",
@@ -88,13 +78,9 @@ class TestsFlextDbOracleCoverageBaseline:
                 "password": "secure_pass",
                 "ssl_cert_file": "/path/to/cert.pem",
             }
-        )
+        })
         tm.that(settings.DbOracle.ssl_cert_file, eq="/path/to/cert.pem")
         tm.that(settings.DbOracle.ssl_server_cert_dn, none=True)
-
-    # ------------------------------------------------------------------
-    # Password value object contract
-    # ------------------------------------------------------------------
 
     def test_password_equality_and_secret_access(self) -> None:
         """Password compares to raw strings and to other Password wrappers."""
@@ -104,10 +90,6 @@ class TestsFlextDbOracleCoverageBaseline:
         tm.that(password, eq=m.DbOracle.Password("hunter2"))
         tm.that(password, ne=m.DbOracle.Password("other"))
         tm.that(str(password), eq="hunter2")
-
-    # ------------------------------------------------------------------
-    # Column model contract
-    # ------------------------------------------------------------------
 
     def test_column_exposes_public_fields(self) -> None:
         """Column stores name/type/nullable/default as public field state."""
@@ -127,10 +109,6 @@ class TestsFlextDbOracleCoverageBaseline:
         tm.that(column, has="nullable")
         tm.that(column, lacks="unknown_key")
         tm.that(column["unknown_key"], eq="")
-
-    # ------------------------------------------------------------------
-    # FlextDbOracleServices facade — lifecycle and config exposure
-    # ------------------------------------------------------------------
 
     def test_service_exposes_bound_settings(
         self, service: FlextDbOracleServices, settings: FlextDbOracleSettings
@@ -152,10 +130,6 @@ class TestsFlextDbOracleCoverageBaseline:
         result = service.execute()
         tm.ok(result)
         assert result.value is settings
-
-    # ------------------------------------------------------------------
-    # FlextDbOracleServices facade — SQL builder contracts (r[str])
-    # ------------------------------------------------------------------
 
     def test_build_select_with_columns(self, service: FlextDbOracleServices) -> None:
         """build_select emits a SELECT over the named columns and table."""

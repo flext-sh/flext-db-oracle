@@ -11,11 +11,8 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-
 from collections.abc import Callable, Mapping
-
 import pytest
-
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, p
 from flext_db_oracle.services.facade import FlextDbOracleServices
 from flext_tests import tm
@@ -30,8 +27,8 @@ class TestsFlextDbOracleApi:
         host: str = "127.0.0.1", service_name: str = "TEST"
     ) -> FlextDbOracleSettings:
         """Build an unreachable-but-valid settings value for offline behavior."""
-        return FlextDbOracleSettings(
-            DbOracle={
+        return FlextDbOracleSettings.model_validate({
+            "DbOracle": {
                 "host": host,
                 "port": 19999,
                 "service_name": service_name,
@@ -39,7 +36,7 @@ class TestsFlextDbOracleApi:
                 "password": "test_password",
                 "timeout": 1,
             }
-        )
+        })
 
     @pytest.fixture
     def settings(self) -> FlextDbOracleSettings:
@@ -50,8 +47,6 @@ class TestsFlextDbOracleApi:
     def api(self, settings: FlextDbOracleSettings) -> FlextDbOracleApi:
         """Return a fresh, disconnected API instance under test."""
         return FlextDbOracleApi(settings)
-
-    # ----- construction & configuration contract -------------------------
 
     def test_construction_exposes_settings_and_starts_disconnected(
         self, settings: FlextDbOracleSettings
@@ -106,8 +101,6 @@ class TestsFlextDbOracleApi:
         error = tm.fail(result)
         tm.that("password is required" in error, eq=True)
 
-    # ----- serialization contract ----------------------------------------
-
     def test_to_dict_exposes_state_and_hides_password(
         self, api: FlextDbOracleApi
     ) -> None:
@@ -138,8 +131,6 @@ class TestsFlextDbOracleApi:
     ) -> None:
         """Rendered repr shows the host and the current disconnected status."""
         tm.that(repr(api), eq="FlextDbOracleApi(host=127.0.0.1, status=disconnected)")
-
-    # ----- offline operation contract (no live database) -----------------
 
     @pytest.mark.parametrize(
         "operation",
@@ -204,8 +195,6 @@ class TestsFlextDbOracleApi:
         api.__exit__(None, None, None)
         tm.that(api.connected(), eq=False)
 
-    # ----- query optimization contract -----------------------------------
-
     @pytest.mark.parametrize(
         ("raw", "expected"),
         [
@@ -224,8 +213,6 @@ class TestsFlextDbOracleApi:
         tm.ok(result)
         tm.that(result.value, eq=expected)
 
-    # ----- metrics contract ----------------------------------------------
-
     def test_observability_metrics_available_offline(
         self, api: FlextDbOracleApi
     ) -> None:
@@ -233,8 +220,6 @@ class TestsFlextDbOracleApi:
         result = api.fetch_observability_metrics()
         tm.ok(result)
         tm.that(result.value, none=False)
-
-    # ----- Singer mapping contract ---------------------------------------
 
     @pytest.mark.parametrize(
         "singer_type", ["string", "integer", "number", "boolean", "date-time"]
@@ -264,8 +249,6 @@ class TestsFlextDbOracleApi:
         tm.ok(result)
         tm.that(result.value, is_=dict)
 
-    # ----- plugin registry contract --------------------------------------
-
     def test_list_plugins_empty_by_default(self, api: FlextDbOracleApi) -> None:
         """A fresh API lists no plugins."""
         result = api.list_plugins()
@@ -278,15 +261,12 @@ class TestsFlextDbOracleApi:
         """Registering a plugin makes it fetchable and listed until unregistered."""
         plugin = {"name": "perf", "version": "1.0.0"}
         tm.ok(api.register_plugin("perf", plugin))
-
         fetched = api.fetch_plugin("perf")
         tm.ok(fetched)
         tm.that(fetched.value, eq=plugin)
-
         listed = api.list_plugins()
         tm.ok(listed)
         tm.that("perf" in listed.value, eq=True)
-
         tm.ok(api.unregister_plugin("perf"))
         tm.fail(api.fetch_plugin("perf"))
 
@@ -317,15 +297,12 @@ class TestsFlextDbOracleApi:
         api_a = FlextDbOracleApi(self._settings("a", "A"))
         api_b = FlextDbOracleApi(self._settings("b", "B"))
         api_a.register_plugin("only_a", {"name": "only_a"})
-
         listed_a = api_a.list_plugins()
         listed_b = api_b.list_plugins()
         tm.ok(listed_a)
         tm.ok(listed_b)
         tm.that("only_a" in listed_a.value, eq=True)
         tm.that(listed_b.value, empty=True)
-
-    # ----- services SQL builder contract (public collaborator) -----------
 
     @pytest.mark.parametrize(
         ("table_name", "columns"),
