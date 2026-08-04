@@ -432,6 +432,7 @@ def test_memory_usage():
 ### Test Fixtures Directory
 
 ```
+
 tests/
 ├── fixtures/
 │   ├── ldif/
@@ -444,6 +445,7 @@ tests/
 │   └── data/
 │       ├── users.json
 │       └── schema.json
+
 ```
 
 ### Loading Test Data

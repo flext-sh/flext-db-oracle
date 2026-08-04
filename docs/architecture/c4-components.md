@@ -270,12 +270,14 @@ print(result.row_count)```
 **Exception Hierarchy**:
 
 ```
+
 FlextDbOracleException (base)
 ├── ConnectionException
 ├── QueryException
 ├── SchemaException
 ├── ConfigurationException
 └── ValidationException
+
 ```
 
 ### Infrastructure Layer Components

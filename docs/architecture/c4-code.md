@@ -445,8 +445,9 @@ print(api.commit_transaction())```
 ### Test Organization
 
 ```
+
 tests/
-├── __init__.py              # Test package initialization
+├── **init**.py              # Test package initialization
 ├── conftest.py              # Shared fixtures and configuration
 ├── unit/                    # 30 unit test files
 │   ├── test_api.py         # API testing (36 methods)
@@ -455,6 +456,7 @@ tests/
 │   └── ...                 # Component-specific tests
 ├── integration/            # Oracle database integration tests
 └── e2e/                    # End-to-end workflow tests
+
 ```
 
 ### Test Coverage Areas

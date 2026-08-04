@@ -19,20 +19,6 @@ socket.setdefaulttimeout(2)
 
 
 @pytest.fixture
-def _isolate_oracle_env_vars(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Clear host Oracle env so settings come only from the test fixture."""
-    for key in (
-        "ORACLE_HOST",
-        "ORACLE_PORT",
-        "ORACLE_SERVICE_NAME",
-        "ORACLE_USER",
-        "ORACLE_PASSWORD",
-        "ORACLE_DSN",
-    ):
-        monkeypatch.delenv(key, raising=False)
-
-
-@pytest.fixture
 def real_oracle_config(
     real_oracle_settings: FlextDbOracleSettings, _isolate_oracle_env_vars: None
 ) -> FlextDbOracleSettings:
