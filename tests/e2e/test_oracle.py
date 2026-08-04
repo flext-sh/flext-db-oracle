@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 _NOT_CONNECTED = "not connected to database"
 
 
+@pytest.mark.docker
 class TestsFlextDbOracleOracle:
     """Behavioral end-to-end tests for the Oracle API public contract."""
 
