@@ -15,7 +15,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 import pytest
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.services.facade import FlextDbOracleServices
@@ -25,6 +25,8 @@ from tests import m
 if TYPE_CHECKING:
     from collections.abc import Callable
     from flext_db_oracle import p
+
+_T = TypeVar("_T")
 
 
 class TestsFlextDbOracleMetadata:
@@ -91,7 +93,7 @@ class TestsFlextDbOracleMetadata:
         self,
         services: FlextDbOracleServices,
         label: str,
-        call: Callable[[FlextDbOracleServices], p.Result[object]],
+        call: Callable[[FlextDbOracleServices], p.Result[_T]],
     ) -> None:
         """Every introspection op returns a failure citing the missing link."""
         _ = label
