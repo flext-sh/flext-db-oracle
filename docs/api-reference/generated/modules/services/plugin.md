@@ -2,6 +2,10 @@
 
 # flext_db_oracle.services.plugin
 
+<!-- TOC START -->
+- No sections found
+<!-- TOC END -->
+
 ::: flext_db_oracle.services.plugin
     options:
       show_root_heading: true

@@ -2,6 +2,10 @@
 
 # flext_db_oracle.models
 
+<!-- TOC START -->
+- No sections found
+<!-- TOC END -->
+
 ::: flext_db_oracle.models
     options:
       show_root_heading: true

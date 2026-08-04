@@ -2,6 +2,10 @@
 
 # flext_db_oracle.services.singer
 
+<!-- TOC START -->
+- No sections found
+<!-- TOC END -->
+
 ::: flext_db_oracle.services.singer
     options:
       show_root_heading: true
