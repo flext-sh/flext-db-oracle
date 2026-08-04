@@ -2,6 +2,10 @@
 
 # flext_db_oracle.exceptions
 
+<!-- TOC START -->
+- No sections found
+<!-- TOC END -->
+
 ::: flext_db_oracle.exceptions
     options:
       show_root_heading: true
