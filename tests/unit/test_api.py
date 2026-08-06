@@ -153,9 +153,9 @@ class TestsFlextDbOracleApi:
             "query_one": lambda: api.query_one("SELECT 1 FROM DUAL").map(
                 lambda _: True
             ),
-            "execute_sql": lambda: api.execute_sql(
-                "CREATE TABLE t (id NUMBER)"
-            ).map(lambda _: True),
+            "execute_sql": lambda: api.execute_sql("CREATE TABLE t (id NUMBER)").map(
+                lambda _: True
+            ),
             "fetch_schemas": lambda: api.fetch_schemas().map(lambda _: True),
             "fetch_tables": lambda: api.fetch_tables().map(lambda _: True),
             "fetch_columns": lambda: api.fetch_columns("test_table").map(
