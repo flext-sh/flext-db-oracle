@@ -259,8 +259,11 @@ def _seed_row(api: FlextDbOracleApi, table_name: str, insert_sql: str) -> None:
 def _ensure_hr_sample_tables(api: FlextDbOracleApi) -> None:
     """Provision minimal HR sample tables required by real API examples.
 
-    Tables are truncated before seeding so concurrent or repeated test runs
-    never see duplicate-key violations from leftover rows.
+    Provisioning is idempotent (``CREATE`` when absent, ``MERGE`` for rows) and
+    serialized across pytest-xdist workers with the shared FileLock utility, so
+    concurrent workers sharing one Oracle container never race each other into
+    duplicate-key violations. Rows are never truncated: a truncate would empty
+    the tables another worker is reading mid-test.
     """
     _ensure_table(
         api,
@@ -277,9 +280,6 @@ def _ensure_hr_sample_tables(api: FlextDbOracleApi) -> None:
         "EMPLOYEES",
         "CREATE TABLE employees (employee_id NUMBER PRIMARY KEY, first_name VARCHAR2(50), last_name VARCHAR2(50), email VARCHAR2(100), department_id NUMBER, job_id VARCHAR2(20))",
     )
-    for table_name in ("DEPARTMENTS", "JOBS", "EMPLOYEES"):
-        truncate_result = api.execute_statement(f"TRUNCATE TABLE {table_name}")
-        _assert_oracle_success(truncate_result, f"Truncate {table_name}")
     _seed_row(
         api,
         "DEPARTMENTS",
@@ -337,7 +337,10 @@ def connected_oracle_api(oracle_api: FlextDbOracleApi) -> Generator[FlextDbOracl
     if connect_result.failure:
         pytest.skip(f"Failed to connect Oracle API: {connect_result.error}")
     connected_api = connect_result.value
-    _ensure_hr_sample_tables(connected_api)
+    with u.Tests.FileLock(
+        Path.home() / ".flext" / f"{_ORACLE_CONTAINER_NAME}.seed.lock"
+    ):
+        _ensure_hr_sample_tables(connected_api)
     yield connected_api
     with contextlib.suppress(Exception):
         connected_api.disconnect()
