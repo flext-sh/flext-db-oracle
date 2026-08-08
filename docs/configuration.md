@@ -100,9 +100,7 @@ export ORACLE_USERNAME=system
 export ORACLE_PASSWORD=Oracle123
 
 # Test connection
-python -m flext_db_oracle.cli health
-```
-
+python -m flext_db_oracle.cli health```
 For advanced configuration patterns, see the FLEXT workspace documentation.
 
 ______________________________________________________________________

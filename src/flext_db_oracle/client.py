@@ -423,7 +423,7 @@ class FlextDbOracleClient(s):
 
         """
         return self._get_formatter_strategy(format_type).flat_map(
-            lambda formatter: operation_result.flat_map(formatter)
+            operation_result.flat_map
         )
 
     def _format_as_json(self, data: m.ConfigMap) -> p.Result[str]:

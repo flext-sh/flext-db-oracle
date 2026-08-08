@@ -401,8 +401,11 @@ class TestsFlextDbOracleConstants:
         result = connected_oracle_api.query(c.DbOracle.TEST_QUERY)
         tm.ok(result)
         tm.that(len(result.value), eq=1)
-        dual_query = f"SELECT 1 FROM {c.DbOracle.DUAL_TABLE}"
-        tm.ok(connected_oracle_api.query(dual_query))
+        dual_query = connected_oracle_api.oracle_services.build_select(
+            c.DbOracle.DUAL_TABLE, columns=["DUMMY"]
+        )
+        tm.ok(dual_query)
+        tm.ok(connected_oracle_api.query(dual_query.value))
 
     def test_oracle_constants_default_values_real_validation(
         self, connected_oracle_api: FlextDbOracleApi, *, oracle_available: bool

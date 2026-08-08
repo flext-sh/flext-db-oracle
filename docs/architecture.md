@@ -167,9 +167,7 @@ FlextDbOracleException (base)
 ├── ConnectionException
 ├── QueryException
 ├── SchemaException
-└── ConfigurationException
-```
-
+└── ConfigurationException```
 ## Technology Stack
 
 ### Current Implementation

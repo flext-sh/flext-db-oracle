@@ -132,9 +132,7 @@ docker-compose -f docker-compose.oracle.yml up -d
 docker-compose -f docker-compose.oracle.yml logs -f oracle-xe
 
 # Test connectivity once ready
-make oracle-connect
-```
-
+make oracle-connect```
 **Connection Details**:
 
 - Host: localhost
@@ -152,9 +150,7 @@ export FLEXT_TARGET_ORACLE_HOST="localhost"
 export FLEXT_TARGET_ORACLE_PORT="1521"
 export FLEXT_TARGET_ORACLE_SERVICE_NAME="XEPDB1"
 export FLEXT_TARGET_ORACLE_USERNAME="system"
-export FLEXT_TARGET_ORACLE_PASSWORD="Oracle123"
-```
-
+export FLEXT_TARGET_ORACLE_PASSWORD="Oracle123"```
 ### Configuration from Environment
 
 ```python
@@ -177,9 +173,7 @@ python -m flext_db_oracle.cli schemas
 # Execute SQL query
 python -m flext_db_oracle.cli query "SELECT COUNT(*) FROM dual"
 
-# Note: CLI formatters currently use SimpleNamespace placeholders
-```
-
+# Note: CLI formatters currently use SimpleNamespace placeholders```
 ## Current Capabilities
 
 **Working Features**:

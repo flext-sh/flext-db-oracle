@@ -227,17 +227,11 @@ ______________________________________________________________________
 
 ### Test Execution Status
 
-#### Recent Test Run (2026-04-14)
-
-```
-
+#### Recent Test Run (2026-04-14)```
 ✅ Tests collected and executed successfully
 ✅ Core unit suites passed
 ✅ Integration suites (Oracle container) passed
-⚠️ Remaining work: expand CLI formatter scenarios and edge-case coverage
-
-```
-
+⚠️ Remaining work: expand CLI formatter scenarios and edge-case coverage```
 ### CI/CD Integration
 
 #### Automated Testing Pipeline
@@ -248,9 +242,7 @@ ______________________________________________________________________
     make setup
     make oracle-start
     make test
-    make oracle-stop
-```
-
+    make oracle-stop```
 ______________________________________________________________________
 
 ## 🎯 Testing Roadmap

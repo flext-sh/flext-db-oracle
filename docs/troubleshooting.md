@@ -68,9 +68,7 @@ This causes limited CLI functionality.
 Install dependencies:
 
 ```bash
-poetry install
-```
-
+poetry install```
 ### "ImportError: r"
 
 Ensure flext-core is installed:
@@ -79,9 +77,7 @@ Ensure flext-core is installed:
 cd ../flext-core
 poetry install
 cd ../flext-db-oracle
-poetry install
-```
-
+poetry install```
 ## Performance Issues
 
 ### Slow queries
@@ -110,9 +106,7 @@ No integration with Pandas, PyArrow, or Polars. Python-oracledb 3.4+ has native 
 make oracle-start
 
 # Connect to localhost:1521/XEPDB1
-# Username: system, Password: Oracle123
-```
-
+# Username: system, Password: Oracle123```
 ______________________________________________________________________
 
 Updated: April 14, 2026 | Version: 0.12.0-dev

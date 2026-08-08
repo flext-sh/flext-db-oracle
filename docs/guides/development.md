@@ -205,9 +205,7 @@ class ApiRequest(m.BaseModel):
 
 
 class ApiResponse(m.BaseModel):
-    result
-```
-
+    result```
 ## Testing
 
 ### Running Tests
@@ -222,9 +220,7 @@ pytest tests/integration/ # Integration tests
 pytest tests/e2e/         # End-to-end tests
 
 # Run with coverage
-pytest --cov=src --cov-report=html
-```
-
+pytest --cov=src --cov-report=html```
 ### Writing Tests
 
 ```python
@@ -257,9 +253,7 @@ FLEXT uses pre-commit hooks to enforce quality standards:
 pre-commit install
 
 # Run hooks manually
-pre-commit run --all-files
-```
-
+pre-commit run --all-files```
 ### Quality Checks
 
 ```bash
@@ -273,9 +267,7 @@ make type-check
 make security
 
 # All quality checks
-make val
-```
-
+make val```
 ## Adding New Projects
 
 ### 1. Create Project Structure
@@ -286,9 +278,7 @@ cp -r flext-api flext-newlib
 cd flext-newlib
 
 # Update project metadata
-# Edit pyproject.toml, README.md, etc.
-```
-
+# Edit pyproject.toml, README.md, etc.```
 ### 2. Implement Core Patterns
 
 ```text
@@ -317,17 +307,13 @@ class FlextNewlibModels:
         data: t.JsonMapping
 
     class Response(m.BaseModel):
-        result: p.Result[t.JsonValue]
-```
-
+        result: p.Result[t.JsonValue]```
 ### 3. Add to Workspace
 
 ```bash
 # Add to workspace pyproject.toml
 # Add to workspace Makefile
-# Update documentation
-```
-
+# Update documentation```
 ## Debugging
 
 ### Type Errors
@@ -401,9 +387,7 @@ from flext_newlib import FlextNewlibSettings
 lib = FlextNewlib()
 result = lib.new_feature()
 
-settings = FlextNewlibSettings(new_setting="value")
-```
-
+settings = FlextNewlibSettings(new_setting="value")```
 ## Contributing
 
 ### Pull Request Process

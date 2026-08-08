@@ -167,20 +167,22 @@ class TestsFlextDbOracleOracle:
             )
             tm.ok(create)
             try:
-                rows = [
-                    (1, "John Doe", "'john@example.com'"),
-                    (2, "Jane Smith", "'jane@example.com'"),
-                    (3, "Bob Wilson", "NULL"),
+                rows: list[tuple[int, str, str | None]] = [
+                    (1, "John Doe", "john@example.com"),
+                    (2, "Jane Smith", "jane@example.com"),
+                    (3, "Bob Wilson", None),
                 ]
                 for row_id, name, email in rows:
                     inserted = api.execute_statement(
-                        f"INSERT INTO {table} (ID, NAME, EMAIL) VALUES ({row_id}, '{name}', {email})"
+                        "INSERT INTO E2E_TEST_TABLE (ID, NAME, EMAIL)"
+                        " VALUES (:id, :name, :email)",
+                        {"id": row_id, "name": name, "email": email},
                     )
                     tm.ok(inserted)
-                selected = api.query(f"SELECT * FROM {table} ORDER BY ID")
+                selected = api.query("SELECT * FROM E2E_TEST_TABLE ORDER BY ID")
                 tm.ok(selected)
                 tm.that(len(selected.value), eq=3)
-                counted = api.query(f"SELECT COUNT(*) AS ROW_COUNT FROM {table}")
+                counted = api.query("SELECT COUNT(*) AS ROW_COUNT FROM E2E_TEST_TABLE")
                 tm.ok(counted)
                 count_row = self._row_mapping(counted.value[0])
                 tm.that(int(str(count_row["ROW_COUNT"])), eq=3)
@@ -194,10 +196,13 @@ class TestsFlextDbOracleOracle:
                 tm.ok(primary_keys)
                 tm.that(primary_keys.value, has="ID")
                 updated = api.execute_statement(
-                    f"UPDATE {table} SET EMAIL = 'bob@example.com' WHERE ID = 3"
+                    "UPDATE E2E_TEST_TABLE SET EMAIL = :email WHERE ID = :id",
+                    {"email": "bob@example.com", "id": 3},
                 )
                 tm.ok(updated)
-                verify = api.query(f"SELECT EMAIL FROM {table} WHERE ID = 3")
+                verify = api.query(
+                    "SELECT EMAIL FROM E2E_TEST_TABLE WHERE ID = :id", {"id": 3}
+                )
                 tm.ok(verify)
                 tm.that(len(verify.value), eq=1)
                 verified_row = self._row_mapping(verify.value[0])

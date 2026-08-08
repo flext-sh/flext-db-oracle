@@ -267,19 +267,13 @@ print(result.row_count)```
 - User-friendly error messages
 - Exception chaining and context preservation
 
-**Exception Hierarchy**:
-
-```
-
+**Exception Hierarchy**:```
 FlextDbOracleException (base)
 ├── ConnectionException
 ├── QueryException
 ├── SchemaException
 ├── ConfigurationException
-└── ValidationException
-
-```
-
+└── ValidationException```
 ### Infrastructure Layer Components
 
 #### FlextDbOracleConnection (Connection Management)
@@ -372,9 +366,7 @@ sequenceDiagram
     Oracle-->>Connection: result set
     Connection-->>API: QueryResult
     API->>Models: validate_result(result)
-    API-->>Client: p.Result[QueryResult]
-```
-
+    API-->>Client: p.Result[QueryResult]```
 ### Error Handling Flow
 
 ```mermaid
@@ -390,9 +382,7 @@ sequenceDiagram
     Exceptions->>Logger: log_error(context)
     Services-->>API: r.fail(exception)
     API->>Logger: log_operation_failure()
-    API-->>Client: r.failure
-```
-
+    API-->>Client: r.failure```
 ### Connection Management Flow
 
 ```mermaid
@@ -414,9 +404,7 @@ stateDiagram-v2
     Reconnecting --> ConnectionFailed: reconnection failed
 
     Connected --> ShuttingDown: application shutdown
-    ShuttingDown --> [*]: cleanup complete
-```
-
+    ShuttingDown --> [*]: cleanup complete```
 ## Component Quality Attributes
 
 ### Reliability
