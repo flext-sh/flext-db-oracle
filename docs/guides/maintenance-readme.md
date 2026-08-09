@@ -48,8 +48,8 @@
 
 **Automated documentation maintenance system for flext-db-oracle with comprehensive quality assurance, validation, and continuous improvement.**
 
-[![Documentation Health](https://img.shields.io/badge/docs-health-83.4%25-orange)](docs/reports/)
-[![Files Audited](https://img.shields.io/badge/files-21-blue)](.)
+![Documentation Health](https://img.shields.io/badge/docs-health-83.4%25-orange)
+![Files Audited](https://img.shields.io/badge/files-21-blue)
 [![Maintenance](https://img.shields.io/badge/maintenance-automated-green)](maintenance-procedures.md)
 
 ## 📊 System Overview
@@ -415,7 +415,9 @@ def _validate_custom_rule(self, content: str) -> list[dict[str, t.JsonValue]]:
             "suggestion": "Update to current feature or remove reference",
         })
 
-    return issues```
+    return issues
+```
+
 ### Custom Quality Metrics
 
 ```yaml
@@ -430,7 +432,9 @@ custom_rules:
     - name: "version_references"
       pattern: "\\bv\\d+\\.\\d+"
       validate: true
-      message: "Version references should be current"```
+      message: "Version references should be current"
+```
+
 ### Extending Reports
 
 ```text
@@ -447,19 +451,25 @@ def generate_custom_report_section(self, results: List[AuditResult]) -> str:
 
     return (
         f"### Oracle References\n- Found {oracle_references} files referencing Oracle\n"
-    )```
+    )
+```
+
 ## 📊 Monitoring & Analytics
 
 ### Real-time Dashboards
 
-#### Health Score Dashboard```
+#### Health Score Dashboard
+
+```text
 Documentation Health Overview
 =============================
 Health Score: 83.4% (+2.1% from last week)
 Files: 21 audited
 Issues: 92 total (0 critical)
 Freshness: 85% within 90 days
-Links: 95% healthy```
+Links: 95% healthy
+```
+
 #### Trend Analysis
 
 - Track health score improvements over time
@@ -525,7 +535,9 @@ poetry env info
 python -c "import yaml; yaml.safe_load(open('docs/maintenance_config.yaml'))"
 
 # Debug execution
-PYTHONPATH=src python -m compileall scripts/documentation```
+PYTHONPATH=src python -m compileall scripts/documentation
+```
+
 #### Configuration Problems
 
 ```bash
