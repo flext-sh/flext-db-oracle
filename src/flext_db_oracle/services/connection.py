@@ -49,7 +49,6 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                 f"Connected to Oracle database: {self.db_config.DbOracle.host}"
             )
             ok_result: p.Result[Self] = r.ok(self)
-            return ok_result
         except c.DbOracle.EXC_DB_BROAD as e:
             local_host = self.db_config.DbOracle.host in {
                 "localhost",
@@ -73,12 +72,15 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                             f"Connected to Oracle database: {self.db_config.DbOracle.host}"
                         )
                         nested_ok: p.Result[Self] = r.ok(self)
-                        return nested_ok
                     except c.DbOracle.EXC_DB_BROAD:
                         self._engine = None
+                    else:
+                        return nested_ok
             self._engine = None
             self.logger.exception("Oracle connection failed")
             return r[Self](error=f"Connection failed: {e}", success=False)
+        else:
+            return ok_result
 
     def disconnect(self) -> p.Result[bool]:
         """Disconnect from Oracle database."""

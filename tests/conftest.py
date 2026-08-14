@@ -8,7 +8,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
+import gc
 import os
+import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -182,9 +184,50 @@ def shared_oracle_container(docker_control: tk) -> str:
 
 
 @pytest.fixture(scope="session")
-def oracle_container(shared_oracle_container: str) -> str:
-    """Provide Oracle container name for all tests."""
+def oracle_login_ready(shared_oracle_container: str) -> str:
+    """Skip live Oracle tests when the shared database refuses a real login.
+
+    A TCP-ready listener does not mean the database accepts sessions: Oracle
+    opens the port long before the service is usable. Without this gate the
+    tests that consume ``real_oracle_config`` connect directly and report a
+    failure instead of skipping on an unavailable database.
+
+    The single probe connection runs with ``ResourceWarning`` suppressed and an
+    explicit collection, because a refused ``oracledb.connect`` leaks its socket
+    and ``filterwarnings = error`` would otherwise surface it as an unrelated
+    ``PytestUnraisableExceptionWarning`` during a later test's teardown.
+    """
+    host = os.getenv("TEST_ORACLE_HOST", c.LOCALHOST)
+    port = int(os.getenv("TEST_ORACLE_PORT", "1522"))
+    service = os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB")
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", ResourceWarning)
+        try:
+            probe = oracledb.connect(
+                user=os.getenv("TEST_ORACLE_USER", "flext_test"),
+                password=os.getenv("TEST_ORACLE_PASSWORD", "flext_test_password"),
+                dsn=f"{host}:{port}/{service}",
+            )
+        except (oracledb.Error, OSError) as exc:
+            gc.collect()
+            pytest.skip(
+                f"Oracle {host}:{port}/{service} is not accepting logins: {exc}"
+            )
+        else:
+            with contextlib.suppress(oracledb.Error, OSError):
+                probe.close()
+        finally:
+            gc.collect()
+
+    logger.info("Oracle login ready on %s:%s/%s", host, port, service)
     return shared_oracle_container
+
+
+@pytest.fixture(scope="session")
+def oracle_container(oracle_login_ready: str) -> str:
+    """Provide Oracle container name for all tests."""
+    return oracle_login_ready
 
 
 @pytest.fixture
@@ -259,8 +302,11 @@ def _seed_row(api: FlextDbOracleApi, table_name: str, insert_sql: str) -> None:
 def _ensure_hr_sample_tables(api: FlextDbOracleApi) -> None:
     """Provision minimal HR sample tables required by real API examples.
 
-    Tables are truncated before seeding so concurrent or repeated test runs
-    never see duplicate-key violations from leftover rows.
+    Provisioning is idempotent (``CREATE`` when absent, ``MERGE`` for rows) and
+    serialized across pytest-xdist workers with the shared FileLock utility, so
+    concurrent workers sharing one Oracle container never race each other into
+    duplicate-key violations. Rows are never truncated: a truncate would empty
+    the tables another worker is reading mid-test.
     """
     _ensure_table(
         api,
@@ -277,9 +323,6 @@ def _ensure_hr_sample_tables(api: FlextDbOracleApi) -> None:
         "EMPLOYEES",
         "CREATE TABLE employees (employee_id NUMBER PRIMARY KEY, first_name VARCHAR2(50), last_name VARCHAR2(50), email VARCHAR2(100), department_id NUMBER, job_id VARCHAR2(20))",
     )
-    for table_name in ("DEPARTMENTS", "JOBS", "EMPLOYEES"):
-        truncate_result = api.execute_statement(f"TRUNCATE TABLE {table_name}")
-        _assert_oracle_success(truncate_result, f"Truncate {table_name}")
     _seed_row(
         api,
         "DEPARTMENTS",
@@ -337,7 +380,10 @@ def connected_oracle_api(oracle_api: FlextDbOracleApi) -> Generator[FlextDbOracl
     if connect_result.failure:
         pytest.skip(f"Failed to connect Oracle API: {connect_result.error}")
     connected_api = connect_result.value
-    _ensure_hr_sample_tables(connected_api)
+    with u.Tests.FileLock(
+        Path.home() / ".flext" / f"{_ORACLE_CONTAINER_NAME}.seed.lock"
+    ):
+        _ensure_hr_sample_tables(connected_api)
     yield connected_api
     with contextlib.suppress(Exception):
         connected_api.disconnect()

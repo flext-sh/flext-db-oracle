@@ -67,7 +67,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         try:
             self.logger.debug("Disconnecting on context exit")
             self._services.disconnect()
-        except Exception as exc:
+        except c.DbOracle.EXC_DB_BROAD as exc:
             self.logger.warning("Disconnect failed on context exit", error=str(exc))
 
     @property
@@ -173,7 +173,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         )
         try:
             env_settings = env_settings_cls()
-        except Exception as exc:
+        except c.ValidationError as exc:
             fail_result: p.Result[Self] = r.fail(f"Invalid settings: {exc}")
             return fail_result
 

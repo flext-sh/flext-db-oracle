@@ -14,7 +14,7 @@
   - [Type Safety Coverage](#type-safety-coverage)
   - [Code Quality Standards](#code-quality-standards)
 - [Test Infrastructure](#test-infrastructure)
-  - [Test Organization](#test-organization)
+  - [Test Organization```](#test-organization)
   - [Test Coverage Areas](#test-coverage-areas)
   - [Test Quality Metrics](#test-quality-metrics)
 - [Code Evolution and Maintenance](#code-evolution-and-maintenance)
@@ -442,10 +442,7 @@ print(api.commit_transaction())```
 
 ## Test Infrastructure
 
-### Test Organization
-
-```
-
+### Test Organization```
 tests/
 ├── **init**.py              # Test package initialization
 ├── conftest.py              # Shared fixtures and configuration
@@ -455,10 +452,7 @@ tests/
 │   ├── test_services.py    # Business logic testing
 │   └── ...                 # Component-specific tests
 ├── integration/            # Oracle database integration tests
-└── e2e/                    # End-to-end workflow tests
-
-```
-
+└── e2e/                    # End-to-end workflow tests```
 ### Test Coverage Areas
 
 - **API Testing**: All 36 public methods with success/failure paths
