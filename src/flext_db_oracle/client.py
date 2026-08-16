@@ -213,7 +213,6 @@ class FlextDbOracleClient(s):
         """
         return r[p.Base].ok(self._oracle_config)
 
-    @override
     def execute_query(
         self, sql: str, params: t.DbOracle.QueryParameters | None = None
     ) -> p.Result[str]:

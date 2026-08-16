@@ -10,16 +10,18 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Engine as SAEngine
+from sqlalchemy import text
 
 from flext_core import s
-from flext_db_oracle import FlextDbOracleSettings, m, p, r, t, u
+from flext_db_oracle import FlextDbOracleSettings, c, m, p, r, t, u
 from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
 
 if TYPE_CHECKING:
-    from collections.abc import MutableMapping, MutableSequence, Sequence
+    from collections.abc import MutableMapping, MutableSequence
 
 
 class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
@@ -81,13 +83,27 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
             return r[SAEngine].fail("Not connected to database")
         return r[SAEngine].ok(engine)
 
-    def execute_query(
+    def execute_rows(
         self, sql: str, params: m.ConfigMap | None = None
     ) -> p.Result[Sequence[m.Dict]]:
         """Execute a SQL query in composed service facades."""
-        del sql, params
-        msg = "execute_query requires the composed DB Oracle service facade"
-        raise NotImplementedError(msg)
+        if not self.connected():
+            return r[Sequence[m.Dict]].fail("Not connected to database")
+        engine_result = self._get_engine()
+        if engine_result.failure:
+            return r[Sequence[m.Dict]].fail(
+                engine_result.error or "Failed to get database engine"
+            )
+        try:
+            with self._engine_connect(engine_result.value) as connection:
+                result = self._connection_execute(connection, text(sql), params)
+                rows: Sequence[m.Dict] = [
+                    m.Dict(root={str(key): str(value) for key, value in row.items()})
+                    for row in result.mappings().all()
+                ]
+                return r[Sequence[m.Dict]].ok(rows)
+        except c.DbOracle.EXC_DB_BROAD as error:
+            return r[Sequence[m.Dict]].fail_op("Query execution", error)
 
 
 s = FlextDbOracleServiceBase

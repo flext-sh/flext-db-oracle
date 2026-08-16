@@ -17,14 +17,13 @@ if TYPE_CHECKING:
     from flext_db_oracle.services.facade import FlextDbOracleServices
 
 
-class FlextDbOracleDispatcher(FlextService[None]):
+class FlextDbOracleDispatcher(FlextService[bool]):
     """Unified Oracle Database Dispatcher with integrated command classes."""
 
     _container_type: ClassVar[p.ContainerType] = FlextContainer
 
     @override
     def execute(self) -> p.Result[bool]:
-        """Execute dispatcher operation - returns None as this is a factory class."""
         return r[bool].ok(True)
 
     @classmethod

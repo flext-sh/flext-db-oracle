@@ -133,7 +133,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         return (
             u
             .try_(lambda: dict(parameters))
-            .map(lambda normalized: m.ConfigMap(root=normalized))
+            .map(m.ConfigMap.model_validate)
             .lash(
                 lambda error: r[m.ConfigMap].fail(f"Invalid query parameters: {error}")
             )
@@ -190,9 +190,13 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         """Create API instance from an Oracle connection URL string."""
         parsed = urlparse(url)
         if parsed.scheme not in {"oracle", "oracle+oracledb"}:
-            return r[Self].fail(f"Unsupported Oracle URL scheme: {parsed.scheme}")
+            failure: p.Result[Self] = r.fail(
+                f"Unsupported Oracle URL scheme: {parsed.scheme}"
+            )
+            return failure
         if not parsed.hostname:
-            return r[Self].fail("Oracle URL must include a host")
+            host_failure: p.Result[Self] = r.fail("Oracle URL must include a host")
+            return host_failure
         path_service = (parsed.path or "").lstrip("/")
         query_service = parse_qs(parsed.query).get("service_name", [None])[0]
         service_name = (query_service or path_service or "XEPDB1").upper()
