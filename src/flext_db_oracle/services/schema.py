@@ -45,7 +45,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         else:
             sql = "\nSELECT column_name, data_type, data_length, data_precision, data_scale, nullable\nFROM user_tab_columns\nWHERE table_name = UPPER(:table_name)\nORDER BY column_id\n"
             params = m.ConfigMap(root={"table_name": table_name})
-        return self.execute_query(sql, params).map(
+        return self.execute_rows(sql, params).map(
             lambda rows: [
                 m.DbOracle.Column(
                     name=str(
@@ -85,7 +85,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             else:
                 sql = "\n                SELECT column_name\n                FROM user_constraints c, user_cons_columns cc\n                WHERE c.constraint_type = 'P'\n                AND c.constraint_name = cc.constraint_name\n                AND c.table_name = UPPER(:table_name)\n                ORDER BY cc.position\n                "
                 params = m.ConfigMap(root={"table_name": table_name})
-            query_result = self.execute_query(sql, params)
+            query_result = self.execute_rows(sql, params)
             if query_result.failure:
                 raise RuntimeError(query_result.error or "Query execution failed")
             return [str(row.root["column_name"]) for row in query_result.value]
@@ -107,7 +107,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
     def fetch_schemas(self) -> p.Result[t.StrSequence]:
         """Get list of Oracle schemas."""
         sql = "SELECT username as schema_name FROM all_users WHERE username NOT IN ('SYS', 'SYSTEM', 'ANONYMOUS', 'XDB', 'CTXSYS', 'MDSYS', 'WMSYS') ORDER BY username"
-        return self.execute_query(sql).map(
+        return self.execute_rows(sql).map(
             lambda rows: [
                 str(row.root.get("SCHEMA_NAME") or row.root.get("schema_name", ""))
                 for row in rows
@@ -178,7 +178,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             sql = c.DbOracle.collapse_whitespace(
                 str(statement.compile(dialect=oracle_dialect()))
             ).strip()
-            query_result = self.execute_query(sql)
+            query_result = self.execute_rows(sql)
             if query_result.failure:
                 raise RuntimeError(query_result.error or "Query execution failed")
             return self._parse_count_from_rows(query_result.value)
@@ -203,7 +203,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         else:
             sql = "SELECT table_name FROM user_tables ORDER BY table_name"
             params = None
-        return self.execute_query(sql, params).map(
+        return self.execute_rows(sql, params).map(
             lambda rows: [
                 str(row.root.get("TABLE_NAME") or row.root.get("table_name", ""))
                 for row in rows
