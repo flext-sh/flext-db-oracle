@@ -4,9 +4,9 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
 These tests exercise the public contract of :class:`FlextDbOracleApi` and
-:class:`FlextDbOracleServices`. Integration paths that require a live Oracle
-instance fail loudly when the shared test database is unreachable; the
-connection-error and not-connected paths are exercised without a server.
+:class:`FlextDbOracleServices`. Live paths are marked ``docker`` and skip when
+the shared Oracle container is unavailable within the probe budget. Offline
+error-path cases do not require a ready database.
 
 """
 
@@ -25,6 +25,9 @@ from tests import u
 
 if TYPE_CHECKING:
     from tests import m, t
+
+# Live Oracle paths pull the session docker fixture via real_oracle_settings.
+pytestmark = pytest.mark.docker
 
 
 class TestsFlextDbOracleOracleExample:
@@ -263,15 +266,15 @@ class TestsFlextDbOracleOracleExample:
 
     def test_connect_with_invalid_credentials_fails_with_reason(self) -> None:
         """Connecting with bad credentials yields a failure carrying a diagnostic reason."""
-        invalid_config = FlextDbOracleSettings(
-            DbOracle={
+        invalid_config = FlextDbOracleSettings.model_validate({
+            "DbOracle": {
                 "host": "localhost",
                 "port": 1521,
                 "service_name": "XEPDB1",
                 "username": "invalid_user",
                 "password": "invalid_password",
             }
-        )
+        })
         connection = FlextDbOracleServices(settings=invalid_config)
         result = connection.connect()
         tm.fail(result)

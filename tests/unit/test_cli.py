@@ -154,8 +154,8 @@ class TestsFlextDbOracleCli:
 
     def test_connect_to_oracle_from_settings_returns_string_error(self) -> None:
         """A failed connection built from settings exposes a string error."""
-        settings = FlextDbOracleSettings(
-            DbOracle={
+        settings = FlextDbOracleSettings.model_validate({
+            "DbOracle": {
                 "host": "localhost",
                 "port": 1521,
                 "name": "XE",
@@ -163,7 +163,7 @@ class TestsFlextDbOracleCli:
                 "username": "test",
                 "password": "test",
             }
-        )
+        })
         client = FlextDbOracleClient()
         result = client.connect_to_oracle(
             settings.DbOracle.host,
@@ -220,15 +220,15 @@ class TestsFlextDbOracleCli:
     def test_api_settings_round_trip_constructor_values(self) -> None:
         """API settings expose exactly the values used to construct them."""
         api = FlextDbOracleApi(
-            settings=FlextDbOracleSettings(
-                DbOracle={
+            settings=FlextDbOracleSettings.model_validate({
+                "DbOracle": {
                     "host": "param_test_host",
                     "port": 1521,
                     "service_name": "PARAM_TEST",
                     "username": "param_user",
                     "password": "param_pass",
                 }
-            )
+            })
         )
         tm.that(api.settings.DbOracle.host, eq="param_test_host")
         tm.that(api.settings.DbOracle.port, eq=1521)
@@ -256,15 +256,15 @@ class TestsFlextDbOracleCli:
     def test_api_query_without_connection_reports_connection_error(self) -> None:
         """Querying an unconnected API fails with a connection-related error."""
         api = FlextDbOracleApi(
-            FlextDbOracleSettings(
-                DbOracle={
+            FlextDbOracleSettings.model_validate({
+                "DbOracle": {
                     "host": "invalid.host",
                     "port": 9999,
                     "service_name": "INVALID_SERVICE",
                     "username": "invalid_user",
                     "password": "invalid_password",
                 }
-            )
+            })
         )
         query_result = api.query("SELECT 1 FROM DUAL")
         tm.that(query_result.failure, eq=True)
@@ -321,13 +321,13 @@ class TestsFlextDbOracleCli:
     def _sample_api() -> FlextDbOracleApi:
         """Build a fully-specified API instance for connection-free assertions."""
         return FlextDbOracleApi(
-            FlextDbOracleSettings(
-                DbOracle={
+            FlextDbOracleSettings.model_validate({
+                "DbOracle": {
                     "host": "localhost",
                     "port": 1521,
                     "service_name": "TESTDB",
                     "username": "test",
                     "password": "test",
                 }
-            )
+            })
         )

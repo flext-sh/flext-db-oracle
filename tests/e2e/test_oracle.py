@@ -11,11 +11,8 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-
 from typing import TYPE_CHECKING
-
 import pytest
-
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_tests import tm
@@ -23,35 +20,32 @@ from tests import u
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
-
     from flext_db_oracle import m
     from tests import t
-
 _NOT_CONNECTED = "not connected to database"
 
 
+@pytest.mark.docker
 class TestsFlextDbOracleOracle:
     """Behavioral end-to-end tests for the Oracle API public contract."""
 
     @pytest.fixture
     def offline_settings(self) -> FlextDbOracleSettings:
         """Return settings pointing at an unreachable host for offline contract tests."""
-        return FlextDbOracleSettings(
-            DbOracle={
+        return FlextDbOracleSettings.model_validate({
+            "DbOracle": {
                 "host": "nonexistent-host.invalid",
                 "port": 9999,
                 "service_name": "INVALID_DB",
                 "username": "invalid_user",
                 "password": "invalid_password",
             }
-        )
+        })
 
     @pytest.fixture
     def offline_api(self, offline_settings: FlextDbOracleSettings) -> FlextDbOracleApi:
         """Unconnected API instance for pure-logic and error-path behavior."""
         return FlextDbOracleApi(offline_settings)
-
-    # -- Configuration contract ------------------------------------------
 
     def test_env_vars_populate_settings_namespace(self) -> None:
         """ORACLE_DBORACLE__* env vars populate the public settings namespace."""
@@ -68,7 +62,6 @@ class TestsFlextDbOracleOracle:
         }
         with u.Tests.env_vars_context(env):
             settings = FlextDbOracleSettings()
-
         tm.that(settings.DbOracle.host, eq="e2e-test-host")
         tm.that(settings.DbOracle.port, eq=1521)
         tm.that(settings.DbOracle.service_name, eq="E2EDB")
@@ -77,14 +70,11 @@ class TestsFlextDbOracleOracle:
         tm.that(settings.DbOracle.pool_min, eq=2)
         tm.that(settings.DbOracle.pool_max, eq=20)
 
-    # -- Error-path contract (no connection) -----------------------------
-
     def test_query_without_connection_fails_with_not_connected_error(
         self, offline_api: FlextDbOracleApi
     ) -> None:
         """Query returns a failure naming the missing connection."""
         result = offline_api.query("SELECT 1 FROM DUAL")
-
         tm.fail(result)
         tm.that((result.error or "").lower(), has=_NOT_CONNECTED)
 
@@ -93,7 +83,6 @@ class TestsFlextDbOracleOracle:
     ) -> None:
         """fetch_tables returns a failure naming the missing connection."""
         result = offline_api.fetch_tables()
-
         tm.fail(result)
         tm.that((result.error or "").lower(), has=_NOT_CONNECTED)
 
@@ -102,13 +91,10 @@ class TestsFlextDbOracleOracle:
     ) -> None:
         """Transaction succeeds and reports the current (disconnected) state."""
         result = offline_api.transaction()
-
         tm.ok(result)
         status = result.value
         tm.that(status["connected"], eq=False)
         tm.that(status["transaction_available"], eq=True)
-
-    # -- Singer type-conversion contract ---------------------------------
 
     @pytest.mark.parametrize(
         ("singer_type", "expected_oracle_type"),
@@ -125,7 +111,6 @@ class TestsFlextDbOracleOracle:
     ) -> None:
         """convert_singer_type maps each Singer type to its Oracle SQL type."""
         result = offline_api.convert_singer_type(singer_type)
-
         tm.ok(result)
         tm.that(result.value, has=expected_oracle_type)
 
@@ -140,16 +125,12 @@ class TestsFlextDbOracleOracle:
                 "is_active": {"type": "boolean"},
             }
         }
-
         result = offline_api.map_singer_schema(singer_schema)
-
         tm.ok(result)
         mapped = result.value
         tm.that(mapped["id"], has="NUMBER")
         tm.that(mapped["name"], has="VARCHAR2")
         tm.that(mapped["is_active"], has="NUMBER(1)")
-
-    # -- Full CRUD lifecycle against a real Oracle container -------------
 
     @staticmethod
     def _row_mapping(row: m.Dict) -> Mapping[str, object]:
@@ -165,8 +146,9 @@ class TestsFlextDbOracleOracle:
             result2 = api2.query("SELECT 'API2' AS SOURCE FROM DUAL")
             tm.ok(result1)
             tm.ok(result2)
-            return self._row_mapping(result1.value[0]), self._row_mapping(
-                result2.value[0]
+            return (
+                self._row_mapping(result1.value[0]),
+                self._row_mapping(result2.value[0]),
             )
 
     @pytest.mark.e2e
@@ -177,58 +159,50 @@ class TestsFlextDbOracleOracle:
         table = "E2E_TEST_TABLE"
         with FlextDbOracleApi(settings=real_oracle_config) as api:
             tm.ok(api.test_connection())
-
             schemas = api.fetch_schemas()
             tm.ok(schemas)
             assert schemas.value
-
             create = api.execute_sql(
-                f"CREATE TABLE {table} ("
-                " ID NUMBER(10) NOT NULL PRIMARY KEY,"
-                " NAME VARCHAR2(100) NOT NULL,"
-                " EMAIL VARCHAR2(255))"
+                f"CREATE TABLE {table} ( ID NUMBER(10) NOT NULL PRIMARY KEY, NAME VARCHAR2(100) NOT NULL, EMAIL VARCHAR2(255))"
             )
             tm.ok(create)
             try:
-                rows = [
-                    (1, "John Doe", "'john@example.com'"),
-                    (2, "Jane Smith", "'jane@example.com'"),
-                    (3, "Bob Wilson", "NULL"),
+                rows: list[tuple[int, str, str | None]] = [
+                    (1, "John Doe", "john@example.com"),
+                    (2, "Jane Smith", "jane@example.com"),
+                    (3, "Bob Wilson", None),
                 ]
                 for row_id, name, email in rows:
                     inserted = api.execute_statement(
-                        f"INSERT INTO {table} (ID, NAME, EMAIL) "
-                        f"VALUES ({row_id}, '{name}', {email})"
+                        "INSERT INTO E2E_TEST_TABLE (ID, NAME, EMAIL)"
+                        " VALUES (:id, :name, :email)",
+                        {"id": row_id, "name": name, "email": email},
                     )
                     tm.ok(inserted)
-
-                selected = api.query(f"SELECT * FROM {table} ORDER BY ID")
+                selected = api.query("SELECT * FROM E2E_TEST_TABLE ORDER BY ID")
                 tm.ok(selected)
                 tm.that(len(selected.value), eq=3)
-
-                counted = api.query(f"SELECT COUNT(*) AS ROW_COUNT FROM {table}")
+                counted = api.query("SELECT COUNT(*) AS ROW_COUNT FROM E2E_TEST_TABLE")
                 tm.ok(counted)
                 count_row = self._row_mapping(counted.value[0])
                 tm.that(int(str(count_row["ROW_COUNT"])), eq=3)
-
                 metadata = api.fetch_table_metadata(table)
                 tm.ok(metadata)
                 tm.that(metadata.value.table_name, eq=table)
-
                 columns = api.fetch_columns(table)
                 tm.ok(columns)
                 assert len(columns.value) >= 3
-
                 primary_keys = api.fetch_primary_keys(table)
                 tm.ok(primary_keys)
                 tm.that(primary_keys.value, has="ID")
-
                 updated = api.execute_statement(
-                    f"UPDATE {table} SET EMAIL = 'bob@example.com' WHERE ID = 3"
+                    "UPDATE E2E_TEST_TABLE SET EMAIL = :email WHERE ID = :id",
+                    {"email": "bob@example.com", "id": 3},
                 )
                 tm.ok(updated)
-
-                verify = api.query(f"SELECT EMAIL FROM {table} WHERE ID = 3")
+                verify = api.query(
+                    "SELECT EMAIL FROM E2E_TEST_TABLE WHERE ID = :id", {"id": 3}
+                )
                 tm.ok(verify)
                 tm.that(len(verify.value), eq=1)
                 verified_row = self._row_mapping(verify.value[0])

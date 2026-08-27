@@ -34,9 +34,13 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):
         ) -> t.StrMapping:
             """Normalize Docker port bindings into a typed mapping."""
             try:
-                return cls._PORT_BINDINGS_ADAPTER.validate_python(value)
+                validated: t.StrMapping = cls._PORT_BINDINGS_ADAPTER.validate_python(
+                    value
+                )
             except e.ValidationError:
                 return {}
+            else:
+                return validated
 
         @classmethod
         def resolve_oracle_test_port(

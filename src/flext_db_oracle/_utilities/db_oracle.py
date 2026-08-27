@@ -139,9 +139,10 @@ class FlextDbOracleUtilitiesDbOracle:
             return value
         try:
             validated_rowcount: int = cls.StrictIntValue.model_validate(value).root
-            return validated_rowcount
         except c.ValidationError:
             return 0
+        else:
+            return validated_rowcount
 
     @classmethod
     def _parse_count_value(cls, value: t.JsonValue) -> int:

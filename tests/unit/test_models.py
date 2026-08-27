@@ -298,8 +298,8 @@ class TestsFlextDbOracleModels:
 
     def test_settings_accept_custom_values(self) -> None:
         """Settings retain every explicitly supplied namespace value."""
-        settings = FlextDbOracleSettings(
-            DbOracle={
+        settings = FlextDbOracleSettings.model_validate({
+            "DbOracle": {
                 "host": "oracle.example.com",
                 "port": 1522,
                 "name": "ORCL",
@@ -308,7 +308,7 @@ class TestsFlextDbOracleModels:
                 "password": "secret123",
                 "ssl_server_cert_dn": "CN=oracle.example.com",
             }
-        )
+        })
         tm.that(settings.DbOracle.host, eq="oracle.example.com")
         tm.that(settings.DbOracle.port, eq=1522)
         tm.that(settings.DbOracle.name, eq="ORCL")
@@ -334,14 +334,14 @@ class TestsFlextDbOracleModels:
 
     def test_settings_serialization_exposes_fields(self) -> None:
         """model_dump exposes the connection fields inside the namespace."""
-        settings = FlextDbOracleSettings(
-            DbOracle={
+        settings = FlextDbOracleSettings.model_validate({
+            "DbOracle": {
                 "host": "test.com",
                 "port": 1522,
                 "username": "user",
                 "password": "pass",
             }
-        )
+        })
         serialized = settings.model_dump()
         tm.that(serialized["DbOracle"]["host"], eq="test.com")
         tm.that(serialized["DbOracle"]["port"], eq=1522)
@@ -349,17 +349,29 @@ class TestsFlextDbOracleModels:
 
     def test_settings_value_equality(self) -> None:
         """Clones with equal namespace values compare equal, unequal ones differ."""
-        base = FlextDbOracleSettings().clone(DbOracle={"host": "localhost"})
-        same = FlextDbOracleSettings().clone(DbOracle={"host": "localhost"})
-        other = FlextDbOracleSettings().clone(DbOracle={"host": "remotehost"})
+        base = FlextDbOracleSettings().clone(
+            DbOracle=FlextDbOracleSettings.DbOracleSettings.model_validate({
+                "host": "localhost"
+            })
+        )
+        same = FlextDbOracleSettings().clone(
+            DbOracle=FlextDbOracleSettings.DbOracleSettings.model_validate({
+                "host": "localhost"
+            })
+        )
+        other = FlextDbOracleSettings().clone(
+            DbOracle=FlextDbOracleSettings.DbOracleSettings.model_validate({
+                "host": "remotehost"
+            })
+        )
         tm.that(base, eq=same)
         tm.that(base, ne=other)
 
     def test_settings_repr_includes_identifying_fields(self) -> None:
         """Representation identifies the settings type and connection values."""
-        settings = FlextDbOracleSettings(
-            DbOracle={"host": "localhost", "port": 1521, "username": "system"}
-        )
+        settings = FlextDbOracleSettings.model_validate({
+            "DbOracle": {"host": "localhost", "port": 1521, "username": "system"}
+        })
         repr_str = repr(settings)
         tm.that(repr_str, has="FlextDbOracleSettings")
         tm.that(repr_str, has="localhost")
