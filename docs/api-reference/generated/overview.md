@@ -21,13 +21,12 @@
   `FlextDbOracleExceptions`, `FlextDbOracleModels`, `FlextDbOracleProtocols`,
   `FlextDbOracleServiceBase` (+3 more)
 - Alias exports: `c`, `d`, `e`, `h`, `m`, `p`, `r`, `s`, `t`, `u`, `x`
-- Public symbol exports: `FlextDbOracleApi`, `FlextDbOracleConfig`,
-  `FlextDbOracleConstants`, `FlextDbOracleDispatcher`,
+- Public symbol exports: `DbOracleSettings`, `FlextDbOracleApi`,
+  `FlextDbOracleConfig`, `FlextDbOracleConstants`, `FlextDbOracleDispatcher`,
   `FlextDbOracleExceptions`, `FlextDbOracleModels`, `FlextDbOracleProtocols`,
-  `FlextDbOracleServiceBase`, `FlextDbOracleSettings`, `FlextDbOracleTypes` (+4
-  more)
+  `FlextDbOracleServiceBase`, `FlextDbOracleSettings` (+5 more)
 - Exported module shortcuts: _none_
-- Generated module pages: `9`
+- Generated module pages: `0`
 
 ## Next Pages
 
