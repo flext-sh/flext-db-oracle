@@ -17,6 +17,7 @@ from sqlalchemy import (
     Index,
     MetaData,
     Table,
+    TableClause,
     bindparam,
     column,
     delete,
@@ -75,6 +76,39 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         for column_name, bind_name in bind_names.items():
             sql = sql.replace(f":{bind_name}", f":{column_name}")
         return sql
+
+    @staticmethod
+    def _build_table_clause(
+        table_name: str,
+        column_names: t.StrSequence,
+        schema: str | None = None,
+    ) -> TableClause:
+        """Build a ``table()`` clause with Oracle-safe identifier quoting.
+
+        Extracts the shared table-clause construction used by INSERT, UPDATE,
+        DELETE and SELECT builders, eliminating the duplicated column-quoting
+        logic across all four statement methods.
+        """
+        return table(
+            table_name.upper()
+            if c.DbOracle.IDENTIFIER_RE.fullmatch(table_name)
+            else quoted_name(table_name, True),
+            *(
+                column(
+                    column_name
+                    if c.DbOracle.IDENTIFIER_RE.fullmatch(column_name)
+                    else quoted_name(column_name, True)
+                )
+                for column_name in column_names
+            ),
+            schema=(
+                schema.upper()
+                if schema and c.DbOracle.IDENTIFIER_RE.fullmatch(schema)
+                else quoted_name(schema, True)
+                if schema
+                else None
+            ),
+        )
 
     def build_create_index_statement(self, config: t.JsonMapping) -> p.Result[str]:
         """Build Oracle CREATE INDEX statement from configuration."""
@@ -136,26 +170,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             column_name: f"bind_{index:04d}"
             for index, column_name in enumerate(where_columns)
         }
-        table_clause = table(
-            table_name.upper()
-            if c.DbOracle.IDENTIFIER_RE.fullmatch(table_name)
-            else quoted_name(table_name, True),
-            *(
-                column(
-                    column_name
-                    if c.DbOracle.IDENTIFIER_RE.fullmatch(column_name)
-                    else quoted_name(column_name, True)
-                )
-                for column_name in where_columns
-            ),
-            schema=(
-                schema.upper()
-                if schema and c.DbOracle.IDENTIFIER_RE.fullmatch(schema)
-                else quoted_name(schema, True)
-                if schema
-                else None
-            ),
-        )
+        table_clause = self._build_table_clause(table_name, where_columns, schema)
         statement = delete(table_clause)
         for column_name in where_columns:
             statement = statement.where(
@@ -181,26 +196,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             column_name: f"bind_{index:04d}"
             for index, column_name in enumerate(columns)
         }
-        table_clause = table(
-            table_name.upper()
-            if c.DbOracle.IDENTIFIER_RE.fullmatch(table_name)
-            else quoted_name(table_name, True),
-            *(
-                column(
-                    column_name
-                    if c.DbOracle.IDENTIFIER_RE.fullmatch(column_name)
-                    else quoted_name(column_name, True)
-                )
-                for column_name in statement_columns
-            ),
-            schema=(
-                schema.upper()
-                if schema and c.DbOracle.IDENTIFIER_RE.fullmatch(schema)
-                else quoted_name(schema, True)
-                if schema
-                else None
-            ),
-        )
+        table_clause = self._build_table_clause(table_name, statement_columns, schema)
         statement = insert(table_clause).values({
             table_clause.c[column_name]: bindparam(bind_names[column_name])
             for column_name in columns
@@ -238,26 +234,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             column_name: f"bind_{index:04d}"
             for index, column_name in enumerate(condition_columns)
         }
-        table_clause = table(
-            table_name.upper()
-            if c.DbOracle.IDENTIFIER_RE.fullmatch(table_name)
-            else quoted_name(table_name, True),
-            *(
-                column(
-                    column_name
-                    if c.DbOracle.IDENTIFIER_RE.fullmatch(column_name)
-                    else quoted_name(column_name, True)
-                )
-                for column_name in statement_columns
-            ),
-            schema=(
-                schema_name.upper()
-                if schema_name and c.DbOracle.IDENTIFIER_RE.fullmatch(schema_name)
-                else quoted_name(schema_name, True)
-                if schema_name
-                else None
-            ),
-        )
+        table_clause = self._build_table_clause(table_name, statement_columns, schema_name)
         selected_column_clauses = [
             table_clause.c[column_name] for column_name in selected_columns
         ]
@@ -290,26 +267,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             column_name: f"bind_{index:04d}"
             for index, column_name in enumerate(statement_columns)
         }
-        table_clause = table(
-            table_name.upper()
-            if c.DbOracle.IDENTIFIER_RE.fullmatch(table_name)
-            else quoted_name(table_name, True),
-            *(
-                column(
-                    column_name
-                    if c.DbOracle.IDENTIFIER_RE.fullmatch(column_name)
-                    else quoted_name(column_name, True)
-                )
-                for column_name in statement_columns
-            ),
-            schema=(
-                schema.upper()
-                if schema and c.DbOracle.IDENTIFIER_RE.fullmatch(schema)
-                else quoted_name(schema, True)
-                if schema
-                else None
-            ),
-        )
+        table_clause = self._build_table_clause(table_name, statement_columns, schema)
         statement = update(table_clause).values({
             table_clause.c[column_name]: bindparam(bind_names[column_name])
             for column_name in set_columns
