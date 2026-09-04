@@ -16,17 +16,18 @@
   Database` (+2 more)
 - Project class: `domain`
 - Keywords: `database`, `enterprise`, `flext`, `oracle`, `sql`, `typed`
-- Main facades: `FlextDbOracleApi`, `FlextDbOracleConfig`,
-  `FlextDbOracleConstants`, `FlextDbOracleDispatcher`,
-  `FlextDbOracleExceptions`, `FlextDbOracleModels`, `FlextDbOracleProtocols`,
-  `FlextDbOracleServiceBase` (+3 more)
+- Main facades: `FlextDbOracleApi`, `FlextDbOracleApiRuntime`,
+  `FlextDbOracleClient`, `FlextDbOracleConfig`, `FlextDbOracleConstants`,
+  `FlextDbOracleDispatcher`, `FlextDbOracleExceptions`, `FlextDbOracleModels`
+  (+12 more)
 - Alias exports: `c`, `d`, `e`, `h`, `m`, `p`, `r`, `s`, `t`, `u`, `x`
 - Public symbol exports: `DbOracleSettings`, `FlextDbOracleApi`,
-  `FlextDbOracleConfig`, `FlextDbOracleConstants`, `FlextDbOracleDispatcher`,
-  `FlextDbOracleExceptions`, `FlextDbOracleModels`, `FlextDbOracleProtocols`,
-  `FlextDbOracleServiceBase`, `FlextDbOracleSettings` (+5 more)
-- Exported module shortcuts: _none_
-- Generated module pages: `0`
+  `FlextDbOracleApiRuntime`, `FlextDbOracleClient`, `FlextDbOracleConfig`,
+  `FlextDbOracleConstants`, `FlextDbOracleDispatcher`,
+  `FlextDbOracleExceptions`, `FlextDbOracleModels`, `FlextDbOracleProtocols`
+  (+14 more)
+- Exported module shortcuts: `client`, `services`
+- Generated module pages: `19`
 
 ## Next Pages
 

@@ -48,6 +48,10 @@ APPLYING := $(if $(filter-out N,$(strip $(APPLY))),$(strip $(APPLY)))
 ARGS ?=
 CHECK_GATES ?=
 DEPENDENCY ?=
+# Y forces `deps upgrade` to refresh cached uv source metadata for DEPENDENCY
+# (--refresh-package <DEPENDENCY>), or for every package when DEPENDENCY is
+# empty (--refresh); any other non-N value is an error.
+DEPS_REFRESH ?= N
 FAIL_FAST ?= 0
 FILE ?=
 MATCH ?=
@@ -72,7 +76,8 @@ override PYTEST_ENFORCEMENT_PLUGIN := flext_tests_enforcement
 override PYTEST_PROGRESS_ARGS := --verbose
 override PYTEST_REPORT_ARGS := -ra --durations=25 --durations-min=0.001 --tb=short
 override PYTEST_DIAG_ARGS := -rA --durations=0 --tb=long --showlocals
-override PYTEST_PARALLEL_WORKERS := 2
+override PYTEST_PARALLEL_WORKERS := 16
+override PYTEST_PARALLEL_WORKER_MEMORY_GB := 2
 override PYTEST_PARALLEL_DISTRIBUTION := worksteal
 override PYTEST_PROFILE_SORT := cumulative
 override PYTEST_PROFILE_LIMIT := 50
@@ -87,7 +92,9 @@ override export FLEXT_PYTEST_REPORTS_RAW := $(value PYTEST_REPORTS_DIR)
 override export FLEXT_PYTEST_WHAT_RAW := $(value WHAT)
 override export FLEXT_PYTEST_VERBOSE_RAW := $(value VERBOSE)
 override export FLEXT_PYTEST_COV_RAW := $(value COV)
+override export FLEXT_PYTEST_PROFILE_RAW := $(value PROFILE)
 WHAT ?=
+PROFILE ?=
 # End SECTION: user overrides
 
 # === SECTION: derived paths (managed) ===
@@ -620,6 +627,8 @@ _builtin_help_usage:
 	@printf '  %-10s %s\n' 'WORKSPACE' 'target repository (default: current project)';
 	@printf '  %-10s %s\n' 'BEAD' 'tracker item bound to a checkpoint';
 	@printf '  %-10s %s\n' 'BASE' 'integration branch used by checkpoint';
+	@printf '  %-10s %s\n' 'DEPENDENCY' 'deps upgrade: one distribution name (default: every package)';
+	@printf '  %-10s %s\n' 'DEPS_REFRESH' 'Y refreshes uv source cache on deps upgrade';
 	@printf '\n%s\n' 'Custom hooks (custom.mk):';
 	@printf '  %s\n' 'Define pre-<verb>, post-<verb>, pre-<verb>-<what>, post-<verb>-<what>';
 	@printf '  %s\n' 'in custom.mk to wrap one declared handler.';
@@ -820,8 +829,12 @@ _builtin_deps_upgrade: _builtin_require_environment
 				printf 'ERROR: DEPENDENCY must be one normalized distribution name\n' >&2; \
 				exit 2 ;; \
 		esac; \
-	fi
-	$(call _run_for_selected_projects,$(if $(strip $(DEPENDENCY)),--upgrade-package "$(strip $(DEPENDENCY))",--upgrade))
+	fi; \
+	case "$(strip $(DEPS_REFRESH))" in \
+		N|Y) ;; \
+		*) printf 'ERROR: DEPS_REFRESH must be Y when set\n' >&2; exit 2 ;; \
+	esac
+	$(call _run_for_selected_projects,$(if $(strip $(DEPENDENCY)),--upgrade-package "$(strip $(DEPENDENCY))",--upgrade)$(if $(filter Y,$(DEPS_REFRESH)),$(if $(strip $(DEPENDENCY)), --refresh-package "$(strip $(DEPENDENCY))", --refresh)))
 	@set -eu; \
 	selected="$(strip $(SELECTED_PROJECTS))"; \
 	if [ -z "$$selected" ]; then selected="."; fi; \
@@ -965,8 +978,9 @@ _builtin_fmt_all: _builtin_require_environment
 
 _builtin_fmt_apply: _builtin_fmt_all
 
-# Read-only fixed-point after `make fix APPLY=Y` (serialize-make strips APPLY and
-# re-runs default_what=check). Dual of `ruff check --fix` — never mutate here.
+# Read-only fixed point: plain `make fix` re-checks via its config-owned default
+# WHAT (mutations require explicit APPLY=Y). Dual of `ruff check --fix` — never
+# mutate here.
 _builtin_fix_check: _builtin_require_environment
 	@$(UV_RUN) ruff check $(RUFF_PATHS)
 
@@ -1108,41 +1122,46 @@ define _mise_lock_apply
 		if [ ! -f "$$project_root/.mise.toml" ]; then \
 			printf 'ERROR: missing generated .mise.toml in %s\n' "$$project_root" >&2; exit 2; \
 		fi; \
-		scratch_parent="$$project_root/.test-tmp"; mkdir -p "$$scratch_parent"; \
-		scratch=$$(mktemp -d "$$scratch_parent/mise-lock.XXXXXX"); \
-		trap 'find "$$scratch" -depth -delete' EXIT; \
-		cp "$$project_root/.mise.toml" "$$scratch/.mise.toml"; \
-		locked_count=$$(awk '$$0 == "locked = true" { count++ } END { print count + 0 }' "$$scratch/.mise.toml"); \
-		if [ "$$locked_count" -ne 1 ]; then \
-			printf 'ERROR: expected one locked tool_config setting in %s\n' "$$project_root/.mise.toml" >&2; exit 2; \
-		fi; \
-		sed -i 's/^locked = true$$/locked = false/' "$$scratch/.mise.toml"; \
-		mkdir -p "$$scratch/data" "$$scratch/cache" \
-			"$$scratch/state" "$$scratch/tmp"; \
-		: > "$$scratch/global-config.toml"; \
-		if MISE_GITHUB_CREDENTIAL_COMMAND="$$credential_command" \
-			MISE_GLOBAL_CONFIG_FILE="$$scratch/global-config.toml" \
-			XDG_CACHE_HOME="$$scratch/cache" XDG_STATE_HOME="$$scratch/state" \
-			MISE_DATA_DIR="$$scratch/data" MISE_CACHE_DIR="$$scratch/cache" \
-			MISE_STATE_DIR="$$scratch/state" TMPDIR="$$scratch/tmp" \
-			MISE_CEILING_PATHS="$$scratch_parent" MISE_TRUSTED_CONFIG_PATHS="$$scratch" \
-			env -u MISE_INSTALL_PATH -u MISE_VERSION "$(SETUP_MISE)" -C "$$scratch" lock \
-			--platform "$(MISE_LOCK_PLATFORMS)" >"$$scratch/lock.log" 2>&1; then \
-			cat "$$scratch/lock.log"; \
+		if [ "$$project" != . ] && cmp "$(PROJECT_ROOT)/.mise.toml" "$$project_root/.mise.toml" >/dev/null 2>&1; then \
+			$(PROJECT_FLEXT_INFRA) codegen mise-artifacts \
+				--project "$$project" --from-root --apply; \
 		else \
-			status=$$?; cat "$$scratch/lock.log"; exit "$$status"; \
+			scratch_parent="$$project_root/.test-tmp"; mkdir -p "$$scratch_parent"; \
+			scratch=$$(mktemp -d "$$scratch_parent/mise-lock.XXXXXX"); \
+			trap 'find "$$scratch" -depth -delete' EXIT; \
+			cp "$$project_root/.mise.toml" "$$scratch/.mise.toml"; \
+			locked_count=$$(awk '$$0 == "locked = true" { count++ } END { print count + 0 }' "$$scratch/.mise.toml"); \
+			if [ "$$locked_count" -ne 1 ]; then \
+				printf 'ERROR: expected one locked tool_config setting in %s\n' "$$project_root/.mise.toml" >&2; exit 2; \
+			fi; \
+			sed -i 's/^locked = true$$/locked = false/' "$$scratch/.mise.toml"; \
+			mkdir -p "$$scratch/data" "$$scratch/cache" \
+				"$$scratch/state" "$$scratch/tmp"; \
+			: > "$$scratch/global-config.toml"; \
+			if MISE_GITHUB_CREDENTIAL_COMMAND="$$credential_command" \
+				MISE_GLOBAL_CONFIG_FILE="$$scratch/global-config.toml" \
+				XDG_CACHE_HOME="$$scratch/cache" XDG_STATE_HOME="$$scratch/state" \
+				MISE_DATA_DIR="$$scratch/data" MISE_CACHE_DIR="$$scratch/cache" \
+				MISE_STATE_DIR="$$scratch/state" TMPDIR="$$scratch/tmp" \
+				MISE_CEILING_PATHS="$$scratch_parent" MISE_TRUSTED_CONFIG_PATHS="$$scratch" \
+				env -u MISE_INSTALL_PATH -u MISE_VERSION "$(SETUP_MISE)" -C "$$scratch" lock \
+				--platform "$(MISE_LOCK_PLATFORMS)" >"$$scratch/lock.log" 2>&1; then \
+				cat "$$scratch/lock.log"; \
+			else \
+				status=$$?; cat "$$scratch/lock.log"; exit "$$status"; \
+			fi; \
+			if grep -Fq 'mise WARN' "$$scratch/lock.log"; then \
+				printf 'ERROR: Mise lock generation emitted warnings for %s\n' "$$project_root" >&2; exit 2; \
+			else \
+				status=$$?; if [ "$$status" -ne 1 ]; then exit "$$status"; fi; \
+			fi; \
+			$(PROJECT_FLEXT_INFRA) codegen mise-artifacts \
+				--workspace "$$scratch" --apply; \
+			lock_tmp="$$project_root/.mise.lock.new.$$$$"; \
+			cp "$$scratch/mise.lock" "$$lock_tmp"; \
+			mv -f "$$lock_tmp" "$$project_root/mise.lock"; \
+			find "$$scratch" -depth -delete; trap - EXIT; \
 		fi; \
-		if grep -Fq 'mise WARN' "$$scratch/lock.log"; then \
-			printf 'ERROR: Mise lock generation emitted warnings for %s\n' "$$project_root" >&2; exit 2; \
-		else \
-			status=$$?; if [ "$$status" -ne 1 ]; then exit "$$status"; fi; \
-		fi; \
-		$(PROJECT_FLEXT_INFRA) codegen mise-artifacts \
-			--workspace "$$scratch" --apply; \
-		lock_tmp="$$project_root/.mise.lock.new.$$$$"; \
-		cp "$$scratch/mise.lock" "$$lock_tmp"; \
-		mv -f "$$lock_tmp" "$$project_root/mise.lock"; \
-		find "$$scratch" -depth -delete; trap - EXIT; \
 	done
 endef
 
@@ -1174,6 +1193,7 @@ endef
 
 _builtin_gen_check: _builtin_require_environment
 	@$(PROJECT_FLEXT_INFRA) codegen conform --root "$(PROJECT_ROOT)" --scope "$(CODEGEN_SCOPE)" --mode check
+	@$(PROJECT_FLEXT_INFRA) codegen lazy-init --workspace "$(PROJECT_ROOT)" --check
 	$(call _generated_docs,--check)
 	$(call _mise_artifacts_check)
 
@@ -1186,6 +1206,7 @@ _builtin_gen_all:
 	$(call _require_apply)
 	@: "$${MISE_GITHUB_CREDENTIAL_COMMAND:?ERROR: make gen apply requires MISE_GITHUB_CREDENTIAL_COMMAND}"
 	@$(PROJECT_FLEXT_INFRA) codegen conform --root "$(PROJECT_ROOT)" --scope "$(CODEGEN_SCOPE)" --mode apply
+	@$(PROJECT_FLEXT_INFRA) codegen lazy-init --workspace "$(PROJECT_ROOT)" --apply
 	$(call _generated_docs,--apply)
 	$(call _mise_launcher_apply)
 	$(call _mise_lock_apply)
