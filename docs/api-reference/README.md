@@ -25,9 +25,9 @@ This section is generated from public exports and real docstrings.
 
 ## Surface Summary
 
-- Primary facades: `FlextDbOracleApi`, `FlextDbOracleConfig`,
-  `FlextDbOracleConstants`, `FlextDbOracleDispatcher`,
-  `FlextDbOracleExceptions`, `FlextDbOracleModels` (+5 more)
-- Generated module pages: `0`
+- Primary facades: `FlextDbOracleApi`, `FlextDbOracleApiRuntime`,
+  `FlextDbOracleClient`, `FlextDbOracleConfig`, `FlextDbOracleConstants`,
+  `FlextDbOracleDispatcher` (+14 more)
+- Generated module pages: `19`
 
 Back to [project docs](../index.md).

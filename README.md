@@ -54,8 +54,8 @@ slot registry verification).
   filtered by `flext-*`. The FLEXT cascade is encoded in the inheritance lists
   of the facade classes listed under Module Map above.
 - Public extensions exposed by this project: `FlextDbOracleApi`,
-  `FlextDbOracleConfig`, `FlextDbOracleConstants`, `FlextDbOracleDispatcher`,
-  `FlextDbOracleExceptions`, `FlextDbOracleModels` (+5 more).
+  `FlextDbOracleApiRuntime`, `FlextDbOracleClient`, `FlextDbOracleConfig`,
+  `FlextDbOracleConstants`, `FlextDbOracleDispatcher` (+14 more).
 - Library abstraction boundaries: see AGENTS.md §2.7.
 
 ## Quality Gates
