@@ -148,9 +148,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         for parameters in parameters_list:
             result = cls._normalize_parameters(parameters)
             if result.failure:
-                return r[Sequence[m.ConfigMap]].fail(
-                    result.error or "Invalid bulk query parameters"
-                )
+                return r[Sequence[m.ConfigMap]].from_failure(result)
             normalized.append(result.value)
         return r[Sequence[m.ConfigMap]].ok(normalized)
 
@@ -174,7 +172,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         try:
             env_settings = env_settings_cls()
         except c.ValidationError as exc:
-            fail_result: p.Result[Self] = r.fail(f"Invalid settings: {exc}")
+            fail_result: p.Result[Self] = r.fail(f"Invalid settings: {exc}", exception=exc)
             return fail_result
 
         if not env_settings.DbOracle.password:

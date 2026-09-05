@@ -27,7 +27,4 @@ class FlextDbOracleApi(FlextDbOracleApiRuntime):
         """Initialize facade with explicit runtime constructor contract."""
         super().__init__(settings=settings, context_name=context_name)
 
-
-db_oracle = FlextDbOracleApi
-
-__all__: list[str] = ["FlextDbOracleApi", "db_oracle"]
+__all__: list[str] = ["FlextDbOracleApi", ]

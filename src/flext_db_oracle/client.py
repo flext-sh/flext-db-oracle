@@ -126,7 +126,7 @@ class FlextDbOracleClient(s):
                 password=password,
             )
             if settings_result.failure:
-                return r[FlextDbOracleApi].fail(settings_result.error or "")
+                return r[FlextDbOracleApi].from_failure(settings_result)
             settings = settings_result.value
             api = FlextDbOracleApi(settings)
             return self._connect_api(api)
@@ -137,7 +137,7 @@ class FlextDbOracleClient(s):
             OSError,
             SQLAlchemyOperationalError,
         ) as e:
-            return r[FlextDbOracleApi].fail(f"Connection error: {e}")
+            return r[FlextDbOracleApi].fail(f"Connection error: {e}", exception=e)
 
     def _connection_settings(
         self,
@@ -346,9 +346,7 @@ class FlextDbOracleClient(s):
         try:
             validation_result: p.Result[bool] = self._validate_connection()
             if validation_result.failure:
-                return r[m.ConfigMap].fail(
-                    validation_result.error or "Connection validation failed"
-                )
+                return r[m.ConfigMap].from_failure(validation_result)
             if not self.current_connection:
                 return r[m.ConfigMap].fail("No connection available")
             health_data = m.ConfigMap(
@@ -409,7 +407,7 @@ class FlextDbOracleClient(s):
         """
         validation_result: p.Result[bool] = self._validate_connection()
         if validation_result.failure:
-            return r[m.ConfigMap].fail(validation_result.error or "Validation failed")
+            return r[m.ConfigMap].from_failure(validation_result)
         return self._execute_operation(operation, **params)
 
     def _format_and_display_result(
@@ -488,9 +486,7 @@ class FlextDbOracleClient(s):
                 f"Unsupported format: {format_type}"
             )
         except c.DbOracle.EXC_DB_CONNECT as e:
-            return r[Callable[[m.ConfigMap], p.Result[str]]].fail(
-                f"Formatter strategy error: {e}"
-            )
+            return r[Callable[[m.ConfigMap], p.Result[str]]].fail(f"Formatter strategy error: {e}", exception=e)
 
     def _handle_health_check_operation(self) -> p.Result[m.ConfigMap]:
         """Handle health check operation."""

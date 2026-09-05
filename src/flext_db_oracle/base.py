@@ -16,14 +16,13 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Engine as SAEngine, text
 
 from flext_core import s
-from flext_db_oracle import FlextDbOracleSettings, c, m, p, r, t, u
-from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
+from flext_db_oracle import u, FlextDbOracleSettings, c, m, p, r, t
 
 if TYPE_CHECKING:
     from collections.abc import MutableMapping, MutableSequence
 
 
-class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
+class FlextDbOracleServiceBase(s, u.DbOracle):
     """Base mixin providing static helpers and SQLAlchemy wrappers.
 
     All service mixins inherit from this base, which provides:
@@ -90,9 +89,7 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
             return r[Sequence[m.Dict]].fail("Not connected to database")
         engine_result = self._get_engine()
         if engine_result.failure:
-            return r[Sequence[m.Dict]].fail(
-                engine_result.error or "Failed to get database engine"
-            )
+            return r[Sequence[m.Dict]].from_failure(engine_result)
         try:
             with self._engine_connect(engine_result.value) as connection:
                 result = self._connection_execute(connection, text(sql), params)

@@ -185,7 +185,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                 return r[str].fail("Password is required for database connection")
             return self._assemble_connection_url(password)
         except c.DbOracle.EXC_DB_BROAD as e:
-            return r[str].fail(f"Failed to build connection URL: {e}")
+            return r[str].fail(f"Failed to build connection URL: {e}", exception=e)
 
 
 __all__: list[str] = ["FlextDbOracleServiceConnection"]
