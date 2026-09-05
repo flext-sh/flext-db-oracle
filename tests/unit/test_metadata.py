@@ -20,13 +20,74 @@ import pytest
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.services.facade import FlextDbOracleServices
 from flext_tests import tm
-from tests import m
+from tests import m, t
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
+
     from flext_db_oracle import p
 
 _T = TypeVar("_T")
+
+
+# flext-1wjg1.16: named functions (not lambdas) so pyrefly can type the
+# `services` parameter from the explicit annotation -- an inline lambda
+# inside the parametrize list literal has no expected-type context to infer
+# its parameter from ([implicit-any-lambda]).
+def _call_fetch_schemas(services: FlextDbOracleServices) -> p.Result[t.StrSequence]:
+    return services.fetch_schemas()
+
+
+def _call_fetch_tables_default(
+    services: FlextDbOracleServices,
+) -> p.Result[t.StrSequence]:
+    return services.fetch_tables()
+
+
+def _call_fetch_tables_schema(
+    services: FlextDbOracleServices,
+) -> p.Result[t.StrSequence]:
+    return services.fetch_tables("APP_SCHEMA")
+
+
+def _call_fetch_tables_empty_schema(
+    services: FlextDbOracleServices,
+) -> p.Result[t.StrSequence]:
+    return services.fetch_tables("")
+
+
+def _call_fetch_tables_none_schema(
+    services: FlextDbOracleServices,
+) -> p.Result[t.StrSequence]:
+    return services.fetch_tables(None)
+
+
+def _call_fetch_columns_table(
+    services: FlextDbOracleServices,
+) -> p.Result[Sequence[m.DbOracle.Column]]:
+    return services.fetch_columns("T")
+
+
+def _call_fetch_columns_schema(
+    services: FlextDbOracleServices,
+) -> p.Result[Sequence[m.DbOracle.Column]]:
+    return services.fetch_columns("T", "APP_SCHEMA")
+
+
+def _call_fetch_table_metadata(
+    services: FlextDbOracleServices,
+) -> p.Result[m.DbOracle.TableMetadata]:
+    return services.fetch_table_metadata("T")
+
+
+def _call_fetch_primary_keys(
+    services: FlextDbOracleServices,
+) -> p.Result[t.StrSequence]:
+    return services.fetch_primary_keys("T")
+
+
+def _call_test_connection(services: FlextDbOracleServices) -> p.Result[bool]:
+    return services.test_connection()
 
 
 class TestsFlextDbOracleMetadata:
@@ -77,16 +138,16 @@ class TestsFlextDbOracleMetadata:
     @pytest.mark.parametrize(
         ("label", "call"),
         [
-            ("fetch_schemas", lambda s: s.fetch_schemas()),
-            ("fetch_tables_default", lambda s: s.fetch_tables()),
-            ("fetch_tables_schema", lambda s: s.fetch_tables("APP_SCHEMA")),
-            ("fetch_tables_empty_schema", lambda s: s.fetch_tables("")),
-            ("fetch_tables_none_schema", lambda s: s.fetch_tables(None)),
-            ("fetch_columns_table", lambda s: s.fetch_columns("T")),
-            ("fetch_columns_schema", lambda s: s.fetch_columns("T", "APP_SCHEMA")),
-            ("fetch_table_metadata", lambda s: s.fetch_table_metadata("T")),
-            ("fetch_primary_keys", lambda s: s.fetch_primary_keys("T")),
-            ("test_connection", lambda s: s.test_connection()),
+            ("fetch_schemas", _call_fetch_schemas),
+            ("fetch_tables_default", _call_fetch_tables_default),
+            ("fetch_tables_schema", _call_fetch_tables_schema),
+            ("fetch_tables_empty_schema", _call_fetch_tables_empty_schema),
+            ("fetch_tables_none_schema", _call_fetch_tables_none_schema),
+            ("fetch_columns_table", _call_fetch_columns_table),
+            ("fetch_columns_schema", _call_fetch_columns_schema),
+            ("fetch_table_metadata", _call_fetch_table_metadata),
+            ("fetch_primary_keys", _call_fetch_primary_keys),
+            ("test_connection", _call_test_connection),
         ],
     )
     def test_metadata_op_fails_when_not_connected(
