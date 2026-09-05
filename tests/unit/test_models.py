@@ -266,10 +266,17 @@ class TestsFlextDbOracleModels:
 
     def test_create_index_config_requires_columns(self) -> None:
         """A CreateIndexConfig without columns is rejected."""
+        # flext-1wjg1.16: unpack a variable typed as a generic str-mapping
+        # (not an inline dict literal, whose literal keys pyrefly still
+        # narrows against __init__) so it does not statically flag the
+        # deliberately-omitted required `columns` -- the runtime
+        # ValidationError is exactly what this test asserts.
+        payload: dict[str, str] = {
+            "table_name": "users",
+            "index_name": "idx_users_email",
+        }
         with pytest.raises(ValueError, match="columns"):
-            m.DbOracle.CreateIndexConfig(
-                table_name="users", index_name="idx_users_email"
-            )
+            m.DbOracle.CreateIndexConfig(**payload)
 
     def test_positive_index_parallel_degree_is_enforced(self) -> None:
         """A non-positive parallel degree is rejected."""

@@ -13,7 +13,7 @@ from collections.abc import Sequence
 
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
-from flext_db_oracle import FlextDbOracleServiceBase, e, m, p, r, t, u
+from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleSettings, e, m, p, r, t, u
 
 
 class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
@@ -22,6 +22,16 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
     Handles: register_plugin, unregister_plugin, get_plugin, list_plugins,
     record_metric, get_metrics, track_operation, get_operations.
     """
+
+    # flext-1wjg1.16: pydantic model classes synthesize their own __init__
+    # from fields unless the class defines one explicitly, so a mixin that
+    # relies on inheriting FlextDbOracleServiceBase.__init__ ends up with a
+    # generated kwargs-only signature (settings_type=/runtime_settings=/...)
+    # instead -- a bad-override against FlextDbOracleServices.__init__. Every
+    # mixin needs its own explicit wrapper to keep the positional contract.
+    def __init__(self, settings: FlextDbOracleSettings) -> None:
+        """Initialize shared Oracle service state for this mixin."""
+        FlextDbOracleServiceBase.__init__(self, settings)
 
     def fetch_metrics(self) -> p.Result[m.DbOracle.HealthStatus]:
         """Get metrics status with observability integration."""
