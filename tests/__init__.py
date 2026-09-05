@@ -3,28 +3,23 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from . import e2e as e2e
-    from . import integration as integration
-    from . import unit as unit
-    from flext_tests import FlextTestsConstants, d, h, r, td, tf, tk, tm, tv, x
+    from flext_tests import FlextTestsConstants, d, e, h, r, td, tf, tk, tm, tv, x
 
+    from . import e2e as e2e, integration as integration, unit as unit
     from .base import TestsFlextDbOracleServiceBase, TestsFlextDbOracleServiceBase as s
     from .constants import TestsFlextDbOracleConstants, TestsFlextDbOracleConstants as c
     from .models import TestsFlextDbOracleModels, TestsFlextDbOracleModels as m
     from .protocols import TestsFlextDbOracleProtocols, TestsFlextDbOracleProtocols as p
     from .settings import TestsFlextDbOracleSettings
     from .typings import TestsFlextDbOracleTypes, TestsFlextDbOracleTypes as t
-    from .unit.exceptions import FlextDbOracleTestExceptions, e
     from .utilities import TestsFlextDbOracleUtilities, TestsFlextDbOracleUtilities as u
 __all__: tuple[str, ...] = (
-    "FlextDbOracleTestExceptions",
     "FlextTestsConstants",
     "TestsFlextDbOracleConstants",
     "TestsFlextDbOracleModels",
@@ -66,11 +61,11 @@ _LAZY_IMPORTS = MappingProxyType(
             ".settings": ("TestsFlextDbOracleSettings",),
             ".typings": ("TestsFlextDbOracleTypes", "t"),
             ".unit": ("unit",),
-            ".unit.exceptions": ("FlextDbOracleTestExceptions", "e"),
             ".utilities": ("TestsFlextDbOracleUtilities", "u"),
             "flext_tests": (
                 "FlextTestsConstants",
                 "d",
+                "e",
                 "h",
                 "r",
                 "td",
