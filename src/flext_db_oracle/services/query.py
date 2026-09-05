@@ -10,11 +10,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING
 
 from sqlalchemy import text
 
-from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
+from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleSettings, c, m, p, r, t
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import CursorResult
@@ -26,6 +26,12 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     Handles: execute_query, execute_statement, execute_many,
     fetch_one, generate_query_hash, result normalization.
     """
+
+    # flext-1wjg1.16: see services/plugin.py -- explicit wrapper keeps this
+    # mixin's __init__ positional instead of pydantic's synthesized kwargs-only one.
+    def __init__(self, settings: FlextDbOracleSettings) -> None:
+        """Initialize shared Oracle service state for this mixin."""
+        FlextDbOracleServiceBase.__init__(self, settings)
 
     def execute_many(
         self, sql: str, params_list: t.SequenceOf[t.JsonMapping | m.ConfigMap]
@@ -51,7 +57,9 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         except c.DbOracle.EXC_DB_BROAD as e:
             return r[int].fail_op("Bulk execution", e)
 
-    @override
+    # flext-1wjg1.16: not a real override -- QueryExecutor is a structural
+    # Protocol (protocols.py), never a base class of this mixin, so pyrefly's
+    # nominal @override check has no matching parent attribute to verify.
     def execute_query(
         self, sql: str, params: m.ConfigMap | None = None
     ) -> p.Result[Sequence[m.Dict]]:
