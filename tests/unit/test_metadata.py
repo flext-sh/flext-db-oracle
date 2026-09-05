@@ -15,8 +15,11 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, TypeVar
+
 import pytest
+
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.services.facade import FlextDbOracleServices
 from flext_tests import tm
@@ -24,6 +27,7 @@ from tests import m
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
     from flext_db_oracle import p
 
 _T = TypeVar("_T")

@@ -13,8 +13,7 @@ import time
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Engine as SAEngine
-from sqlalchemy import text
+from sqlalchemy import Engine as SAEngine, text
 
 from flext_core import s
 from flext_db_oracle import FlextDbOracleSettings, c, m, p, r, t, u

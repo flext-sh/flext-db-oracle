@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from flext_core import FlextDbOracleUtilities
 
+
 class ExamplesFlextDbOracleUtilities(FlextDbOracleUtilities):
     """Utility functions for flextdboracle."""
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from flext_core import FlextDbOracleConstants
 
+
 class ExamplesFlextDbOracleConstants(FlextDbOracleConstants):
     """Constants for flextdboracle."""
 

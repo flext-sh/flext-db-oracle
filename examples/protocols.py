@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from flext_core import FlextDbOracleProtocols
 
+
 class ExamplesFlextDbOracleProtocols(FlextDbOracleProtocols):
     """Protocol definitions for flextdboracle."""
 
