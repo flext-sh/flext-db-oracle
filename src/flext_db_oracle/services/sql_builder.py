@@ -79,9 +79,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
     @staticmethod
     def _build_table_clause(
-        table_name: str,
-        column_names: t.StrSequence,
-        schema: str | None = None,
+        table_name: str, column_names: t.StrSequence, schema: str | None = None
     ) -> TableClause:
         """Build a ``table()`` clause with Oracle-safe identifier quoting.
 
@@ -234,7 +232,9 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             column_name: f"bind_{index:04d}"
             for index, column_name in enumerate(condition_columns)
         }
-        table_clause = self._build_table_clause(table_name, statement_columns, schema_name)
+        table_clause = self._build_table_clause(
+            table_name, statement_columns, schema_name
+        )
         selected_column_clauses = [
             table_clause.c[column_name] for column_name in selected_columns
         ]

@@ -172,7 +172,9 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         try:
             env_settings = env_settings_cls()
         except c.ValidationError as exc:
-            fail_result: p.Result[Self] = r.fail(f"Invalid settings: {exc}", exception=exc)
+            fail_result: p.Result[Self] = r.fail(
+                f"Invalid settings: {exc}", exception=exc
+            )
             return fail_result
 
         if not env_settings.DbOracle.password:

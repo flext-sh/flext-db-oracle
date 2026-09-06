@@ -486,7 +486,9 @@ class FlextDbOracleClient(s):
                 f"Unsupported format: {format_type}"
             )
         except c.DbOracle.EXC_DB_CONNECT as e:
-            return r[Callable[[m.ConfigMap], p.Result[str]]].fail(f"Formatter strategy error: {e}", exception=e)
+            return r[Callable[[m.ConfigMap], p.Result[str]]].fail(
+                f"Formatter strategy error: {e}", exception=e
+            )
 
     def _handle_health_check_operation(self) -> p.Result[m.ConfigMap]:
         """Handle health check operation."""
