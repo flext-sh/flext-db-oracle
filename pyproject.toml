@@ -23,8 +23,8 @@ dependencies = [
   "flext-cli @ git+https://github.com/flext-sh/flext-cli.git@0.12.0-dev",
   "flext-core @ git+https://github.com/flext-sh/flext-core.git@0.12.0-dev",
   "oracledb>=4.0.2",
-  "pydantic>=2.13.5",
-  "pydantic-core>=2.46.5",
+  "pydantic>=2.14.0b1",
+  "pydantic-core>=2.48.0",
   "sqlalchemy>=2.0.52",
 ]
 description = "FLEXT DB Oracle - Enterprise Oracle Database Operations Library"
