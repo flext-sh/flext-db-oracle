@@ -16,7 +16,7 @@ from urllib.parse import quote_plus
 from sqlalchemy import Connection as SAConnection, text
 
 from flext_core import r
-from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, u
+from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleSettings, c, m, p, u
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -30,6 +30,12 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
     Handles: connect, disconnect, test_connection, health_check,
     get_connection, get_connection_status, transaction, connected.
     """
+
+    # flext-1wjg1.16: see services/plugin.py -- explicit wrapper keeps this
+    # mixin's __init__ positional instead of pydantic's synthesized kwargs-only one.
+    def __init__(self, settings: FlextDbOracleSettings) -> None:
+        """Initialize shared Oracle service state for this mixin."""
+        FlextDbOracleServiceBase.__init__(self, settings)
 
     def connect(self) -> p.Result[Self]:
         """Establish Oracle database connection."""
