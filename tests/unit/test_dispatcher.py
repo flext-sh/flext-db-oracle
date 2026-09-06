@@ -91,8 +91,12 @@ class TestsFlextDbOracleDispatcher:
         self, command_type: type[m.DbOracle.ExecuteQueryCommand]
     ) -> None:
         """SQL is a mandatory field; construction without it fails validation."""
+        # flext-1wjg1.16: model_validate({}) (its `obj` parameter is
+        # intentionally untyped) instead of a direct/unpacked call, so
+        # pyrefly does not statically flag the deliberately-omitted required
+        # `sql` -- the runtime ValidationError is exactly what this asserts.
         with pytest.raises(m.ValidationError):
-            command_type()
+            command_type.model_validate({})
 
     def test_execute_many_command_preserves_parameter_batches(self) -> None:
         """ExecuteManyCommand keeps the ordered batch of parameter mappings."""
