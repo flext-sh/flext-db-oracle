@@ -20,7 +20,7 @@ from sqlalchemy.exc import (
 )
 from sqlalchemy.sql import quoted_name
 
-from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, t, u
+from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleSettings, c, m, p, t, u
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -32,6 +32,12 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
     Handles: get_columns, get_primary_keys, get_primary_key_columns,
     get_schemas, get_tables, get_table_metadata, get_table_row_count.
     """
+
+    # flext-1wjg1.16: see plugin.py -- explicit wrapper keeps this mixin's
+    # __init__ positional instead of pydantic's synthesized kwargs-only one.
+    def __init__(self, settings: FlextDbOracleSettings) -> None:
+        """Initialize shared Oracle service state for this mixin."""
+        FlextDbOracleServiceBase.__init__(self, settings)
 
     def fetch_columns(
         self, table_name: str, schema_name: str | None = None

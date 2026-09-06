@@ -3,23 +3,42 @@
 
 from __future__ import annotations
 
-from types import MappingProxyType
 from typing import TYPE_CHECKING
+
+from types import MappingProxyType
 
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_tests import FlextTestsConstants, d, e, h, r, td, tf, tk, tm, tv, x
+    from . import e2e as e2e
+    from . import integration as integration
+    from . import unit as unit
+    from flext_tests import FlextTestsConstants, d, h, r, td, tf, tk, tm, tv, x
 
-    from . import e2e as e2e, integration as integration, unit as unit
     from .base import TestsFlextDbOracleServiceBase, TestsFlextDbOracleServiceBase as s
+    from .conftest import (
+        connected_oracle_api,
+        docker_control,
+        oracle_api,
+        oracle_available,
+        oracle_config,
+        oracle_container,
+        oracle_login_ready,
+        pytest_runtest_makereport,
+        real_oracle_config,
+        real_oracle_settings,
+        shared_oracle_container,
+        test_database_setup,
+    )
     from .constants import TestsFlextDbOracleConstants, TestsFlextDbOracleConstants as c
     from .models import TestsFlextDbOracleModels, TestsFlextDbOracleModels as m
     from .protocols import TestsFlextDbOracleProtocols, TestsFlextDbOracleProtocols as p
     from .settings import TestsFlextDbOracleSettings
     from .typings import TestsFlextDbOracleTypes, TestsFlextDbOracleTypes as t
+    from .unit.exceptions import FlextDbOracleTestExceptions, e
     from .utilities import TestsFlextDbOracleUtilities, TestsFlextDbOracleUtilities as u
 __all__: tuple[str, ...] = (
+    "FlextDbOracleTestExceptions",
     "FlextTestsConstants",
     "TestsFlextDbOracleConstants",
     "TestsFlextDbOracleModels",
@@ -29,17 +48,29 @@ __all__: tuple[str, ...] = (
     "TestsFlextDbOracleTypes",
     "TestsFlextDbOracleUtilities",
     "c",
+    "connected_oracle_api",
     "d",
+    "docker_control",
     "e",
     "e2e",
     "h",
     "integration",
     "m",
+    "oracle_api",
+    "oracle_available",
+    "oracle_config",
+    "oracle_container",
+    "oracle_login_ready",
     "p",
+    "pytest_runtest_makereport",
     "r",
+    "real_oracle_config",
+    "real_oracle_settings",
     "s",
+    "shared_oracle_container",
     "t",
     "td",
+    "test_database_setup",
     "tf",
     "tk",
     "tm",
@@ -53,6 +84,20 @@ _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
             ".base": ("TestsFlextDbOracleServiceBase", "s"),
+            ".conftest": (
+                "connected_oracle_api",
+                "docker_control",
+                "oracle_api",
+                "oracle_available",
+                "oracle_config",
+                "oracle_container",
+                "oracle_login_ready",
+                "pytest_runtest_makereport",
+                "real_oracle_config",
+                "real_oracle_settings",
+                "shared_oracle_container",
+                "test_database_setup",
+            ),
             ".constants": ("TestsFlextDbOracleConstants", "c"),
             ".e2e": ("e2e",),
             ".integration": ("integration",),
@@ -61,11 +106,11 @@ _LAZY_IMPORTS = MappingProxyType(
             ".settings": ("TestsFlextDbOracleSettings",),
             ".typings": ("TestsFlextDbOracleTypes", "t"),
             ".unit": ("unit",),
+            ".unit.exceptions": ("FlextDbOracleTestExceptions", "e"),
             ".utilities": ("TestsFlextDbOracleUtilities", "u"),
             "flext_tests": (
                 "FlextTestsConstants",
                 "d",
-                "e",
                 "h",
                 "r",
                 "td",

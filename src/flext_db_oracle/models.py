@@ -100,7 +100,11 @@ class FlextDbOracleModels(m):
                 "", description="Oracle database version", validate_default=True
             )
 
-            @u.computed_field(return_type=float)
+            # return_type= kwarg dropped: it hit computed_field's kwargs-only
+            # overload, which flext-core's `staticmethod(computed_field)` wrap
+            # does not expose to pyrefly (flext-1wjg1.16 fleet defect); the
+            # bare form already infers the type from the property annotation.
+            @u.computed_field
             @property
             def connection_age_seconds(self) -> float:
                 """Connection age in seconds."""
@@ -112,7 +116,7 @@ class FlextDbOracleModels(m):
                     return age_seconds
                 return 0.0
 
-            @u.computed_field(return_type=str)
+            @u.computed_field
             @property
             def connection_info(self) -> str:
                 """Connection information summary."""
@@ -130,7 +134,7 @@ class FlextDbOracleModels(m):
                 ]
                 return ", ".join(parts) or "Connected"
 
-            @u.computed_field(return_type=bool)
+            @u.computed_field
             @property
             def healthy(self) -> bool:
                 """Connection health status."""
@@ -143,7 +147,7 @@ class FlextDbOracleModels(m):
                 is_healthy: bool = age_seconds <= idle_timeout_seconds
                 return is_healthy
 
-            @u.computed_field(return_type=str)
+            @u.computed_field
             @property
             def performance_info(self) -> str:
                 """Connection performance information."""
@@ -163,7 +167,7 @@ class FlextDbOracleModels(m):
                     return f"Acceptable ({self.connection_time:.3f}s)"
                 return f"Slow ({self.connection_time:.3f}s)"
 
-            @u.computed_field(return_type=str)
+            @u.computed_field
             @property
             def status_description(self) -> str:
                 """Human-readable status description."""
@@ -357,7 +361,7 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
             metrics: t.JsonMapping = u.Field(
-                default_factory=lambda: MappingProxyType({}),
+                default_factory=lambda: MappingProxyType[str, t.JsonValue]({}),
                 description="Health check metric values",
             )
 
@@ -405,7 +409,7 @@ class FlextDbOracleModels(m):
             """Singer-to-Oracle type mapping."""
 
             mapping: t.StrMapping = u.Field(
-                default_factory=lambda: MappingProxyType({}),
+                default_factory=lambda: MappingProxyType[str, str]({}),
                 description="Singer-to-Oracle type conversion map",
             )
 
@@ -436,7 +440,9 @@ class FlextDbOracleModels(m):
 
             properties: t.MappingKV[str, FlextDbOracleModels.DbOracle.SingerField] = (
                 u.Field(
-                    default_factory=lambda: MappingProxyType({}),
+                    default_factory=lambda: MappingProxyType[
+                        str, FlextDbOracleModels.DbOracle.SingerField
+                    ]({}),
                     description="Singer schema property definitions",
                 )
             )

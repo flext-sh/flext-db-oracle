@@ -33,7 +33,7 @@ from sqlalchemy.sql import quoted_name
 from sqlalchemy.sql.ddl import CreateIndex, CreateTable, DropTable
 from sqlalchemy.types import UserDefinedType
 
-from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
+from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleSettings, c, m, p, r, t
 
 
 class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
@@ -43,6 +43,12 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     build_insert_statement, build_select, build_update_statement,
     create_table_ddl, drop_table_ddl.
     """
+
+    # flext-1wjg1.16: see services/plugin.py -- explicit wrapper keeps this
+    # mixin's __init__ positional instead of pydantic's synthesized kwargs-only one.
+    def __init__(self, settings: FlextDbOracleSettings) -> None:
+        """Initialize shared Oracle service state for this mixin."""
+        FlextDbOracleServiceBase.__init__(self, settings)
 
     class OracleRawType(UserDefinedType[str]):
         """Preserve exact Oracle type strings in SQLAlchemy DDL."""
