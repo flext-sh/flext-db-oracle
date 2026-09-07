@@ -13,7 +13,16 @@ from collections.abc import Sequence
 
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
-from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleSettings, e, m, p, r, t, u
+from flext_db_oracle import (
+    FlextDbOracleServiceBase,
+    FlextDbOracleSettings,
+    e,
+    m,
+    p,
+    r,
+    t,
+    u,
+)
 
 
 class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):

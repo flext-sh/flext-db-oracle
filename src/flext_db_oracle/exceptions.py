@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_core import e
+from flext_db_oracle import p, t
 
 
 class FlextDbOracleExceptions(e):
@@ -44,9 +45,10 @@ class FlextDbOracleExceptions(e):
             *,
             tns_error: str | None = None,
             connection_string: str | None = None,
+            metadata: p.HasModelDump | t.JsonValue | None = None,
         ) -> None:
             """Initialize connection error with TNS and connection metadata."""
-            super().__init__(message)
+            super().__init__(message, metadata=metadata)
             self.tns_error = tns_error
             self.connection_string = connection_string
 
@@ -59,9 +61,10 @@ class FlextDbOracleExceptions(e):
             *,
             operation_type: str | None = None,
             processing_stage: str | None = None,
+            metadata: p.HasModelDump | t.JsonValue | None = None,
         ) -> None:
             """Initialize processing error with operation type and stage metadata."""
-            super().__init__(message)
+            super().__init__(message, metadata=metadata)
             self.operation_type = operation_type
             self.processing_stage = processing_stage
 

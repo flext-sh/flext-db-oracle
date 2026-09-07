@@ -33,7 +33,15 @@ from sqlalchemy.sql import quoted_name
 from sqlalchemy.sql.ddl import CreateIndex, CreateTable, DropTable
 from sqlalchemy.types import UserDefinedType
 
-from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleSettings, c, m, p, r, t
+from flext_db_oracle import (
+    FlextDbOracleServiceBase,
+    FlextDbOracleSettings,
+    c,
+    m,
+    p,
+    r,
+    t,
+)
 
 
 class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
@@ -120,7 +128,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             settings = m.DbOracle.CreateIndexConfig.model_validate(config)
             return self._create_index_sql(settings)
         except c.ValidationError as e:
-            return r[str].fail(f"Invalid CREATE INDEX settings: {e}")
+            return r[str].fail(f"Invalid CREATE INDEX settings: {e}", exception=e)
 
     def _create_index_sql(
         self, settings: m.DbOracle.CreateIndexConfig
@@ -302,7 +310,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             ddl = self._compile_statement(CreateTable(table_object))
             return r[str].ok(ddl)
         except c.ValidationError as e:
-            return r[str].fail(f"Invalid CREATE TABLE settings: {e}")
+            return r[str].fail(f"Invalid CREATE TABLE settings: {e}", exception=e)
 
     def _normalize_table_columns(
         self, columns: t.SequenceOf[m.DbOracle.Column | t.JsonMapping]

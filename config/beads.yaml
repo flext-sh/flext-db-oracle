@@ -1,4 +1,4 @@
 version: 1
-workspace: flext-db-oracle
-database: flext-db-oracle
-issue_prefix: flext-db-oracle
+workspace: flext
+database: flext
+issue_prefix: flext
