@@ -133,11 +133,19 @@ def run_cli_command(cmd: t.StrSequence) -> tuple[int, str, str]:
         result = u.Cli.run_raw(cmd, timeout=30)
         if result.success:
             process = result.value
-            return (process.exit_code, process.stdout, process.stderr)
+            return (
+                process.outcome.raw_return_code,
+                process.stdout,
+                process.stderr,
+            )
         failed = m.Cli.CommandOutput(
-            stdout="", stderr=result.error or "Command failed", exit_code=1
+            stdout="",
+            stderr=result.error or "Command failed",
+            outcome=m.Cli.ProcessOutcome(
+                raw_return_code=1, timed_out=False, forwarded_signal=None
+            ),
         )
-        return (failed.exit_code, failed.stdout, failed.stderr)
+        return (failed.outcome.raw_return_code, failed.stdout, failed.stderr)
 
     return _run()
 

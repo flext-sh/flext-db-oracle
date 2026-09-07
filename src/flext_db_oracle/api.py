@@ -28,4 +28,6 @@ class FlextDbOracleApi(FlextDbOracleApiRuntime):
         super().__init__(settings=settings, context_name=context_name)
 
 
-__all__: list[str] = ["FlextDbOracleApi"]
+db_oracle = FlextDbOracleApi
+
+__all__: list[str] = ["FlextDbOracleApi", "db_oracle"]
