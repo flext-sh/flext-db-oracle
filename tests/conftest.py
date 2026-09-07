@@ -68,7 +68,7 @@ def _cleanup_dirty_oracle_container() -> None:
         return
     container_name = _ORACLE_CONTAINER_NAME
     docker = tk.shared(
-        container_name, workspace_root=Path(__file__).resolve().parents[2]
+        container_name, repository_root=Path(__file__).resolve().parents[2]
     )
     dirty_containers = docker.dirty_containers
     if not dirty_containers:
@@ -125,7 +125,7 @@ def _mark_dirty_on_oracle_service_failure(
     if not is_service_failure:
         return
     docker = tk.shared(
-        _ORACLE_CONTAINER_NAME, workspace_root=Path(__file__).resolve().parents[2]
+        _ORACLE_CONTAINER_NAME, repository_root=Path(__file__).resolve().parents[2]
     )
     docker.mark_container_dirty(_ORACLE_CONTAINER_NAME)
     logger.error(
@@ -139,7 +139,7 @@ def _mark_dirty_on_oracle_service_failure(
 def docker_control() -> tk:
     """Provide tk instance for container management."""
     return tk.shared(
-        _ORACLE_CONTAINER_NAME, workspace_root=Path(__file__).resolve().parents[2]
+        _ORACLE_CONTAINER_NAME, repository_root=Path(__file__).resolve().parents[2]
     )
 
 
