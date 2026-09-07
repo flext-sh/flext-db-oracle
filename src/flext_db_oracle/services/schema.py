@@ -20,7 +20,15 @@ from sqlalchemy.exc import (
 )
 from sqlalchemy.sql import quoted_name
 
-from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleSettings, c, m, p, t, u
+from flext_db_oracle import (
+    FlextDbOracleServiceBase,
+    FlextDbOracleSettings,
+    c,
+    m,
+    p,
+    t,
+    u,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

@@ -14,7 +14,15 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import text
 
-from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleSettings, c, m, p, r, t
+from flext_db_oracle import (
+    FlextDbOracleServiceBase,
+    FlextDbOracleSettings,
+    c,
+    m,
+    p,
+    r,
+    t,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import CursorResult

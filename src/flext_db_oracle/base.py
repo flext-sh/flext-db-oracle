@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Engine as SAEngine, text
 
 from flext_core import s
-from flext_db_oracle import u, FlextDbOracleSettings, c, m, p, r, t
+from flext_db_oracle import FlextDbOracleSettings, c, m, p, r, t, u
 
 if TYPE_CHECKING:
     from collections.abc import MutableMapping, MutableSequence
