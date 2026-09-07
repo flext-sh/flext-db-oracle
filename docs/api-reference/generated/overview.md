@@ -25,7 +25,7 @@
   `FlextDbOracleApiRuntime`, `FlextDbOracleClient`, `FlextDbOracleConfig`,
   `FlextDbOracleConstants`, `FlextDbOracleDispatcher`,
   `FlextDbOracleExceptions`, `FlextDbOracleModels`, `FlextDbOracleProtocols`
-  (+14 more)
+  (+13 more)
 - Exported module shortcuts: `client`, `services`
 - Generated module pages: `19`
 

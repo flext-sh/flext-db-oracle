@@ -2,11 +2,11 @@
 #
 # Release protocol projection. The workflow selects which protocol phase to
 # run; every decision (next version, guard, tag identity, receipt, upload set)
-# is made by `make release`, never here.
+# is made by the direct `make release-*` and `make publication` verbs, never here.
 #
 # - A push to the integration branch whose head is NOT the protocol's release
-#   commit opens or updates the release pull request (`make release
-#   WHAT=version APPLY=Y`); when nothing is releasable the run is a no-op.
+#   commit opens or updates the release pull request (`make release-version
+#   APPLY=Y`); when nothing is releasable the run is a no-op.
 # - A push whose head IS the release commit (the merged release pull request)
 #   tags it, builds the receipt and publishes exactly what the receipt attests.
 # - `workflow_dispatch` re-runs build and publication for an existing tag.
@@ -77,16 +77,53 @@ jobs:
       pull-requests: write # Open or update the release pull request.
     env:
       CI: Y
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # A pull request opened with the default GITHUB_TOKEN triggers no CI, so
+      # the release PR would reach merge unvalidated (flext-1wjg1.16.5). The
+      # lane push and the PR use the organization automation token; when that
+      # secret is absent the job fails loud instead of degrading silently.
+      GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
     steps:
+      - name: Require the release automation token
+        run: |
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "::error::secrets.RELEASE_TOKEN is not configured: a release pull request opened with GITHUB_TOKEN triggers no CI. Configure the organization secret and rerun." >&2
+            exit 1
+          fi
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 0
           submodules: false
-      - name: Install mise toolchain
-        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c  # v4.3.0
+          token: ${{ secrets.RELEASE_TOKEN }}
 
+      # A private git dependency cannot be cloned with the workflow's own
+      # token: secrets.GITHUB_TOKEN is scoped to the repository that runs the
+      # workflow, and uv drives dependency clones through plain git, which
+      # carries no credential at all. The declared App mints an installation
+      # token for the owner, and git reads it from a 0600 file outside the
+      # checkout — never from the environment of the build itself.
+      - name: Mint the private-dependency installation token
+        id: private_dependency_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        with:
+          app-id: ${{ secrets.CI_DEPENDENCIES_APP_ID }}
+          private-key: ${{ secrets.CI_DEPENDENCIES_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Authenticate git for private dependencies
+        env:
+          PRIVATE_DEPENDENCY_TOKEN: ${{ steps.private_dependency_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          : "${RUNNER_TEMP:?RUNNER_TEMP is required for private dependency identity}"
+          if [ -z "${PRIVATE_DEPENDENCY_TOKEN}" ]; then
+            echo "::error::the CI_DEPENDENCIES_APP_ID App produced no installation token — a private git dependency cannot be resolved"
+            exit 1
+          fi
+          store="$RUNNER_TEMP/flext-private-dependency-credentials"
+          install -m 600 /dev/null "$store"
+          printf 'https://x-access-token:%s@github.com\n' "$PRIVATE_DEPENDENCY_TOKEN" > "$store"
+          git config --global credential.helper "store --file=$store"
       - name: Release identity
         run: |
           git config user.name "github-actions[bot]"
@@ -94,7 +131,7 @@ jobs:
       - name: Boot
         run: make setup
       - name: Release pull request
-        run: make release WHAT=version APPLY=Y
+        run: make release-version APPLY=Y
 
   publish:
     name: Tag, build and publish the release commit
@@ -114,9 +151,35 @@ jobs:
           fetch-depth: 0
           ref: ${{ needs.identity.outputs.ref }}
           submodules: false
-      - name: Install mise toolchain
-        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c  # v4.3.0
 
+      # A private git dependency cannot be cloned with the workflow's own
+      # token: secrets.GITHUB_TOKEN is scoped to the repository that runs the
+      # workflow, and uv drives dependency clones through plain git, which
+      # carries no credential at all. The declared App mints an installation
+      # token for the owner, and git reads it from a 0600 file outside the
+      # checkout — never from the environment of the build itself.
+      - name: Mint the private-dependency installation token
+        id: private_dependency_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        with:
+          app-id: ${{ secrets.CI_DEPENDENCIES_APP_ID }}
+          private-key: ${{ secrets.CI_DEPENDENCIES_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Authenticate git for private dependencies
+        env:
+          PRIVATE_DEPENDENCY_TOKEN: ${{ steps.private_dependency_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          : "${RUNNER_TEMP:?RUNNER_TEMP is required for private dependency identity}"
+          if [ -z "${PRIVATE_DEPENDENCY_TOKEN}" ]; then
+            echo "::error::the CI_DEPENDENCIES_APP_ID App produced no installation token — a private git dependency cannot be resolved"
+            exit 1
+          fi
+          store="$RUNNER_TEMP/flext-private-dependency-credentials"
+          install -m 600 /dev/null "$store"
+          printf 'https://x-access-token:%s@github.com\n' "$PRIVATE_DEPENDENCY_TOKEN" > "$store"
+          git config --global credential.helper "store --file=$store"
       - name: Release identity
         run: |
           git config user.name "github-actions[bot]"
@@ -124,8 +187,8 @@ jobs:
       - name: Boot
         run: make setup
       - name: Tag
-        run: make release WHAT=tag APPLY=Y
+        run: make release-tag APPLY=Y
       - name: Build receipt
-        run: make release WHAT=build
+        run: make release-build APPLY=Y
       - name: Publish
-        run: make release WHAT=publish APPLY=Y
+        run: make publication APPLY=Y
