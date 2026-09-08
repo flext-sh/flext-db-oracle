@@ -11,7 +11,7 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 if TYPE_CHECKING:
     from flext_tests import FlextTestsConstants, d, e, h, r, td, tf, tk, tm, tv, x
 
-    from . import e2e as e2e, integration as integration, unit as unit
+    from . import e2e, integration, unit
     from .base import TestsFlextDbOracleServiceBase, TestsFlextDbOracleServiceBase as s
     from .constants import TestsFlextDbOracleConstants, TestsFlextDbOracleConstants as c
     from .models import TestsFlextDbOracleModels, TestsFlextDbOracleModels as m

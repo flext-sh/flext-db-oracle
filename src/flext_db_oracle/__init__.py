@@ -22,7 +22,7 @@ from .__version__ import (
 if TYPE_CHECKING:
     from flext_core import d, h, r, x
 
-    from . import services as services
+    from . import services
     from ._config import FlextDbOracleConfig, config
     from ._settings import DbOracleSettings, FlextDbOracleSettings, settings
     from .api import FlextDbOracleApi, db_oracle
