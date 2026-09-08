@@ -16,7 +16,8 @@ from typing import ClassVar
 
 from flext_cli import m, u
 from flext_db_oracle import c, t
-from flext_db_oracle._models.password import FlextDbOraclePassword
+
+from ._models.password import FlextDbOraclePassword
 
 
 class FlextDbOracleModels(m):
