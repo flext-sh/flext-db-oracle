@@ -3,14 +3,14 @@
 
 # flext-db-oracle - Testing
 
+> Project profile: `flext-db-oracle`
+
 <!-- TOC START -->
 - [Test design](#test-design)
 - [Canonical execution](#canonical-execution)
 - [Generated documentation](#generated-documentation)
 - [Related guides](#related-guides)
 <!-- TOC END -->
-
-> Project profile: `flext-db-oracle`
 
 FLEXT tests prove observable runtime behavior through public package facades. The
 workspace root `AGENTS.md` and the nearest package scope remain authoritative.
