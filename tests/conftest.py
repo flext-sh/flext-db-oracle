@@ -16,9 +16,9 @@ from typing import TYPE_CHECKING
 
 import oracledb
 import pytest
+from flext_tests import tk
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from flext_tests import tk
 from tests import c, u
 
 if TYPE_CHECKING:

@@ -12,9 +12,9 @@ import time
 from enum import StrEnum
 
 import pytest
+from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from flext_tests import tm
 from tests import c, u
 
 

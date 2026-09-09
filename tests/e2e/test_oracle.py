@@ -15,10 +15,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
+from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.api import FlextDbOracleApi
-from flext_tests import tm
 from tests import u
 
 if TYPE_CHECKING:

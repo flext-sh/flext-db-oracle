@@ -10,8 +10,9 @@ import os
 import time
 from typing import TYPE_CHECKING, ClassVar
 
-from flext_db_oracle import u
 from flext_tests import FlextTestsUtilities, e, tk
+
+from flext_db_oracle import u
 from tests import c, m, t
 
 if TYPE_CHECKING:

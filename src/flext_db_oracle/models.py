@@ -15,6 +15,7 @@ from types import MappingProxyType
 from typing import ClassVar
 
 from flext_cli import m, u
+
 from flext_db_oracle import c, t
 
 from ._models.password import FlextDbOraclePassword
