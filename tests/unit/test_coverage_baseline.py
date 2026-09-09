@@ -38,33 +38,29 @@ class TestsFlextDbOracleCoverageBaseline:
 
     def test_settings_service_name_round_trips_verbatim(self) -> None:
         """service_name is stored verbatim (no case normalization in layer-0)."""
-        settings = FlextDbOracleSettings.model_validate(
-            {
-                "DbOracle": {
-                    "host": "localhost",
-                    "port": 1521,
-                    "service_name": "lower_svc",
-                    "username": "testuser",
-                    "password": "testpass",
-                }
+        settings = FlextDbOracleSettings.model_validate({
+            "DbOracle": {
+                "host": "localhost",
+                "port": 1521,
+                "service_name": "lower_svc",
+                "username": "testuser",
+                "password": "testpass",
             }
-        )
+        })
         tm.that(settings.DbOracle.service_name, eq="lower_svc")
 
     def test_settings_ssl_fields_are_independent(self) -> None:
         """ssl_cert_file and ssl_server_cert_dn keep their supplied values."""
-        settings = FlextDbOracleSettings.model_validate(
-            {
-                "DbOracle": {
-                    "host": "secure.example.com",
-                    "port": 2484,
-                    "service_name": "SECURE_DB",
-                    "username": "secure_user",
-                    "password": "secure_pass",
-                    "ssl_cert_file": "/path/to/cert.pem",
-                }
+        settings = FlextDbOracleSettings.model_validate({
+            "DbOracle": {
+                "host": "secure.example.com",
+                "port": 2484,
+                "service_name": "SECURE_DB",
+                "username": "secure_user",
+                "password": "secure_pass",
+                "ssl_cert_file": "/path/to/cert.pem",
             }
-        )
+        })
         tm.that(settings.DbOracle.ssl_cert_file, eq="/path/to/cert.pem")
         tm.that(settings.DbOracle.ssl_server_cert_dn, none=True)
 
@@ -97,9 +93,7 @@ class TestsFlextDbOracleCoverageBaseline:
         tm.that(column["unknown_key"], eq="")
 
     def test_service_exposes_bound_settings(
-        self,
-        test_service: FlextDbOracleServices,
-        test_settings: FlextDbOracleSettings,
+        self, test_service: FlextDbOracleServices, test_settings: FlextDbOracleSettings
     ) -> None:
         """The facade returns the exact settings it was constructed with."""
         tm.that(test_service.settings, eq=test_settings)
@@ -112,9 +106,7 @@ class TestsFlextDbOracleCoverageBaseline:
         tm.that(test_service.connected(), eq=False)
 
     def test_service_execute_returns_active_configuration(
-        self,
-        test_service: FlextDbOracleServices,
-        test_settings: FlextDbOracleSettings,
+        self, test_service: FlextDbOracleServices, test_settings: FlextDbOracleSettings
     ) -> None:
         """execute() yields the active configuration as its default result."""
         result = test_service.execute()
@@ -166,9 +158,7 @@ class TestsFlextDbOracleCoverageBaseline:
         sql = tm.ok(test_service.create_table_ddl("ACCOUNTS", columns))
         tm.that(sql, has=["CREATE TABLE", "ACCOUNTS", "ID", "NUMBER"])
 
-    def test_drop_table_ddl(
-        self, test_service: FlextDbOracleServices
-    ) -> None:
+    def test_drop_table_ddl(self, test_service: FlextDbOracleServices) -> None:
         """drop_table_ddl compiles a DROP TABLE for the named table."""
         sql = tm.ok(test_service.drop_table_ddl("ACCOUNTS"))
         tm.that(sql, has=["DROP TABLE", "ACCOUNTS"])
@@ -178,13 +168,11 @@ class TestsFlextDbOracleCoverageBaseline:
     ) -> None:
         """A well-formed index config compiles to a CREATE INDEX statement."""
         sql = tm.ok(
-            test_service.build_create_index_statement(
-                {
-                    "index_name": "IX_USERS_ID",
-                    "table_name": "USERS",
-                    "columns": ["ID"],
-                }
-            )
+            test_service.build_create_index_statement({
+                "index_name": "IX_USERS_ID",
+                "table_name": "USERS",
+                "columns": ["ID"],
+            })
         )
         tm.that(sql, has=["CREATE INDEX", "IX_USERS_ID", "USERS", "ID"])
 
@@ -199,11 +187,9 @@ class TestsFlextDbOracleCoverageBaseline:
         self, test_service: FlextDbOracleServices
     ) -> None:
         """An index definition with no columns is rejected."""
-        result = test_service.build_create_index_statement(
-            {
-                "index_name": "IX_EMPTY",
-                "table_name": "USERS",
-                "columns": [],
-            }
-        )
+        result = test_service.build_create_index_statement({
+            "index_name": "IX_EMPTY",
+            "table_name": "USERS",
+            "columns": [],
+        })
         tm.fail(result, has="at least one column")

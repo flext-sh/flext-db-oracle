@@ -154,8 +154,7 @@ class TestsFlextDbOracleConstants:
         tm.that(c.DbOracle.BOOLEAN_TYPE, eq="NUMBER(1)")
 
     @pytest.mark.parametrize(
-        ("singer_type", "oracle_type"),
-        list(c.Tests.SINGER_TYPE_MAP_TEST_CASES.items()),
+        ("singer_type", "oracle_type"), list(c.Tests.SINGER_TYPE_MAP_TEST_CASES.items())
     )
     def test_singer_type_map_translation(
         self, singer_type: str, oracle_type: str

@@ -29,9 +29,7 @@ class TestsFlextDbOracleServices:
     """Public-contract behavior of the FlextDbOracleServices facade."""
 
     def test_facade_exposes_bound_settings(
-        self,
-        test_service: FlextDbOracleServices,
-        test_settings: FlextDbOracleSettings,
+        self, test_service: FlextDbOracleServices, test_settings: FlextDbOracleSettings
     ) -> None:
         """The facade returns the exact settings it was constructed with."""
         tm.that(test_service.db_config, eq=test_settings)
@@ -43,7 +41,9 @@ class TestsFlextDbOracleServices:
         """A freshly created service reports a disconnected state."""
         tm.that(test_service.connected(), eq=False)
 
-    def test_connected_returns_boolean(self, test_service: FlextDbOracleServices) -> None:
+    def test_connected_returns_boolean(
+        self, test_service: FlextDbOracleServices
+    ) -> None:
         """connected() yields a plain boolean contract value."""
         tm.that(test_service.connected(), is_=bool)
 
@@ -60,18 +60,16 @@ class TestsFlextDbOracleServices:
     def test_connect_fails_for_unreachable_host(self) -> None:
         """Connecting to an unreachable endpoint returns a failure result."""
         svc = FlextDbOracleServices(
-            settings=FlextDbOracleSettings.model_validate(
-                {
-                    "DbOracle": {
-                        "host": "127.0.0.1",
-                        "port": 19999,
-                        "service_name": "INVALID",
-                        "username": "invalid",
-                        "password": "invalid",
-                        "timeout": 1,
-                    }
+            settings=FlextDbOracleSettings.model_validate({
+                "DbOracle": {
+                    "host": "127.0.0.1",
+                    "port": 19999,
+                    "service_name": "INVALID",
+                    "username": "invalid",
+                    "password": "invalid",
+                    "timeout": 1,
                 }
-            )
+            })
         )
         result = svc.connect()
         tm.that(result.failure, eq=True)
@@ -130,7 +128,9 @@ class TestsFlextDbOracleServices:
         self, test_service: FlextDbOracleServices
     ) -> None:
         """A schema name qualifies the table reference in the rendered SQL."""
-        result = test_service.build_select("test_table", ["col1"], schema_name="test_schema")
+        result = test_service.build_select(
+            "test_table", ["col1"], schema_name="test_schema"
+        )
         tm.ok(result)
         tm.that(result.value, has="TEST_SCHEMA")
         tm.that(result.value, has="TEST_TABLE")
@@ -242,8 +242,7 @@ class TestsFlextDbOracleServices:
         tm.that(result.error or "", has="at least one column")
 
     @pytest.mark.parametrize(
-        ("singer_type", "oracle_type"),
-        list(c.Tests.SINGER_TYPE_MAP_TEST_CASES.items()),
+        ("singer_type", "oracle_type"), list(c.Tests.SINGER_TYPE_MAP_TEST_CASES.items())
     )
     def test_convert_singer_type_maps_scalar_types(
         self, test_service: FlextDbOracleServices, singer_type: str, oracle_type: str
@@ -308,14 +307,18 @@ class TestsFlextDbOracleServices:
         result = test_service.record_metric("db_query_duration", 12.5)
         tm.ok(result)
 
-    def test_record_metric_accepts_tags(self, test_service: FlextDbOracleServices) -> None:
+    def test_record_metric_accepts_tags(
+        self, test_service: FlextDbOracleServices
+    ) -> None:
         """Recording a metric with tags succeeds."""
         result = test_service.record_metric(
             "db_query_duration", 12.5, m.ConfigMap(root={"table": "users"})
         )
         tm.ok(result)
 
-    def test_record_metric_requires_name(self, test_service: FlextDbOracleServices) -> None:
+    def test_record_metric_requires_name(
+        self, test_service: FlextDbOracleServices
+    ) -> None:
         """An empty metric name is rejected with a required-name error."""
         result = test_service.record_metric("", 12.5)
         tm.that(result.failure, eq=True)

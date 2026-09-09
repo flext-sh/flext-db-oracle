@@ -443,10 +443,7 @@ class FlextDbOracleModels(m):
             properties: t.MappingKV[str, FlextDbOracleModels.DbOracle.SingerField] = (
                 u.Field(
                     default_factory=lambda: MappingProxyType(
-                        cast(
-                            "dict[str, FlextDbOracleModels.DbOracle.SingerField]",
-                            {},
-                        )
+                        cast("dict[str, FlextDbOracleModels.DbOracle.SingerField]", {})
                     ),
                     description="Singer schema property definitions",
                 )

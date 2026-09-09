@@ -35,17 +35,15 @@ _ORACLE_CONTAINER_NAME = "flext-oracle-db-test"
 @pytest.fixture
 def test_settings() -> FlextDbOracleSettings:
     """Return a valid Oracle settings instance for service construction."""
-    return FlextDbOracleSettings.model_validate(
-        {
-            "DbOracle": {
-                "host": "localhost",
-                "port": 1521,
-                "service_name": "TEST",
-                "username": "testuser",
-                "password": "testpass",
-            }
+    return FlextDbOracleSettings.model_validate({
+        "DbOracle": {
+            "host": "localhost",
+            "port": 1521,
+            "service_name": "TEST",
+            "username": "testuser",
+            "password": "testpass",
         }
-    )
+    })
 
 
 @pytest.fixture
