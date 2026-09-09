@@ -19,7 +19,7 @@ from flext_tests import tm
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.services.facade import FlextDbOracleServices
-from tests import m
+from tests import c, m
 
 if TYPE_CHECKING:
     from tests import t
@@ -28,90 +28,78 @@ if TYPE_CHECKING:
 class TestsFlextDbOracleServices:
     """Public-contract behavior of the FlextDbOracleServices facade."""
 
-    @pytest.fixture
-    def settings(self) -> FlextDbOracleSettings:
-        """Return a typed, non-routable Oracle configuration."""
-        return FlextDbOracleSettings.model_validate({
-            "DbOracle": {
-                "host": "localhost",
-                "port": 1521,
-                "service_name": "TEST",
-                "username": "testuser",
-                "password": "testpass",
-            }
-        })
-
-    @pytest.fixture
-    def service(self, settings: FlextDbOracleSettings) -> FlextDbOracleServices:
-        """Return a fresh, unconnected services facade."""
-        return FlextDbOracleServices(settings=settings)
-
     def test_facade_exposes_bound_settings(
-        self, service: FlextDbOracleServices, settings: FlextDbOracleSettings
+        self,
+        test_service: FlextDbOracleServices,
+        test_settings: FlextDbOracleSettings,
     ) -> None:
         """The facade returns the exact settings it was constructed with."""
-        tm.that(service.db_config, eq=settings)
-        tm.that(service.settings, eq=settings)
+        tm.that(test_service.db_config, eq=test_settings)
+        tm.that(test_service.settings, eq=test_settings)
 
-    def test_new_service_is_not_connected(self, service: FlextDbOracleServices) -> None:
+    def test_new_service_is_not_connected(
+        self, test_service: FlextDbOracleServices
+    ) -> None:
         """A freshly created service reports a disconnected state."""
-        tm.that(service.connected(), eq=False)
+        tm.that(test_service.connected(), eq=False)
 
-    def test_connected_returns_boolean(self, service: FlextDbOracleServices) -> None:
+    def test_connected_returns_boolean(self, test_service: FlextDbOracleServices) -> None:
         """connected() yields a plain boolean contract value."""
-        tm.that(service.connected(), is_=bool)
+        tm.that(test_service.connected(), is_=bool)
 
     def test_disconnect_is_idempotent_when_not_connected(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """Disconnecting an unconnected service succeeds without error."""
-        first = service.disconnect()
-        second = service.disconnect()
+        first = test_service.disconnect()
+        second = test_service.disconnect()
         tm.ok(first)
         tm.ok(second)
         tm.that(first.value, eq=True)
 
     def test_connect_fails_for_unreachable_host(self) -> None:
         """Connecting to an unreachable endpoint returns a failure result."""
-        service = FlextDbOracleServices(
-            settings=FlextDbOracleSettings.model_validate({
-                "DbOracle": {
-                    "host": "127.0.0.1",
-                    "port": 19999,
-                    "service_name": "INVALID",
-                    "username": "invalid",
-                    "password": "invalid",
-                    "timeout": 1,
+        svc = FlextDbOracleServices(
+            settings=FlextDbOracleSettings.model_validate(
+                {
+                    "DbOracle": {
+                        "host": "127.0.0.1",
+                        "port": 19999,
+                        "service_name": "INVALID",
+                        "username": "invalid",
+                        "password": "invalid",
+                        "timeout": 1,
+                    }
                 }
-            })
+            )
         )
-        result = service.connect()
+        result = svc.connect()
         tm.that(result.failure, eq=True)
-        tm.that(service.connected(), eq=False)
+        tm.that(svc.connected(), eq=False)
 
     def test_test_connection_fails_when_not_connected(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """test_connection reports failure with a not-connected message."""
-        result = service.test_connection()
+        result = test_service.test_connection()
         tm.that(result.failure, eq=True)
         tm.that((result.error or "").lower(), has="not connected")
 
     def test_health_check_reports_oracle_service_unhealthy_offline(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """Health check identifies the Oracle service and unhealthy status."""
-        result = service.health_check()
+        result = test_service.health_check()
         tm.ok(result)
         tm.that(result.value.service, eq="oracle")
         tm.that(result.value.status, eq="unhealthy")
         tm.that(result.value.database, eq="TEST")
 
     def test_build_select_emits_columns_and_table(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """build_select renders the requested columns against the table."""
-        result = service.build_select("TEST_TABLE", ["col1", "col2"])
+        result = test_service.build_select("TEST_TABLE", ["col1", "col2"])
         tm.ok(result)
         tm.that(result.value, has="SELECT")
         tm.that(result.value, has="TEST_TABLE")
@@ -119,48 +107,48 @@ class TestsFlextDbOracleServices:
         tm.that(result.value, has="col2")
 
     def test_build_select_without_columns_selects_star(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """An empty column list produces a SELECT * projection."""
-        result = service.build_select("TEST_TABLE", [])
+        result = test_service.build_select("TEST_TABLE", [])
         tm.ok(result)
         tm.that(result.value, has="*")
         tm.that(result.value, has="TEST_TABLE")
 
     def test_build_select_with_conditions_emits_bound_where(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """Conditions become a parameterized WHERE clause with named binds."""
         conditions: t.JsonMapping = {"id": 1, "name": "test"}
-        result = service.build_select("TEST_TABLE", ["col1"], conditions)
+        result = test_service.build_select("TEST_TABLE", ["col1"], conditions)
         tm.ok(result)
         tm.that(result.value, has="WHERE")
         tm.that(result.value, has="id = :id")
         tm.that(result.value, has="name = :name")
 
     def test_build_select_qualifies_with_schema(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """A schema name qualifies the table reference in the rendered SQL."""
-        result = service.build_select("test_table", ["col1"], schema_name="test_schema")
+        result = test_service.build_select("test_table", ["col1"], schema_name="test_schema")
         tm.ok(result)
         tm.that(result.value, has="TEST_SCHEMA")
         tm.that(result.value, has="TEST_TABLE")
 
     def test_build_select_quotes_injection_identifier(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """A malicious identifier is safely quoted, never emitted raw."""
         malicious = "table'; DROP TABLE users;--"
-        result = service.build_select(malicious, ["col1"])
+        result = test_service.build_select(malicious, ["col1"])
         tm.ok(result)
         tm.that(result.value, has=f'"{malicious}"')
 
     def test_build_insert_statement_emits_named_binds(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """build_insert_statement renders INSERT ... VALUES with named binds."""
-        result = service.build_insert_statement("USERS", ["id", "name", "email"])
+        result = test_service.build_insert_statement("USERS", ["id", "name", "email"])
         tm.ok(result)
         tm.that(result.value, has="INSERT INTO")
         tm.that(result.value, has="VALUES")
@@ -169,10 +157,10 @@ class TestsFlextDbOracleServices:
         tm.that(result.value, has=":email")
 
     def test_build_insert_quotes_invalid_identifier_without_quoting_bind(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """Invalid Oracle identifiers are quoted while bind names stay bare."""
-        result = service.build_insert_statement(
+        result = test_service.build_insert_statement(
             "USERS", ["DATA", "_SDC_LOADED_AT"], schema="TEST_SCHEMA"
         )
         tm.ok(result)
@@ -181,10 +169,10 @@ class TestsFlextDbOracleServices:
         tm.that('(":_SDC_LOADED_AT"' not in result.value, eq=True)
 
     def test_build_update_statement_emits_set_and_where(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """build_update_statement renders UPDATE ... SET ... WHERE."""
-        result = service.build_update_statement("USERS", ["name", "email"], ["id"])
+        result = test_service.build_update_statement("USERS", ["name", "email"], ["id"])
         tm.ok(result)
         tm.that(result.value, has="UPDATE")
         tm.that(result.value, has="SET")
@@ -192,10 +180,10 @@ class TestsFlextDbOracleServices:
         tm.that(result.value, has="name=:name")
 
     def test_build_delete_statement_emits_bound_where(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """build_delete_statement renders DELETE FROM ... WHERE with binds."""
-        result = service.build_delete_statement("USERS", ["id", "status"])
+        result = test_service.build_delete_statement("USERS", ["id", "status"])
         tm.ok(result)
         tm.that(result.value, has="DELETE FROM")
         tm.that(result.value, has="WHERE")
@@ -203,7 +191,7 @@ class TestsFlextDbOracleServices:
         tm.that(result.value, has="status = :status")
 
     def test_create_table_ddl_emits_constraints(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """create_table_ddl renders the table with PK and NOT NULL constraints."""
         columns: t.SequenceOf[t.JsonMapping] = [
@@ -216,17 +204,17 @@ class TestsFlextDbOracleServices:
             {"name": "name", "data_type": "VARCHAR2(100)", "nullable": True},
             {"name": "created_at", "data_type": "TIMESTAMP", "nullable": False},
         ]
-        result = service.create_table_ddl("TEST_TABLE", columns)
+        result = test_service.create_table_ddl("TEST_TABLE", columns)
         tm.ok(result)
         tm.that(result.value, has="CREATE TABLE")
         tm.that(result.value, has="PRIMARY KEY")
         tm.that(result.value, has="NOT NULL")
 
     def test_build_create_index_statement_renders_full_ddl(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """A fully specified index config compiles to the exact DDL string."""
-        result = service.build_create_index_statement({
+        result = test_service.build_create_index_statement({
             "table_name": "USERS",
             "index_name": "IDX_USERS_EMAIL",
             "columns": ["email"],
@@ -242,10 +230,10 @@ class TestsFlextDbOracleServices:
         )
 
     def test_build_create_index_statement_fails_for_empty_columns(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """An index without columns is rejected with an explanatory error."""
-        result = service.build_create_index_statement({
+        result = test_service.build_create_index_statement({
             "table_name": "USERS",
             "index_name": "IDX_USERS_EMPTY",
             "columns": [],
@@ -255,39 +243,34 @@ class TestsFlextDbOracleServices:
 
     @pytest.mark.parametrize(
         ("singer_type", "oracle_type"),
-        [
-            ("string", "VARCHAR2(4000)"),
-            ("integer", "NUMBER(38)"),
-            ("number", "NUMBER"),
-            ("boolean", "NUMBER(1)"),
-        ],
+        list(c.Tests.SINGER_TYPE_MAP_TEST_CASES.items()),
     )
     def test_convert_singer_type_maps_scalar_types(
-        self, service: FlextDbOracleServices, singer_type: str, oracle_type: str
+        self, test_service: FlextDbOracleServices, singer_type: str, oracle_type: str
     ) -> None:
         """Each Singer scalar type maps to its canonical Oracle type."""
-        result = service.convert_singer_type(singer_type)
+        result = test_service.convert_singer_type(singer_type)
         tm.ok(result)
         tm.that(result.value, eq=oracle_type)
 
     def test_convert_singer_type_unwraps_nullable_array(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """A nullable array type resolves to its non-null Oracle mapping."""
-        result = service.convert_singer_type(["string", "null"])
+        result = test_service.convert_singer_type(["string", "null"])
         tm.ok(result)
         tm.that(result.value, eq="VARCHAR2(4000)")
 
     def test_convert_singer_type_honors_datetime_format(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """A date-time format hint overrides the base string mapping."""
-        result = service.convert_singer_type("string", "date-time")
+        result = test_service.convert_singer_type("string", "date-time")
         tm.ok(result)
         tm.that(result.value, eq="TIMESTAMP")
 
     def test_map_singer_schema_maps_all_properties(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """A Singer schema maps every property to its Oracle column type."""
         schema: t.JsonMapping = {
@@ -298,7 +281,7 @@ class TestsFlextDbOracleServices:
                 "is_active": {"type": "boolean"},
             }
         }
-        result = service.map_singer_schema(schema)
+        result = test_service.map_singer_schema(schema)
         tm.ok(result)
         mapping = result.value
         tm.that(mapping["id"], eq="NUMBER(38)")
@@ -307,109 +290,109 @@ class TestsFlextDbOracleServices:
         tm.that(mapping["is_active"], eq="NUMBER(1)")
 
     def test_map_singer_schema_rejects_non_mapping_properties(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """Non-mapping ``properties`` are rejected as a failure result."""
-        result = service.map_singer_schema({"properties": "not_a_dict"})
+        result = test_service.map_singer_schema({"properties": "not_a_dict"})
         tm.that(result.failure, eq=True)
 
     def test_map_singer_schema_without_properties_yields_empty_mapping(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """A schema lacking properties produces an empty successful mapping."""
-        result = service.map_singer_schema({})
+        result = test_service.map_singer_schema({})
         tm.that(result.failure or not result.value, eq=True)
 
-    def test_record_metric_succeeds(self, service: FlextDbOracleServices) -> None:
+    def test_record_metric_succeeds(self, test_service: FlextDbOracleServices) -> None:
         """Recording a valid metric returns a success result."""
-        result = service.record_metric("db_query_duration", 12.5)
+        result = test_service.record_metric("db_query_duration", 12.5)
         tm.ok(result)
 
-    def test_record_metric_accepts_tags(self, service: FlextDbOracleServices) -> None:
+    def test_record_metric_accepts_tags(self, test_service: FlextDbOracleServices) -> None:
         """Recording a metric with tags succeeds."""
-        result = service.record_metric(
+        result = test_service.record_metric(
             "db_query_duration", 12.5, m.ConfigMap(root={"table": "users"})
         )
         tm.ok(result)
 
-    def test_record_metric_requires_name(self, service: FlextDbOracleServices) -> None:
+    def test_record_metric_requires_name(self, test_service: FlextDbOracleServices) -> None:
         """An empty metric name is rejected with a required-name error."""
-        result = service.record_metric("", 12.5)
+        result = test_service.record_metric("", 12.5)
         tm.that(result.failure, eq=True)
         tm.that(result.error or "", has="Metric name is required")
 
     def test_fetch_metrics_reports_observability_status(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """fetch_metrics returns a health status tagged with observability."""
-        result = service.fetch_metrics()
+        result = test_service.fetch_metrics()
         tm.ok(result)
         tm.that(result.value.status.endswith("_with_observability"), eq=True)
 
     def test_track_operation_appends_to_operations(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """A tracked operation becomes observable via fetch_operations."""
-        before = service.fetch_operations()
+        before = test_service.fetch_operations()
         tm.ok(before)
-        track = service.track_operation(
+        track = test_service.track_operation(
             "SELECT", 25.0, success=True, metadata={"table": "users"}
         )
         tm.ok(track)
-        after = service.fetch_operations()
+        after = test_service.fetch_operations()
         tm.ok(after)
         tm.that(len(after.value) > len(before.value), eq=True)
 
     def test_plugin_register_fetch_list_unregister_lifecycle(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """A plugin is retrievable and listable until it is unregistered."""
         plugin: t.JsonPayload = {"version": "1.2.3", "description": "demo"}
-        register = service.register_plugin("sample", plugin)
+        register = test_service.register_plugin("sample", plugin)
         tm.ok(register)
-        listed = service.list_plugins()
+        listed = test_service.list_plugins()
         tm.ok(listed)
         tm.that(listed.value.root, eq={"sample": True})
-        fetched = service.fetch_plugin("sample")
+        fetched = test_service.fetch_plugin("sample")
         tm.ok(fetched)
         tm.that(fetched.value, eq=plugin)
-        unregister = service.unregister_plugin("sample")
+        unregister = test_service.unregister_plugin("sample")
         tm.ok(unregister)
-        tm.that(service.fetch_plugin("sample").failure, eq=True)
+        tm.that(test_service.fetch_plugin("sample").failure, eq=True)
 
     def test_plugin_operations_fail_for_missing_name(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """Fetching or unregistering an unknown plugin fails."""
-        tm.that(service.fetch_plugin("missing").failure, eq=True)
-        tm.that(service.unregister_plugin("missing").failure, eq=True)
+        tm.that(test_service.fetch_plugin("missing").failure, eq=True)
+        tm.that(test_service.unregister_plugin("missing").failure, eq=True)
 
     def test_plugin_operations_reject_empty_name(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """All plugin operations reject an empty plugin name."""
-        tm.that(service.register_plugin("", {"v": "1"}).failure, eq=True)
-        tm.that(service.fetch_plugin("").failure, eq=True)
-        tm.that(service.unregister_plugin("").failure, eq=True)
+        tm.that(test_service.register_plugin("", {"v": "1"}).failure, eq=True)
+        tm.that(test_service.fetch_plugin("").failure, eq=True)
+        tm.that(test_service.unregister_plugin("").failure, eq=True)
 
     def test_generate_query_hash_is_deterministic(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """The same SQL and parameters always hash to the same value."""
         sql = "SELECT * FROM users WHERE id = :id"
         params: t.JsonMapping = {"id": 123}
-        first = service.generate_query_hash(sql, params)
-        second = service.generate_query_hash(sql, params)
+        first = test_service.generate_query_hash(sql, params)
+        second = test_service.generate_query_hash(sql, params)
         tm.ok(first)
         tm.that(first.value, is_=str)
         tm.that(bool(first.value), eq=True)
         tm.that(first.value, eq=second.value)
 
     def test_fetch_schemas_fails_when_not_connected(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """fetch_schemas surfaces a connection-related failure when offline."""
-        result = service.fetch_schemas()
+        result = test_service.fetch_schemas()
         tm.that(result.failure, eq=True)
         tm.that(result.error, none=False)
         error_lower = (result.error or "").lower()
@@ -417,17 +400,17 @@ class TestsFlextDbOracleServices:
 
     @pytest.mark.parametrize("schema", [None, "TEST_SCHEMA", ""])
     def test_fetch_tables_fails_when_not_connected(
-        self, service: FlextDbOracleServices, schema: str | None
+        self, test_service: FlextDbOracleServices, schema: str | None
     ) -> None:
         """fetch_tables fails for any schema argument while disconnected."""
-        result = service.fetch_tables(schema)
+        result = test_service.fetch_tables(schema)
         tm.that(result.failure, eq=True)
 
     def test_fetch_table_row_count_fails_when_not_connected(
-        self, service: FlextDbOracleServices
+        self, test_service: FlextDbOracleServices
     ) -> None:
         """Row counting fails while the service is not connected."""
-        result = service.fetch_table_row_count("test_table", "test_schema")
+        result = test_service.fetch_table_row_count("test_table", "test_schema")
         tm.that(result.failure, eq=True)
         tm.that(result.error or "", has="row count")
 

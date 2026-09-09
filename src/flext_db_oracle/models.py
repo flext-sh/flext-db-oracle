@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from types import MappingProxyType
-from typing import ClassVar
+from typing import ClassVar, cast
 
 from flext_cli import m, u
 
@@ -442,9 +442,12 @@ class FlextDbOracleModels(m):
 
             properties: t.MappingKV[str, FlextDbOracleModels.DbOracle.SingerField] = (
                 u.Field(
-                    default_factory=lambda: MappingProxyType[
-                        str, FlextDbOracleModels.DbOracle.SingerField
-                    ]({}),
+                    default_factory=lambda: MappingProxyType(
+                        cast(
+                            "dict[str, FlextDbOracleModels.DbOracle.SingerField]",
+                            {},
+                        )
+                    ),
                     description="Singer schema property definitions",
                 )
             )

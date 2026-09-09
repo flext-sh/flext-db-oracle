@@ -19,6 +19,7 @@ import pytest
 from flext_tests import tk
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from flext_db_oracle.services.facade import FlextDbOracleServices
 from tests import c, u
 
 if TYPE_CHECKING:
@@ -29,6 +30,28 @@ if TYPE_CHECKING:
 logger = u.fetch_logger(__name__)
 
 _ORACLE_CONTAINER_NAME = "flext-oracle-db-test"
+
+
+@pytest.fixture
+def test_settings() -> FlextDbOracleSettings:
+    """Return a valid Oracle settings instance for service construction."""
+    return FlextDbOracleSettings.model_validate(
+        {
+            "DbOracle": {
+                "host": "localhost",
+                "port": 1521,
+                "service_name": "TEST",
+                "username": "testuser",
+                "password": "testpass",
+            }
+        }
+    )
+
+
+@pytest.fixture
+def test_service(test_settings: FlextDbOracleSettings) -> FlextDbOracleServices:
+    """Return a services facade bound to the valid settings."""
+    return FlextDbOracleServices(settings=test_settings)
 
 
 # NOTE (multi-agent): ADR-005 singleton discipline — drop the settings singleton

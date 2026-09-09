@@ -155,17 +155,7 @@ class TestsFlextDbOracleConstants:
 
     @pytest.mark.parametrize(
         ("singer_type", "oracle_type"),
-        [
-            ("string", "VARCHAR2(4000)"),
-            ("integer", "NUMBER(38)"),
-            ("number", "NUMBER"),
-            ("boolean", "NUMBER(1)"),
-            ("array", "CLOB"),
-            ("t.JsonValue", "CLOB"),
-            ("date-time", "TIMESTAMP"),
-            ("date", "DATE"),
-            ("time", "TIMESTAMP"),
-        ],
+        list(c.Tests.SINGER_TYPE_MAP_TEST_CASES.items()),
     )
     def test_singer_type_map_translation(
         self, singer_type: str, oracle_type: str
