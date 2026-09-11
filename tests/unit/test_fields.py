@@ -6,9 +6,11 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+
 import pytest
-from flext_db_oracle import FlextDbOracleSettings
 from flext_tests import tm
+
+from flext_db_oracle import FlextDbOracleSettings
 from tests import m
 
 

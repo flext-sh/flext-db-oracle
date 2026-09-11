@@ -12,11 +12,13 @@ from __future__ import annotations
 
 from datetime import datetime
 from types import MappingProxyType
-from typing import ClassVar
+from typing import ClassVar, cast
 
 from flext_cli import m, u
+
 from flext_db_oracle import c, t
-from flext_db_oracle._models.password import FlextDbOraclePassword
+
+from ._models.password import FlextDbOraclePassword
 
 
 class FlextDbOracleModels(m):
@@ -36,7 +38,7 @@ class FlextDbOracleModels(m):
         class DbOracleDomainModel(m.BaseModel):
             """Base model for FlextDbOracle with standard Pydantic v2 configuration."""
 
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
                 use_enum_values=True,
                 validate_default=True,
                 str_strip_whitespace=True,
@@ -60,7 +62,7 @@ class FlextDbOracleModels(m):
         class ConnectionStatus(m.Entity, m.FlexibleModel):
             """Connection status using flext-core Entity."""
 
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=False)
+            model_config: ClassVar[t.ConfigDict] = m.ConfigDict(frozen=False)
 
             connected: bool = u.Field(
                 False, description="Whether connection is active", validate_default=True
@@ -218,7 +220,7 @@ class FlextDbOracleModels(m):
         class QueryResult(m.Entity, m.FlexibleModel):
             """Query result using flext-core Entity."""
 
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=False)
+            model_config: ClassVar[t.ConfigDict] = m.ConfigDict(frozen=False)
 
             query: str = u.Field(description="SQL query that produced the result")
             result_data: t.JsonList = u.Field(
@@ -440,9 +442,9 @@ class FlextDbOracleModels(m):
 
             properties: t.MappingKV[str, FlextDbOracleModels.DbOracle.SingerField] = (
                 u.Field(
-                    default_factory=lambda: MappingProxyType[
-                        str, FlextDbOracleModels.DbOracle.SingerField
-                    ]({}),
+                    default_factory=lambda: MappingProxyType(
+                        cast("dict[str, FlextDbOracleModels.DbOracle.SingerField]", {})
+                    ),
                     description="Singer schema property definitions",
                 )
             )

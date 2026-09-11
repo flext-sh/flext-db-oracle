@@ -13,10 +13,10 @@ from __future__ import annotations
 
 import oracledb
 import pytest
-
 from flext_cli import t as cli_types
-from flext_db_oracle import FlextDbOracleTypes, t, typings as typings_module
 from flext_tests import tm
+
+from flext_db_oracle import FlextDbOracleTypes, t, typings as typings_module
 
 
 class TestsFlextDbOracleTypings:

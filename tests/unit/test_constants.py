@@ -12,9 +12,9 @@ import time
 from enum import StrEnum
 
 import pytest
+from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from flext_tests import tm
 from tests import c, u
 
 
@@ -154,18 +154,7 @@ class TestsFlextDbOracleConstants:
         tm.that(c.DbOracle.BOOLEAN_TYPE, eq="NUMBER(1)")
 
     @pytest.mark.parametrize(
-        ("singer_type", "oracle_type"),
-        [
-            ("string", "VARCHAR2(4000)"),
-            ("integer", "NUMBER(38)"),
-            ("number", "NUMBER"),
-            ("boolean", "NUMBER(1)"),
-            ("array", "CLOB"),
-            ("t.JsonValue", "CLOB"),
-            ("date-time", "TIMESTAMP"),
-            ("date", "DATE"),
-            ("time", "TIMESTAMP"),
-        ],
+        ("singer_type", "oracle_type"), list(c.Tests.SINGER_TYPE_MAP_TEST_CASES.items())
     )
     def test_singer_type_map_translation(
         self, singer_type: str, oracle_type: str

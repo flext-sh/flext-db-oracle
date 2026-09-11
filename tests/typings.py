@@ -8,8 +8,9 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 
-from flext_db_oracle import m, p, t
 from flext_tests import FlextTestsTypes
+
+from flext_db_oracle import m, p, t
 
 
 class TestsFlextDbOracleTypes(FlextTestsTypes, t):

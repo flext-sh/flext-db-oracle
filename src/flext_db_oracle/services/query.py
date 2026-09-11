@@ -14,7 +14,15 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import text
 
-from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleSettings, c, m, p, r, t
+from flext_db_oracle import (
+    FlextDbOracleServiceBase,
+    FlextDbOracleSettings,
+    c,
+    m,
+    p,
+    r,
+    t,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import CursorResult
@@ -41,7 +49,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             return r[int].fail("Not connected to database")
         engine_result = self._get_engine()
         if engine_result.failure:
-            return r[int].fail(engine_result.error or "Failed to get database engine")
+            return r[int].from_failure(engine_result)
         try:
             with self._engine_begin(engine_result.value) as conn:
                 total_affected = 0
@@ -68,9 +76,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             return r[Sequence[m.Dict]].fail("Not connected to database")
         engine_result = self._get_engine()
         if engine_result.failure:
-            return r[Sequence[m.Dict]].fail(
-                engine_result.error or "Failed to get database engine"
-            )
+            return r[Sequence[m.Dict]].from_failure(engine_result)
         try:
             with self._engine_connect(engine_result.value) as conn:
                 result = self._connection_execute(conn, text(sql), params)
@@ -87,7 +93,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             return r[int].fail("Not connected to database")
         engine_result = self._get_engine()
         if engine_result.failure:
-            return r[int].fail(engine_result.error or "Failed to get database engine")
+            return r[int].from_failure(engine_result)
         try:
             with self._engine_begin(engine_result.value) as conn:
                 result = self._connection_execute(conn, text(sql), params)

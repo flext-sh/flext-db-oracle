@@ -14,10 +14,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 import pytest
+from flext_tests import tm
 
 from flext_db_oracle import c, m, u
 from flext_db_oracle.client import FlextDbOracleClient
-from flext_tests import tm
 
 
 class TestsFlextDbOracleClient:

@@ -7,7 +7,7 @@
 <!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
 
 - Package: `flext_db_oracle`
-- Version: `0.12.0rc0`
+- Version: `0.12.0`
 - Description: FLEXT DB Oracle - Enterprise Oracle Database Operations Library
 - Doc summary: Flext Db Oracle package.
 - Classifiers: `Development Status :: 3 - Alpha`, `Intended Audience ::
@@ -26,7 +26,7 @@
   `FlextDbOracleConstants`, `FlextDbOracleDispatcher`,
   `FlextDbOracleExceptions`, `FlextDbOracleModels`, `FlextDbOracleProtocols`
   (+14 more)
-- Exported module shortcuts: `client`, `services`
+- Exported module shortcuts: `services`
 - Generated module pages: `19`
 
 ## Next Pages

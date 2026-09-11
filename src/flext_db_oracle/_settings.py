@@ -15,9 +15,8 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from pydantic_settings import SettingsConfigDict
-
 from flext_cli import FlextCliSettings, m
+from pydantic_settings import SettingsConfigDict
 
 
 class FlextDbOracleSettings(FlextCliSettings):

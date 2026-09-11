@@ -11,15 +11,19 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
 import pytest
+from flext_tests import tm
+
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.api import FlextDbOracleApi
-from flext_tests import tm
 from tests import u
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+
     from flext_db_oracle import m
     from tests import t
 _NOT_CONNECTED = "not connected to database"

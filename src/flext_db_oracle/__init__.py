@@ -3,32 +3,31 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
-from .__version__ import __author__ as __author__
-from .__version__ import __author_email__ as __author_email__
-from .__version__ import __description__ as __description__
-from .__version__ import __license__ as __license__
-from .__version__ import __title__ as __title__
-from .__version__ import __url__ as __url__
-from .__version__ import __version__ as __version__
-from .__version__ import __version_info__ as __version_info__
+from .__version__ import (
+    __author__ as __author__,
+    __author_email__ as __author_email__,
+    __description__ as __description__,
+    __license__ as __license__,
+    __title__ as __title__,
+    __url__ as __url__,
+    __version__ as __version__,
+    __version_info__ as __version_info__,
+)
 
 if TYPE_CHECKING:
-    from . import services as services
-    from enum import StrEnum, unique
     from flext_core import d, h, r, x
-    from typing import ClassVar, Final, TYPE_CHECKING
 
+    from . import services
     from ._config import FlextDbOracleConfig, config
     from ._settings import DbOracleSettings, FlextDbOracleSettings, settings
     from .api import FlextDbOracleApi, db_oracle
     from .base import FlextDbOracleServiceBase, FlextDbOracleServiceBase as s
-    from .client import FlextDbOracleClient, client
+    from .client import FlextDbOracleClient
     from .constants import FlextDbOracleConstants, FlextDbOracleConstants as c
     from .dispatcher import FlextDbOracleDispatcher
     from .exceptions import FlextDbOracleExceptions, e
@@ -45,10 +44,7 @@ if TYPE_CHECKING:
     from .typings import FlextDbOracleTypes, FlextDbOracleTypes as t
     from .utilities import FlextDbOracleUtilities, FlextDbOracleUtilities as u
 __all__: tuple[str, ...] = (
-    "TYPE_CHECKING",
-    "ClassVar",
     "DbOracleSettings",
-    "Final",
     "FlextDbOracleApi",
     "FlextDbOracleApiRuntime",
     "FlextDbOracleClient",
@@ -69,8 +65,6 @@ __all__: tuple[str, ...] = (
     "FlextDbOracleSettings",
     "FlextDbOracleTypes",
     "FlextDbOracleUtilities",
-    "MappingProxyType",
-    "StrEnum",
     "__author__",
     "__author_email__",
     "__description__",
@@ -80,7 +74,6 @@ __all__: tuple[str, ...] = (
     "__version__",
     "__version_info__",
     "c",
-    "client",
     "config",
     "d",
     "db_oracle",
@@ -94,7 +87,6 @@ __all__: tuple[str, ...] = (
     "settings",
     "t",
     "u",
-    "unique",
     "x",
 )
 
@@ -105,7 +97,7 @@ _LAZY_IMPORTS = MappingProxyType(
             "._settings": ("DbOracleSettings", "FlextDbOracleSettings", "settings"),
             ".api": ("FlextDbOracleApi", "db_oracle"),
             ".base": ("FlextDbOracleServiceBase", "s"),
-            ".client": ("FlextDbOracleClient", "client"),
+            ".client": ("FlextDbOracleClient",),
             ".constants": ("FlextDbOracleConstants", "c"),
             ".dispatcher": ("FlextDbOracleDispatcher",),
             ".exceptions": ("FlextDbOracleExceptions", "e"),
@@ -122,10 +114,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ".services.sql_builder": ("FlextDbOracleServiceSqlBuilder",),
             ".typings": ("FlextDbOracleTypes", "t"),
             ".utilities": ("FlextDbOracleUtilities", "u"),
-            "enum": ("StrEnum", "unique"),
             "flext_core": ("d", "h", "r", "x"),
-            "types": ("MappingProxyType",),
-            "typing": ("ClassVar", "Final", "TYPE_CHECKING"),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,

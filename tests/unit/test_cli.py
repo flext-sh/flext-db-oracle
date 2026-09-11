@@ -13,10 +13,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
+from flext_tests import r, tm
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from flext_db_oracle.client import FlextDbOracleClient
-from flext_tests import r, tm
 from tests import u
 
 _NO_CONNECTION_ERROR = "No active Oracle connection"

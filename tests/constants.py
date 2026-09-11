@@ -6,8 +6,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle import c
+from collections.abc import Mapping
+from types import MappingProxyType
+
 from flext_tests import FlextTestsConstants
+
+from flext_db_oracle import c
 
 
 class TestsFlextDbOracleConstants(FlextTestsConstants, c):
@@ -17,6 +21,17 @@ class TestsFlextDbOracleConstants(FlextTestsConstants, c):
         """Test-specific constants."""
 
         ORACLE_CONTAINER = "flext-oracle-db-test"
+        SINGER_TYPE_MAP_TEST_CASES: Mapping[str, str] = MappingProxyType({
+            "string": "VARCHAR2(4000)",
+            "integer": "NUMBER(38)",
+            "number": "NUMBER",
+            "boolean": "NUMBER(1)",
+            "array": "CLOB",
+            "t.JsonValue": "CLOB",
+            "date-time": "TIMESTAMP",
+            "date": "DATE",
+            "time": "TIMESTAMP",
+        })
 
 
 c = TestsFlextDbOracleConstants

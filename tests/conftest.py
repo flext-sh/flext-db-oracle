@@ -16,9 +16,10 @@ from typing import TYPE_CHECKING
 
 import oracledb
 import pytest
+from flext_tests import tk
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from flext_tests import tk
+from flext_db_oracle.services.facade import FlextDbOracleServices
 from tests import c, u
 
 if TYPE_CHECKING:
@@ -29,6 +30,26 @@ if TYPE_CHECKING:
 logger = u.fetch_logger(__name__)
 
 _ORACLE_CONTAINER_NAME = "flext-oracle-db-test"
+
+
+@pytest.fixture
+def test_settings() -> FlextDbOracleSettings:
+    """Return a valid Oracle settings instance for service construction."""
+    return FlextDbOracleSettings.model_validate({
+        "DbOracle": {
+            "host": "localhost",
+            "port": 1521,
+            "service_name": "TEST",
+            "username": "testuser",
+            "password": "testpass",
+        }
+    })
+
+
+@pytest.fixture
+def test_service(test_settings: FlextDbOracleSettings) -> FlextDbOracleServices:
+    """Return a services facade bound to the valid settings."""
+    return FlextDbOracleServices(settings=test_settings)
 
 
 # NOTE (multi-agent): ADR-005 singleton discipline — drop the settings singleton
@@ -68,7 +89,7 @@ def _cleanup_dirty_oracle_container() -> None:
         return
     container_name = _ORACLE_CONTAINER_NAME
     docker = tk.shared(
-        container_name, workspace_root=Path(__file__).resolve().parents[2]
+        container_name, repository_root=Path(__file__).resolve().parents[2]
     )
     dirty_containers = docker.dirty_containers
     if not dirty_containers:
@@ -125,7 +146,7 @@ def _mark_dirty_on_oracle_service_failure(
     if not is_service_failure:
         return
     docker = tk.shared(
-        _ORACLE_CONTAINER_NAME, workspace_root=Path(__file__).resolve().parents[2]
+        _ORACLE_CONTAINER_NAME, repository_root=Path(__file__).resolve().parents[2]
     )
     docker.mark_container_dirty(_ORACLE_CONTAINER_NAME)
     logger.error(
@@ -139,7 +160,7 @@ def _mark_dirty_on_oracle_service_failure(
 def docker_control() -> tk:
     """Provide tk instance for container management."""
     return tk.shared(
-        _ORACLE_CONTAINER_NAME, workspace_root=Path(__file__).resolve().parents[2]
+        _ORACLE_CONTAINER_NAME, repository_root=Path(__file__).resolve().parents[2]
     )
 
 
