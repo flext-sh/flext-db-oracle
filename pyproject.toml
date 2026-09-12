@@ -413,7 +413,7 @@ markers = [
   "edge_cases: edge case tests",
   "stress: stress tests",
   "resilience: resilience tests",
-  "oracle: tests requiring Oracle database",
+  "oracle: tests requiring a real Oracle database",
 ]
 minversion = "8.0"
 python_classes = ["Test*"]
