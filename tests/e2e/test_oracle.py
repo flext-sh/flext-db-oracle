@@ -107,7 +107,7 @@ class TestsFlextDbOracleOracle:
             ("integer", "NUMBER(38)"),
             ("number", "NUMBER"),
             ("boolean", "NUMBER(1)"),
-            ("array", "VARCHAR2(255)"),
+            ("array", "CLOB"),
         ],
     )
     def test_convert_singer_type_returns_expected_oracle_type(
