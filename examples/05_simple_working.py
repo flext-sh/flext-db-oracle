@@ -48,11 +48,10 @@ def _display_configuration(settings: FlextDbOracleSettings) -> None:
 def demonstrate_real_functionality() -> None:
     """Demonstrate configuration and basic setup functionality."""
     logger.info("=== FLEXT Oracle Example - Configuration Demo ===")
-    try:
-        settings = _resolve_settings()
-        _display_configuration(settings)
-    except (ValueError, OSError, RuntimeError):
-        logger.exception("❌ Unexpected error")
+    # Why: no-hidden-errors — let a real failure escape with its traceback
+    # instead of a broad except that only logs and hides the cause.
+    settings = _resolve_settings()
+    _display_configuration(settings)
 
 
 def main() -> None:
