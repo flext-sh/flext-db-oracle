@@ -413,7 +413,6 @@ markers = [
   "edge_cases: edge case tests",
   "stress: stress tests",
   "resilience: resilience tests",
-  "oracle: tests requiring an Oracle database connection",
 ]
 minversion = "8.0"
 python_classes = ["Test*"]
@@ -424,7 +423,6 @@ testpaths = ["tests"]
 exclude = [
   "**/.archive/**",
   "**/__pyrefly_virtual__/**",
-  "**/aihub-hooks/**",
   ".archive",
   ".archive/**",
   ".git",
