@@ -10,7 +10,15 @@ from __future__ import annotations
 
 from collections.abc import Mapping, MutableMapping
 
-from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleSettings, c, m, p, r, t
+from flext_db_oracle import (
+    FlextDbOracleServiceBase,
+    FlextDbOracleSettings,
+    c,
+    m,
+    p,
+    r,
+    t,
+)
 
 
 class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
@@ -30,7 +38,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
         singer_type: str | t.StrSequence = "string",
         _format_hint: str | None = None,
     ) -> p.Result[str]:
-        """Convert Singer type to Oracle type from the SSOT mapping."""
+        """Convert Singer type to Oracle type via the config-owned type map."""
         singer_type = self._normalize_singer_type(singer_type)
         if _format_hint == "date-time":
             return r[str].ok("TIMESTAMP")
