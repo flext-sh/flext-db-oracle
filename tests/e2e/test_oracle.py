@@ -19,7 +19,7 @@ from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.api import FlextDbOracleApi
-from tests import u
+from tests import c, u
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -102,13 +102,7 @@ class TestsFlextDbOracleOracle:
 
     @pytest.mark.parametrize(
         ("singer_type", "expected_oracle_type"),
-        [
-            ("string", "VARCHAR2(4000)"),
-            ("integer", "NUMBER(38)"),
-            ("number", "NUMBER"),
-            ("boolean", "NUMBER(1)"),
-            ("array", "VARCHAR2(255)"),
-        ],
+        list(c.Tests.SINGER_TYPE_MAP_TEST_CASES.items()),
     )
     def test_convert_singer_type_returns_expected_oracle_type(
         self, offline_api: FlextDbOracleApi, singer_type: str, expected_oracle_type: str

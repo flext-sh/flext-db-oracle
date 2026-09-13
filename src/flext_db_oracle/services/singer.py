@@ -10,7 +10,15 @@ from __future__ import annotations
 
 from collections.abc import Mapping, MutableMapping
 
-from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleSettings, m, p, r, t
+from flext_db_oracle import (
+    FlextDbOracleServiceBase,
+    FlextDbOracleSettings,
+    c,
+    m,
+    p,
+    r,
+    t,
+)
 
 
 class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
@@ -30,18 +38,11 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
         singer_type: str | t.StrSequence = "string",
         _format_hint: str | None = None,
     ) -> p.Result[str]:
-        """Convert Singer type to Oracle type - simplified."""
+        """Convert Singer type to Oracle type via the config-owned type map."""
         singer_type = self._normalize_singer_type(singer_type)
         if _format_hint == "date-time":
             return r[str].ok("TIMESTAMP")
-        type_map = {
-            "string": "VARCHAR2(4000)",
-            "integer": "NUMBER(38)",
-            "number": "NUMBER",
-            "boolean": "NUMBER(1)",
-            "date-time": "TIMESTAMP",
-        }
-        oracle_type = type_map.get(singer_type, "VARCHAR2(255)")
+        oracle_type = c.DbOracle.SINGER_TYPE_MAP.get(singer_type, "VARCHAR2(255)")
         return r[str].ok(oracle_type)
 
     def map_singer_schema(
