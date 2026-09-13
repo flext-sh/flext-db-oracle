@@ -20,12 +20,12 @@ def create_oracle_config() -> FlextDbOracleSettings:
         FlextDbOracleSettings: Configured Oracle database settings.
 
     """
-    try:
-        settings_value = FlextDbOracleSettings.fetch_global()
-        if settings_value.DbOracle.password:
-            return settings_value
-    except (ValueError, OSError, RuntimeError):
-        logger.debug("Could not load settings from environment, using demo settings")
+    # Why: no-hidden-errors — check the resolved value instead of masking a
+    # real failure behind a broad except.
+    settings_value = FlextDbOracleSettings.fetch_global()
+    if settings_value.DbOracle.password:
+        return settings_value
+    logger.debug("No password in environment settings, using demo settings")
     return FlextDbOracleSettings.model_validate({
         "DbOracle": {
             "host": "demo-oracle.example.com",
@@ -51,11 +51,10 @@ def _display_sqlalchemy_setup(settings: FlextDbOracleSettings) -> None:
 def demonstrate_sqlalchemy_setup() -> None:
     """Demonstrate SQLAlchemy 2.0 configuration setup."""
     logger.info("=== FLEXT Oracle SQLAlchemy 2.0 Setup ===")
-    try:
-        settings = create_oracle_config()
-        _display_sqlalchemy_setup(settings)
-    except (ValueError, OSError, RuntimeError):
-        logger.exception("❌ Configuration setup failed")
+    # Why: no-hidden-errors — let a real failure escape with its traceback
+    # instead of a broad except that only logs and hides the cause.
+    settings = create_oracle_config()
+    _display_sqlalchemy_setup(settings)
 
 
 def main() -> None:

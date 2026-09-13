@@ -41,11 +41,6 @@ class FlextDbOracleUtilitiesDbOracle:
 
     """
 
-    class StrictIntValue(m.RootModel[int]):
-        """Strict integer parser via Pydantic validation."""
-
-        root: int
-
     class CountValue(m.RootModel[int | str]):
         """Numeric value parser accepting int or numeric string."""
 
@@ -117,14 +112,19 @@ class FlextDbOracleUtilitiesDbOracle:
         return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
 
     @staticmethod
-    def validate_config_map(value: t.JsonValue | t.JsonMapping) -> m.ConfigMap | None:
-        """Validate arbitrary mapping input as ConfigMap."""
+    def validate_config_map(value: t.JsonValue | t.JsonMapping) -> m.ConfigMap:
+        """Validate arbitrary mapping input as ConfigMap.
+
+        Raises:
+            TypeError: ``value`` is not a mapping.
+
+        """
+        # Why: no-hidden-errors — propagate the raw failure instead of
+        # masking a malformed mapping as an empty/None sentinel.
         if not isinstance(value, Mapping):
-            return None
-        try:
-            return m.ConfigMap.model_validate({"root": dict(value)})
-        except c.ValidationError:
-            return None
+            msg = f"Oracle config map requires a mapping, got {type(value).__name__}"
+            raise TypeError(msg)
+        return m.ConfigMap.model_validate({"root": dict(value)})
 
     @staticmethod
     def normalize_params(params: m.ConfigMap | None) -> m.ConfigMap:
@@ -132,18 +132,6 @@ class FlextDbOracleUtilitiesDbOracle:
         if params is not None:
             return params
         return m.ConfigMap(root={})
-
-    @classmethod
-    def _parse_rowcount(cls, value: t.JsonValue) -> int:
-        """Parse strict integer rowcount via Pydantic."""
-        if isinstance(value, int):
-            return value
-        try:
-            validated_rowcount: int = cls.StrictIntValue.model_validate(value).root
-        except c.ValidationError:
-            return 0
-        else:
-            return validated_rowcount
 
     @classmethod
     def _parse_count_value(cls, value: t.JsonValue) -> int:

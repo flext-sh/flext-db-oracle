@@ -137,7 +137,6 @@ class TestsFlextDbOracleOracle:
         tm.that(rendered, has="disconnected")
 
     # ---------------------------------------------- container-gated: real flow
-    @pytest.mark.oracle
     def test_connect_then_query_dual_returns_single_row(
         self, oracle_config: FlextDbOracleSettings
     ) -> None:
@@ -152,7 +151,6 @@ class TestsFlextDbOracleOracle:
         tm.that(connected_api.disconnect().unwrap(), eq=True)
         tm.that(connected_api.connected(), eq=False)
 
-    @pytest.mark.oracle
     def test_metadata_queries_return_string_sequences(
         self, oracle_config: FlextDbOracleSettings
     ) -> None:
@@ -177,7 +175,6 @@ class TestsFlextDbOracleOracle:
 
         connected_api.disconnect()
 
-    @pytest.mark.oracle
     @pytest.mark.parametrize(
         "invalid_sql",
         ["INVALID SQL STATEMENT", "SELECT * FROM NONEXISTENT_TABLE_12345"],
@@ -194,7 +191,6 @@ class TestsFlextDbOracleOracle:
 
         connected_api.disconnect()
 
-    @pytest.mark.oracle
     def test_context_manager_connects_for_the_block_and_disconnects_after(
         self, oracle_config: FlextDbOracleSettings
     ) -> None:
@@ -205,7 +201,6 @@ class TestsFlextDbOracleOracle:
             tm.ok(session.query("SELECT 1 FROM DUAL"))
         tm.that(api.connected(), eq=False)
 
-    @pytest.mark.oracle
     def test_insert_update_delete_roundtrip_is_observable_via_queries(
         self, connected_oracle_api: FlextDbOracleApi, test_database_setup: t.StrMapping
     ) -> None:
@@ -244,7 +239,6 @@ class TestsFlextDbOracleOracle:
         )
         tm.that(self._cell(remaining.unwrap()[0], "count", "count(*)"), eq="0")
 
-    @pytest.mark.oracle
     @pytest.mark.usefixtures("test_database_setup")
     def test_committed_row_is_visible_after_commit(
         self, connected_oracle_api: FlextDbOracleApi
@@ -266,7 +260,6 @@ class TestsFlextDbOracleOracle:
 
         connected_oracle_api.execute_statement("DELETE FROM test_table WHERE id = 100")
 
-    @pytest.mark.oracle
     def test_fetch_schemas_returns_non_empty_string_sequence(
         self, connected_oracle_api: FlextDbOracleApi
     ) -> None:
@@ -277,7 +270,6 @@ class TestsFlextDbOracleOracle:
         assert schemas
         assert all(isinstance(name, str) for name in schemas)
 
-    @pytest.mark.oracle
     def test_health_status_reports_connected_and_healthy(
         self, real_oracle_config: FlextDbOracleSettings
     ) -> None:
