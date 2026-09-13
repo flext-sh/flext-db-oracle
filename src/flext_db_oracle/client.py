@@ -282,9 +282,9 @@ class FlextDbOracleClient(s):
 
     @staticmethod
     def _adapt_health(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
+        # Why: no-hidden-errors — validate_config_map now raises on malformed
+        # input instead of returning None; no sentinel branch needed here.
         health = u.DbOracle.validate_config_map(raw_value)
-        if health is None:
-            return []
         return [
             m.ConfigMap.model_validate({"root": {"key": key, "value": value}})
             for key, value in health.items()

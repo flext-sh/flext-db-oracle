@@ -10,7 +10,7 @@ import os
 import time
 from typing import TYPE_CHECKING, ClassVar
 
-from flext_tests import FlextTestsUtilities, e, tk
+from flext_tests import FlextTestsUtilities, tk
 
 from flext_db_oracle import u
 from tests import c, m, t
@@ -34,14 +34,10 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):
             cls, value: t.JsonValue | t.JsonMapping
         ) -> t.StrMapping:
             """Normalize Docker port bindings into a typed mapping."""
-            try:
-                validated: t.StrMapping = cls._PORT_BINDINGS_ADAPTER.validate_python(
-                    value
-                )
-            except e.ValidationError:
-                return {}
-            else:
-                return validated
+            # Why: no-hidden-errors — propagate a malformed Docker port
+            # payload instead of masking it as "no bindings".
+            validated: t.StrMapping = cls._PORT_BINDINGS_ADAPTER.validate_python(value)
+            return validated
 
         @classmethod
         def resolve_oracle_test_port(
