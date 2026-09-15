@@ -6,8 +6,6 @@ from collections.abc import MutableSequence, Sequence
 from typing import TYPE_CHECKING, Self, override
 from urllib.parse import parse_qs, urlparse
 
-from pydantic_settings import SettingsConfigDict
-
 from flext_db_oracle import (
     FlextDbOracleDispatcher,
     FlextDbOracleServiceBase,
@@ -120,7 +118,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
                 "Oracle password is required but not configured"
             )
             return password_fail
-        ok_result: p.Result[Self] = r.ok(cls(settings=settings))  # type: ignore[return-value]
+        ok_result: p.Result[Self] = r.ok(cls(settings=settings))
         return ok_result
 
     @staticmethod
@@ -164,7 +162,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
             "_FlextDbOracleEnvSettings",
             (FlextDbOracleSettings,),
             {
-                "model_config": SettingsConfigDict(
+                "model_config": m.SettingsConfigDict(
                     env_prefix=prefix, env_nested_delimiter="__", extra="ignore"
                 )
             },

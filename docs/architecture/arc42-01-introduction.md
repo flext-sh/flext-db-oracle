@@ -228,23 +228,23 @@ from __future__ import annotations
 from flext_core import r
 
 
-def validate_input(data: dict[str, str]) -> r[dict[str, str]]:
+def validate_input(data: dict[str, str]) -> p.Result[dict[str, str]]:
     return r[dict[str, str]].ok(data)
 
 
-def process_data(data: dict[str, str]) -> r[dict[str, str]]:
+def process_data(data: dict[str, str]) -> p.Result[dict[str, str]]:
     return r[dict[str, str]].ok(data)
 
 
-def save_to_database(data: dict[str, str]) -> r[dict[str, str]]:
+def save_to_database(data: dict[str, str]) -> p.Result[dict[str, str]]:
     return r[dict[str, str]].ok(data)
 
 
-def format_response(data: dict[str, str]) -> r[str]:
+def format_response(data: dict[str, str]) -> p.Result[str]:
     return r[str].ok(str(data))
 
 
-def log_and_enrich_error(error: Exception) -> r[str]:
+def log_and_enrich_error(error: Exception) -> p.Result[str]:
     return r[str].fail(error)
 
 

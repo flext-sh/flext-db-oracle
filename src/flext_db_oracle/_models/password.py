@@ -19,7 +19,7 @@ class FlextDbOraclePassword(m.RootModel[str]):
         """Return wrapped password as plain string."""
         return self.root
 
-    def get_secret_value(self) -> str:
+    def fetch_secret_value(self) -> str:
         """Return wrapped password for secret consumers."""
         return self.root
 

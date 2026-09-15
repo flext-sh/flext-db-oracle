@@ -16,14 +16,13 @@ from __future__ import annotations
 from typing import Annotated
 
 from flext_cli import FlextCliSettings, m
-from pydantic_settings import SettingsConfigDict
 
 
 class FlextDbOracleSettings(FlextCliSettings):
     """Oracle settings; all project fields under ``settings.DbOracle.*``."""
 
-    model_config = SettingsConfigDict(
-        env_prefix="ORACLE_", env_nested_delimiter="__", extra="ignore"
+    model_config = m.SettingsConfigDict(
+        env_prefix="ORACLE_", env_nested_delimiter="__", extra="forbid"
     )
 
     class DbOracleSettings(m.BaseModel):
