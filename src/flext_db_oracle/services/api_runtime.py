@@ -120,7 +120,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
                 "Oracle password is required but not configured"
             )
             return password_fail
-        ok_result: p.Result[Self] = r.ok(cls(settings=settings))
+        ok_result: p.Result[Self] = r.ok(cls(settings=settings))  # type: ignore[return-value]
         return ok_result
 
     @staticmethod
