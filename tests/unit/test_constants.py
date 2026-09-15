@@ -396,12 +396,8 @@ class TestsFlextDbOracleConstants:
         tm.ok(dual_query)
         tm.ok(connected_oracle_api.query(dual_query.value))
 
-    def test_oracle_constants_default_values_real_validation(
-        self, connected_oracle_api: FlextDbOracleApi, *, oracle_available: bool
-    ) -> None:
-        """Default connection constants are valid against a real Oracle."""
-        _ = connected_oracle_api
-        tm.that(oracle_available, eq=True)
+    def test_oracle_constants_default_values(self) -> None:
+        """Default connection constants expose valid service and port values."""
         tm.that(c.DbOracle.DEFAULT_SERVICE_NAME, is_=str)
         tm.that(bool(c.DbOracle.DEFAULT_SERVICE_NAME), eq=True)
         default_port = c.DbOracle.DEFAULT_PORT
@@ -429,12 +425,8 @@ class TestsFlextDbOracleConstants:
         accepted = result.success or ("already exists" in str(result.error).lower())
         tm.that(accepted, eq=True)
 
-    def test_oracle_validation_constants_real_usage(
-        self, connected_oracle_api: FlextDbOracleApi, *, oracle_available: bool
-    ) -> None:
-        """Identifier limits produce an escapable identifier on real Oracle."""
-        _ = connected_oracle_api
-        tm.that(oracle_available, eq=True)
+    def test_oracle_validation_constants_local_usage(self) -> None:
+        """Identifier limits produce an escapable identifier locally."""
         max_length = c.DbOracle.MAX_IDENTIFIER_LENGTH
         tm.that(max_length, is_=int)
         tm.that(max_length, gt=0)
@@ -458,12 +450,8 @@ class TestsFlextDbOracleConstants:
         elif execution_ms < c.DbOracle.QUERY_ACCEPTABLE_THRESHOLD_MS:
             tm.that(execution_ms, lt=2000)
 
-    def test_oracle_reserved_words_real_validation(
-        self, connected_oracle_api: FlextDbOracleApi, *, oracle_available: bool
-    ) -> None:
+    def test_oracle_reserved_words_local_validation(self) -> None:
         """Reserved words are rejected by the public identifier validator."""
-        _ = connected_oracle_api
-        tm.that(oracle_available, eq=True)
         reserved = c.DbOracle.ORACLE_RESERVED
         for word in ("SELECT", "FROM", "WHERE", "TABLE", "INDEX"):
             tm.that(reserved, has=word)
