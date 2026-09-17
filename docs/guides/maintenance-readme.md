@@ -254,7 +254,7 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install dependencies
-        run: poetry install --with dev
+        run: make setup --with dev
       - name: Run documentation audit
 run: make docs DOCS_PHASE=audit
       - name: Upload reports
@@ -529,7 +529,7 @@ Links: 95% healthy
 ```bash
 # Check Python environment
 python --version
-poetry env info
+make status
 
 # Validate configuration
 python -c "import yaml; yaml.safe_load(open('docs/maintenance_config.yaml'))"

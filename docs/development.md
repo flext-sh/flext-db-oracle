@@ -35,7 +35,7 @@ Development workflow and guidelines for flext-db-oracle.
 
 ```bash
 cd flext/flext-db-oracle
-poetry install
+make setup
 ```
 
 ## Quality Commands
@@ -51,7 +51,7 @@ make type-check
 make test
 
 # All checks
-make val
+make check
 ```
 
 ## Implementation Status
@@ -162,7 +162,7 @@ make test  # 100% coverage required
 
 ```bash
 # Install test dependencies
-poetry install --with test
+make setup --with test
 
 # Run full test suite
 make test
@@ -331,7 +331,7 @@ make oracle-operations  # Test database operations
 make oracle-stop        # Clean up
 
 # Commit with clean quality gates
-make val           # Final validation (lint + type + security + test)
+make check           # Final validation (lint + type + security + test)
 git commit -m "feat: description of changes"
 ```
 
@@ -363,7 +363,7 @@ git commit -m "feat: description of changes"
 
 ```bash
 # Always use PYTHONPATH for proper imports
-PYTHONPATH=src poetry run python -c "from flext_db_oracle import FlextDbOracleApi"
+PYTHONPATH=src python -c "from flext_db_oracle import FlextDbOracleApi"
 ```
 
 #### Type Checking Issues
@@ -380,10 +380,10 @@ PYTHONPATH=src poetry run pyrefly check src/flext_db_oracle/api.py
 
 ```bash
 # Run failing tests with verbose output
-PYTHONPATH=src poetry run pytest tests/unit/test_api.py -vv
+PYTHONPATH=src make test tests/unit/test_api.py -vv
 
 # Run last failed tests
-PYTHONPATH=src poetry run pytest --lf
+PYTHONPATH=src make test --lf
 ```
 
 #### Oracle Connection Issues
@@ -393,7 +393,7 @@ PYTHONPATH=src poetry run pytest --lf
 make oracle-connect
 
 # Check configuration
-PYTHONPATH=src poetry run python -c "
+PYTHONPATH=src python -c "
 from flext_db_oracle import FlextDbOracleSettings
 settings = FlextDbOracleSettings()
 print(f'Host: {settings.oracle_host}:{settings.oracle_port}')
@@ -479,7 +479,7 @@ PYTHONPATH=src python -c "from flext_db_oracle import FlextDbOracleConstants; pr
 
 ```bash
 # Run specific working tests first
-PYTHONPATH=src poetry run pytest tests/unit/test_constants.py -v
+PYTHONPATH=src make test tests/unit/test_constants.py -v
 
 # Debug import issues
 PYTHONPATH=src python -c "import tests.unit.test_api" 2>&1

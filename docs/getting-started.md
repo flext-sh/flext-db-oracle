@@ -34,7 +34,7 @@ git clone https://github.com/flext-sh/flext.git
 cd flext/flext-db-oracle
 
 # Install dependencies
-poetry install
+make setup
 
 # Development setup (optional)
 make setup

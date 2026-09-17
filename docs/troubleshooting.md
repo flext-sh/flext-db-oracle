@@ -68,16 +68,16 @@ This causes limited CLI functionality.
 Install dependencies:
 
 ```bash
-poetry install```
+make setup```
 ### "ImportError: r"
 
 Ensure flext-core is installed:
 
 ```bash
 cd ../flext-core
-poetry install
+make setup
 cd ../flext-db-oracle
-poetry install```
+make setup```
 ## Performance Issues
 
 ### Slow queries
