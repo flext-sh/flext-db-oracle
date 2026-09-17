@@ -1,6 +1,7 @@
 # Architecture Decision Record: ADR-002
 
 <!-- TOC START -->
+
 - [Context](#context)
 - [Decision](#decision)
 - [Rationale](#rationale)
@@ -29,7 +30,7 @@
   - [Future Enhancements](#future-enhancements)
   - [Migration Strategy](#migration-strategy)
   - [Related Decisions](#related-decisions)
-<!-- TOC END -->
+  <!-- TOC END -->
 
 **ADR Number**: 002
 **Title**: SQLAlchemy Abstraction Strategy for Oracle Integration

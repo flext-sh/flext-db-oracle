@@ -1,6 +1,7 @@
 # API Reference
 
 <!-- TOC START -->
+
 - [Core Imports](#core-imports)
 - [FlextDbOracleApi](#flextdboracleapi)
   - [Connection Methods](#connection-methods)
@@ -18,7 +19,7 @@ Oracle Database integration API for FLEXT ecosystem - version 0.9.9.
 
 ## Core Imports
 
-```python
+````python
 from __future__ import annotations```
 ## FlextDbOracleApi
 
@@ -202,3 +203,4 @@ Updated: April 14, 2026 | Version: 0.12.0-dev
 
 - [PEP 257 - Docstring Conventions](https://peps.python.org/pep-0257/)
 - [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)
+````

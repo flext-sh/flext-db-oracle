@@ -1,6 +1,7 @@
 # Getting Started with flext-db-oracle
 
 <!-- TOC START -->
+
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Quick Connection Test](#quick-connection-test)
@@ -42,7 +43,7 @@ make setup
 
 ## Quick Connection Test
 
-```python
+````python
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 # Configure Oracle connection
@@ -228,3 +229,4 @@ ______________________________________________________________________
 
 - [PEP 257 - Docstring Conventions](https://peps.python.org/pep-0257/)
 - [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)
+````

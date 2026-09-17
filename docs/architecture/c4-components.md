@@ -1,6 +1,7 @@
 # C4 Component Diagram - flext-db-oracle API
 
 <!-- TOC START -->
+
 - [Component Overview](#component-overview)
 - [Component Descriptions](#component-descriptions)
   - [Application Layer Components](#application-layer-components)
@@ -19,7 +20,7 @@
 - [Component Evolution](#component-evolution)
   - [Current State (v0.9.0)](#current-state-v090)
   - [Future Enhancements](#future-enhancements)
-<!-- TOC END -->
+  <!-- TOC END -->
 
 **Component Architecture for flext-db-oracle Library**
 
@@ -149,7 +150,7 @@ graph TB
 
 **Key Interfaces**:
 
-```python
+````python
 from __future__ import annotations
 
 from flext_core import p, s, t
@@ -456,3 +457,4 @@ ______________________________________________________________________
 **C4 Component Diagram - flext-db-oracle v0.9.0**
 **Generated**: 2026-04-14
 **Framework**: C4 Model - Component Level
+````

@@ -1,6 +1,7 @@
 # Development
 
 <!-- TOC START -->
+
 - [Setup](#setup)
 - [Quality Commands](#quality-commands)
 - [Implementation Status](#implementation-status)
@@ -27,7 +28,7 @@
   - [Performance Issues](#performance-issues)
   - [Architecture Issues](#architecture-issues)
   - [Current Test Issues Troubleshooting](#current-test-issues-troubleshooting)
-<!-- TOC END -->
+  <!-- TOC END -->
 
 Development workflow and guidelines for flext-db-oracle.
 
@@ -488,6 +489,6 @@ PYTHONPATH=src python -c "import tests.unit.test_api" 2>&1
 PYTHONPATH=src python -c "import flext_core; print(flext_core.__version__)"
 ```
 
-______________________________________________________________________
+---
 
 Updated: October 10, 2025 | Version: 0.9.0

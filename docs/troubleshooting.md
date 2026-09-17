@@ -1,6 +1,7 @@
 # Troubleshooting
 
 <!-- TOC START -->
+
 - [Connection Issues](#connection-issues)
   - ["Connection failed"](#connection-failed)
   - ["Invalid username/password"](#invalid-usernamepassword)
@@ -17,7 +18,7 @@
   - [No DataFrame support](#no-dataframe-support)
 - [Testing](#testing)
   - [Oracle XE container](#oracle-xe-container)
-<!-- TOC END -->
+  <!-- TOC END -->
 
 Common issues and solutions for flext-db-oracle.
 
@@ -52,7 +53,7 @@ Check service_name parameter matches Oracle database configuration.
 
 CLI formatter and interactions use placeholder implementations:
 
-```python
+````python
 from types import SimpleNamespace
 
 # client.py lines 60-67 contain SimpleNamespace placeholders
@@ -110,3 +111,4 @@ make oracle-start
 ______________________________________________________________________
 
 Updated: April 14, 2026 | Version: 0.12.0-dev
+````

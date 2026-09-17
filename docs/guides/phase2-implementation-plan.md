@@ -1,6 +1,7 @@
 # Phase 2 Implementation Plan - CLI Enhancement
 
 <!-- TOC START -->
+
 - [📋 Phase Overview](#phase-overview)
   - [Phase Goals](#phase-goals)
   - [Success Criteria](#success-criteria)
@@ -30,7 +31,7 @@
   - [Immediate Actions (Next 24 hours)](#immediate-actions-next-24-hours)
   - [Short Term (Next 3 days)](#short-term-next-3-days)
   - [Long Term (Phase Completion)](#long-term-phase-completion)
-<!-- TOC END -->
+  <!-- TOC END -->
 
 **Phase**: CLI Enhancement | **Status**: In Progress | **Completion**: 60%
 **Start Date**: 2026-04-14 | **Target Completion**: 2025-10-20
@@ -49,7 +50,7 @@ Complete the CLI enhancement by replacing placeholder implementations with funct
 - ✅ Interactive prompts and user confirmations working
 - ✅ User-friendly error messages and progress indicators
 
-______________________________________________________________________
+---
 
 ## 🎯 Implementation Tasks
 
@@ -83,7 +84,7 @@ ______________________________________________________________________
 
 #### Timeline: Complete by 2025-10-12 (2 days)
 
-______________________________________________________________________
+---
 
 ### 1. ✅ **COMPLETED - CLI Architecture Foundation (100%)**
 
@@ -165,7 +166,7 @@ self._formatters = FlextCliFormatters()
 - Integration with Rich prompts and dialogs
 - Support for complex multi-step interactions
 
-______________________________________________________________________
+---
 
 ## 🔧 Technical Implementation Details
 
@@ -190,7 +191,7 @@ self._formatters = SimpleNamespace(
 
 #### Target Functional Implementation
 
-```python
+````python
 from __future__ import annotations
 
 # Planned Rich integration
@@ -385,3 +386,4 @@ ______________________________________________________________________
 **Phase Status**: CLI enhancement foundation established, Rich implementation pending
 **Next Milestone**: First Rich formatter functional
 **Risk Level**: Medium (learning curve for Rich, but well-established patterns available)
+````

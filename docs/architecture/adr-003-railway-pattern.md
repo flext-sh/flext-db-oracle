@@ -1,6 +1,7 @@
 # Architecture Decision Record: ADR-003
 
 <!-- TOC START -->
+
 - [Context](#context)
 - [Decision](#decision)
 - [Rationale](#rationale)
@@ -29,7 +30,7 @@
   - [Migration Strategy](#migration-strategy)
   - [Future Considerations](#future-considerations)
   - [Related Decisions](#related-decisions)
-<!-- TOC END -->
+  <!-- TOC END -->
 
 **ADR Number**: 003
 **Title**: Railway Pattern Implementation with r[T]
@@ -55,7 +56,7 @@ Implement Railway Pattern error handling throughout flext-db-oracle using r\[T\]
 
 **Core Pattern:**
 
-```python
+````python
 from __future__ import annotations
 
 
@@ -293,3 +294,4 @@ Railway Pattern with r[T] provides the most robust, type-safe, and composable er
 - ADR-001: Clean Architecture Adoption
 - ADR-002: SQLAlchemy Abstraction Strategy
 - ADR-004: Testing Infrastructure Design
+````

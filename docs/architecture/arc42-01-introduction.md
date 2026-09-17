@@ -1,6 +1,7 @@
 # Arc42 Documentation: 1. Introduction and Goals
 
 <!-- TOC START -->
+
 - [1.1 Purpose and Scope](#11-purpose-and-scope)
   - [Business Context](#business-context)
   - [Scope and Responsibilities](#scope-and-responsibilities)
@@ -27,7 +28,7 @@
   - [Architecture Terms](#architecture-terms)
   - [Oracle Database Terms](#oracle-database-terms)
   - [FLEXT Ecosystem Terms](#flext-ecosystem-terms)
-<!-- TOC END -->
+  <!-- TOC END -->
 
 **flext-db-oracle - Enterprise Oracle Database Integration**
 **Arc42 Section 1: Introduction and Goals**
@@ -221,7 +222,7 @@ Presentation Layer → Application Layer → Domain Layer ← Infrastructure Lay
 
 #### Error Handling Flow
 
-```python
+````python
 # Railway Pattern Implementation
 from __future__ import annotations
 
@@ -408,3 +409,4 @@ ______________________________________________________________________
 **Arc42 Section 1: Introduction and Goals**
 **flext-db-oracle v0.9.0**
 **Generated**: 2026-04-14
+````

@@ -1,6 +1,7 @@
 # Configuration
 
 <!-- TOC START -->
+
 - [Basic Configuration](#basic-configuration)
   - [Environment Variables](#environment-variables)
   - [Code Configuration](#code-configuration)
@@ -25,7 +26,7 @@ export ORACLE_PASSWORD="Oracle123"
 
 ### Code Configuration
 
-```python
+````python
 import os
 
 # Provide environment values so the API can be built from env vars.
@@ -106,3 +107,4 @@ For advanced configuration patterns, see the FLEXT workspace documentation.
 ______________________________________________________________________
 
 Updated: April 14, 2026 | Version: 0.12.0-dev
+````

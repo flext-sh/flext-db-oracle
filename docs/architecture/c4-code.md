@@ -1,6 +1,7 @@
 # C4 Code Diagram - flext-db-oracle Implementation
 
 <!-- TOC START -->
+
 - [Code Structure Overview](#code-structure-overview)
 - [Code Module Details](#code-module-details)
   - [Entry Points](#entry-points)
@@ -24,7 +25,7 @@
   - [Memory and CPU Usage](#memory-and-cpu-usage)
   - [Scalability Metrics](#scalability-metrics)
   - [Optimization Opportunities](#optimization-opportunities)
-<!-- TOC END -->
+  <!-- TOC END -->
 
 **Code-Level Architecture for Oracle Database Integration**
 
@@ -171,7 +172,7 @@ graph TB
 **Exports**: 14 main classes and version information
 **Pattern**: Selective imports to maintain clean public interface
 
-```python
+````python
 # Key exports
 __all__: list[str] = [
     "FlextDbOracleApi",  # Main API
@@ -559,3 +560,4 @@ ______________________________________________________________________
 **C4 Code Diagram - flext-db-oracle v0.9.0**
 **Generated**: 2026-04-14
 **Framework**: C4 Model - Code Level
+````

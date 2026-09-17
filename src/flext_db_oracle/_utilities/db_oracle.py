@@ -41,11 +41,6 @@ class FlextDbOracleUtilitiesDbOracle:
 
     """
 
-    class CountValue(m.RootModel[int | str]):
-        """Numeric value parser accepting int or numeric string."""
-
-        root: int | str
-
     @staticmethod
     def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type[E]:
         """Create a coerced enum type with validation.
@@ -133,34 +128,18 @@ class FlextDbOracleUtilitiesDbOracle:
             return params
         return m.ConfigMap(root={})
 
-    @classmethod
-    def _parse_count_value(cls, value: t.JsonValue) -> int:
-        """Parse row count value accepting int or numeric string."""
-        result: int
-        if isinstance(value, int):
-            result = value
-        elif isinstance(value, str):
-            try:
-                result = int(value)
-            except ValueError:
-                result = 0
-        else:
-            try:
-                result = int(cls.CountValue.model_validate(value).root)
-            except c.ValidationError:
-                result = 0
-            except c.EXC_TYPE_VALIDATION:
-                result = 0
-        return result
+    @staticmethod
+    def _parse_count_value(value: str) -> int:
+        """Parse row count value from a numeric count string."""
+        return int(value)
 
-    @classmethod
-    def _normalize_singer_type(cls, value: str | t.StrSequence) -> str:
+    @staticmethod
+    def _normalize_singer_type(value: str | t.StrSequence) -> str:
         """Normalize Singer type input to a single string value."""
-        try:
-            values = t.str_sequence_adapter().validate_python(value)
-        except c.ValidationError:
-            return str(value)
-        return values[0] if values else "string"
+        if isinstance(value, str):
+            return value
+        validated = u.validate_value(t.str_sequence_adapter(), value).unwrap()
+        return validated[0] if validated else "string"
 
     @staticmethod
     def _sqlalchemy_create_engine(

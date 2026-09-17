@@ -1,6 +1,7 @@
 # Architecture Decision Record: ADR-001
 
 <!-- TOC START -->
+
 - [Context](#context)
 - [Decision](#decision)
 - [Rationale](#rationale)
@@ -28,7 +29,7 @@
   - [Open Questions](#open-questions)
   - [Future Considerations](#future-considerations)
   - [Related Decisions](#related-decisions)
-<!-- TOC END -->
+  <!-- TOC END -->
 
 **ADR Number**: 001
 **Title**: Adopt Clean Architecture for Oracle Database Integration

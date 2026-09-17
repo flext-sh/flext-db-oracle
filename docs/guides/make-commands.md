@@ -6,6 +6,7 @@
 > Project profile: `flext-db-oracle`
 
 <!-- TOC START -->
+
 - [Discover commands](#discover-commands)
 - [Canonical workflow](#canonical-workflow)
 - [Test contract](#test-contract)

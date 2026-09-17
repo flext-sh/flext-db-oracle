@@ -1,6 +1,7 @@
 # Integration
 
 <!-- TOC START -->
+
 - [FLEXT Core Integration](#flext-core-integration)
 - [Singer Ecosystem](#singer-ecosystem)
   - [flext-tap-oracle](#flext-tap-oracle)
@@ -15,7 +16,7 @@ FLEXT ecosystem integration patterns for flext-db-oracle.
 
 ## FLEXT Core Integration
 
-```python
+````python
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, u
 
 settings = FlextDbOracleSettings.model_validate({
@@ -102,3 +103,4 @@ api = FlextDbOracleApi(settings)```
 ______________________________________________________________________
 
 Updated: April 14, 2026 | Version: 0.12.0-dev
+````

@@ -1,6 +1,7 @@
 # Architecture Overview
 
 <!-- TOC START -->
+
 - [Architecture Principles](#architecture-principles)
   - [Clean Architecture Layers](#clean-architecture-layers)
   - [FLEXT Pattern Integration](#flext-pattern-integration)
@@ -136,7 +137,7 @@ graph TB
 
 All operations use r for railway-oriented programming:
 
-```python
+````python
 from __future__ import annotations
 
 from flext_core import p, r
@@ -336,3 +337,4 @@ ______________________________________________________________________
 
 - [PEP 257 - Docstring Conventions](https://peps.python.org/pep-0257/)
 - [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)
+````

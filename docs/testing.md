@@ -1,6 +1,7 @@
 # Testing Plan & Strategy - flext-db-oracle v0.9.0
 
 <!-- TOC START -->
+
 - [📊 Testing Overview](#testing-overview)
   - [Test Infrastructure Status](#test-infrastructure-status)
 - [🚨 Current Test Issues & Blockers](#current-test-issues-blockers)
@@ -45,7 +46,7 @@
 - ⚠️ **E2E Tests**: Complete workflow validation (`tests/e2e/`) - blocked by import issues
 - ✅ **Performance Tests**: Benchmarking capabilities (not yet validated)
 
-______________________________________________________________________
+---
 
 ## 🚨 Current Test Issues & Blockers
 
@@ -88,7 +89,7 @@ ______________________________________________________________________
 1. **CI/CD Pipeline Stability**: Automated testing working reliably
 1. **Coverage Validation**: Actual 100% coverage confirmed
 
-______________________________________________________________________
+---
 
 ## 📊 Current Test Results & Issues
 
@@ -121,7 +122,7 @@ ______________________________________________________________________
 - **Fixture Reuse**: Common fixtures for consistent testing
 - **Mock Usage**: Minimal mocking, prefer real implementations
 
-______________________________________________________________________
+---
 
 ## 🚀 Testing Strategy & Best Practices
 
@@ -129,7 +130,7 @@ ______________________________________________________________________
 
 #### Test r Operations
 
-```python
+````python
 from __future__ import annotations
 
 
@@ -283,3 +284,4 @@ ______________________________________________________________________
 **Testing Status**: test suite active with quality gates in CI.
 **Next Phase**: expand formatter and stress scenarios.
 **Quality Assurance**: strict lint/type/test enforcement across environments.
+````
