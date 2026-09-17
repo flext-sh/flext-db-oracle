@@ -41,7 +41,7 @@
   - [Process Efficiency](#process-efficiency)
 - [📚 Resources](#resources)
 - [🤝 Contributing](#contributing)
-  - [Adding New Validation Rules](#adding-new-validation-rules)
+  - [Adding New Validation Rules](#adding-new-validation-rules_1)
   - [Improving Reports](#improving-reports)
   - [System Extensions](#system-extensions)
 <!-- TOC END -->

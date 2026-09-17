@@ -13,12 +13,12 @@
   - [Test Infrastructure](#test-infrastructure)
   - [Test Environment Setup](#test-environment-setup)
 - [Lessons Learned & Best Practices](#lessons-learned-best-practices)
-  - [1. **FLEXT-Core Integration Success**](#1-flext-core-integration-success)
-  - [2. **SQLAlchemy Abstraction Excellence**](#2-sqlalchemy-abstraction-excellence)
-  - [3. **Testing Infrastructure Maturity**](#3-testing-infrastructure-maturity)
-  - [4. **Type Safety Achievement**](#4-type-safety-achievement)
-  - [5. **Clean Architecture Validation**](#5-clean-architecture-validation)
-  - [6. **CLI Architecture Evolution**](#6-cli-architecture-evolution)
+  - [1. FLEXT-Core Integration Success](#1-flext-core-integration-success)
+  - [2. SQLAlchemy Abstraction Excellence](#2-sqlalchemy-abstraction-excellence)
+  - [3. Testing Infrastructure Maturity](#3-testing-infrastructure-maturity)
+  - [4. Type Safety Achievement](#4-type-safety-achievement)
+  - [5. Clean Architecture Validation](#5-clean-architecture-validation)
+  - [6. CLI Architecture Evolution](#6-cli-architecture-evolution)
 - [Development Workflow](#development-workflow)
   - [Daily Development Cycle](#daily-development-cycle)
   - [Code Quality Standards](#code-quality-standards)
@@ -373,7 +373,7 @@ PYTHONPATH=src python -c "from flext_db_oracle import FlextDbOracleApi"
 make type-check
 
 # Focus on specific modules
-PYTHONPATH=src poetry run pyrefly check src/flext_db_oracle/api.py
+PYTHONPATH=src pyrefly check src/flext_db_oracle/api.py
 ```
 
 #### Test Failures

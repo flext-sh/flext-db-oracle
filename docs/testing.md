@@ -14,7 +14,7 @@
   - [2. Fixture-Based Testing](#2-fixture-based-testing)
   - [3. Parametrized Testing](#3-parametrized-testing)
   - [4. Mock Strategy](#4-mock-strategy)
-- [📊 Current Test Results & Issues](#current-test-results-issues)
+- [📊 Current Test Results & Issues](#current-test-results-issues_1)
   - [Test Execution Status](#test-execution-status)
   - [CI/CD Integration](#cicd-integration)
 - [🎯 Testing Roadmap](#testing-roadmap)
