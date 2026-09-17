@@ -13,6 +13,7 @@
 - [Error Handling](#error-handling)
 - [Limitations](#limitations)
 - [Related Documentation](#related-documentation)
+
 <!-- TOC END -->
 
 Oracle Database integration API for FLEXT ecosystem - version 0.9.9.

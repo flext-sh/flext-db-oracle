@@ -8,6 +8,7 @@
 - [Connection Parameters](#connection-parameters)
 - [Testing Connection](#testing-connection)
 - [CLI Configuration](#cli-configuration)
+
 <!-- TOC END -->
 
 Oracle database connection configuration for flext-db-oracle.

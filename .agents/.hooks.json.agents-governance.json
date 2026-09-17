@@ -14,43 +14,27 @@
   },
   "events": {
     "context_refresh": {
-      "clients": [
-        "local"
-      ],
+      "clients": ["local"],
       "coverage": "equivalent",
-      "native": [
-        "PreInvocation"
-      ],
+      "native": ["PreInvocation"],
       "status": "SUPPORTED"
     },
     "prompt_submit": {
-      "clients": [
-        "local"
-      ],
+      "clients": ["local"],
       "coverage": "equivalent",
-      "native": [
-        "PreInvocation"
-      ],
+      "native": ["PreInvocation"],
       "status": "SUPPORTED"
     },
     "session_start": {
-      "clients": [
-        "local"
-      ],
+      "clients": ["local"],
       "coverage": "equivalent",
-      "native": [
-        "PreInvocation"
-      ],
+      "native": ["PreInvocation"],
       "status": "SUPPORTED"
     },
     "subagent_start": {
-      "clients": [
-        "local"
-      ],
+      "clients": ["local"],
       "coverage": "equivalent",
-      "native": [
-        "PreInvocation"
-      ],
+      "native": ["PreInvocation"],
       "status": "SUPPORTED"
     }
   },

@@ -25,46 +25,27 @@
   },
   "events": {
     "context_refresh": {
-      "clients": [
-        "cloud",
-        "local"
-      ],
+      "clients": ["cloud", "local"],
       "coverage": "advisory",
-      "native": [
-        "preCompact"
-      ],
+      "native": ["preCompact"],
       "status": "SUPPORTED"
     },
     "prompt_submit": {
-      "clients": [
-        "cloud",
-        "local"
-      ],
+      "clients": ["cloud", "local"],
       "coverage": "advisory",
-      "native": [
-        "beforeSubmitPrompt"
-      ],
+      "native": ["beforeSubmitPrompt"],
       "status": "SUPPORTED"
     },
     "session_start": {
-      "clients": [
-        "local"
-      ],
+      "clients": ["local"],
       "coverage": "exact",
-      "native": [
-        "sessionStart"
-      ],
+      "native": ["sessionStart"],
       "status": "SUPPORTED"
     },
     "subagent_start": {
-      "clients": [
-        "cloud",
-        "local"
-      ],
+      "clients": ["cloud", "local"],
       "coverage": "advisory",
-      "native": [
-        "subagentStart"
-      ],
+      "native": ["subagentStart"],
       "status": "SUPPORTED"
     }
   },

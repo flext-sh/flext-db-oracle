@@ -17,6 +17,7 @@
 - [Next Steps](#next-steps)
 - [Need Help](#need-help)
 - [Related Documentation](#related-documentation)
+
 <!-- TOC END -->
 
 Oracle Database integration for the FLEXT ecosystem - get connected in 5 minutes.

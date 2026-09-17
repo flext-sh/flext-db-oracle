@@ -13,6 +13,7 @@
 - [Validation Criteria](#validation-criteria)
 - [References](#references)
 - [Notes](#notes)
+
 <!-- TOC END -->
 
 **ADR Number**: [NNN]
