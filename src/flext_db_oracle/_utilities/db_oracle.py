@@ -140,27 +140,19 @@ class FlextDbOracleUtilitiesDbOracle:
         if isinstance(value, int):
             result = value
         elif isinstance(value, str):
-            try:
-                result = int(value)
-            except ValueError:
-                result = 0
+            result = int(value)
         else:
-            try:
-                result = int(cls.CountValue.model_validate(value).root)
-            except c.ValidationError:
-                result = 0
-            except c.EXC_TYPE_VALIDATION:
-                result = 0
+            result = int(cls.CountValue.model_validate(value).root)
         return result
 
     @classmethod
     def _normalize_singer_type(cls, value: str | t.StrSequence) -> str:
         """Normalize Singer type input to a single string value."""
-        try:
-            values = t.str_sequence_adapter().validate_python(value)
-        except c.ValidationError:
-            return str(value)
-        return values[0] if values else "string"
+        values = t.str_sequence_adapter().validate_python(value)
+        if not values:
+            msg = "Singer type sequence must not be empty"
+            raise ValueError(msg)
+        return values[0]
 
     @staticmethod
     def _sqlalchemy_create_engine(

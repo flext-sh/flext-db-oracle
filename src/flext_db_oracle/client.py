@@ -537,8 +537,8 @@ class FlextDbOracleClient(s):
             normalized_params: t.JsonMapping
             try:
                 normalized_params = t.json_mapping_adapter().validate_python(raw_params)
-            except c.ValidationError:
-                normalized_params = t.json_mapping_adapter().validate_python({})
+            except c.ValidationError as exc:
+                return r[m.ConfigMap].fail_op("validate query parameters", exc)
             params_map = m.ConfigMap.model_validate({"root": normalized_params})
         query_params: t.JsonMapping = t.json_mapping_adapter().validate_python(
             params_map.root

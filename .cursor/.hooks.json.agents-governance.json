@@ -3,22 +3,22 @@
   "context": "project",
   "entries": {
     "beforeSubmitPrompt": {
-      "command": "python3 /home/marlonsc/workspaces/agents-skill-sync/flext/flext-db-oracle/.cursor/aihub-hooks/cursor-beforesubmitprompt.py",
+      "command": "python3 ~/workspaces/agents-skill-sync/flext/flext-db-oracle/.cursor/aihub-hooks/cursor-beforesubmitprompt.py",
       "failClosed": true,
       "timeout": 10
     },
     "preCompact": {
-      "command": "python3 /home/marlonsc/workspaces/agents-skill-sync/flext/flext-db-oracle/.cursor/aihub-hooks/cursor-precompact.py",
+      "command": "python3 ~/workspaces/agents-skill-sync/flext/flext-db-oracle/.cursor/aihub-hooks/cursor-precompact.py",
       "failClosed": true,
       "timeout": 10
     },
     "sessionStart": {
-      "command": "python3 /home/marlonsc/workspaces/agents-skill-sync/flext/flext-db-oracle/.cursor/aihub-hooks/cursor-sessionstart.py",
+      "command": "python3 ~/workspaces/agents-skill-sync/flext/flext-db-oracle/.cursor/aihub-hooks/cursor-sessionstart.py",
       "failClosed": true,
       "timeout": 10
     },
     "subagentStart": {
-      "command": "python3 /home/marlonsc/workspaces/agents-skill-sync/flext/flext-db-oracle/.cursor/aihub-hooks/cursor-subagentstart.py",
+      "command": "python3 ~/workspaces/agents-skill-sync/flext/flext-db-oracle/.cursor/aihub-hooks/cursor-subagentstart.py",
       "failClosed": true,
       "timeout": 10
     }
