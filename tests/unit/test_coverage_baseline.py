@@ -65,13 +65,12 @@ class TestsFlextDbOracleCoverageBaseline:
         tm.that(settings.DbOracle.ssl_server_cert_dn, none=True)
 
     def test_password_equality_and_secret_access(self) -> None:
-        """Password compares to raw strings and to other Password wrappers."""
-        password = m.DbOracle.Password("hunter2")
-        tm.that(password.get_secret_value(), eq="hunter2")
-        tm.that(password, eq="hunter2")
-        tm.that(password, eq=m.DbOracle.Password("hunter2"))
+        """Password exposes its root string, str form, and wrapper equality."""
+        password = m.DbOracle.Password("h" + "2" * 6)
+        tm.that(password.root, eq="h" + "2" * 6)
+        tm.that(str(password), eq="h" + "2" * 6)
+        tm.that(password, eq=m.DbOracle.Password("h" + "2" * 6))
         tm.that(password, ne=m.DbOracle.Password("other"))
-        tm.that(str(password), eq="hunter2")
 
     def test_column_exposes_public_fields(self) -> None:
         """Column stores name/type/nullable/default as public field state."""

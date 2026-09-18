@@ -259,7 +259,7 @@ jobs:
       - name: Run documentation audit
 run: make docs DOCS_PHASE=audit
       - name: Upload reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: docs-reports
           path: docs/reports/
