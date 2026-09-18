@@ -17,18 +17,20 @@ FLEXT ecosystem integration patterns for flext-db-oracle.
 
 ## FLEXT Core Integration
 
-``` python
+```python
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, u
 
-settings = FlextDbOracleSettings.model_validate({
-    "DbOracle": {
-        "host": "localhost",
-        "port": 1521,
-        "service_name": "XEPDB1",
-        "username": "system",
-        "password": "Oracle123",
+settings = FlextDbOracleSettings.model_validate(
+    {
+        "DbOracle": {
+            "host": "localhost",
+            "port": 1521,
+            "service_name": "XEPDB1",
+            "username": "system",
+            "password": "Oracle123",
+        }
     }
-})
+)
 api = FlextDbOracleApi(settings)
 
 # r error handling
@@ -42,6 +44,7 @@ else:
 logger = u.fetch_logger(__name__)
 logger.info("Oracle operation completed")
 ```
+
 ## Singer Ecosystem
 
 Foundation for Singer taps and targets:
@@ -65,18 +68,21 @@ Integrates with flext-cli but uses SimpleNamespace placeholders:
 ```python
 from flext_db_oracle import FlextDbOracleServices, FlextDbOracleSettings
 
-settings = FlextDbOracleSettings.model_validate({
-    "DbOracle": {
-        "host": "localhost",
-        "port": 1521,
-        "service_name": "XEPDB1",
-        "username": "system",
-        "password": "Oracle123",
+settings = FlextDbOracleSettings.model_validate(
+    {
+        "DbOracle": {
+            "host": "localhost",
+            "port": 1521,
+            "service_name": "XEPDB1",
+            "username": "system",
+            "password": "Oracle123",
+        }
     }
-})
+)
 cli = FlextDbOracleServices(settings)
 result = cli.health_check()
 ```
+
 ## Connection Patterns
 
 ```python
@@ -86,17 +92,20 @@ from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 api_result = FlextDbOracleApi.from_env()
 
 # Direct configuration
-settings = FlextDbOracleSettings.model_validate({
-    "DbOracle": {
-        "host": "localhost",
-        "port": 1521,
-        "service_name": "XEPDB1",
-        "username": "system",
-        "password": "Oracle123",
+settings = FlextDbOracleSettings.model_validate(
+    {
+        "DbOracle": {
+            "host": "localhost",
+            "port": 1521,
+            "service_name": "XEPDB1",
+            "username": "system",
+            "password": "Oracle123",
+        }
     }
-})
+)
 api = FlextDbOracleApi(settings)
 ```
+
 ## Available Operations
 
 - Schema introspection (get_schemas, get_tables, get_columns)
@@ -104,7 +113,10 @@ api = FlextDbOracleApi(settings)
 - Connection management (connect, disconnect, test_connection)
 - Configuration from environment or URLs
 
-______________________________________________________________________
+---
 
 Updated: April 14, 2026 | Version: 0.12.0-dev
-````
+
+```
+
+```

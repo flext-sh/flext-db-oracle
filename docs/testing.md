@@ -137,7 +137,7 @@ Basic functionality tests failing **Files Affected**: `tests/unit/test_constants
 
 #### Test r Operations
 
-``` python notest
+````python notest
 from __future__ import annotations
 
 
@@ -240,12 +240,13 @@ ______________________________________________________________________
 ### Test Execution Status
 
 #### Recent Test Run (2026-04-14)
-```
-✅ Tests collected and executed successfully
-✅ Core unit suites passed
-✅ Integration suites (Oracle container) passed
-⚠️ Remaining work: expand CLI formatter scenarios and edge-case coverage
-```
+````
+
+✅ Tests collected and executed successfully ✅ Core unit suites passed ✅ Integration
+suites (Oracle container) passed ⚠️ Remaining work: expand CLI formatter scenarios and
+edge-case coverage
+
+````
 ### CI/CD Integration
 
 #### Automated Testing Pipeline
