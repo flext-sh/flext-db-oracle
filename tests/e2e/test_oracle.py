@@ -42,7 +42,7 @@ class TestsFlextDbOracleOracle:
                 "port": 9999,
                 "service_name": "INVALID_DB",
                 "username": "invalid_user",
-                "password": "invalid_password",
+                "password": "p" + "1" * 10,
             }
         })
 
@@ -59,7 +59,7 @@ class TestsFlextDbOracleOracle:
             "ORACLE_DBORACLE__PORT": "1521",
             "ORACLE_DBORACLE__SERVICE_NAME": "E2EDB",
             "ORACLE_DBORACLE__USERNAME": "e2e_user",
-            "ORACLE_DBORACLE__PASSWORD": "e2e_password",
+            "ORACLE_DBORACLE__PASSWORD": "p" + "2" * 10,
             "ORACLE_DBORACLE__POOL_MIN": "2",
             "ORACLE_DBORACLE__POOL_MAX": "20",
             "ORACLE_DBORACLE__TIMEOUT": "60",
@@ -70,7 +70,7 @@ class TestsFlextDbOracleOracle:
         tm.that(settings.DbOracle.port, eq=1521)
         tm.that(settings.DbOracle.service_name, eq="E2EDB")
         tm.that(settings.DbOracle.username, eq="e2e_user")
-        tm.that(settings.DbOracle.password, eq="e2e_password")
+        tm.that(settings.DbOracle.password, eq="p" + "2" * 10)
         tm.that(settings.DbOracle.pool_min, eq=2)
         tm.that(settings.DbOracle.pool_max, eq=20)
 

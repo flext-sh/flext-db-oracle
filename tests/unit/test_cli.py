@@ -226,7 +226,7 @@ class TestsFlextDbOracleCli:
                     "port": 1521,
                     "service_name": "PARAM_TEST",
                     "username": "param_user",
-                    "password": "param_pass",
+                    "password": "p" + "0" * 10,
                 }
             })
         )
@@ -262,7 +262,7 @@ class TestsFlextDbOracleCli:
                     "port": 9999,
                     "service_name": "INVALID_SERVICE",
                     "username": "invalid_user",
-                    "password": "invalid_password",
+                    "password": "p" + "1" * 10,
                 }
             })
         )
