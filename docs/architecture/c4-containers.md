@@ -39,7 +39,8 @@
 
 ## Container Overview
 
-The flext-db-oracle library is structured as a single deployable Python package that provides database connectivity services to multiple FLEXT ecosystem applications.
+The flext-db-oracle library is structured as a single deployable Python package that
+provides database connectivity services to multiple FLEXT ecosystem applications.
 
 ```mermaid
 graph TB
@@ -130,9 +131,8 @@ graph TB
 
 ### Primary Container: flext-db-oracle Library
 
-**Technology**: Python 3.13+ Library (Poetry package)
-**Purpose**: Enterprise Oracle database integration with FLEXT patterns
-**Responsibilities**:
+**Technology**: Python 3.13+ Library (Poetry package) **Purpose**: Enterprise Oracle
+database integration with FLEXT patterns **Responsibilities**:
 
 - Provide type-safe Oracle database operations
 - Implement railway-oriented error handling
@@ -142,15 +142,15 @@ graph TB
 **Key Interfaces**:
 
 - **API Interface**: `FlextDbOracleApi` - Main programmatic interface
-- **CLI Interface**: `FlextDbOracleCli` - Command-line REDACTED_LDAP_BIND_PASSWORDistrative tools
+- **CLI Interface**: `FlextDbOracleCli` - Command-line
+  REDACTED_LDAP_BIND_PASSWORDistrative tools
 - **Configuration Interface**: Environment variables and configuration files
 
 ### Supporting Applications
 
 #### flext-tap-oracle
 
-**Technology**: Python Application
-**Purpose**: Oracle data extraction for Singer taps
+**Technology**: Python Application **Purpose**: Oracle data extraction for Singer taps
 **Container Relations**:
 
 - Imports flext-db-oracle library
@@ -159,8 +159,7 @@ graph TB
 
 #### flext-target-oracle
 
-**Technology**: Python Application
-**Purpose**: Oracle data loading for Singer targets
+**Technology**: Python Application **Purpose**: Oracle data loading for Singer targets
 **Container Relations**:
 
 - Imports flext-db-oracle library
@@ -169,9 +168,8 @@ graph TB
 
 #### flext-dbt-oracle
 
-**Technology**: Python Application (dbt adapter)
-**Purpose**: Oracle data transformation with dbt
-**Container Relations**:
+**Technology**: Python Application (dbt adapter) **Purpose**: Oracle data transformation
+with dbt **Container Relations**:
 
 - Imports flext-db-oracle library
 - Uses FlextDbOracleApi for dbt operations
@@ -179,8 +177,7 @@ graph TB
 
 #### algar-oud-mig
 
-**Technology**: Python Application
-**Purpose**: Oracle Unified Directory migration tools
+**Technology**: Python Application **Purpose**: Oracle Unified Directory migration tools
 **Container Relations**:
 
 - Imports flext-db-oracle library
@@ -191,44 +188,36 @@ graph TB
 
 #### Oracle Database
 
-**Technology**: Oracle Database XE 21c/19c/18c
-**Purpose**: Primary data storage and processing
-**Interface**: SQL over TCP/IP (Port 1521)
-**Protocols**: Oracle Net Services, SQL\*Net
+**Technology**: Oracle Database XE 21c/19c/18c **Purpose**: Primary data storage and
+processing **Interface**: SQL over TCP/IP (Port 1521) **Protocols**: Oracle Net
+Services, SQL\*Net
 
 #### Oracle Integration Cloud (OIC)
 
-**Technology**: Cloud-based integration platform
-**Purpose**: Cloud data integration and processing
-**Interface**: REST APIs (Port 443)
-**Protocols**: HTTPS, OAuth 2.0
+**Technology**: Cloud-based integration platform **Purpose**: Cloud data integration and
+processing **Interface**: REST APIs (Port 443) **Protocols**: HTTPS, OAuth 2.0
 
 #### Directory Services
 
-**Technology**: LDAP/Active Directory
-**Purpose**: Authentication and user management
-**Interface**: LDAP over TCP/IP (Ports 389/636)
-**Protocols**: LDAP, LDAPS
+**Technology**: LDAP/Active Directory **Purpose**: Authentication and user management
+**Interface**: LDAP over TCP/IP (Ports 389/636) **Protocols**: LDAP, LDAPS
 
 ### Development & Testing Infrastructure
 
 #### pytest Testing Framework
 
-**Technology**: Python testing framework
-**Purpose**: Comprehensive test execution and validation
-**Coverage**: 100% requirement for production code
-**Integration**: pytest-xdist for parallel execution
+**Technology**: Python testing framework **Purpose**: Comprehensive test execution and
+validation **Coverage**: 100% requirement for production code **Integration**:
+pytest-xdist for parallel execution
 
 #### Poetry Package Manager
 
-**Technology**: Python dependency management
-**Purpose**: Package building and dependency resolution
-**Features**: Lock file management, virtual environment handling
+**Technology**: Python dependency management **Purpose**: Package building and
+dependency resolution **Features**: Lock file management, virtual environment handling
 
 #### Docker Test Environment
 
-**Technology**: Containerized Oracle database
-**Purpose**: Isolated testing environment
+**Technology**: Containerized Oracle database **Purpose**: Isolated testing environment
 **Image**: Oracle XE 21c container for integration tests
 
 ## Technology Choices
@@ -362,6 +351,5 @@ graph TB
 
 ---
 
-**C4 Container Diagram - flext-db-oracle v0.9.0**
-**Generated**: 2026-04-14
+**C4 Container Diagram - flext-db-oracle v0.9.0** **Generated**: 2026-04-14
 **Framework**: C4 Model - Container Level

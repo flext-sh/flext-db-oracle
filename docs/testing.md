@@ -27,7 +27,8 @@
 
 <!-- TOC END -->
 
-**Last Updated**: 2026-04-14 | **Coverage Target**: 100% | **Test Files**: 30 | **Current Status**: Issues Detected
+**Last Updated**: 2026-04-14 | **Coverage Target**: 100% | **Test Files**: 30 |
+**Current Status**: Issues Detected
 
 ## 📊 Testing Overview
 
@@ -38,13 +39,16 @@
 - **30 Test Files**: Comprehensive test suite with 8,633+ lines of test code
 - **~95% Coverage**: Target 100%, but test failures prevent full validation
 - **Pytest Integration**: Full pytest ecosystem (markers, fixtures, parametrization)
-- **CI/CD Integration**: Automated testing in build pipeline (currently blocked by failures)
+- **CI/CD Integration**: Automated testing in build pipeline (currently blocked by
+  failures)
 
 #### Test Categories Implemented
 
 - ✅ **Unit Tests**: Individual component testing (`tests/unit/`)
-- ⚠️ **Integration Tests**: Oracle container testing (`tests/integration/`) - blocked by import issues
-- ⚠️ **E2E Tests**: Complete workflow validation (`tests/e2e/`) - blocked by import issues
+- ⚠️ **Integration Tests**: Oracle container testing (`tests/integration/`) - blocked by
+  import issues
+- ⚠️ **E2E Tests**: Complete workflow validation (`tests/e2e/`) - blocked by import
+  issues
 - ✅ **Performance Tests**: Benchmarking capabilities (not yet validated)
 
 ---
@@ -55,31 +59,33 @@
 
 #### 1. **Import Errors in Test Files**
 
-**Issue**: `ImportError: cannot import name 'TestsFlextBuilders' from 'flext_tests.matchers'`
-**Impact**: Major test files failing to import, blocking test execution
-**Files Affected**: `tests/unit/test_api.py` and potentially others
-**Root Cause**: Missing or renamed exports in flext-core test utilities
+**Issue**:
+`ImportError: cannot import name 'TestsFlextBuilders' from 'flext_tests.matchers'`
+**Impact**: Major test files failing to import, blocking test execution **Files
+Affected**: `tests/unit/test_api.py` and potentially others **Root Cause**: Missing or
+renamed exports in flext-core test utilities
 
 #### 2. **Pydantic Deprecation Warnings**
 
 **Issue**: `PydanticDeprecatedSince20: Support for class-based settings is deprecated`
-**Impact**: Warnings in production code, potential future breaking changes
-**Files Affected**: `src/flext_db_oracle/exceptions.py:28`
-**Root Cause**: Using deprecated Pydantic v1 style configuration
+**Impact**: Warnings in production code, potential future breaking changes **Files
+Affected**: `src/flext_db_oracle/exceptions.py:28` **Root Cause**: Using deprecated
+Pydantic v1 style configuration
 
 #### 3. **Constants Test Failures**
 
-**Issue**: `AssertionError: assert 1 == 1024` in network constants test
-**Impact**: Basic functionality tests failing
-**Files Affected**: `tests/unit/test_constants.py`
+**Issue**: `AssertionError: assert 1 == 1024` in network constants test **Impact**:
+Basic functionality tests failing **Files Affected**: `tests/unit/test_constants.py`
 **Root Cause**: Incorrect constant values or test expectations
 
 ### Resolution Strategy
 
 #### Immediate Actions Required
 
-1. **Fix flext-core Test Imports**: Update test files to use correct flext-core test utilities
-1. **Update Pydantic Configuration**: Migrate from deprecated class-based settings to ConfigDict
+1. **Fix flext-core Test Imports**: Update test files to use correct flext-core test
+   utilities
+1. **Update Pydantic Configuration**: Migrate from deprecated class-based settings to
+   ConfigDict
 1. **Validate Constants**: Ensure test expectations match actual constant values
 1. **Test Framework Audit**: Verify all test dependencies and imports
 

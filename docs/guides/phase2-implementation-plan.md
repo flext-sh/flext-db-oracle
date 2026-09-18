@@ -33,14 +33,16 @@
   - [Long Term (Phase Completion)](#long-term-phase-completion)
   <!-- TOC END -->
 
-**Phase**: CLI Enhancement | **Status**: In Progress | **Completion**: 60%
-**Start Date**: 2026-04-14 | **Target Completion**: 2025-10-20
+**Phase**: CLI Enhancement | **Status**: In Progress | **Completion**: 60% **Start
+Date**: 2026-04-14 | **Target Completion**: 2025-10-20
 
 ## 📋 Phase Overview
 
 ### Phase Goals
 
-Complete the CLI enhancement by replacing placeholder implementations with functional Rich integrations, implementing proper output formatting, and adding interactive features.
+Complete the CLI enhancement by replacing placeholder implementations with functional
+Rich integrations, implementing proper output formatting, and adding interactive
+features.
 
 ### Success Criteria
 
@@ -58,13 +60,14 @@ Complete the CLI enhancement by replacing placeholder implementations with funct
 
 #### Current Status: ⚠️ **In Progress** (50%)
 
-**Issue**: Major test failures preventing validation of implemented features
-**Impact**: Cannot confirm functionality or proceed with confidence
+**Issue**: Major test failures preventing validation of implemented features **Impact**:
+Cannot confirm functionality or proceed with confidence
 
 #### Critical Issues Identified
 
 - ❌ **Import Failures**: `TestsFlextBuilders` not found in flext-core test utilities
-- ❌ **Pydantic Deprecations**: Class-based settings deprecated, needs ConfigDict migration
+- ❌ **Pydantic Deprecations**: Class-based settings deprecated, needs ConfigDict
+  migration
 - ❌ **Constants Test Failures**: Network constants test failing (1 vs 1024)
 
 #### Immediate Actions Required

@@ -19,7 +19,9 @@
 
 <!-- TOC END -->
 
-This directory contains fast, isolated unit tests for FLEXT DB Oracle components. Unit tests use mocks and stubs to eliminate external dependencies, ensuring fast execution and reliable testing of business logic.
+This directory contains fast, isolated unit tests for FLEXT DB Oracle components. Unit
+tests use mocks and stubs to eliminate external dependencies, ensuring fast execution
+and reliable testing of business logic.
 
 ## 🎯 Unit Test Principles
 
@@ -49,7 +51,8 @@ This directory contains fast, isolated unit tests for FLEXT DB Oracle components
 
 ### **Configuration Tests**
 
-- `test_config.py` - Configuration loading, validation, and environment variable handling
+- `test_config.py` - Configuration loading, validation, and environment variable
+  handling
 
 ### **Connection Tests**
 
@@ -137,4 +140,5 @@ def test_config_validation_with_invalid_host():
     assert "Host cannot be empty" in result.error
 ```
 
-These unit tests provide the foundation for reliable, fast feedback during development while ensuring comprehensive coverage of business logic and edge cases.
+These unit tests provide the foundation for reliable, fast feedback during development
+while ensuring comprehensive coverage of business logic and edge cases.

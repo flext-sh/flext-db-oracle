@@ -16,10 +16,8 @@
 
 <!-- TOC END -->
 
-**ADR Number**: [NNN]
-**Title**: [Decision Title]
-**Date**: [YYYY-MM-DD]
-**Status**: \[Proposed | Accepted | Rejected | Deprecated | Superseded by [ADR-NNN]\]
+**ADR Number**: [NNN] **Title**: [Decision Title] **Date**: [YYYY-MM-DD] **Status**:
+\[Proposed | Accepted | Rejected | Deprecated | Superseded by [ADR-NNN]\]
 
 ## Context
 
@@ -33,8 +31,7 @@
 
 ## Decision
 
-\[Clearly state the decision made. Use present tense.
-Include:
+\[Clearly state the decision made. Use present tense. Include:
 
 - Chosen approach or technology
 - Implementation details
@@ -117,6 +114,5 @@ Include:
 
 ---
 
-**ADR Template v1.0 - flext-db-oracle**
-**Based on Michael Nygard's ADR format**
+**ADR Template v1.0 - flext-db-oracle** **Based on Michael Nygard's ADR format**
 **Adapted for FLEXT ecosystem patterns**

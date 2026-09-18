@@ -32,7 +32,9 @@
 
 ## Context Overview
 
-The flext-db-oracle library provides enterprise-grade Oracle database connectivity and operations within the FLEXT data integration ecosystem. It serves as the foundation for all Oracle-related data operations across FLEXT projects.
+The flext-db-oracle library provides enterprise-grade Oracle database connectivity and
+operations within the FLEXT data integration ecosystem. It serves as the foundation for
+all Oracle-related data operations across FLEXT projects.
 
 ```mermaid
 graph TB
@@ -104,7 +106,9 @@ graph TB
 
 ## System Purpose
 
-**flext-db-oracle** provides a unified, enterprise-grade interface for Oracle database operations within the FLEXT ecosystem. It abstracts the complexities of SQLAlchemy 2.0 and Python-oracledb while providing:
+**flext-db-oracle** provides a unified, enterprise-grade interface for Oracle database
+operations within the FLEXT ecosystem. It abstracts the complexities of SQLAlchemy 2.0
+and Python-oracledb while providing:
 
 - **Type-safe database operations** with Pydantic v2 models
 - **Railway-oriented error handling** with r[T]
@@ -259,6 +263,5 @@ graph TB
 
 ---
 
-**C4 Context Diagram - flext-db-oracle v0.9.0**
-**Generated**: 2026-04-14
-**Framework**: C4 Model - Context Level
+**C4 Context Diagram - flext-db-oracle v0.9.0** **Generated**: 2026-04-14 **Framework**:
+C4 Model - Context Level

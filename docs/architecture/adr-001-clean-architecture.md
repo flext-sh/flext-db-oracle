@@ -31,14 +31,13 @@
   - [Related Decisions](#related-decisions)
   <!-- TOC END -->
 
-**ADR Number**: 001
-**Title**: Adopt Clean Architecture for Oracle Database Integration
-**Date**: 2025-01-15
-**Status**: Accepted
+**ADR Number**: 001 **Title**: Adopt Clean Architecture for Oracle Database Integration
+**Date**: 2025-01-15 **Status**: Accepted
 
 ## Context
 
-The flext-db-oracle library needs to provide enterprise-grade Oracle database connectivity within the FLEXT ecosystem. Key requirements include:
+The flext-db-oracle library needs to provide enterprise-grade Oracle database
+connectivity within the FLEXT ecosystem. Key requirements include:
 
 - **Maintainability**: Easy to modify and extend as Oracle features evolve
 - **Testability**: Comprehensive testing with real Oracle database operations
@@ -47,11 +46,13 @@ The flext-db-oracle library needs to provide enterprise-grade Oracle database co
 - **Type Safety**: 100% type safety with modern Python features
 - **Error Handling**: Robust error handling for enterprise reliability
 
-The existing FLEXT ecosystem uses a mix of architectural patterns, but there's a need for a consistent, scalable approach for database integrations.
+The existing FLEXT ecosystem uses a mix of architectural patterns, but there's a need
+for a consistent, scalable approach for database integrations.
 
 ## Decision
 
-Adopt Clean Architecture principles for flext-db-oracle with the following layered structure:
+Adopt Clean Architecture principles for flext-db-oracle with the following layered
+structure:
 
 ```
 ┌─────────────────────────────────────┐
@@ -74,12 +75,14 @@ Adopt Clean Architecture principles for flext-db-oracle with the following layer
 
 ## Rationale
 
-Clean Architecture provides the best foundation for enterprise database integration because:
+Clean Architecture provides the best foundation for enterprise database integration
+because:
 
 ### Benefits Achieved
 
 - **Testability**: Each layer can be tested in isolation with clear boundaries
-- **Maintainability**: Changes to Oracle versions or frameworks don't affect business logic
+- **Maintainability**: Changes to Oracle versions or frameworks don't affect business
+  logic
 - **Ecosystem Consistency**: Aligns with FLEXT architectural principles
 - **Type Safety**: Clear interfaces enable comprehensive type checking
 - **Error Handling**: Railway pattern provides composable error management
@@ -102,31 +105,31 @@ Clean Architecture provides the best foundation for enterprise database integrat
 
 ### Option 1: Traditional Three-Tier Architecture
 
-**Description**: Data Access → Business Logic → Presentation layers
-**Pros**: Simple, familiar pattern; direct database access
-**Cons**: Tight coupling; difficult testing; business logic polluted with infrastructure concerns
-**Decision**: Rejected - doesn't support FLEXT ecosystem patterns or modern testing requirements
+**Description**: Data Access → Business Logic → Presentation layers **Pros**: Simple,
+familiar pattern; direct database access **Cons**: Tight coupling; difficult testing;
+business logic polluted with infrastructure concerns **Decision**: Rejected - doesn't
+support FLEXT ecosystem patterns or modern testing requirements
 
 ### Option 2: Hexagonal Architecture (Ports & Adapters)
 
-**Description**: Domain core with adapters for external systems
-**Pros**: Excellent testability; clear separation; technology-agnostic interfaces
-**Cons**: More complex than needed for this use case; steeper learning curve
-**Decision**: Considered but not selected - Clean Architecture provides similar benefits with simpler implementation
+**Description**: Domain core with adapters for external systems **Pros**: Excellent
+testability; clear separation; technology-agnostic interfaces **Cons**: More complex
+than needed for this use case; steeper learning curve **Decision**: Considered but not
+selected - Clean Architecture provides similar benefits with simpler implementation
 
 ### Option 3: Layered Architecture with DIP
 
-**Description**: Traditional layers with Dependency Inversion Principle
-**Pros**: Familiar pattern; good separation; testable with mocks
-**Cons**: Still allows infrastructure leakage; less explicit than Clean Architecture
-**Decision**: Rejected - Clean Architecture provides clearer boundaries and better DIP enforcement
+**Description**: Traditional layers with Dependency Inversion Principle **Pros**:
+Familiar pattern; good separation; testable with mocks **Cons**: Still allows
+infrastructure leakage; less explicit than Clean Architecture **Decision**: Rejected -
+Clean Architecture provides clearer boundaries and better DIP enforcement
 
 ### Option 4: Microservices with Database per Service
 
 **Description**: Separate Oracle integration services with individual databases
-**Pros**: Independent scaling; technology isolation; clear ownership
-**Cons**: Overkill for library; increases complexity; harder ecosystem integration
-**Decision**: Rejected - Not suitable for library-based integration approach
+**Pros**: Independent scaling; technology isolation; clear ownership **Cons**: Overkill
+for library; increases complexity; harder ecosystem integration **Decision**: Rejected -
+Not suitable for library-based integration approach
 
 ## Consequences
 

@@ -24,7 +24,10 @@
 
 <!-- TOC END -->
 
-This directory contains end-to-end (E2E) tests for FLEXT DB Oracle that validate complete user workflows and system integration scenarios. These tests use real systems without mocks to ensure the entire application works correctly in production-like environments.
+This directory contains end-to-end (E2E) tests for FLEXT DB Oracle that validate
+complete user workflows and system integration scenarios. These tests use real systems
+without mocks to ensure the entire application works correctly in production-like
+environments.
 
 ## 🎯 End-to-End Test Principles
 
@@ -373,12 +376,12 @@ E2E tests include automatic test data setup and cleanup:
 
 ```bash
 # Setup E2E test environment
-make e2e-setup                    # Initialize test database and data
-make e2e-test                     # Run E2E tests
-make e2e-cleanup                  # Clean up test data and containers
+make e2e-setup   # Initialize test database and data
+make e2e-test    # Run E2E tests
+make e2e-cleanup # Clean up test data and containers
 
 # Full E2E test cycle
-make e2e-full                     # Complete setup, test, and cleanup cycle
+make e2e-full # Complete setup, test, and cleanup cycle
 ```
 
 ### **Continuous Integration**
@@ -390,4 +393,6 @@ E2E tests are configured for CI/CD with:
 - **Test result reporting** with detailed logs
 - **Environment cleanup** after test completion
 
-These end-to-end tests ensure FLEXT DB Oracle works correctly in real-world scenarios while maintaining performance and reliability standards expected in production environments.
+These end-to-end tests ensure FLEXT DB Oracle works correctly in real-world scenarios
+while maintaining performance and reliability standards expected in production
+environments.

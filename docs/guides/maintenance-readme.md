@@ -47,7 +47,8 @@
   - [System Extensions](#system-extensions)
   <!-- TOC END -->
 
-**Automated documentation maintenance system for flext-db-oracle with comprehensive quality assurance, validation, and continuous improvement.**
+**Automated documentation maintenance system for flext-db-oracle with comprehensive
+quality assurance, validation, and continuous improvement.**
 
 ![Documentation Health](https://img.shields.io/badge/docs-health-83.4%25-orange)
 ![Files Audited](https://img.shields.io/badge/files-21-blue)
@@ -89,9 +90,9 @@ make docs DOCS_PHASE=audit
 make docs
 
 # Individual operations
-make docs DOCS_PHASE=audit      # Comprehensive audit with report
-make docs DOCS_PHASE=validate   # Quick validation checks
-make docs DOCS_PHASE=fix FIX=1  # Content optimization
+make docs DOCS_PHASE=audit     # Comprehensive audit with report
+make docs DOCS_PHASE=validate  # Quick validation checks
+make docs DOCS_PHASE=fix FIX=1 # Content optimization
 ```
 
 ### Manual Operation
@@ -629,8 +630,7 @@ df -h docs/reports/
 
 ---
 
-**Documentation Maintenance System v1.0.0**
-**Automated Quality Assurance Framework**
+**Documentation Maintenance System v1.0.0** **Automated Quality Assurance Framework**
 **Maintained by: FLEXT Documentation Team**
 
 _Last Updated: 2026-04-14 | Next Review: 2025-11-10_

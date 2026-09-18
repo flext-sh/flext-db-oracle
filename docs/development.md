@@ -84,7 +84,8 @@ make val
 
 - ❌ **Import Failures**: Major test files failing due to flext-core test utility issues
 - ❌ **Pydantic Deprecations**: Deprecated class-based settings in production code
-- ❌ **Constants Validation**: Test failures indicating potential constant misconfigurations
+- ❌ **Constants Validation**: Test failures indicating potential constant
+  misconfigurations
 - ❌ **CI/CD Pipeline**: Automated testing blocked by import failures
 
 #### Immediate Priorities
@@ -138,7 +139,7 @@ make oracle-stop
 pytest tests/e2e/ -v
 
 # All tests with coverage
-make test  # 100% coverage required
+make test # 100% coverage required
 ```
 
 ### Test Infrastructure
@@ -195,19 +196,22 @@ make oracle-stop
 
 #### Challenge
 
-Integrating with 32+ dependent FLEXT projects while maintaining backward compatibility and performance.
+Integrating with 32+ dependent FLEXT projects while maintaining backward compatibility
+and performance.
 
 #### Solution Implemented
 
 - **Complete r Migration**: 784+ occurrences across codebase
 - **Backward Compatibility**: Maintained both `.data` and `.value` APIs
 - **Type Safety**: Zero Pyrefly errors across entire codebase
-- **Clean Architecture**: Clear separation between infrastructure, domain, and application layers
+- **Clean Architecture**: Clear separation between infrastructure, domain, and
+  application layers
 
 #### Best Practices Established
 
 - **Railway Pattern Throughout**: All operations return `r[T]`
-- **Single Class Per Module**: Unified API per module (FlextDbOracleApi, FlextDbOracleModels, etc.)
+- **Single Class Per Module**: Unified API per module (FlextDbOracleApi,
+  FlextDbOracleModels, etc.)
 - **Root Module Imports**: `from flext_db_oracle import X` only, no internal imports
 - **Zero Breaking Changes**: Maintained API compatibility across ecosystem
 
@@ -215,13 +219,15 @@ Integrating with 32+ dependent FLEXT projects while maintaining backward compati
 
 #### Challenge
 
-Creating clean SQLAlchemy abstraction without leaking implementation details while providing full Oracle functionality.
+Creating clean SQLAlchemy abstraction without leaking implementation details while
+providing full Oracle functionality.
 
 #### Solution Implemented
 
 - **Single Import Point**: Only `api.py` imports SQLAlchemy/oracledb
 - **Complete Abstraction**: All other modules use FlextDbOracleApi
-- **Infrastructure Isolation**: Clean separation between domain and infrastructure layers
+- **Infrastructure Isolation**: Clean separation between domain and infrastructure
+  layers
 - **Ecosystem Protection**: Prevents SQLAlchemy version conflicts across 32+ projects
 
 #### Best Practices Established
@@ -235,7 +241,8 @@ Creating clean SQLAlchemy abstraction without leaking implementation details whi
 
 #### Challenge
 
-Achieving 100% test coverage with real Oracle integration while maintaining fast execution and CI/CD compatibility.
+Achieving 100% test coverage with real Oracle integration while maintaining fast
+execution and CI/CD compatibility.
 
 #### Solution Implemented
 
@@ -255,7 +262,8 @@ Achieving 100% test coverage with real Oracle integration while maintaining fast
 
 #### Challenge
 
-Achieving Pyrefly strict mode compliance across large, complex codebase with multiple integrations.
+Achieving Pyrefly strict mode compliance across large, complex codebase with multiple
+integrations.
 
 #### Solution Implemented
 
@@ -275,12 +283,14 @@ Achieving Pyrefly strict mode compliance across large, complex codebase with mul
 
 #### Challenge
 
-Implementing Clean Architecture patterns at scale while maintaining practical usability and performance.
+Implementing Clean Architecture patterns at scale while maintaining practical usability
+and performance.
 
 #### Solution Implemented
 
 - **Layer Separation**: Strict infrastructure/domain/application separation
-- **Dependency Direction**: Only inward dependencies (infrastructure ← domain ← application)
+- **Dependency Direction**: Only inward dependencies (infrastructure ← domain ←
+  application)
 - **API Consolidation**: Single entry point per layer
 - **Service Patterns**: Domain services with infrastructure abstraction
 
@@ -295,12 +305,14 @@ Implementing Clean Architecture patterns at scale while maintaining practical us
 
 #### Challenge
 
-Building CLI foundation that integrates with FLEXT ecosystem while preparing for Rich enhancement.
+Building CLI foundation that integrates with FLEXT ecosystem while preparing for Rich
+enhancement.
 
 #### Current State
 
 - **Foundation Complete**: Click integration with flext-cli patterns established
-- **Placeholder Strategy**: SimpleNamespace allows functional CLI while Rich is developed
+- **Placeholder Strategy**: SimpleNamespace allows functional CLI while Rich is
+  developed
 - **Architecture Ready**: Clean separation for Rich formatter integration
 - **Phase 2 Planned**: Complete Rich integration with professional output
 
@@ -309,7 +321,8 @@ Building CLI foundation that integrates with FLEXT ecosystem while preparing for
 - **Abstraction Layers**: Separate CLI framework from output formatting
 - **Progressive Enhancement**: Functional CLI first, rich features second
 - **Pattern Consistency**: Follow flext-cli established patterns
-- **Incremental Implementation**: Replace placeholders without breaking existing functionality
+- **Incremental Implementation**: Replace placeholders without breaking existing
+  functionality
 
 ## Development Workflow
 
@@ -317,22 +330,22 @@ Building CLI foundation that integrates with FLEXT ecosystem while preparing for
 
 ```bash
 # Start development session
-make setup              # Ensure environment is ready
+make setup # Ensure environment is ready
 
 # Code changes
 # ... make changes ...
 
 # Quality checks (MANDATORY before commit)
-make check              # Lint + type check (quick)
-make test               # Full test suite (100% coverage required)
+make check # Lint + type check (quick)
+make test  # Full test suite (100% coverage required)
 
 # Oracle testing (when database changes made)
-make oracle-start       # Start Oracle container
-make oracle-operations  # Test database operations
-make oracle-stop        # Clean up
+make oracle-start      # Start Oracle container
+make oracle-operations # Test database operations
+make oracle-stop       # Clean up
 
 # Commit with clean quality gates
-make val           # Final validation (lint + type + security + test)
+make val # Final validation (lint + type + security + test)
 git commit -m "feat: description of changes"
 ```
 
@@ -433,7 +446,8 @@ print(f'Host: {settings.oracle_host}:{settings.oracle_port}')
 
 #### Import Failures in Test Files
 
-**Issue**: `ImportError: cannot import name 'TestsFlextBuilders' from 'flext_tests.matchers'`
+**Issue**:
+`ImportError: cannot import name 'TestsFlextBuilders' from 'flext_tests.matchers'`
 
 ```bash
 # Check what's available in flext-core test utilities

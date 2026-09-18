@@ -26,7 +26,8 @@
 
 ## Component Overview
 
-The flext-db-oracle library implements Clean Architecture principles with clear separation between domain, application, and infrastructure layers.
+The flext-db-oracle library implements Clean Architecture principles with clear
+separation between domain, application, and infrastructure layers.
 
 ```mermaid
 graph TB
@@ -140,8 +141,7 @@ graph TB
 
 #### FlextDbOracleApi (Main API)
 
-**Pattern**: Facade Pattern
-**Responsibilities**:
+**Pattern**: Facade Pattern **Responsibilities**:
 
 - Unified entry point for all Oracle operations
 - Orchestrates service calls and error handling

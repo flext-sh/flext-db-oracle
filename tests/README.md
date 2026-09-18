@@ -30,13 +30,16 @@
 
 <!-- TOC END -->
 
-This directory contains the comprehensive test suite for FLEXT DB Oracle, implementing a layered testing strategy with unit, integration, and end-to-end tests following Clean Architecture principles and enterprise testing standards.
+This directory contains the comprehensive test suite for FLEXT DB Oracle, implementing a
+layered testing strategy with unit, integration, and end-to-end tests following Clean
+Architecture principles and enterprise testing standards.
 
 ## 🧪 Test Structure
 
 ### **Test Organization**
 
-The test suite is organized into three distinct layers, each serving specific testing purposes:
+The test suite is organized into three distinct layers, each serving specific testing
+purposes:
 
 ```
 tests/
@@ -180,14 +183,14 @@ Our test suite follows Clean Architecture principles with clear separation of co
 make test
 
 # Run tests by category
-pytest tests/unit/                    # Unit tests only
-pytest tests/integration/             # Integration tests only
-pytest tests/e2e/                     # End-to-end tests only
+pytest tests/unit/        # Unit tests only
+pytest tests/integration/ # Integration tests only
+pytest tests/e2e/         # End-to-end tests only
 
 # Run tests by marker
-pytest -m "not slow"                  # Fast tests only
-pytest -m integration                 # Integration tests only
-pytest -m oracle                      # Oracle-specific tests
+pytest -m "not slow"  # Fast tests only
+pytest -m integration # Integration tests only
+pytest -m oracle      # Oracle-specific tests
 ```
 
 ### **Test Configuration**
@@ -339,13 +342,13 @@ def test_complete_workflow_without_mocks():
 
 ```bash
 # Fast feedback loop during development
-pytest tests/unit/ -x --tb=short      # Stop on first failure
+pytest tests/unit/ -x --tb=short # Stop on first failure
 
 # Complete validation before commit
-make val                          # Full validation pipeline
+make val # Full validation pipeline
 
 # Performance testing
-pytest tests/integration/ --benchmark  # Performance benchmarks
+pytest tests/integration/ --benchmark # Performance benchmarks
 ```
 
 ### **CI/CD Integration**
@@ -359,4 +362,5 @@ Tests are integrated into CI/CD pipelines with:
 
 ---
 
-This test suite ensures FLEXT DB Oracle maintains quality standards while providing fast feedback for development and reliable validation for production deployments.
+This test suite ensures FLEXT DB Oracle maintains quality standards while providing fast
+feedback for development and reliable validation for production deployments.

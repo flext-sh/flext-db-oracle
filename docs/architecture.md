@@ -31,7 +31,8 @@
 
 <!-- TOC END -->
 
-Clean Architecture implementation for Oracle Database integration in the FLEXT ecosystem.
+Clean Architecture implementation for Oracle Database integration in the FLEXT
+ecosystem.
 
 ## Architecture Principles
 

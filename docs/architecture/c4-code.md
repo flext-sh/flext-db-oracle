@@ -31,7 +31,8 @@
 
 ## Code Structure Overview
 
-The flext-db-oracle library follows Clean Architecture principles with modular code organization and clear separation of concerns.
+The flext-db-oracle library follows Clean Architecture principles with modular code
+organization and clear separation of concerns.
 
 ```mermaid
 graph TB
@@ -167,10 +168,9 @@ graph TB
 
 #### `__init__.py` (Public API)
 
-**Lines**: 43
-**Purpose**: Public API exports and ecosystem integration
-**Exports**: 14 main classes and version information
-**Pattern**: Selective imports to maintain clean public interface
+**Lines**: 43 **Purpose**: Public API exports and ecosystem integration **Exports**: 14
+main classes and version information **Pattern**: Selective imports to maintain clean
+public interface
 
 ````python
 # Key exports

@@ -1,9 +1,11 @@
 # AGENTS.md — flext-db-oracle
 
 > **Parent workspace law** lives in [`../AGENTS.md`](../AGENTS.md) — read it first.
-> Universal engineering core: `~/.agents/UNIVERSAL_CORE.md`. Composition: global skills + parent/root `AGENTS.md` + this scope delta. Do not re-embed universal law.
+> Universal engineering core: `~/.agents/UNIVERSAL_CORE.md`. Composition: global
+> skills + parent/root `AGENTS.md` + this scope delta. Do not re-embed universal law.
 >
-> **Standalone / independent mode:** when `../AGENTS.md` does not resolve, pin the parent raw `AGENTS.md` URL to the same branch/release as this package (never `main`).
+> **Standalone / independent mode:** when `../AGENTS.md` does not resolve, pin the
+> parent raw `AGENTS.md` URL to the same branch/release as this package (never `main`).
 
 <!-- AIHUB-AGENTS-SCOPE-LOCAL-BEGIN -->
 
@@ -11,7 +13,8 @@
 
 ## Overview
 
-Enterprise Oracle database operations library. Base for the Oracle Singer connectors (`flext-tap-oracle`, `flext-target-oracle`, `flext-dbt-oracle`).
+Enterprise Oracle database operations library. Base for the Oracle Singer connectors
+(`flext-tap-oracle`, `flext-target-oracle`, `flext-dbt-oracle`).
 
 ## Structure
 
@@ -35,19 +38,22 @@ src/flext_db_oracle/
 
 ## Conventions (specific to this package)
 
-- **Settings are namespaced** — access `settings.DbOracle.*` (host/port/user/service_name/context_name), never flat `settings.host`. The API ctor resolves them from that namespace.
+- **Settings are namespaced** — access `settings.DbOracle.*`
+  (host/port/user/service_name/context_name), never flat `settings.host`. The API ctor
+  resolves them from that namespace.
 - Config/settings canonical pattern: ADR-012.
 - Codemod governance (ast-grep + make mod): ADR-014.
 
 ## Anti-Patterns / Gotchas
 
-- Downstream consumers construct config as nested `{"DbOracle": {...}}` — flat construction is dropped (`extra=ignore`).
+- Downstream consumers construct config as nested `{"DbOracle": {...}}` — flat
+  construction is dropped (`extra=ignore`).
 
 ## Commands
 
 ```bash
 make check PROJECT=flext-db-oracle
-make test  PROJECT=flext-db-oracle       # tests/{unit,integration,e2e}
+make test PROJECT=flext-db-oracle # tests/{unit,integration,e2e}
 ```
 
 <!-- AIHUB-AGENTS-SCOPE-LOCAL-END -->
@@ -56,7 +62,8 @@ make test  PROJECT=flext-db-oracle       # tests/{unit,integration,e2e}
 
 ## Beads Issue Tracker
 
-This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
+This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow
+context and commands.
 
 ### Quick Reference
 
@@ -69,23 +76,34 @@ bd close <id>         # Complete work
 
 ### Rules
 
-- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
+- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO
+  lists
 - Run `bd prime` for detailed command reference and session close protocol
 - Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
 
-**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md for details and anti-patterns.
+**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data`
+on your git remote; `.beads/issues.jsonl` is a passive export. See
+<https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md> for details and
+anti-patterns.
 
 ## Agent Context Profiles
 
-The managed Beads block is task-tracking guidance, not permission to override repository, user, or orchestrator instructions.
+The managed Beads block is task-tracking guidance, not permission to override
+repository, user, or orchestrator instructions.
 
-- **Conservative (default)**: Use `bd` for task tracking. Do not run git commits, git pushes, or Dolt remote sync unless explicitly asked. At handoff, report changed files, validation, and suggested next commands.
-- **Minimal**: Keep tool instruction files as pointers to `bd prime`; use the same conservative git policy unless active instructions say otherwise.
-- **Team-maintainer**: Only when the repository explicitly opts in, agents may close beads, run quality gates, commit, and push as part of session close. A current "do not commit" or "do not push" instruction still wins.
+- **Conservative (default)**: Use `bd` for task tracking. Do not run git commits, git
+  pushes, or Dolt remote sync unless explicitly asked. At handoff, report changed files,
+  validation, and suggested next commands.
+- **Minimal**: Keep tool instruction files as pointers to `bd prime`; use the same
+  conservative git policy unless active instructions say otherwise.
+- **Team-maintainer**: Only when the repository explicitly opts in, agents may close
+  beads, run quality gates, commit, and push as part of session close. A current "do not
+  commit" or "do not push" instruction still wins.
 
 ## Session Completion
 
-This protocol applies when ending a Beads implementation workflow. It is subordinate to explicit user, repository, and orchestrator instructions.
+This protocol applies when ending a Beads implementation workflow. It is subordinate to
+explicit user, repository, and orchestrator instructions.
 
 1. **File issues for remaining work** - Create beads for anything that needs follow-up
 2. **Run quality gates** (if code changed) - Tests, linters, builds
@@ -95,7 +113,7 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
    ```bash
    # Conservative/minimal/default: report status and proposed commands; wait for approval.
    git status
-
+   
    # Team-maintainer opt-in only, unless current instructions forbid it:
    git pull --rebase
    bd dolt push
@@ -103,12 +121,14 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
    git status
    ```
 
-5. **Hand off** - Summarize changes, validation, issue status, and any blocked sync/commit/push step
+5. **Hand off** - Summarize changes, validation, issue status, and any blocked
+   sync/commit/push step
 
 **Critical rules:**
 
 - Explicit user or orchestrator instructions override this Beads block.
-- Do not commit or push without clear authority from the active profile or the current user request.
+- Do not commit or push without clear authority from the active profile or the current
+  user request.
 - If a required sync or push is blocked, stop and report the exact command and error.
 
 <!-- END BEADS INTEGRATION -->
@@ -117,7 +137,10 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 
 ## Beads Issue Tracker
 
-Use Beads (`bd`) for durable task tracking in repositories that include it. Use the `beads` skill at `.agents/skills/beads/SKILL.md` (project install) or `~/.agents/skills/beads/SKILL.md` (global install) for Beads workflow guidance, then use the `bd` CLI for issue operations.
+Use Beads (`bd`) for durable task tracking in repositories that include it. Use the
+`beads` skill at `.agents/skills/beads/SKILL.md` (project install) or
+`~/.agents/skills/beads/SKILL.md` (global install) for Beads workflow guidance, then use
+the `bd` CLI for issue operations.
 
 ### Quick Reference
 
@@ -132,9 +155,14 @@ bd prime                # Refresh Beads context
 ### Rules
 
 - Use `bd` for all task tracking; do not create markdown TODO lists.
-- Run `bd prime` when Beads context is missing or stale. Codex 0.129.0+ can load Beads context automatically through native hooks; use `/hooks` to inspect or toggle them.
-- Keep persistent project memory in Beads via `bd remember`; do not create ad hoc memory files.
+- Run `bd prime` when Beads context is missing or stale. Codex 0.129.0+ can load Beads
+  context automatically through native hooks; use `/hooks` to inspect or toggle them.
+- Keep persistent project memory in Beads via `bd remember`; do not create ad hoc memory
+  files.
 
-**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md for details and anti-patterns.
+**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data`
+on your git remote; `.beads/issues.jsonl` is a passive export. See
+<https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md> for details and
+anti-patterns.
 
 <!-- END BEADS CODEX SETUP -->

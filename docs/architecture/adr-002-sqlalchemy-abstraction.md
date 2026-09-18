@@ -32,23 +32,25 @@
   - [Related Decisions](#related-decisions)
   <!-- TOC END -->
 
-**ADR Number**: 002
-**Title**: SQLAlchemy Abstraction Strategy for Oracle Integration
-**Date**: 2025-01-20
-**Status**: Accepted
+**ADR Number**: 002 **Title**: SQLAlchemy Abstraction Strategy for Oracle Integration
+**Date**: 2025-01-20 **Status**: Accepted
 
 ## Context
 
-The flext-db-oracle library needs to provide Oracle database operations while maintaining clean separation between business logic and infrastructure concerns. Key requirements include:
+The flext-db-oracle library needs to provide Oracle database operations while
+maintaining clean separation between business logic and infrastructure concerns. Key
+requirements include:
 
-- **Technology Isolation**: Business logic shouldn't depend on specific ORM implementations
+- **Technology Isolation**: Business logic shouldn't depend on specific ORM
+  implementations
 - **Ecosystem Compatibility**: Support for SQLAlchemy 2.0+ while allowing future changes
 - **Performance**: Efficient database operations without excessive abstraction overhead
 - **Maintainability**: Easy to update SQLAlchemy versions or switch ORMs if needed
 - **Type Safety**: Full type safety while maintaining ORM flexibility
 - **Error Handling**: Consistent error handling across different database operations
 
-The FLEXT ecosystem already uses various database integrations, and there's a need for a standardized Oracle database abstraction pattern.
+The FLEXT ecosystem already uses various database integrations, and there's a need for a
+standardized Oracle database abstraction pattern.
 
 ## Decision
 
@@ -69,7 +71,8 @@ Implement a single-entry-point SQLAlchemy abstraction where:
 
 ## Rationale
 
-This abstraction strategy provides the best balance of encapsulation, performance, and maintainability for enterprise Oracle integration.
+This abstraction strategy provides the best balance of encapsulation, performance, and
+maintainability for enterprise Oracle integration.
 
 ### Benefits Achieved
 
@@ -120,37 +123,39 @@ This abstraction strategy provides the best balance of encapsulation, performanc
 ### Option 1: Repository Pattern with Full Abstraction
 
 **Description**: Create IRepository interfaces with concrete SQLAlchemy implementations
-**Pros**: Complete ORM isolation; easy testing with mocks; clear contracts
-**Cons**: Performance overhead; complex generic implementations; SQLAlchemy features underutilized
-**Decision**: Rejected - Too much abstraction overhead for database operations; SQLAlchemy features would be underutilized
+**Pros**: Complete ORM isolation; easy testing with mocks; clear contracts **Cons**:
+Performance overhead; complex generic implementations; SQLAlchemy features underutilized
+**Decision**: Rejected - Too much abstraction overhead for database operations;
+SQLAlchemy features would be underutilized
 
 ### Option 2: Direct SQLAlchemy Usage Throughout
 
-**Description**: Use SQLAlchemy directly in all modules and services
-**Pros**: Maximum performance; full SQLAlchemy feature access; simpler implementation
-**Cons**: Tight coupling to SQLAlchemy; version upgrades affect entire codebase; harder testing
-**Decision**: Rejected - Violates Clean Architecture principles; creates ecosystem coupling issues
+**Description**: Use SQLAlchemy directly in all modules and services **Pros**: Maximum
+performance; full SQLAlchemy feature access; simpler implementation **Cons**: Tight
+coupling to SQLAlchemy; version upgrades affect entire codebase; harder testing
+**Decision**: Rejected - Violates Clean Architecture principles; creates ecosystem
+coupling issues
 
 ### Option 3: Query Object Pattern
 
-**Description**: Create query objects that encapsulate SQLAlchemy usage
-**Pros**: Clean separation; testable query objects; domain-specific query APIs
-**Cons**: Complex query t.JsonValue hierarchies; performance overhead; maintenance burden
-**Decision**: Considered but not selected - Single-entry-point provides better balance
+**Description**: Create query objects that encapsulate SQLAlchemy usage **Pros**: Clean
+separation; testable query objects; domain-specific query APIs **Cons**: Complex query
+t.JsonValue hierarchies; performance overhead; maintenance burden **Decision**:
+Considered but not selected - Single-entry-point provides better balance
 
 ### Option 4: CQRS with Separate Read/Write Models
 
-**Description**: Command Query Responsibility Segregation with separate models
-**Pros**: Optimized read/write paths; clear separation of concerns; scalable architecture
+**Description**: Command Query Responsibility Segregation with separate models **Pros**:
+Optimized read/write paths; clear separation of concerns; scalable architecture
 **Cons**: Overkill for current requirements; increases complexity unnecessarily
 **Decision**: Rejected - Current use case doesn't require CQRS complexity
 
 ### Option 5: Data Mapper Pattern
 
-**Description**: Separate domain objects from database mapping logic
-**Pros**: Clean separation; flexible mapping; testable domain logic
-**Cons**: Complex mapping logic; performance overhead; SQLAlchemy already provides mapping
-**Decision**: Rejected - SQLAlchemy's ORM already provides excellent data mapping
+**Description**: Separate domain objects from database mapping logic **Pros**: Clean
+separation; flexible mapping; testable domain logic **Cons**: Complex mapping logic;
+performance overhead; SQLAlchemy already provides mapping **Decision**: Rejected -
+SQLAlchemy's ORM already provides excellent data mapping
 
 ## Consequences
 

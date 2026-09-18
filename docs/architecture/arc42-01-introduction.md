@@ -30,14 +30,16 @@
   - [FLEXT Ecosystem Terms](#flext-ecosystem-terms)
   <!-- TOC END -->
 
-**flext-db-oracle - Enterprise Oracle Database Integration**
-**Arc42 Section 1: Introduction and Goals**
+**flext-db-oracle - Enterprise Oracle Database Integration** **Arc42 Section 1:
+Introduction and Goals**
 
 ## 1.1 Purpose and Scope
 
 ### Business Context
 
-**flext-db-oracle** provides enterprise-grade Oracle database connectivity and operations within the FLEXT data integration ecosystem. It serves as the foundation for all Oracle-related data operations across 32+ FLEXT projects.
+**flext-db-oracle** provides enterprise-grade Oracle database connectivity and
+operations within the FLEXT data integration ecosystem. It serves as the foundation for
+all Oracle-related data operations across 32+ FLEXT projects.
 
 ### Scope and Responsibilities
 
@@ -85,40 +87,40 @@
 
 #### Data Engineer
 
-**Concerns:** Database connectivity, query performance, data integrity
-**Quality Attributes:** Performance, reliability, security
+**Concerns:** Database connectivity, query performance, data integrity **Quality
+Attributes:** Performance, reliability, security
 
 #### Application Developer
 
-**Concerns:** API usability, error handling, type safety
-**Quality Attributes:** Usability, maintainability, testability
+**Concerns:** API usability, error handling, type safety **Quality Attributes:**
+Usability, maintainability, testability
 
 #### DevOps Engineer
 
-**Concerns:** Deployment, monitoring, scalability
-**Quality Attributes:** Reliability, performance, security
+**Concerns:** Deployment, monitoring, scalability **Quality Attributes:** Reliability,
+performance, security
 
 #### QA Engineer
 
-**Concerns:** Test coverage, automation, defect prevention
-**Quality Attributes:** Testability, reliability, maintainability
+**Concerns:** Test coverage, automation, defect prevention **Quality Attributes:**
+Testability, reliability, maintainability
 
 ### Secondary Stakeholders
 
 #### System Administrator
 
-**Concerns:** Database resource management, security compliance
-**Quality Attributes:** Security, performance, reliability
+**Concerns:** Database resource management, security compliance **Quality Attributes:**
+Security, performance, reliability
 
 #### Product Manager
 
-**Concerns:** Feature completeness, user satisfaction, roadmap planning
-**Quality Attributes:** Usability, reliability, performance
+**Concerns:** Feature completeness, user satisfaction, roadmap planning **Quality
+Attributes:** Usability, reliability, performance
 
 #### Security Officer
 
-**Concerns:** Data protection, access control, compliance
-**Quality Attributes:** Security, auditability, compliance
+**Concerns:** Data protection, access control, compliance **Quality Attributes:**
+Security, auditability, compliance
 
 ## 1.3 Architecture Constraints
 

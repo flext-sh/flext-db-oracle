@@ -37,11 +37,13 @@
   - [Process Metrics](#process-metrics)
   <!-- TOC END -->
 
-**Comprehensive maintenance framework for flext-db-oracle documentation quality assurance.**
+**Comprehensive maintenance framework for flext-db-oracle documentation quality
+assurance.**
 
 ## Overview
 
-This document outlines the systematic procedures for maintaining documentation quality, consistency, and accuracy across the flext-db-oracle project.
+This document outlines the systematic procedures for maintaining documentation quality,
+consistency, and accuracy across the flext-db-oracle project.
 
 ## Maintenance Framework
 
@@ -114,7 +116,7 @@ make docs DOCS_PHASE=validate
 
 # Include in CI/CD pipeline
 - name: Validate Documentation
-  run: make docs DOCS_PHASE=validate
+run: make docs DOCS_PHASE=validate
 ```
 
 ## Weekly Maintenance Tasks
@@ -447,8 +449,8 @@ time make docs DOCS_PHASE=audit
 make docs DOCS_PHASE=validate
 
 # Check system resources
-df -h  # Disk space
-free -h  # Memory
+df -h   # Disk space
+free -h # Memory
 ```
 
 ## Success Metrics
@@ -469,6 +471,5 @@ free -h  # Memory
 
 ---
 
-**Documentation Maintenance Framework v1.0.0**
-**Last Updated**: 2026-04-14
-**Next Review**: 2025-11-10
+**Documentation Maintenance Framework v1.0.0** **Last Updated**: 2026-04-14 **Next
+Review**: 2025-11-10

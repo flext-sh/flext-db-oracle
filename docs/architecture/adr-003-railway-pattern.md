@@ -32,23 +32,25 @@
   - [Related Decisions](#related-decisions)
   <!-- TOC END -->
 
-**ADR Number**: 003
-**Title**: Railway Pattern Implementation with r[T]
-**Date**: 2025-01-25
-**Status**: Accepted
+**ADR Number**: 003 **Title**: Railway Pattern Implementation with r[T] **Date**:
+2025-01-25 **Status**: Accepted
 
 ## Context
 
-The flext-db-oracle library needs robust error handling for enterprise database operations. Key requirements include:
+The flext-db-oracle library needs robust error handling for enterprise database
+operations. Key requirements include:
 
-- **Enterprise Reliability**: Failures should be handled gracefully without system crashes
+- **Enterprise Reliability**: Failures should be handled gracefully without system
+  crashes
 - **Composability**: Error handling should compose across multiple operations
 - **Type Safety**: Error handling should maintain type safety throughout
 - **Debugging Support**: Errors should provide clear context and debugging information
 - **Performance**: Error handling should not significantly impact performance
 - **Ecosystem Consistency**: Should align with FLEXT ecosystem error handling patterns
 
-Traditional exception-based error handling becomes complex in enterprise applications with multiple layers and async operations. The FLEXT ecosystem already uses r[T] pattern successfully.
+Traditional exception-based error handling becomes complex in enterprise applications
+with multiple layers and async operations. The FLEXT ecosystem already uses r[T] pattern
+successfully.
 
 ## Decision
 
