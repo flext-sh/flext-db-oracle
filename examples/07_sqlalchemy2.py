@@ -8,6 +8,8 @@ This example demonstrates Oracle configuration setup for SQLAlchemy 2.0.
 
 from __future__ import annotations
 
+import os
+
 from flext_db_oracle import FlextDbOracleSettings, u
 
 logger = u.fetch_logger(__name__)
@@ -32,7 +34,7 @@ def create_oracle_config() -> FlextDbOracleSettings:
             "port": 1521,
             "service_name": "DEMO",
             "username": "demo_user",
-            "password": "demo_password",
+            "password": os.environ.get("FLEXT_DEMO_ORACLE_PASSWORD", "<demo>"),
         }
     })
 

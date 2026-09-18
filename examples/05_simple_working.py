@@ -8,6 +8,8 @@ This example demonstrates basic configuration and setup functionality.
 
 from __future__ import annotations
 
+import os
+
 from flext_db_oracle import FlextDbOracleSettings, u
 
 logger = u.fetch_logger(__name__)
@@ -25,7 +27,7 @@ def _resolve_settings() -> FlextDbOracleSettings:
             "DbOracle": {
                 "host": "demo-host",
                 "username": "demo-user",
-                "password": "demo-password",
+                "password": os.environ.get("FLEXT_DEMO_ORACLE_PASSWORD", "<demo>"),
             }
         })
         logger.info("✅ Demo configuration created")
