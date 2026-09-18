@@ -53,13 +53,15 @@ Check service_name parameter matches Oracle database configuration.
 
 CLI formatter and interactions use placeholder implementations:
 
-````python
+```python
 from types import SimpleNamespace
 
 # client.py lines 60-67 contain SimpleNamespace placeholders
 self = SimpleNamespace()
 self.formatter = SimpleNamespace()
-self.interactions = SimpleNamespace()```
+self.interactions = SimpleNamespace()
+```
+
 This causes limited CLI functionality.
 
 ## Installation Issues
@@ -69,7 +71,9 @@ This causes limited CLI functionality.
 Install dependencies:
 
 ```bash
-poetry install```
+poetry install
+```
+
 ### "ImportError: r"
 
 Ensure flext-core is installed:
@@ -78,7 +82,9 @@ Ensure flext-core is installed:
 cd ../flext-core
 poetry install
 cd ../flext-db-oracle
-poetry install```
+poetry install
+```
+
 ## Performance Issues
 
 ### Slow queries
@@ -96,7 +102,8 @@ flext-db-oracle has 0 methods. For operations, consider direct Python-oracledb.
 
 ### No DataFrame support
 
-No integration with Pandas, PyArrow, or Polars. Python-oracledb 3.4+ has native DataFrame support.
+No integration with Pandas, PyArrow, or Polars. Python-oracledb 3.4+ has native
+DataFrame support.
 
 ## Testing
 
@@ -107,8 +114,9 @@ No integration with Pandas, PyArrow, or Polars. Python-oracledb 3.4+ has native 
 make oracle-start
 
 # Connect to localhost:1521/XEPDB1
-# Username: system, Password: Oracle123```
-______________________________________________________________________
+# Username: system, Password: Oracle123
+```
+
+---
 
 Updated: April 14, 2026 | Version: 0.12.0-dev
-````

@@ -27,7 +27,7 @@ export ORACLE_PASSWORD="Oracle123"
 
 ### Code Configuration
 
-````python
+``` python
 import os
 
 # Provide environment values so the API can be built from env vars.
@@ -54,7 +54,8 @@ settings = FlextDbOracleSettings(
         "password": "Oracle123",
     }
 )
-api = FlextDbOracleApi(settings)```
+api = FlextDbOracleApi(settings)
+```
 ## Connection Parameters
 
 | Parameter    | Type | Default | Description            |
@@ -67,7 +68,7 @@ api = FlextDbOracleApi(settings)```
 
 ## Testing Connection
 
-```python
+```python notest
 import os
 
 # Seed environment values so the API can be resolved from settings.
@@ -90,7 +91,8 @@ if api_result.success:
     else:
         print(f"Connection failed: {result.error}")
 else:
-    print(f"API could not be created: {api_result.error}")```
+    print(f"API could not be created: {api_result.error}")
+    ```
 ## CLI Configuration
 
 ```bash
@@ -102,7 +104,8 @@ export ORACLE_USERNAME=system
 export ORACLE_PASSWORD=Oracle123
 
 # Test connection
-python -m flext_db_oracle.cli health```
+python -m flext_db_oracle.cli health
+```
 For advanced configuration patterns, see the FLEXT workspace documentation.
 
 ______________________________________________________________________

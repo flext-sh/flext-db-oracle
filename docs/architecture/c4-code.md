@@ -54,22 +54,22 @@ graph TB
 
     subgraph "Domain Model Layer"
         MODELS[models.py<br/>FlextDbOracleModels<br/>Pydantic v2 Models<br/>Data Validation]
-        EXCEPTIONS[exceptions.py<br/>FlextDbOracleExceptions<br/>Error Hierarchy<br/>Domain Exceptions]
+        EXCEPTIONS[exceptions.py<br/>FlextDbOracleExceptions<br/>Error Hierarchy]
         CONSTANTS[constants.py<br/>FlextDbOracleConstants<br/>System Constants<br/>Configuration]
     end
 
     subgraph "Infrastructure Layer"
-        CONNECTION[connection.py<br/>Connection Management<br/>SQLAlchemy Engine<br/>Pool Lifecycle]
-        UTILITIES[utilities.py<br/>FlextDbOracleUtilities<br/>Helper Functions<br/>Common Operations]
-        CONFIG[settings.py<br/>FlextDbOracleSettings<br/>Configuration Management<br/>Pydantic Settings]
+        CONNECTION[connection.py<br/>Connection Management<br/>SQLAlchemy Engine]
+        UTILITIES[utilities.py<br/>FlextDbOracleUtilities<br/>Helpers]
+        CONFIG[settings.py<br/>FlextDbOracleSettings<br/>Pydantic Settings]
     end
 
     subgraph "Supporting Modules"
-        MIDDLEWARE[mixins.py<br/>FlextDbOracleMixins<br/>Shared Behaviors<br/>Composition Helpers]
+        MIDDLEWARE[mixins.py<br/>FlextDbOracleMixins<br/>Shared Behaviors]
         PLUGINS[plugins.py<br/>FlextDbOraclePlugins<br/>Extension System<br/>Plugin Architecture]
-        PROTOCOLS[protocols.py<br/>FlextDbOracleProtocols<br/>Type Protocols<br/>Structural Typing]
+        PROTOCOLS[protocols.py<br/>FlextDbOracleProtocols<br/>Type Protocols]
         TYPES[typings.py<br/>FlextDbOracleTypes<br/>Type Aliases<br/>Generic Types]
-        DISPATCHER[dispatcher.py<br/>FlextDbOracleDispatcher<br/>Command Dispatching<br/>Mediator Pattern]
+        DISPATCHER[dispatcher.py<br/>FlextDbOracleDispatcher<br/>Mediator Pattern]
     end
 
     subgraph "Test Infrastructure"
@@ -172,7 +172,7 @@ graph TB
 main classes and version information **Pattern**: Selective imports to maintain clean
 public interface
 
-````python
+```python notest
 # Key exports
 __all__: list[str] = [
     "FlextDbOracleApi",  # Main API
@@ -183,22 +183,21 @@ __all__: list[str] = [
     # ... 9 more classes
     "__version__",  # Version info
     "__version_info__",
-]```
+]
+```
+
 #### `cli.py` (CLI Entry Point)
 
-**Lines**: ~2,200 (Click abstraction)
-**Purpose**: Command-line interface entry point
-**Framework**: Click command group with FLEXT patterns
-**Features**: Subcommand registration, option parsing, error handling
+**Lines**: ~2,200 (Click abstraction) **Purpose**: Command-line interface entry point
+**Framework**: Click command group with FLEXT patterns **Features**: Subcommand
+registration, option parsing, error handling
 
 ### Core API Layer
 
 #### `api.py` (FlextDbOracleApi)
 
-**Lines**: 4,512
-**Methods**: 36 public methods
-**Complexity**: High (orchestration layer)
-**Responsibilities**:
+**Lines**: 4,512 **Methods**: 36 public methods **Complexity**: High (orchestration
+layer) **Responsibilities**:
 
 - Unified entry point for all Oracle operations
 - Service orchestration and coordination
@@ -257,15 +256,15 @@ class FlextDbOracleApi:
 
 api = FlextDbOracleApi()
 print(api.connect(OracleConfig()))
-print(api.commit_transaction())```
+print(api.commit_transaction())
+```
+
 ### Service Layer
 
 #### `services.py` (FlextDbOracleServices)
 
-**Lines**: ~800
-**Classes**: 8 nested service classes
-**Purpose**: Business logic and query orchestration
-**Features**:
+**Lines**: ~800 **Classes**: 8 nested service classes **Purpose**: Business logic and
+query orchestration **Features**:
 
 - SQL query building and validation
 - Result set processing and transformation
@@ -274,17 +273,13 @@ print(api.commit_transaction())```
 
 #### `client.py` (FlextDbOracleClient)
 
-**Lines**: ~2,600
-**Status**: ⚠️ Partial (60% complete)
-**Purpose**: Rich CLI client operations
-**Current State**: SimpleNamespace placeholders for Rich components
+**Lines**: ~2,600 **Status**: ⚠️ Partial (60% complete) **Purpose**: Rich CLI client
+operations **Current State**: SimpleNamespace placeholders for Rich components
 **Target**: Complete Rich integration with tables, progress bars, status displays
 
 #### `cli.py` (FlextDbOracleCli)
 
-**Lines**: ~2,200
-**Purpose**: CLI command interface and Click integration
-**Features**:
+**Lines**: ~2,200 **Purpose**: CLI command interface and Click integration **Features**:
 
 - Command registration and dispatching
 - Option parsing and validation
@@ -295,10 +290,8 @@ print(api.commit_transaction())```
 
 #### `models.py` (FlextDbOracleModels)
 
-**Lines**: ~1,200
-**Models**: 15+ Pydantic classes
-**Purpose**: Domain models and data validation
-**Features**:
+**Lines**: ~1,200 **Models**: 15+ Pydantic classes **Purpose**: Domain models and data
+validation **Features**:
 
 - OracleConfig, QueryResult, SchemaInfo models
 - Pydantic v2 validation and serialization
@@ -306,10 +299,8 @@ print(api.commit_transaction())```
 
 #### `exceptions.py` (FlextDbOracleExceptions)
 
-**Lines**: ~600
-**Classes**: 8 exception types
-**Purpose**: Domain-specific error hierarchy
-**Features**:
+**Lines**: ~600 **Classes**: 8 exception types **Purpose**: Domain-specific error
+hierarchy **Features**:
 
 - ConnectionException, QueryException, SchemaException
 - Error context preservation and chaining
@@ -317,10 +308,8 @@ print(api.commit_transaction())```
 
 #### `constants.py` (FlextDbOracleConstants)
 
-**Lines**: ~400
-**Constants**: 50+ system constants
-**Purpose**: Configuration constants and defaults
-**Features**:
+**Lines**: ~400 **Constants**: 50+ system constants **Purpose**: Configuration constants
+and defaults **Features**:
 
 - Database connection limits and timeouts
 - Query execution parameters
@@ -330,8 +319,7 @@ print(api.commit_transaction())```
 
 #### `connection.py` (Connection Management)
 
-**Lines**: ~900
-**Purpose**: SQLAlchemy engine and connection pool management
+**Lines**: ~900 **Purpose**: SQLAlchemy engine and connection pool management
 **Features**:
 
 - Connection pool lifecycle (create, configure, destroy)
@@ -341,10 +329,8 @@ print(api.commit_transaction())```
 
 #### `utilities.py` (Helper Functions)
 
-**Lines**: ~500
-**Functions**: 25+ utility functions
-**Purpose**: Common operations and data transformations
-**Features**:
+**Lines**: ~500 **Functions**: 25+ utility functions **Purpose**: Common operations and
+data transformations **Features**:
 
 - SQL parameter binding and sanitization
 - Result set formatting and type conversion
@@ -352,8 +338,7 @@ print(api.commit_transaction())```
 
 #### `settings.py` (Configuration Management)
 
-**Lines**: ~700
-**Purpose**: Application configuration with Pydantic Settings
+**Lines**: ~700 **Purpose**: Application configuration with Pydantic Settings
 **Features**:
 
 - Environment variable integration
@@ -365,19 +350,15 @@ print(api.commit_transaction())```
 
 #### `mixins.py` (Shared Behaviors)
 
-**Lines**: ~300
-**Classes**: 5 mixin classes
-**Purpose**: Reusable behaviors and composition helpers
-**Features**:
+**Lines**: ~300 **Classes**: 5 mixin classes **Purpose**: Reusable behaviors and
+composition helpers **Features**:
 
 - LoggingMixin, ValidationMixin, SerializationMixin
 - Cross-cutting concerns implementation
 
 #### `plugins.py` (Extension System)
 
-**Lines**: ~400
-**Purpose**: Plugin architecture for extensibility
-**Features**:
+**Lines**: ~400 **Purpose**: Plugin architecture for extensibility **Features**:
 
 - Plugin registration and discovery
 - Hook system for custom operations
@@ -385,29 +366,23 @@ print(api.commit_transaction())```
 
 #### `protocols.py` (Type Protocols)
 
-**Lines**: ~150
-**Protocols**: 8 structural typing protocols
-**Purpose**: Type-safe interfaces without inheritance
-**Features**:
+**Lines**: ~150 **Protocols**: 8 structural typing protocols **Purpose**: Type-safe
+interfaces without inheritance **Features**:
 
 - Connection, Query, Result
 - Structural subtyping for clean interfaces
 
 #### `typings.py` (Type Aliases)
 
-**Lines**: ~200
-**Aliases**: 15+ type definitions
-**Purpose**: Complex type definitions and generics
-**Features**:
+**Lines**: ~200 **Aliases**: 15+ type definitions **Purpose**: Complex type definitions
+and generics **Features**:
 
 - ParamsDict, ResultSet, ConnectionPool types
 - Generic type aliases for better type hints
 
 #### `dispatcher.py` (Command Dispatching)
 
-**Lines**: ~350
-**Purpose**: Command pattern implementation for CLI
-**Features**:
+**Lines**: ~350 **Purpose**: Command pattern implementation for CLI **Features**:
 
 - Command registration and resolution
 - Parameter validation and transformation
@@ -443,7 +418,9 @@ print(api.commit_transaction())```
 
 ## Test Infrastructure
 
-### Test Organization```
+### Test Organization
+
+```
 tests/
 ├── **init**.py              # Test package initialization
 ├── conftest.py              # Shared fixtures and configuration
@@ -453,7 +430,9 @@ tests/
 │   ├── test_services.py    # Business logic testing
 │   └── ...                 # Component-specific tests
 ├── integration/            # Oracle database integration tests
-└── e2e/                    # End-to-end workflow tests```
+└── e2e/                    # End-to-end workflow tests
+```
+
 ### Test Coverage Areas
 
 - **API Testing**: All 36 public methods with success/failure paths
@@ -503,7 +482,8 @@ tests/
 
 - **Pre-commit Hooks**: Documentation and code quality validation
 - **CI/CD Integration**: Automated testing and quality gates
-- **Maintenance Scripts**: `scripts/documentation/audit.py` and `scripts/documentation/validate.py` for documentation
+- **Maintenance Scripts**: `scripts/documentation/audit.py` and
+  `scripts/documentation/validate.py` for documentation
 - **Type Checking**: Pyrefly strict mode enforcement
 
 #### Code Review Standards
@@ -555,9 +535,7 @@ tests/
 - **Memory Usage**: Per-operation memory profiling
 - **Test Performance**: Execution time tracking and optimization
 
-______________________________________________________________________
+---
 
-**C4 Code Diagram - flext-db-oracle v0.9.0**
-**Generated**: 2026-04-14
-**Framework**: C4 Model - Code Level
-````
+**C4 Code Diagram - flext-db-oracle v0.9.0** **Generated**: 2026-04-14 **Framework**: C4
+Model - Code Level

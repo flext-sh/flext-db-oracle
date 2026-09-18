@@ -36,31 +36,31 @@ graph TB
 
         CLI[FlextDbOracleCli<br/>💻 CLI Interface<br/>Command Pattern]
 
-        CLIENT[FlextDbOracleClient<br/>🎭 Client Operations<br/>Rich UI Components<br/>Strategy Pattern]
+        CLIENT[FlextDbOracleClient<br/>🎭 Client Operations<br/>Strategy Pattern]
     end
 
     subgraph "Domain Layer"
-        MODELS[FlextDbOracleModels<br/>📋 Domain Models<br/>OracleConfig, QueryResult<br/>Entity Pattern]
+        MODELS[FlextDbOracleModels<br/>📋 Domain Models<br/>Entity Pattern]
 
-        SERVICES[FlextDbOracleServices<br/>🔧 Business Logic<br/>Query Building & Validation<br/>Service Pattern]
+        SERVICES[FlextDbOracleServices<br/>🔧 Business Logic<br/>Service Pattern]
 
-        EXCEPTIONS[FlextDbOracleExceptions<br/>❌ Domain Exceptions<br/>Error Hierarchy<br/>Exception Pattern]
+        EXCEPTIONS[FlextDbOracleExceptions<br/>❌ Domain Exceptions<br/>Exception Pattern]
     end
 
     subgraph "Infrastructure Layer"
-        CONNECTION[FlextDbOracleConnection<br/>🔗 Connection Management<br/>SQLAlchemy Engine<br/>Pool Pattern]
+        CONNECTION[FlextDbOracleConnection<br/>🔗 Connection Management<br/>Pool Pattern]
 
-        UTILITIES[FlextDbOracleUtilities<br/>🛠️ Helper Functions<br/>Common Operations<br/>Utility Pattern]
+        UTILITIES[FlextDbOracleUtilities<br/>🛠️ Helper Functions<br/>Utility Pattern]
 
-        CONSTANTS[FlextDbOracleConstants<br/>📝 System Constants<br/>Configuration<br/>Constant Pattern]
+        CONSTANTS[FlextDbOracleConstants<br/>📝 System Constants<br/>Constant Pattern]
     end
 
     subgraph "Cross-Cutting Concerns"
-        CONFIG[FlextDbOracleSettings<br/>⚙️ Configuration<br/>Pydantic Settings<br/>Configuration Pattern]
+        CONFIG[FlextDbOracleSettings<br/>⚙️ Configuration<br/>Pydantic Settings]
 
         LOGGER[FlextLogger<br/>📊 Structured Logging<br/>JSON Format<br/>Logging Pattern]
 
-        CONTAINER[FlextContainer<br/>📦 Dependency Injection<br/>Service Locator<br/>Container Pattern]
+        CONTAINER[FlextContainer<br/>📦 Dependency Injection<br/>Container Pattern]
     end
 
     subgraph "External Interfaces"
@@ -150,7 +150,7 @@ graph TB
 
 **Key Interfaces**:
 
-````python
+```python notest
 from __future__ import annotations
 
 from flext_core import p, s, t
@@ -165,13 +165,14 @@ class FlextDbOracleApi(s):
 
     def get_schema_info(self, schema: str) -> p.Result[SchemaInfo]: ...
 
-    def close_connection(self) -> p.Result[bool]: ...```
+    def close_connection(self) -> p.Result[bool]: ...
+```
+
 **Dependencies**: Services, Models, Connection, Exceptions, Logger, Container
 
 #### FlextDbOracleCli (CLI Interface)
 
-**Pattern**: Command Pattern
-**Responsibilities**:
+**Pattern**: Command Pattern **Responsibilities**:
 
 - Command-line interface for REDACTED_LDAP_BIND_PASSWORDistrative operations
 - Command registration and dispatching
@@ -187,22 +188,21 @@ class FlextDbOracleApi(s):
 
 #### FlextDbOracleClient (Client Operations)
 
-**Pattern**: Strategy Pattern
-**Responsibilities**:
+**Pattern**: Strategy Pattern **Responsibilities**:
 
 - Rich terminal UI components
 - Output formatting and display
 - User interaction handling
 - Progress indication and status updates
 
-**Current State**: Placeholder implementations (SimpleNamespace) - Phase 2 enhancement target
+**Current State**: Placeholder implementations (SimpleNamespace) - Phase 2 enhancement
+target
 
 ### Domain Layer Components
 
 #### FlextDbOracleModels (Domain Models)
 
-**Pattern**: Entity Pattern
-**Responsibilities**:
+**Pattern**: Entity Pattern **Responsibilities**:
 
 - Pydantic v2 models for data validation
 - Domain entity definitions (OracleConfig, QueryResult, etc.)
@@ -240,11 +240,12 @@ result = QueryResult(
     rows=[[1, "test"]], columns=["id", "name"], row_count=1, execution_time=0.05
 )
 print(config.service_name)
-print(result.row_count)```
+print(result.row_count)
+```
+
 #### FlextDbOracleServices (Business Logic)
 
-**Pattern**: Service Pattern
-**Responsibilities**:
+**Pattern**: Service Pattern **Responsibilities**:
 
 - Query building and optimization
 - Business rule validation
@@ -260,27 +261,29 @@ print(result.row_count)```
 
 #### FlextDbOracleExceptions (Domain Exceptions)
 
-**Pattern**: Exception Pattern
-**Responsibilities**:
+**Pattern**: Exception Pattern **Responsibilities**:
 
 - Domain-specific error hierarchy
 - Error classification and handling
 - User-friendly error messages
 - Exception chaining and context preservation
 
-**Exception Hierarchy**:```
+**Exception Hierarchy**:
+
+```
 FlextDbOracleException (base)
 ├── ConnectionException
 ├── QueryException
 ├── SchemaException
 ├── ConfigurationException
-└── ValidationException```
+└── ValidationException
+```
+
 ### Infrastructure Layer Components
 
 #### FlextDbOracleConnection (Connection Management)
 
-**Pattern**: Pool Pattern
-**Responsibilities**:
+**Pattern**: Pool Pattern **Responsibilities**:
 
 - SQLAlchemy engine management
 - Connection pool lifecycle
@@ -296,8 +299,7 @@ FlextDbOracleException (base)
 
 #### FlextDbOracleUtilities (Helper Functions)
 
-**Pattern**: Utility Pattern
-**Responsibilities**:
+**Pattern**: Utility Pattern **Responsibilities**:
 
 - Common utility functions
 - Data type conversions
@@ -306,8 +308,7 @@ FlextDbOracleException (base)
 
 #### FlextDbOracleConstants (System Constants)
 
-**Pattern**: Constant Pattern
-**Responsibilities**:
+**Pattern**: Constant Pattern **Responsibilities**:
 
 - System-wide constants and configuration
 - Default values and limits
@@ -318,8 +319,7 @@ FlextDbOracleException (base)
 
 #### FlextDbOracleSettings (Configuration)
 
-**Pattern**: Configuration Pattern
-**Responsibilities**:
+**Pattern**: Configuration Pattern **Responsibilities**:
 
 - Application configuration management
 - Environment variable handling
@@ -328,8 +328,7 @@ FlextDbOracleException (base)
 
 #### FlextLogger (Logging)
 
-**Pattern**: Logging Pattern
-**Responsibilities**:
+**Pattern**: Logging Pattern **Responsibilities**:
 
 - Structured JSON logging
 - Configurable log levels
@@ -338,8 +337,7 @@ FlextDbOracleException (base)
 
 #### FlextContainer (Dependency Injection)
 
-**Pattern**: Container Pattern
-**Responsibilities**:
+**Pattern**: Container Pattern **Responsibilities**:
 
 - Service registration and resolution
 - Dependency injection management
@@ -367,7 +365,9 @@ sequenceDiagram
     Oracle-->>Connection: result set
     Connection-->>API: QueryResult
     API->>Models: validate_result(result)
-    API-->>Client: p.Result[QueryResult]```
+    API-->>Client: p.Result[QueryResult]
+```
+
 ### Error Handling Flow
 
 ```mermaid
@@ -383,7 +383,9 @@ sequenceDiagram
     Exceptions->>Logger: log_error(context)
     Services-->>API: r.fail(exception)
     API->>Logger: log_operation_failure()
-    API-->>Client: r.failure```
+    API-->>Client: r.failure
+```
+
 ### Connection Management Flow
 
 ```mermaid
@@ -405,7 +407,9 @@ stateDiagram-v2
     Reconnecting --> ConnectionFailed: reconnection failed
 
     Connected --> ShuttingDown: application shutdown
-    ShuttingDown --> [*]: cleanup complete```
+    ShuttingDown --> [*]: cleanup complete
+```
+
 ## Component Quality Attributes
 
 ### Reliability
@@ -452,9 +456,7 @@ stateDiagram-v2
 - **Monitoring Components**: Advanced observability and metrics
 - **Plugin Components**: Extensible architecture for custom operations
 
-______________________________________________________________________
+---
 
-**C4 Component Diagram - flext-db-oracle v0.9.0**
-**Generated**: 2026-04-14
+**C4 Component Diagram - flext-db-oracle v0.9.0** **Generated**: 2026-04-14
 **Framework**: C4 Model - Component Level
-````

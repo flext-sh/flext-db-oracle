@@ -224,7 +224,7 @@ Presentation Layer → Application Layer → Domain Layer ← Infrastructure Lay
 
 #### Error Handling Flow
 
-````python
+```python notest
 # Railway Pattern Implementation
 from __future__ import annotations
 
@@ -261,7 +261,9 @@ result = (
     .map_error(lambda exc: log_and_enrich_error(exc))
 )
 
-print(result)```
+print(result)
+```
+
 ### Type Safety Mandate
 
 #### Strict Type Checking
@@ -378,13 +380,17 @@ print(result)```
 
 ### Architecture Terms
 
-**Clean Architecture**: Software architecture pattern that separates concerns into layers with strict dependency rules.
+**Clean Architecture**: Software architecture pattern that separates concerns into
+layers with strict dependency rules.
 
-**Railway Pattern**: Functional programming pattern for error handling using Result types instead of exceptions.
+**Railway Pattern**: Functional programming pattern for error handling using Result
+types instead of exceptions.
 
-**Domain-Driven Design (DDD)**: Software development approach focused on modeling business domains.
+**Domain-Driven Design (DDD)**: Software development approach focused on modeling
+business domains.
 
-**r[T]**: FLEXT ecosystem's implementation of Railway Pattern for type-safe error handling.
+**r[T]**: FLEXT ecosystem's implementation of Railway Pattern for type-safe error
+handling.
 
 ### Oracle Database Terms
 
@@ -392,7 +398,8 @@ print(result)```
 
 **SQL\*Net**: Oracle's networking protocol for database connectivity.
 
-**Connection Pool**: Cache of database connections for improved performance and resource management.
+**Connection Pool**: Cache of database connections for improved performance and resource
+management.
 
 **PL/SQL**: Oracle's procedural extension to SQL for stored procedures and functions.
 
@@ -406,9 +413,7 @@ print(result)```
 
 **FlextLogger**: Structured logging implementation with JSON formatting.
 
-______________________________________________________________________
+---
 
-**Arc42 Section 1: Introduction and Goals**
-**flext-db-oracle v0.9.0**
-**Generated**: 2026-04-14
-````
+**Arc42 Section 1: Introduction and Goals** **flext-db-oracle v0.9.0** **Generated**:
+2026-04-14

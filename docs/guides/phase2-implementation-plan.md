@@ -194,7 +194,7 @@ self._formatters = SimpleNamespace(
 
 #### Target Functional Implementation
 
-````python
+````python notest
 from __future__ import annotations
 
 # Planned Rich integration
@@ -225,7 +225,8 @@ class FlextCliFormatters:
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
             console=self.console,
-        )```
+        )
+        ```
 ### CLI Command Structure
 
 #### Current Implementation

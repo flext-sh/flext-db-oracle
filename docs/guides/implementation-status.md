@@ -214,7 +214,7 @@ Production-quality testing environment
 
 #### 1. **Railway Pattern Throughout**
 
-````python
+````python notest
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 settings = FlextDbOracleSettings(
@@ -233,7 +233,8 @@ result = api.connect()
 if result.success:
     connection = result.unwrap()
 else:
-    print(f"Guarded: {result.error}")```
+    print(f"Guarded: {result.error}")
+    ```
 #### 2. **Single Responsibility Modules**
 
 - `api.py`: ONLY SQLAlchemy imports

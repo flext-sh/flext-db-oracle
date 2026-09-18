@@ -137,7 +137,7 @@ Basic functionality tests failing **Files Affected**: `tests/unit/test_constants
 
 #### Test r Operations
 
-````python
+``` python notest
 from __future__ import annotations
 
 
@@ -153,7 +153,8 @@ def test_flext_result_error_path(flext_db_oracle_api):
     """Test failed operation returns r.fail()."""
     result = flext_db_oracle_api.connect(invalid_config)
     assert result.failure
-    assert "connection failed" in result.error.lower()```
+    assert "connection failed" in result.error.lower()
+    ```
 ### 2. Fixture-Based Testing
 
 #### Comprehensive Test Fixtures
@@ -182,7 +183,8 @@ def mock_oracle_connection():
 @pytest.fixture
 def flext_db_oracle_api(oracle_config):
     """Provides fully configured API instance."""
-    return FlextDbOracleApi(oracle_config)```
+    return FlextDbOracleApi(oracle_config)
+    ```
 ### 3. Parametrized Testing
 
 #### Test Multiple Scenarios
@@ -205,7 +207,8 @@ import pytest
 def test_sql_query_validation(flext_db_oracle_api, sql_query, expected_result):
     """Test SQL query validation with multiple scenarios."""
     result = flext_db_oracle_api.validate_query(sql_query)
-    assert result.success == expected_result```
+    assert result.success == expected_result
+    ```
 ### 4. Mock Strategy
 
 #### Minimal Mocking Approach
@@ -228,18 +231,21 @@ def test_connection_timeout(mock_oracle_connection):
     """Test timeout handling with controlled mock."""
     mock_oracle_connection.execute.side_effect = TimeoutError()
     with pytest.raises(TimeoutError):
-        execute_with_timeout(mock_oracle_connection)```
+        execute_with_timeout(mock_oracle_connection)
+        ```
 ______________________________________________________________________
 
 ## 📊 Current Test Results & Issues
 
 ### Test Execution Status
 
-#### Recent Test Run (2026-04-14)```
+#### Recent Test Run (2026-04-14)
+```
 ✅ Tests collected and executed successfully
 ✅ Core unit suites passed
 ✅ Integration suites (Oracle container) passed
-⚠️ Remaining work: expand CLI formatter scenarios and edge-case coverage```
+⚠️ Remaining work: expand CLI formatter scenarios and edge-case coverage
+```
 ### CI/CD Integration
 
 #### Automated Testing Pipeline
@@ -250,7 +256,8 @@ ______________________________________________________________________
     make setup
     make oracle-start
     make test
-    make oracle-stop```
+    make oracle-stop
+    ```
 ______________________________________________________________________
 
 ## 🎯 Testing Roadmap

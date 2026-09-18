@@ -17,7 +17,7 @@ FLEXT ecosystem integration patterns for flext-db-oracle.
 
 ## FLEXT Core Integration
 
-````python
+``` python
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, u
 
 settings = FlextDbOracleSettings.model_validate({
@@ -40,7 +40,8 @@ else:
 
 # FlextLogger usage
 logger = u.fetch_logger(__name__)
-logger.info("Oracle operation completed")```
+logger.info("Oracle operation completed")
+```
 ## Singer Ecosystem
 
 Foundation for Singer taps and targets:
@@ -74,7 +75,8 @@ settings = FlextDbOracleSettings.model_validate({
     }
 })
 cli = FlextDbOracleServices(settings)
-result = cli.health_check()```
+result = cli.health_check()
+```
 ## Connection Patterns
 
 ```python
@@ -93,7 +95,8 @@ settings = FlextDbOracleSettings.model_validate({
         "password": "Oracle123",
     }
 })
-api = FlextDbOracleApi(settings)```
+api = FlextDbOracleApi(settings)
+```
 ## Available Operations
 
 - Schema introspection (get_schemas, get_tables, get_columns)

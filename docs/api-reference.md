@@ -20,11 +20,14 @@ Oracle Database integration API for FLEXT ecosystem - version 0.9.9.
 
 ## Core Imports
 
-````python
-from __future__ import annotations```
+```python
+from __future__ import annotations
+```
+
 ## FlextDbOracleApi
 
-Oracle database interface providing 36 methods for connection management, query execution, and schema operations using FLEXT patterns.
+Oracle database interface providing 36 methods for connection management, query
+execution, and schema operations using FLEXT patterns.
 
 ### Connection Methods
 
@@ -49,7 +52,9 @@ result = api.test_connection()
 print(f"test_connection: {result.success}")
 
 # Check connection status returns bool
-print(f"connected: {api.connected()}")```
+print(f"connected: {api.connected()}")
+```
+
 ### Query Methods
 
 ```python
@@ -82,7 +87,9 @@ result = api.execute_sql(sql, parameters=parameters)
 # Execute multiple statements
 result = api.execute_many(sql, params_list)
 
-print(result)```
+print(result)
+```
+
 ### Schema Methods
 
 ```python
@@ -113,7 +120,9 @@ result = api.fetch_columns(table_name="DUAL", schema_name=None)
 # Get table metadata
 result = api.fetch_table_metadata(table_name="DUAL", schema=None)
 
-print(result)```
+print(result)
+```
+
 ### Configuration Methods
 
 ```python
@@ -128,7 +137,9 @@ result = FlextDbOracleApi.from_env()
 result = FlextDbOracleApi.from_url("oracle://user:pass@host:1521/service")
 
 # Get current settings
-settings = FlextDbOracleApi.settings```
+settings = FlextDbOracleApi.settings
+```
+
 ## OracleConfig
 
 Configuration for Oracle database connections.
@@ -146,7 +157,9 @@ settings = FlextDbOracleSettings(
     password="Oracle123",
 )
 
-print(settings.DbOracle.host)```
+print(settings.DbOracle.host)
+```
+
 ## CLI Interface
 
 Command-line interface with SimpleNamespace placeholders.
@@ -158,7 +171,9 @@ from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 settings = FlextDbOracleSettings(host="localhost", port=1521, service_name="XEPDB1")
 api = FlextDbOracleApi(settings)
-result = api.fetch_health_status()```
+result = api.fetch_health_status()
+```
+
 ## Error Handling
 
 All methods return r for type-safe error handling.
@@ -174,7 +189,9 @@ result = api.query("SELECT 1 FROM DUAL")
 if result.success:
     data = result.value
 else:
-    error = result.error```
+    error = result.error
+```
+
 ## Limitations
 
 - No methods (0 /keywords found)
@@ -182,7 +199,7 @@ else:
 - CLI uses SimpleNamespace placeholders (client.py:60-67)
 - Only SQLAlchemy abstraction (no direct Python-oracledb)
 
-______________________________________________________________________
+---
 
 Updated: April 14, 2026 | Version: 0.12.0-dev
 
@@ -196,12 +213,14 @@ Updated: April 14, 2026 | Version: 0.12.0-dev
 
 **Across Projects**:
 
-- [flext-core Foundation](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/docs/api-reference/foundation.md) - Core APIs and patterns
-- [flext-core Railway-Oriented Programming](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/docs/guides/railway-oriented-programming.md) - r patterns
-- [flext-oracle-oic Integration](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-oracle-oic/AGENTS.md) - Oracle Integration Cloud patterns
+- [flext-core Foundation](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/docs/api-reference/foundation.md) -
+  Core APIs and patterns
+- [flext-core Railway-Oriented Programming](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/docs/guides/railway-oriented-programming.md) -
+  r patterns
+- [flext-oracle-oic Integration](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-oracle-oic/AGENTS.md) -
+  Oracle Integration Cloud patterns
 
 **External Resources**:
 
 - [PEP 257 - Docstring Conventions](https://peps.python.org/pep-0257/)
 - [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)
-````

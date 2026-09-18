@@ -58,7 +58,7 @@ Implement Railway Pattern error handling throughout flext-db-oracle using r\[T\]
 
 **Core Pattern:**
 
-````python
+```python notest
 from __future__ import annotations
 
 
@@ -70,7 +70,9 @@ def enterprise_operation(settings: Config) -> p.Result[Result]:
         .flat_map(lambda conn: execute_query(conn, sql))
         .map(lambda result: transform_result(result))
         .map_error(lambda error: log_and_enrich_error(error))
-    )```
+    )
+```
+
 **Key Implementation Details:**
 
 - **r[T]**: Railway pattern implementation from flext-core
@@ -81,7 +83,8 @@ def enterprise_operation(settings: Config) -> p.Result[Result]:
 
 ## Rationale
 
-Railway Pattern with r[T] provides the most robust, type-safe, and composable error handling for enterprise database operations.
+Railway Pattern with r[T] provides the most robust, type-safe, and composable error
+handling for enterprise database operations.
 
 ### Benefits Achieved
 
@@ -133,38 +136,38 @@ Railway Pattern with r[T] provides the most robust, type-safe, and composable er
 
 ### Option 1: Traditional Exception Handling
 
-**Description**: Use try/catch blocks and raise exceptions for errors
-**Pros**: Familiar pattern; Python standard; detailed stack traces
-**Cons**: Complex in enterprise apps; can crash systems; hard to compose; poor async support
-**Decision**: Rejected - Not suitable for enterprise applications with complex error flows
+**Description**: Use try/catch blocks and raise exceptions for errors **Pros**: Familiar
+pattern; Python standard; detailed stack traces **Cons**: Complex in enterprise apps;
+can crash systems; hard to compose; poor async support **Decision**: Rejected - Not
+suitable for enterprise applications with complex error flows
 
 ### Option 2: Result Pattern with Custom Classes
 
-**Description**: Create custom Result/Ok/Error classes instead of using r
-**Pros**: Full control over implementation; tailored to specific needs
-**Cons**: Reinventing existing FLEXT patterns; ecosystem inconsistency; maintenance burden
-**Decision**: Rejected - FLEXT already has proven r implementation
+**Description**: Create custom Result/Ok/Error classes instead of using r **Pros**: Full
+control over implementation; tailored to specific needs **Cons**: Reinventing existing
+FLEXT patterns; ecosystem inconsistency; maintenance burden **Decision**: Rejected -
+FLEXT already has proven r implementation
 
 ### Option 3: Optional Pattern with None Checks
 
-**Description**: Return Optional types and use None checks for errors
-**Pros**: Simple implementation; type-safe for success cases
-**Cons**: No error context; None can mean different things; not composable
-**Decision**: Rejected - Insufficient error context and composability
+**Description**: Return Optional types and use None checks for errors **Pros**: Simple
+implementation; type-safe for success cases **Cons**: No error context; None can mean
+different things; not composable **Decision**: Rejected - Insufficient error context and
+composability
 
 ### Option 4: Error Monad Pattern
 
-**Description**: Implement full monadic error handling with bind operations
-**Pros**: Pure functional approach; excellent composability; mathematical correctness
-**Cons**: Complex implementation; steep learning curve; potential performance overhead
+**Description**: Implement full monadic error handling with bind operations **Pros**:
+Pure functional approach; excellent composability; mathematical correctness **Cons**:
+Complex implementation; steep learning curve; potential performance overhead
 **Decision**: Considered but not selected - r provides similar benefits with simpler API
 
 ### Option 5: Callback-Based Error Handling
 
-**Description**: Use callbacks/side effects for error handling
-**Pros**: Flexible error handling; can trigger multiple actions
-**Cons**: Complex control flow; hard to test; side effects make reasoning difficult
-**Decision**: Rejected - Too complex and error-prone for enterprise applications
+**Description**: Use callbacks/side effects for error handling **Pros**: Flexible error
+handling; can trigger multiple actions **Cons**: Complex control flow; hard to test;
+side effects make reasoning difficult **Decision**: Rejected - Too complex and
+error-prone for enterprise applications
 
 ## Consequences
 
@@ -296,4 +299,3 @@ Railway Pattern with r[T] provides the most robust, type-safe, and composable er
 - ADR-001: Clean Architecture Adoption
 - ADR-002: SQLAlchemy Abstraction Strategy
 - ADR-004: Testing Infrastructure Design
-````

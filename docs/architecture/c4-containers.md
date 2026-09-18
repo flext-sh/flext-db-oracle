@@ -52,13 +52,13 @@ graph TB
     end
 
     subgraph "flext-db-oracle Library"
-        API_CONTAINER[flext-db-oracle<br/>🐍 Python Library<br/>Database Operations API<br/>Port: N/A (Library)]
+        API_CONTAINER[flext-db-oracle<br/>🐍 Python Library<br/>Database Operations API]
 
         subgraph "Core Components"
             API[FlextDbOracleApi<br/>🎯 Main API<br/>Orchestration Layer]
             SERVICES[FlextDbOracleServices<br/>🔧 Business Logic<br/>Query Building & Execution]
             MODELS[FlextDbOracleModels<br/>📋 Domain Models<br/>Pydantic v2 Models]
-            CONNECTION[FlextDbOracleConnection<br/>🔗 Connection Management<br/>SQLAlchemy Pool]
+            CONNECTION[FlextDbOracleConnection<br/>🔗 Connections<br/>SQLAlchemy Pool]
         end
 
         subgraph "Interface Components"

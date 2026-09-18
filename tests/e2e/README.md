@@ -308,7 +308,9 @@ def test_high_volume_operations():
         # In production, use SQLAlchemy 2.0 Core API instead of string concatenation
         concurrent_queries = []
         for i in range(10):
-            query = f"SELECT * FROM customers WHERE id BETWEEN {i * 100} AND {(i + 1) * 100}"
+            query = (
+                f"SELECT * FROM customers WHERE id BETWEEN {i * 100} AND {(i + 1) * 100}"
+            )
             concurrent_queries.append(query)
 
         # Execute queries concurrently and measure performance

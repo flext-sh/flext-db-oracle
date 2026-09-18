@@ -44,7 +44,7 @@ make setup
 
 ## Quick Connection Test
 
-````python
+```python
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 # Configure Oracle connection
@@ -66,7 +66,9 @@ connection_result = api.test_connection()
 if connection_result.success:
     print("✅ Connected to Oracle successfully")
 else:
-    print(f"❌ Connection failed: {connection_result.error}")```
+    print(f"❌ Connection failed: {connection_result.error}")
+```
+
 ## Basic Operations
 
 ### Query Execution
@@ -94,7 +96,9 @@ if result.success:
     tables = result.unwrap()
     print(f"Found {len(tables)} tables")
     for table in tables:
-        print(f"  - {table.root.get('table_name')}")```
+        print(f"  - {table.root.get('table_name')}")
+```
+
 ### Schema Operations
 
 ```python
@@ -121,7 +125,9 @@ if schemas_result.success:
 tables_result = api.fetch_tables("SYSTEM")
 if tables_result.success:
     tables = tables_result.unwrap()
-    print(f"SYSTEM schema has {len(tables)} tables")```
+    print(f"SYSTEM schema has {len(tables)} tables")
+```
+
 ## Oracle XE Development Container
 
 For local development, use Oracle XE 21c container:
@@ -134,7 +140,9 @@ docker-compose -f docker-compose.oracle.yml up -d
 docker-compose -f docker-compose.oracle.yml logs -f oracle-xe
 
 # Test connectivity once ready
-make oracle-connect```
+make oracle-connect
+```
+
 **Connection Details**:
 
 - Host: localhost
@@ -152,7 +160,9 @@ export FLEXT_TARGET_ORACLE_HOST="localhost"
 export FLEXT_TARGET_ORACLE_PORT="1521"
 export FLEXT_TARGET_ORACLE_SERVICE_NAME="XEPDB1"
 export FLEXT_TARGET_ORACLE_USERNAME="system"
-export FLEXT_TARGET_ORACLE_PASSWORD="Oracle123"```
+export FLEXT_TARGET_ORACLE_PASSWORD="Oracle123"
+```
+
 ### Configuration from Environment
 
 ```python
@@ -162,7 +172,9 @@ from flext_db_oracle import FlextDbOracleApi
 api_result = FlextDbOracleApi.from_env()
 if api_result.success:
     api = api_result.unwrap()
-    print("API configured from environment")```
+    print("API configured from environment")
+```
+
 ## CLI Interface
 
 ```bash
@@ -175,7 +187,9 @@ python -m flext_db_oracle.cli schemas
 # Execute SQL query
 python -m flext_db_oracle.cli query "SELECT COUNT(*) FROM dual"
 
-# Note: CLI formatters currently use SimpleNamespace placeholders```
+# Note: CLI formatters currently use SimpleNamespace placeholders
+```
+
 ## Current Capabilities
 
 **Working Features**:
@@ -207,10 +221,10 @@ python -m flext_db_oracle.cli query "SELECT COUNT(*) FROM dual"
 - **Issues**: [GitHub Issues](https://github.com/flext-sh/flext/issues)
 - **Troubleshooting**: See troubleshooting.md
 
-______________________________________________________________________
+---
 
-**Version**: 0.12.0-dev | **Updated**: April 14, 2026
-**Part of**: FLEXT Ecosystem - Oracle Database Integration Foundation
+**Version**: 0.12.0-dev | **Updated**: April 14, 2026 **Part of**: FLEXT Ecosystem -
+Oracle Database Integration Foundation
 
 ## Related Documentation
 
@@ -222,12 +236,14 @@ ______________________________________________________________________
 
 **Across Projects**:
 
-- [flext-core Foundation](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/docs/architecture/overview.md) - Clean architecture and CQRS patterns
-- [flext-core Service Patterns](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/docs/guides/service-patterns.md) - Service patterns and dependency injection
-- [flext-oracle-oic Integration](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-oracle-oic/AGENTS.md) - Oracle Integration Cloud patterns
+- [flext-core Foundation](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/docs/architecture/overview.md) -
+  Clean architecture and CQRS patterns
+- [flext-core Service Patterns](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/docs/guides/service-patterns.md) -
+  Service patterns and dependency injection
+- [flext-oracle-oic Integration](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-oracle-oic/AGENTS.md) -
+  Oracle Integration Cloud patterns
 
 **External Resources**:
 
 - [PEP 257 - Docstring Conventions](https://peps.python.org/pep-0257/)
 - [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)
-````

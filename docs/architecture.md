@@ -139,7 +139,7 @@ graph TB
 
 All operations use r for railway-oriented programming:
 
-````python
+```python
 from __future__ import annotations
 
 from flext_core import p, r
@@ -162,7 +162,9 @@ class QueryService:
         if query_result.failure:
             return r[str].fail(query_result.error)
 
-        return r[str].ok(query_result.value)```
+        return r[str].ok(query_result.value)
+```
+
 ### Exception Hierarchy
 
 ```text
@@ -170,7 +172,9 @@ FlextDbOracleException (base)
 ├── ConnectionException
 ├── QueryException
 ├── SchemaException
-└── ConfigurationException```
+└── ConfigurationException
+```
+
 ## Technology Stack
 
 ### Current Implementation
@@ -222,7 +226,9 @@ engine = create_engine(
     pool_recycle=3600,
     echo=False,  # Production setting
 )
-print(engine.name)```
+print(engine.name)
+```
+
 ### Pool Configuration
 
 **Production Settings**:
@@ -252,7 +258,9 @@ class OraclePlugin(ABC):
 
     @abstractmethod
     def monitor_performance(self, metrics: dict[str, float]) -> p.Result[bool]:
-        """Monitor query performance."""```
+        """Monitor query performance."""
+```
+
 **Current Plugin Support**:
 
 - Query validation plugins
@@ -315,11 +323,10 @@ class OraclePlugin(ABC):
 - Statement pipelining for performance
 - Enhanced DRCP multi-pool configuration
 
-______________________________________________________________________
+---
 
-**Version**: 0.12.0-dev | **Updated**: April 14, 2026
-**Pattern**: Clean Architecture + Domain-Driven Design
-**Integration**: FLEXT Ecosystem Foundation
+**Version**: 0.12.0-dev | **Updated**: April 14, 2026 **Pattern**: Clean Architecture +
+Domain-Driven Design **Integration**: FLEXT Ecosystem Foundation
 
 ## Related Documentation
 
@@ -331,12 +338,14 @@ ______________________________________________________________________
 
 **Across Projects**:
 
-- [flext-core Foundation](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/docs/architecture/overview.md) - Clean architecture and CQRS patterns
-- [flext-core Service Patterns](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/docs/guides/service-patterns.md) - Service patterns and dependency injection
-- [flext-oracle-oic Integration](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-oracle-oic/AGENTS.md) - Oracle Integration Cloud patterns
+- [flext-core Foundation](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/docs/architecture/overview.md) -
+  Clean architecture and CQRS patterns
+- [flext-core Service Patterns](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/docs/guides/service-patterns.md) -
+  Service patterns and dependency injection
+- [flext-oracle-oic Integration](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-oracle-oic/AGENTS.md) -
+  Oracle Integration Cloud patterns
 
 **External Resources**:
 
 - [PEP 257 - Docstring Conventions](https://peps.python.org/pep-0257/)
 - [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)
-````
