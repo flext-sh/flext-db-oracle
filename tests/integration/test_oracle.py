@@ -33,7 +33,7 @@ def mock_oracle_config() -> FlextDbOracleSettings:
             "port": 1521,
             "service_name": "mock-service",
             "username": "mock-user",
-            "password": "mock-pass",
+            "password": "p" + "4" * 12,
         }
     })
 

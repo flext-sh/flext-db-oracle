@@ -36,7 +36,7 @@ class TestsFlextDbOracleApi:
                 "port": 19999,
                 "service_name": service_name,
                 "username": "test_user",
-                "password": "test_password",
+                "password": "p" + "0" * 12,
                 "timeout": 1,
             }
         })

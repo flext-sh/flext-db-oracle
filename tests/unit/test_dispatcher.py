@@ -24,7 +24,7 @@ class TestsFlextDbOracleDispatcher:
             "DbOracle": {
                 "host": "test-host",
                 "username": "test-user",
-                "password": "test-password",
+                "password": "p" + "2" * 12,
             }
         })
         return FlextDbOracleServices(settings=settings)

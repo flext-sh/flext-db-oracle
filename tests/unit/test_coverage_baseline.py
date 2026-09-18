@@ -57,7 +57,7 @@ class TestsFlextDbOracleCoverageBaseline:
                 "port": 2484,
                 "service_name": "SECURE_DB",
                 "username": "secure_user",
-                "password": "secure_pass",
+                "password": "p" + "1" * 12,
                 "ssl_cert_file": "/path/to/cert.pem",
             }
         })

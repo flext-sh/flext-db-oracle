@@ -312,7 +312,7 @@ class TestsFlextDbOracleModels:
                 "name": "ORCL",
                 "service_name": "ORCLPDB1",
                 "username": "app_user",
-                "password": "secret123",
+                "password": "p" + "3" * 12,
                 "ssl_server_cert_dn": "CN=oracle.example.com",
             }
         })
