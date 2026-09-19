@@ -25,7 +25,7 @@ class FlextDbOracleSettings(FlextCliSettings):
         env_prefix="ORACLE_", env_nested_delimiter="__", extra="forbid"
     )
 
-    class DbOracleSettings(m.BaseModel):
+    class DbOracleSettings(m.ArbitraryTypesModel):
         """Namespaced Oracle connection + pool settings (scalars only)."""
 
         host: Annotated[
