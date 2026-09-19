@@ -27,7 +27,7 @@ from sqlalchemy.exc import (
 )
 
 from flext_core import FlextConstants as c
-from flext_db_oracle._constants.exceptions import FlextDbOracleConstantsExceptions
+from ._constants.exceptions import FlextDbOracleConstantsExceptions
 
 if TYPE_CHECKING:
     from flext_db_oracle import t
