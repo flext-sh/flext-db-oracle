@@ -12,8 +12,7 @@ if TYPE_CHECKING:
     from .base import FlextDbOracleConstantsBase
     from .exceptions import FlextDbOracleConstantsExceptions
 __all__: tuple[str, ...] = (
-    "FlextDbOracleConstantsBase",
-    "FlextDbOracleConstantsExceptions",
+    "FlextDbOracleConstantsBase", "FlextDbOracleConstantsExceptions",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
