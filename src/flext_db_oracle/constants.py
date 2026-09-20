@@ -28,6 +28,8 @@ from sqlalchemy.exc import (
 
 from flext_core import FlextConstants as c
 
+from ._constants.exceptions import FlextDbOracleConstantsExceptions
+
 if TYPE_CHECKING:
     from flext_db_oracle import t
 
@@ -48,9 +50,7 @@ class FlextDbOracleConstants(c):
         """Oracle domain constants namespace with flat SSOT members."""
 
         EXC_DB_CONNECT: Final[tuple[type[Exception], ...]] = (
-            ConnectionError,
-            _OracleDatabaseError,
-            _OracleInterfaceError,
+            FlextDbOracleConstantsExceptions.DbOracle.EXC_DB_CONNECT
         )
         """Oracle DB connection boundary catch (oracledb library errors)."""
 
