@@ -108,17 +108,17 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
     def _build_api_result(cls, settings: FlextDbOracleSettings) -> p.Result[Self]:
         """Create API instance from validated settings."""
         if not settings.DbOracle.username:
-            username_fail: p.Result[Self] = r.fail(
+            username_fail: p.Result[Self] = r[Self].fail(
                 "Oracle username is required but not configured"
             )
             return username_fail
         password = settings.DbOracle.password
         if not password:
-            password_fail: p.Result[Self] = r.fail(
+            password_fail: p.Result[Self] = r[Self].fail(
                 "Oracle password is required but not configured"
             )
             return password_fail
-        ok_result: p.Result[Self] = r.ok(cls(settings=settings))
+        ok_result: p.Result[Self] = r[Self].ok(cls(settings=settings))
         return ok_result
 
     @staticmethod
