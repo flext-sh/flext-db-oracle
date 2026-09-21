@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from flext_cli import FlextCliConfig, m
 
+from flext_core import FlextSettings
+
 
 class _DbOracleNamespace(m.BaseModel):
     """Open, frozen namespace exposing every ``config/*.yaml`` domain model-less."""
@@ -19,8 +21,14 @@ class _DbOracleNamespace(m.BaseModel):
     model_config = m.ConfigDict(extra="allow", frozen=True)
 
 
-class FlextDbOracleConfig(FlextCliConfig):
-    """DbOracle config auto-loaded model-less from ``config/*.yaml``."""
+class FlextDbOracleConfig(FlextSettings, FlextCliConfig):
+    """DbOracle config auto-loaded model-less from ``config/*.yaml``.
+
+    MRO carries ``FlextSettings`` FIRST (ENFORCE-042); unlike never-instantiated
+    namespace holders, this class IS instantiated by ``fetch_global``, so the
+    instance-inert holder contract does not apply and pydantic settings
+    construction machinery stays intact.
+    """
 
     DbOracle: _DbOracleNamespace = _DbOracleNamespace()
 
