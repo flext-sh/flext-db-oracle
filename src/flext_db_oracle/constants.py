@@ -46,13 +46,13 @@ class FlextDbOracleConstants(c):
     ```
     """
 
-    class DbOracle:
-        """Oracle domain constants namespace with flat SSOT members."""
+    class DbOracle(FlextDbOracleConstantsExceptions.DbOracle):
+        """Oracle domain constants namespace with flat SSOT members.
 
-        EXC_DB_CONNECT: Final[tuple[type[Exception], ...]] = (
-            FlextDbOracleConstantsExceptions.DbOracle.EXC_DB_CONNECT
-        )
-        """Oracle DB connection boundary catch (oracledb library errors)."""
+        Exception-catch tuples (``EXC_DB_CONNECT``, ``EXC_DB_BROAD``) are owned
+        by ``flext_db_oracle._constants`` and inherited through this facade
+        subclass.
+        """
 
         EXC_DB_BROAD: Final[tuple[type[Exception], ...]] = (
             ConnectionError,
