@@ -12,7 +12,8 @@ if TYPE_CHECKING:
     from .base import FlextDbOracleUtilitiesBase
     from .db_oracle import FlextDbOracleUtilitiesDbOracle
 __all__: tuple[str, ...] = (
-    "FlextDbOracleUtilitiesBase", "FlextDbOracleUtilitiesDbOracle",
+    "FlextDbOracleUtilitiesBase",
+    "FlextDbOracleUtilitiesDbOracle",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
