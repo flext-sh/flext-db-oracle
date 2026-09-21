@@ -71,7 +71,7 @@ This causes limited CLI functionality.
 Install dependencies:
 
 ```bash
-poetry install
+make setup
 ```
 
 ### "ImportError: r"
@@ -79,10 +79,7 @@ poetry install
 Ensure flext-core is installed:
 
 ```bash
-cd ../flext-core
-poetry install
-cd ../flext-db-oracle
-poetry install
+make setup
 ```
 
 ## Performance Issues

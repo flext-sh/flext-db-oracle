@@ -14,12 +14,12 @@
   - [Test Infrastructure](#test-infrastructure)
   - [Test Environment Setup](#test-environment-setup)
 - [Lessons Learned & Best Practices](#lessons-learned-best-practices)
-  - [1. **FLEXT-Core Integration Success**](#1-flext-core-integration-success)
-  - [2. **SQLAlchemy Abstraction Excellence**](#2-sqlalchemy-abstraction-excellence)
-  - [3. **Testing Infrastructure Maturity**](#3-testing-infrastructure-maturity)
-  - [4. **Type Safety Achievement**](#4-type-safety-achievement)
-  - [5. **Clean Architecture Validation**](#5-clean-architecture-validation)
-  - [6. **CLI Architecture Evolution**](#6-cli-architecture-evolution)
+  - [1. FLEXT-Core Integration Success](#1-flext-core-integration-success)
+  - [2. SQLAlchemy Abstraction Excellence](#2-sqlalchemy-abstraction-excellence)
+  - [3. Testing Infrastructure Maturity](#3-testing-infrastructure-maturity)
+  - [4. Type Safety Achievement](#4-type-safety-achievement)
+  - [5. Clean Architecture Validation](#5-clean-architecture-validation)
+  - [6. CLI Architecture Evolution](#6-cli-architecture-evolution)
 - [Development Workflow](#development-workflow)
   - [Daily Development Cycle](#daily-development-cycle)
   - [Code Quality Standards](#code-quality-standards)
@@ -36,7 +36,7 @@ Development workflow and guidelines for flext-db-oracle.
 
 ```bash
 cd flext/flext-db-oracle
-poetry install
+make setup
 ```
 
 ## Quality Commands
@@ -52,7 +52,7 @@ make type-check
 make test
 
 # All checks
-make val
+make check
 ```
 
 ## Implementation Status
@@ -164,7 +164,7 @@ make test # 100% coverage required
 
 ```bash
 # Install test dependencies
-poetry install --with test
+make setup
 
 # Run full test suite
 make test
@@ -345,7 +345,8 @@ make oracle-operations # Test database operations
 make oracle-stop       # Clean up
 
 # Commit with clean quality gates
-make val # Final validation (lint + type + security + test)
+make check # Validate lint and type gates
+make test  # Validate runtime behavior
 git commit -m "feat: description of changes"
 ```
 
@@ -377,7 +378,7 @@ git commit -m "feat: description of changes"
 
 ```bash
 # Always use PYTHONPATH for proper imports
-PYTHONPATH=src poetry run python -c "from flext_db_oracle import FlextDbOracleApi"
+PYTHONPATH=src python -c "from flext_db_oracle import FlextDbOracleApi"
 ```
 
 #### Type Checking Issues
@@ -387,17 +388,17 @@ PYTHONPATH=src poetry run python -c "from flext_db_oracle import FlextDbOracleAp
 make type-check
 
 # Focus on specific modules
-PYTHONPATH=src poetry run pyrefly check src/flext_db_oracle/api.py
+PYTHONPATH=src pyrefly check src/flext_db_oracle/api.py
 ```
 
 #### Test Failures
 
 ```bash
-# Run failing tests with verbose output
-PYTHONPATH=src poetry run pytest tests/unit/test_api.py -vv
+# Run the canonical test suite
+make test
 
-# Run last failed tests
-PYTHONPATH=src poetry run pytest --lf
+# Revalidate after repairing failures
+make test
 ```
 
 #### Oracle Connection Issues
@@ -407,7 +408,7 @@ PYTHONPATH=src poetry run pytest --lf
 make oracle-connect
 
 # Check configuration
-PYTHONPATH=src poetry run python -c "
+PYTHONPATH=src python -c "
 from flext_db_oracle import FlextDbOracleSettings
 settings = FlextDbOracleSettings()
 print(f'Host: {settings.oracle_host}:{settings.oracle_port}')
@@ -493,8 +494,8 @@ PYTHONPATH=src python -c "from flext_db_oracle import FlextDbOracleConstants; pr
 **Issue**: `collected 11 items / 1 error` - Major test files not loading
 
 ```bash
-# Run specific working tests first
-PYTHONPATH=src poetry run pytest tests/unit/test_constants.py -v
+# Run the canonical test suite
+make test
 
 # Debug import issues
 PYTHONPATH=src python -c "import tests.unit.test_api" 2>&1
