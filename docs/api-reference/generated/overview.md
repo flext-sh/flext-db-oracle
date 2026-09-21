@@ -12,19 +12,20 @@
 - Version: `0.12.0`
 - Description: FLEXT DB Oracle - Enterprise Oracle Database Operations Library
 - Doc summary: Flext Db Oracle package.
-- Classifiers: `Development Status :: 3 - Alpha`, `Intended Audience :: Developers`,
-  `Operating System :: OS Independent`, `Programming Language :: Python :: 3 :: Only`,
-  `Programming Language :: Python :: 3.13`, `Topic :: Database` (+2 more)
+- Classifiers: Development Status :: 3 - Alpha, Intended Audience :: Developers,
+  Operating System :: OS Independent, Programming Language :: Python :: 3 :: Only,
+  Programming Language :: Python :: 3.13, Topic :: Database, Topic :: Software
+  Development :: Libraries :: Python Modules, Typing :: Typed
 - Project class: `domain`
 - Keywords: `database`, `enterprise`, `flext`, `oracle`, `sql`, `typed`
 - Main facades: `FlextDbOracleApi`, `FlextDbOracleApiRuntime`, `FlextDbOracleClient`,
   `FlextDbOracleConfig`, `FlextDbOracleConstants`, `FlextDbOracleDispatcher`,
-  `FlextDbOracleExceptions`, `FlextDbOracleModels` (+12 more)
+  `FlextDbOracleExceptions`, `FlextDbOracleModels` (+13 more)
 - Alias exports: `c`, `d`, `e`, `h`, `m`, `p`, `r`, `s`, `t`, `u`, `x`
 - Public symbol exports: `DbOracleSettings`, `FlextDbOracleApi`,
   `FlextDbOracleApiRuntime`, `FlextDbOracleClient`, `FlextDbOracleConfig`,
   `FlextDbOracleConstants`, `FlextDbOracleDispatcher`, `FlextDbOracleExceptions`,
-  `FlextDbOracleModels`, `FlextDbOracleProtocols` (+14 more)
+  `FlextDbOracleModels`, `FlextDbOracleProtocols` (+15 more)
 - Exported module shortcuts: `services`
 - Generated module pages: `19`
 
