@@ -260,6 +260,13 @@ class TestsFlextDbOracleServices:
         tm.ok(result)
         tm.that(result.value, eq="VARCHAR2(4000)")
 
+    def test_convert_singer_type_rejects_empty_sequence(
+        self, test_service: FlextDbOracleServices
+    ) -> None:
+        """An empty type declaration fails instead of selecting a string type."""
+        with pytest.raises(ValueError, match="Singer type sequence must not be empty"):
+            test_service.convert_singer_type([])
+
     def test_convert_singer_type_honors_datetime_format(
         self, test_service: FlextDbOracleServices
     ) -> None:

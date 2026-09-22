@@ -139,7 +139,10 @@ class FlextDbOracleUtilitiesDbOracle:
         if isinstance(value, str):
             return value
         validated = u.validate_value(t.str_sequence_adapter(), value).unwrap()
-        return validated[0] if validated else "string"
+        if not validated:
+            msg = "Singer type sequence must not be empty"
+            raise ValueError(msg)
+        return validated[0]
 
     @staticmethod
     def _sqlalchemy_create_engine(
