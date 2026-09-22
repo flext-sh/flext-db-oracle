@@ -34,7 +34,9 @@ class FlextDbOracleConfig(FlextSettings, FlextCliConfig):
 
     DbOracle: Annotated[
         _DbOracleNamespace,
-        m.Field(description="Open namespace exposing ``config/*.yaml`` under ``DbOracle``."),
+        m.Field(
+            description="Open namespace exposing ``config/*.yaml`` under ``DbOracle``."
+        ),
     ] = _DbOracleNamespace()
 
 
