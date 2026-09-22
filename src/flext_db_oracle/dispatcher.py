@@ -30,7 +30,7 @@ class FlextDbOracleDispatcher(FlextService[bool]):
     def _create_connection_handlers(
         cls, services: FlextDbOracleServices
     ) -> t.MappingKV[
-        type, tuple[Callable[[p.Routable], t.JsonPayload], t.JsonMapping | None]
+        type, t.Pair[Callable[[p.Routable], t.JsonPayload], t.JsonMapping | None]
     ]:
         """Create connection-related handler functions."""
 
@@ -79,7 +79,7 @@ class FlextDbOracleDispatcher(FlextService[bool]):
     def _create_query_handlers(
         self, services: FlextDbOracleServices
     ) -> t.MappingKV[
-        type, tuple[Callable[[p.Routable], t.JsonPayload], t.JsonMapping | None]
+        type, t.Pair[Callable[[p.Routable], t.JsonPayload], t.JsonMapping | None]
     ]:
         """Create query-related handler functions."""
 
@@ -139,7 +139,7 @@ class FlextDbOracleDispatcher(FlextService[bool]):
     def _create_schema_handlers(
         self, services: FlextDbOracleServices
     ) -> t.MappingKV[
-        type, tuple[Callable[[p.Routable], t.JsonPayload], t.JsonMapping | None]
+        type, t.Pair[Callable[[p.Routable], t.JsonPayload], t.JsonMapping | None]
     ]:
         """Create schema/metadata handler functions."""
 

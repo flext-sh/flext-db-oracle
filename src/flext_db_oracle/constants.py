@@ -16,16 +16,6 @@ from enum import StrEnum, unique
 from types import MappingProxyType
 from typing import TYPE_CHECKING, ClassVar, Final
 
-from oracledb import (
-    DatabaseError as _OracleDatabaseError,
-    InterfaceError as _OracleInterfaceError,
-)
-from sqlalchemy.exc import (
-    DatabaseError as _SQLAlchemyDatabaseError,
-    OperationalError as _SQLAlchemyOperationalError,
-    SQLAlchemyError as _SQLAlchemyError,
-)
-
 from flext_core import FlextConstants as c
 
 from ._constants.exceptions import FlextDbOracleConstantsExceptions
@@ -53,17 +43,6 @@ class FlextDbOracleConstants(c):
         by ``flext_db_oracle._constants`` and inherited through this facade
         subclass.
         """
-
-        EXC_DB_BROAD: Final[tuple[type[Exception], ...]] = (
-            ConnectionError,
-            OSError,
-            _SQLAlchemyDatabaseError,
-            _SQLAlchemyError,
-            _SQLAlchemyOperationalError,
-            _OracleDatabaseError,
-            _OracleInterfaceError,
-        )
-        """Broad Oracle DB boundary catch including SQLAlchemy errors."""
 
         DEFAULT_CHARSET: Final[str] = "UTF8"
         DEFAULT_SERVICE_NAME: Final[str] = "XEPDB1"

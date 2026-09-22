@@ -131,13 +131,13 @@ class TestsFlextDbOracleOracle:
         tm.that(mapped["is_active"], has="NUMBER(1)")
 
     @staticmethod
-    def _row_mapping(row: m.Dict) -> Mapping[str, object]:
+    def _row_mapping(row: m.Dict) -> Mapping[str, t.JsonPayload]:
         """Expose a query row's public mapping regardless of case handling."""
         return {key.upper(): value for key, value in row.root.items()}
 
     def _concurrent_source_rows(
         self, api1: FlextDbOracleApi, api2: FlextDbOracleApi
-    ) -> tuple[Mapping[str, object], Mapping[str, object]]:
+    ) -> t.Pair[Mapping[str, t.JsonPayload], Mapping[str, t.JsonPayload]]:
         """Return one query row from each concurrent API context."""
         with api1, api2:
             result1 = api1.query("SELECT 'API1' AS SOURCE FROM DUAL")

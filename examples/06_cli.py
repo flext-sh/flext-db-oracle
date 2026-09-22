@@ -121,7 +121,7 @@ def _check_oracle_env() -> bool:
     return all(os.getenv(var) for var in required_vars)
 
 
-def run_cli_command(cmd: t.StrSequence) -> tuple[int, str, str]:
+def run_cli_command(cmd: t.StrSequence) -> t.Triple[int, str, str]:
     """Run CLI command and return exit code, stdout, stderr (no shell).
 
     Returns:
@@ -129,7 +129,7 @@ def run_cli_command(cmd: t.StrSequence) -> tuple[int, str, str]:
 
     """
 
-    def _run() -> tuple[int, str, str]:
+    def _run() -> t.Triple[int, str, str]:
         result = u.Cli.run_raw(cmd, timeout=30)
         if result.success:
             process = result.value

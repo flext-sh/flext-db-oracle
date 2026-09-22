@@ -316,7 +316,10 @@ class TestsFlextDbOracleApi:
         ],
     )
     def test_build_select_emits_select_over_named_table_and_columns(
-        self, settings: FlextDbOracleSettings, table_name: str, columns: list[str]
+        self,
+        settings: FlextDbOracleSettings,
+        table_name: str,
+        columns: t.SequenceOf[str],
     ) -> None:
         """build_select produces a SELECT that references the table and columns."""
         services = FlextDbOracleServices(settings=settings)
