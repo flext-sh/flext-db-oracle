@@ -9,27 +9,26 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli import cli
-    from flext_infra import docs_main, infra, main
     from flext_tests import (
-        active_rules,
         api,
+        cli,
         config,
-        discover_repository_root,
+        from_json,
         install_local_packages,
         load_infra_report,
+        services,
         settings,
-        split_csv,
         td,
         tf,
         tk,
         tm,
+        to_json,
+        to_jsonable_python,
         tv,
     )
-    from pydantic_core import from_json, to_json, to_jsonable_python
 
     from flext_core import core, d, h, lazy_attribute, r, x
-    from flext_db_oracle import db_oracle, e
+    from flext_db_oracle import db_oracle, e, main
 
     from . import e2e, integration, unit
     from .base import TestsFlextDbOracleServiceBase, TestsFlextDbOracleServiceBase as s
@@ -47,7 +46,6 @@ __all__: tuple[str, ...] = (
     "TestsFlextDbOracleSettings",
     "TestsFlextDbOracleTypes",
     "TestsFlextDbOracleUtilities",
-    "active_rules",
     "api",
     "c",
     "cli",
@@ -55,13 +53,10 @@ __all__: tuple[str, ...] = (
     "core",
     "d",
     "db_oracle",
-    "discover_repository_root",
-    "docs_main",
     "e",
     "e2e",
     "from_json",
     "h",
-    "infra",
     "install_local_packages",
     "integration",
     "lazy_attribute",
@@ -71,8 +66,8 @@ __all__: tuple[str, ...] = (
     "p",
     "r",
     "s",
+    "services",
     "settings",
-    "split_csv",
     "t",
     "td",
     "tf",
@@ -99,26 +94,25 @@ _LAZY_IMPORTS = MappingProxyType(
             ".typings": ("TestsFlextDbOracleTypes", "t"),
             ".unit": ("unit",),
             ".utilities": ("TestsFlextDbOracleUtilities", "u"),
-            "flext_cli": ("cli",),
             "flext_core": ("core", "d", "h", "lazy_attribute", "r", "x"),
-            "flext_db_oracle": ("db_oracle", "e"),
-            "flext_infra": ("docs_main", "infra", "main"),
+            "flext_db_oracle": ("db_oracle", "e", "main"),
             "flext_tests": (
-                "active_rules",
                 "api",
+                "cli",
                 "config",
-                "discover_repository_root",
+                "from_json",
                 "install_local_packages",
                 "load_infra_report",
+                "services",
                 "settings",
-                "split_csv",
                 "td",
                 "tf",
                 "tk",
                 "tm",
+                "to_json",
+                "to_jsonable_python",
                 "tv",
             ),
-            "pydantic_core": ("from_json", "to_json", "to_jsonable_python"),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,

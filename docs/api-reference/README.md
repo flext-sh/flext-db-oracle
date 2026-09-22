@@ -29,6 +29,6 @@ This section is generated from public exports and real docstrings.
 
 - Primary facades: `FlextDbOracleApi`, `FlextDbOracleApiRuntime`, `FlextDbOracleClient`,
   `FlextDbOracleConfig`, `FlextDbOracleConstants`, `FlextDbOracleDispatcher` (+14 more)
-- Generated module pages: `19`
+- Generated module pages: `20`
 
 Back to [project docs](../index.md).
