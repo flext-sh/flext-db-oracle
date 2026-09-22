@@ -42,7 +42,7 @@
   - [Process Efficiency](#process-efficiency)
 - [📚 Resources](#resources)
 - [🤝 Contributing](#contributing)
-  - [Adding New Validation Rules](#adding-new-validation-rules)
+  - [Adding New Validation Rules](#adding-new-validation-rules_1)
   - [Improving Reports](#improving-reports)
   - [System Extensions](#system-extensions)
   <!-- TOC END -->
@@ -256,9 +256,9 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install dependencies
-        run: poetry install --with dev
+        run: make setup
       - name: Run documentation audit
-run: make docs DOCS_PHASE=audit
+        run: make docs
       - name: Upload reports
         uses: actions/upload-artifact@v7
         with:
@@ -531,7 +531,7 @@ Links: 95% healthy
 ```bash
 # Check Python environment
 python --version
-poetry env info
+make status
 
 # Validate configuration
 python -c "import yaml; yaml.safe_load(open('docs/maintenance_config.yaml'))"

@@ -345,7 +345,8 @@ def test_complete_workflow_without_mocks():
 pytest tests/unit/ -x --tb=short # Stop on first failure
 
 # Complete validation before commit
-make val # Full validation pipeline
+make check # Validate quality gates
+make test  # Validate runtime behavior
 
 # Performance testing
 pytest tests/integration/ --benchmark # Performance benchmarks
