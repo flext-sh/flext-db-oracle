@@ -9,35 +9,18 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli import cli, main
-    from flext_tests import (
-        active_rules,
-        api,
-        config,
-        discover_repository_root,
-        install_local_packages,
-        load_infra_report,
-        settings,
-        split_csv,
-        td,
-        tf,
-        tk,
-        tm,
-        tv,
-    )
-
-    from flext_core import core, d, h, lazy_attribute, r, x
-    from flext_db_oracle import db_oracle, e
+    from flext_tests import FlextTestsConstants, d, e, h, r, td, tf, tk, tm, tv, x
 
     from . import e2e, integration, unit
     from .base import TestsFlextDbOracleServiceBase, TestsFlextDbOracleServiceBase as s
-    from .constants import TestsFlextDbOracleConstants, c
-    from .models import TestsFlextDbOracleModels, m
-    from .protocols import TestsFlextDbOracleProtocols, p
+    from .constants import TestsFlextDbOracleConstants, TestsFlextDbOracleConstants as c
+    from .models import TestsFlextDbOracleModels, TestsFlextDbOracleModels as m
+    from .protocols import TestsFlextDbOracleProtocols, TestsFlextDbOracleProtocols as p
     from .settings import TestsFlextDbOracleSettings
-    from .typings import TestsFlextDbOracleTypes, t
-    from .utilities import TestsFlextDbOracleUtilities, u
+    from .typings import TestsFlextDbOracleTypes, TestsFlextDbOracleTypes as t
+    from .utilities import TestsFlextDbOracleUtilities, TestsFlextDbOracleUtilities as u
 __all__: tuple[str, ...] = (
+    "FlextTestsConstants",
     "TestsFlextDbOracleConstants",
     "TestsFlextDbOracleModels",
     "TestsFlextDbOracleProtocols",
@@ -45,29 +28,16 @@ __all__: tuple[str, ...] = (
     "TestsFlextDbOracleSettings",
     "TestsFlextDbOracleTypes",
     "TestsFlextDbOracleUtilities",
-    "active_rules",
-    "api",
     "c",
-    "cli",
-    "config",
-    "core",
     "d",
-    "db_oracle",
-    "discover_repository_root",
     "e",
     "e2e",
     "h",
-    "install_local_packages",
     "integration",
-    "lazy_attribute",
-    "load_infra_report",
     "m",
-    "main",
     "p",
     "r",
     "s",
-    "settings",
-    "split_csv",
     "t",
     "td",
     "tf",
@@ -92,23 +62,18 @@ _LAZY_IMPORTS = MappingProxyType(
             ".typings": ("TestsFlextDbOracleTypes", "t"),
             ".unit": ("unit",),
             ".utilities": ("TestsFlextDbOracleUtilities", "u"),
-            "flext_cli": ("cli", "main"),
-            "flext_core": ("core", "d", "h", "lazy_attribute", "r", "x"),
-            "flext_db_oracle": ("db_oracle", "e"),
             "flext_tests": (
-                "active_rules",
-                "api",
-                "config",
-                "discover_repository_root",
-                "install_local_packages",
-                "load_infra_report",
-                "settings",
-                "split_csv",
+                "FlextTestsConstants",
+                "d",
+                "e",
+                "h",
+                "r",
                 "td",
                 "tf",
                 "tk",
                 "tm",
                 "tv",
+                "x",
             ),
         }),
         alias_groups=MappingProxyType({}),

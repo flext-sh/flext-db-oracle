@@ -9,63 +9,15 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_core import (
-        core,
-        d,
-        h,
-        lazy,
-        lazy_attribute,
-        normalize_lazy_imports,
-        r,
-        x,
-    )
-    from flext_db_oracle import c, config, db_oracle, e, m, p, s, settings, t, u
-__all__: tuple[str, ...] = (
-    "c",
-    "config",
-    "core",
-    "d",
-    "db_oracle",
-    "e",
-    "h",
-    "lazy",
-    "lazy_attribute",
-    "m",
-    "normalize_lazy_imports",
-    "p",
-    "r",
-    "s",
-    "settings",
-    "t",
-    "u",
-    "x",
-)
+    from flext_core import d, h, r, x
+    from flext_db_oracle import c, e, m, p, s, t, u
+__all__: tuple[str, ...] = ("c", "d", "e", "h", "m", "p", "r", "s", "t", "u", "x")
 
 _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
-            "flext_core": (
-                "core",
-                "d",
-                "h",
-                "lazy",
-                "lazy_attribute",
-                "normalize_lazy_imports",
-                "r",
-                "x",
-            ),
-            "flext_db_oracle": (
-                "c",
-                "config",
-                "db_oracle",
-                "e",
-                "m",
-                "p",
-                "s",
-                "settings",
-                "t",
-                "u",
-            ),
+            "flext_core": ("d", "h", "r", "x"),
+            "flext_db_oracle": ("c", "e", "m", "p", "s", "t", "u"),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
