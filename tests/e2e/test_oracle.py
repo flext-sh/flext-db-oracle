@@ -131,7 +131,7 @@ class TestsFlextDbOracleOracle:
         tm.that(mapped["is_active"], has="NUMBER(1)")
 
     @staticmethod
-    def _row_mapping(row: m.Dict) -> Mapping[str, object]:
+    def _row_mapping(row: m.Dict) -> Mapping[str, t.JsonValue]:
         """Expose a query row's public mapping regardless of case handling."""
         return {key.upper(): value for key, value in row.root.items()}
 
