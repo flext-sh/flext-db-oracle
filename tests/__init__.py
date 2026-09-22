@@ -9,18 +9,37 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_tests import FlextTestsConstants, d, e, h, r, td, tf, tk, tm, tv, x
+    from flext_cli import cli
+    from flext_infra import docs_main, infra, main
+    from flext_tests import (
+        active_rules,
+        api,
+        config,
+        discover_repository_root,
+        install_local_packages,
+        load_infra_report,
+        settings,
+        split_csv,
+        td,
+        tf,
+        tk,
+        tm,
+        tv,
+    )
+    from pydantic_core import from_json, to_json, to_jsonable_python
+
+    from flext_core import core, d, h, lazy_attribute, r, x
+    from flext_db_oracle import db_oracle, e
 
     from . import e2e, integration, unit
     from .base import TestsFlextDbOracleServiceBase, TestsFlextDbOracleServiceBase as s
-    from .constants import TestsFlextDbOracleConstants, TestsFlextDbOracleConstants as c
-    from .models import TestsFlextDbOracleModels, TestsFlextDbOracleModels as m
-    from .protocols import TestsFlextDbOracleProtocols, TestsFlextDbOracleProtocols as p
+    from .constants import TestsFlextDbOracleConstants, c
+    from .models import TestsFlextDbOracleModels, m
+    from .protocols import TestsFlextDbOracleProtocols, p
     from .settings import TestsFlextDbOracleSettings
-    from .typings import TestsFlextDbOracleTypes, TestsFlextDbOracleTypes as t
-    from .utilities import TestsFlextDbOracleUtilities, TestsFlextDbOracleUtilities as u
+    from .typings import TestsFlextDbOracleTypes, t
+    from .utilities import TestsFlextDbOracleUtilities, u
 __all__: tuple[str, ...] = (
-    "FlextTestsConstants",
     "TestsFlextDbOracleConstants",
     "TestsFlextDbOracleModels",
     "TestsFlextDbOracleProtocols",
@@ -28,21 +47,39 @@ __all__: tuple[str, ...] = (
     "TestsFlextDbOracleSettings",
     "TestsFlextDbOracleTypes",
     "TestsFlextDbOracleUtilities",
+    "active_rules",
+    "api",
     "c",
+    "cli",
+    "config",
+    "core",
     "d",
+    "db_oracle",
+    "discover_repository_root",
+    "docs_main",
     "e",
     "e2e",
+    "from_json",
     "h",
+    "infra",
+    "install_local_packages",
     "integration",
+    "lazy_attribute",
+    "load_infra_report",
     "m",
+    "main",
     "p",
     "r",
     "s",
+    "settings",
+    "split_csv",
     "t",
     "td",
     "tf",
     "tk",
     "tm",
+    "to_json",
+    "to_jsonable_python",
     "tv",
     "u",
     "unit",
@@ -62,19 +99,26 @@ _LAZY_IMPORTS = MappingProxyType(
             ".typings": ("TestsFlextDbOracleTypes", "t"),
             ".unit": ("unit",),
             ".utilities": ("TestsFlextDbOracleUtilities", "u"),
+            "flext_cli": ("cli",),
+            "flext_core": ("core", "d", "h", "lazy_attribute", "r", "x"),
+            "flext_db_oracle": ("db_oracle", "e"),
+            "flext_infra": ("docs_main", "infra", "main"),
             "flext_tests": (
-                "FlextTestsConstants",
-                "d",
-                "e",
-                "h",
-                "r",
+                "active_rules",
+                "api",
+                "config",
+                "discover_repository_root",
+                "install_local_packages",
+                "load_infra_report",
+                "settings",
+                "split_csv",
                 "td",
                 "tf",
                 "tk",
                 "tm",
                 "tv",
-                "x",
             ),
+            "pydantic_core": ("from_json", "to_json", "to_jsonable_python"),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,

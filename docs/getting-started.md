@@ -48,17 +48,15 @@ make setup
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 # Configure Oracle connection
-settings = FlextDbOracleSettings.model_validate(
-    {
-        "DbOracle": {
-            "host": "localhost",
-            "port": 1521,
-            "service_name": "XEPDB1",
-            "username": "system",
-            "password": "Oracle123",
-        }
+settings = FlextDbOracleSettings.model_validate({
+    "DbOracle": {
+        "host": "localhost",
+        "port": 1521,
+        "service_name": "XEPDB1",
+        "username": "system",
+        "password": "Oracle123",
     }
-)
+})
 
 # Create API instance with FLEXT patterns
 api = FlextDbOracleApi(settings)
@@ -78,17 +76,15 @@ else:
 ```python
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
-settings = FlextDbOracleSettings.model_validate(
-    {
-        "DbOracle": {
-            "host": "localhost",
-            "port": 1521,
-            "service_name": "XEPDB1",
-            "username": "system",
-            "password": "Oracle123",
-        }
+settings = FlextDbOracleSettings.model_validate({
+    "DbOracle": {
+        "host": "localhost",
+        "port": 1521,
+        "service_name": "XEPDB1",
+        "username": "system",
+        "password": "Oracle123",
     }
-)
+})
 api = FlextDbOracleApi(settings)
 
 # Execute SELECT query with parameters
@@ -108,17 +104,15 @@ if result.success:
 ```python
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
-settings = FlextDbOracleSettings.model_validate(
-    {
-        "DbOracle": {
-            "host": "localhost",
-            "port": 1521,
-            "service_name": "XEPDB1",
-            "username": "system",
-            "password": "Oracle123",
-        }
+settings = FlextDbOracleSettings.model_validate({
+    "DbOracle": {
+        "host": "localhost",
+        "port": 1521,
+        "service_name": "XEPDB1",
+        "username": "system",
+        "password": "Oracle123",
     }
-)
+})
 api = FlextDbOracleApi(settings)
 
 # List available schemas

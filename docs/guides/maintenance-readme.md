@@ -410,14 +410,12 @@ def _validate_custom_rule(self, content: str) -> list[dict[str, t.JsonValue]]:
 
     # Your custom validation logic here
     if "deprecated_feature" in content:
-        issues.append(
-            {
-                "type": "deprecated_reference",
-                "severity": "medium",
-                "message": "References deprecated feature",
-                "suggestion": "Update to current feature or remove reference",
-            }
-        )
+        issues.append({
+            "type": "deprecated_reference",
+            "severity": "medium",
+            "message": "References deprecated feature",
+            "suggestion": "Update to current feature or remove reference",
+        })
 
     return issues
 ```

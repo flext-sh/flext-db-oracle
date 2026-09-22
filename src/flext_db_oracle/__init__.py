@@ -20,20 +20,21 @@ from .__version__ import (
 )
 
 if TYPE_CHECKING:
-    from flext_core import d, h, r, x
+    from pydantic_core import from_json, to_json, to_jsonable_python
+
+    from flext_core import core, d, h, lazy_attribute, r, x
 
     from . import services
-    from .__version__ import FlextDbOracleVersion
     from ._config import FlextDbOracleConfig, config
     from ._settings import DbOracleSettings, FlextDbOracleSettings, settings
     from .api import FlextDbOracleApi, db_oracle
-    from .base import FlextDbOracleServiceBase, FlextDbOracleServiceBase as s
+    from .base import FlextDbOracleServiceBase, s
     from .client import FlextDbOracleClient
-    from .constants import FlextDbOracleConstants, FlextDbOracleConstants as c
+    from .constants import FlextDbOracleConstants, c
     from .dispatcher import FlextDbOracleDispatcher
     from .exceptions import FlextDbOracleExceptions, e
-    from .models import FlextDbOracleModels, FlextDbOracleModels as m
-    from .protocols import FlextDbOracleProtocols, FlextDbOracleProtocols as p
+    from .models import FlextDbOracleModels, m
+    from .protocols import FlextDbOracleProtocols, p
     from .services.api_runtime import FlextDbOracleApiRuntime
     from .services.connection import FlextDbOracleServiceConnection
     from .services.facade import FlextDbOracleServices
@@ -42,8 +43,8 @@ if TYPE_CHECKING:
     from .services.schema import FlextDbOracleServiceSchema
     from .services.singer import FlextDbOracleServiceSinger
     from .services.sql_builder import FlextDbOracleServiceSqlBuilder
-    from .typings import FlextDbOracleTypes, FlextDbOracleTypes as t
-    from .utilities import FlextDbOracleUtilities, FlextDbOracleUtilities as u
+    from .typings import FlextDbOracleTypes, t
+    from .utilities import FlextDbOracleUtilities, u
 __all__: tuple[str, ...] = (
     "DbOracleSettings",
     "FlextDbOracleApi",
@@ -66,7 +67,6 @@ __all__: tuple[str, ...] = (
     "FlextDbOracleSettings",
     "FlextDbOracleTypes",
     "FlextDbOracleUtilities",
-    "FlextDbOracleVersion",
     "__author__",
     "__author_email__",
     "__description__",
@@ -77,10 +77,13 @@ __all__: tuple[str, ...] = (
     "__version_info__",
     "c",
     "config",
+    "core",
     "d",
     "db_oracle",
     "e",
+    "from_json",
     "h",
+    "lazy_attribute",
     "m",
     "p",
     "r",
@@ -88,6 +91,8 @@ __all__: tuple[str, ...] = (
     "services",
     "settings",
     "t",
+    "to_json",
+    "to_jsonable_python",
     "u",
     "x",
 )
@@ -95,7 +100,6 @@ __all__: tuple[str, ...] = (
 _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
-            ".__version__": ("FlextDbOracleVersion",),
             "._config": ("FlextDbOracleConfig", "config"),
             "._settings": ("DbOracleSettings", "FlextDbOracleSettings", "settings"),
             ".api": ("FlextDbOracleApi", "db_oracle"),
@@ -117,7 +121,8 @@ _LAZY_IMPORTS = MappingProxyType(
             ".services.sql_builder": ("FlextDbOracleServiceSqlBuilder",),
             ".typings": ("FlextDbOracleTypes", "t"),
             ".utilities": ("FlextDbOracleUtilities", "u"),
-            "flext_core": ("d", "h", "r", "x"),
+            "flext_core": ("core", "d", "h", "lazy_attribute", "r", "x"),
+            "pydantic_core": ("from_json", "to_json", "to_jsonable_python"),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
