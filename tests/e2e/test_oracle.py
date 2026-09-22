@@ -137,7 +137,7 @@ class TestsFlextDbOracleOracle:
 
     def _concurrent_source_rows(
         self, api1: FlextDbOracleApi, api2: FlextDbOracleApi
-    ) -> tuple[Mapping[str, object], Mapping[str, object]]:
+    ) -> t.Pair[Mapping[str, t.JsonValue], Mapping[str, t.JsonValue]]:
         """Return one query row from each concurrent API context."""
         with api1, api2:
             result1 = api1.query("SELECT 'API1' AS SOURCE FROM DUAL")

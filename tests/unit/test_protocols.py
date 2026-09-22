@@ -24,7 +24,7 @@ from tests import t
 
 # (public name, protocol class, promised method surface) — the contract each
 # Oracle domain protocol advertises to implementers.
-_DB_ORACLE_CONTRACTS: tuple[t.Tests.ProtocolContract, ...] = (
+_DB_ORACLE_CONTRACTS: t.VariadicTuple[t.Tests.ProtocolContract] = (
     ("Connection", p.DbOracle.Connection, ("connect", "disconnect", "connected")),
     (
         "OraclePlugin",
@@ -84,7 +84,7 @@ def _stub(_self: object) -> None:
     """Method-surface stub used to synthesise protocol implementers."""
 
 
-def _implementer(methods: tuple[str, ...]) -> object:
+def _implementer(methods: t.VariadicTuple[str]) -> object:
     """Build an object exposing exactly ``methods`` as callables."""
     namespace: Mapping[str, object] = dict.fromkeys(methods, _stub)
     cls = type("SyntheticImplementer", (), dict(namespace))
@@ -107,7 +107,7 @@ class TestsFlextDbOracleProtocols:
         ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
     )
     def test_protocol_is_runtime_checkable(
-        self, _name: str, protocol: type, methods: tuple[str, ...]
+        self, _name: str, protocol: type, methods: t.VariadicTuple[str]
     ) -> None:
         """Each protocol supports isinstance() — its public runtime-check contract."""
         implementer = _implementer(methods)
@@ -121,7 +121,7 @@ class TestsFlextDbOracleProtocols:
         ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
     )
     def test_full_method_surface_satisfies_protocol(
-        self, _name: str, protocol: type, methods: tuple[str, ...]
+        self, _name: str, protocol: type, methods: t.VariadicTuple[str]
     ) -> None:
         """An object with the full promised surface is recognised as implementer."""
         implementer = _implementer(methods)
@@ -134,7 +134,7 @@ class TestsFlextDbOracleProtocols:
         ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
     )
     def test_missing_any_single_method_breaks_conformance(
-        self, _name: str, protocol: type, methods: tuple[str, ...]
+        self, _name: str, protocol: type, methods: t.VariadicTuple[str]
     ) -> None:
         """Dropping any one promised method makes the object a non-implementer."""
         for dropped in methods:

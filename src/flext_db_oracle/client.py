@@ -312,7 +312,7 @@ class FlextDbOracleClient(s):
     ) -> t.SequenceOf[m.ConfigMap]:
         """Adapt one ConfigMap root into table rows."""
         strategies: t.SequenceOf[
-            tuple[str, Callable[[t.JsonValue], t.SequenceOf[m.ConfigMap]]]
+            t.Pair[str, Callable[[t.JsonValue], t.SequenceOf[m.ConfigMap]]]
         ] = [
             ("schemas", self._adapt_schemas),
             ("tables", self._adapt_tables),
@@ -473,7 +473,7 @@ class FlextDbOracleClient(s):
         """
         try:
             formatter_strategies: t.SequenceOf[
-                tuple[str, Callable[[m.ConfigMap], p.Result[str]]]
+                t.Pair[str, Callable[[m.ConfigMap], p.Result[str]]]
             ] = [
                 ("table", self._format_as_table),
                 ("json", self._format_as_json),

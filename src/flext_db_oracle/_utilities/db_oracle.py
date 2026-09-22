@@ -187,7 +187,7 @@ class FlextDbOracleUtilitiesDbOracle:
         connection: SAConnection,
         statement: TextClause,
         parameters: m.ConfigMap | None = None,
-    ) -> CursorResult[tuple[t.JsonValue, ...]]:
+    ) -> CursorResult[t.VariadicTuple[t.JsonValue]]:
         """Execute statement on SQL connection."""
         normalized_params = cls.normalize_params(parameters)
         return connection.execute(statement, normalized_params.root)

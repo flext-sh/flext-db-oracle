@@ -20,17 +20,15 @@ FLEXT ecosystem integration patterns for flext-db-oracle.
 ```python
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, u
 
-settings = FlextDbOracleSettings.model_validate(
-    {
-        "DbOracle": {
-            "host": "localhost",
-            "port": 1521,
-            "service_name": "XEPDB1",
-            "username": "system",
-            "password": "Oracle123",
-        }
+settings = FlextDbOracleSettings.model_validate({
+    "DbOracle": {
+        "host": "localhost",
+        "port": 1521,
+        "service_name": "XEPDB1",
+        "username": "system",
+        "password": "Oracle123",
     }
-)
+})
 api = FlextDbOracleApi(settings)
 
 # r error handling
@@ -68,17 +66,15 @@ Integrates with flext-cli but uses SimpleNamespace placeholders:
 ```python
 from flext_db_oracle import FlextDbOracleServices, FlextDbOracleSettings
 
-settings = FlextDbOracleSettings.model_validate(
-    {
-        "DbOracle": {
-            "host": "localhost",
-            "port": 1521,
-            "service_name": "XEPDB1",
-            "username": "system",
-            "password": "Oracle123",
-        }
+settings = FlextDbOracleSettings.model_validate({
+    "DbOracle": {
+        "host": "localhost",
+        "port": 1521,
+        "service_name": "XEPDB1",
+        "username": "system",
+        "password": "Oracle123",
     }
-)
+})
 cli = FlextDbOracleServices(settings)
 result = cli.health_check()
 ```
@@ -92,17 +88,15 @@ from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 api_result = FlextDbOracleApi.from_env()
 
 # Direct configuration
-settings = FlextDbOracleSettings.model_validate(
-    {
-        "DbOracle": {
-            "host": "localhost",
-            "port": 1521,
-            "service_name": "XEPDB1",
-            "username": "system",
-            "password": "Oracle123",
-        }
+settings = FlextDbOracleSettings.model_validate({
+    "DbOracle": {
+        "host": "localhost",
+        "port": 1521,
+        "service_name": "XEPDB1",
+        "username": "system",
+        "password": "Oracle123",
     }
-)
+})
 api = FlextDbOracleApi(settings)
 ```
 

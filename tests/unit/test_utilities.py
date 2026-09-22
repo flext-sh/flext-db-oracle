@@ -249,7 +249,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         ids=["full", "empty", "non-serializable", "table", "single"],
     )
     def test_format_query_result_json_is_reparseable(
-        self, data: list[t.JsonValue]
+        self, data: t.SequenceOf[t.JsonValue]
     ) -> None:
         """JSON formatting yields a string that re-parses to the same shape."""
         formatted: str = tm.ok(u.DbOracle.format_query_result(data, "json"))
