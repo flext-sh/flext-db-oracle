@@ -9,21 +9,20 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
+    from flext_cli import cli
     from flext_tests import (
+        active_rules,
         api,
-        cli,
         config,
-        from_json,
+        discover_repository_root,
         install_local_packages,
         load_infra_report,
-        services,
         settings,
+        split_csv,
         td,
         tf,
         tk,
         tm,
-        to_json,
-        to_jsonable_python,
         tv,
     )
 
@@ -38,6 +37,8 @@ if TYPE_CHECKING:
     from .settings import TestsFlextDbOracleSettings
     from .typings import TestsFlextDbOracleTypes, t
     from .utilities import TestsFlextDbOracleUtilities, u
+
+
 __all__: tuple[str, ...] = (
     "TestsFlextDbOracleConstants",
     "TestsFlextDbOracleModels",
@@ -46,6 +47,7 @@ __all__: tuple[str, ...] = (
     "TestsFlextDbOracleSettings",
     "TestsFlextDbOracleTypes",
     "TestsFlextDbOracleUtilities",
+    "active_rules",
     "api",
     "c",
     "cli",
@@ -53,9 +55,9 @@ __all__: tuple[str, ...] = (
     "core",
     "d",
     "db_oracle",
+    "discover_repository_root",
     "e",
     "e2e",
-    "from_json",
     "h",
     "install_local_packages",
     "integration",
@@ -66,15 +68,13 @@ __all__: tuple[str, ...] = (
     "p",
     "r",
     "s",
-    "services",
     "settings",
+    "split_csv",
     "t",
     "td",
     "tf",
     "tk",
     "tm",
-    "to_json",
-    "to_jsonable_python",
     "tv",
     "u",
     "unit",
@@ -94,23 +94,22 @@ _LAZY_IMPORTS = MappingProxyType(
             ".typings": ("TestsFlextDbOracleTypes", "t"),
             ".unit": ("unit",),
             ".utilities": ("TestsFlextDbOracleUtilities", "u"),
+            "flext_cli": ("cli",),
             "flext_core": ("core", "d", "h", "lazy_attribute", "r", "x"),
             "flext_db_oracle": ("db_oracle", "e", "main"),
             "flext_tests": (
+                "active_rules",
                 "api",
-                "cli",
                 "config",
-                "from_json",
+                "discover_repository_root",
                 "install_local_packages",
                 "load_infra_report",
-                "services",
                 "settings",
+                "split_csv",
                 "td",
                 "tf",
                 "tk",
                 "tm",
-                "to_json",
-                "to_jsonable_python",
                 "tv",
             ),
         }),

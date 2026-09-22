@@ -9,8 +9,19 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_core import core, d, h, lazy_attribute, r, services, x
+    from flext_core import (
+        core,
+        d,
+        h,
+        lazy,
+        lazy_attribute,
+        normalize_lazy_imports,
+        r,
+        x,
+    )
     from flext_db_oracle import c, config, db_oracle, e, m, main, p, s, settings, t, u
+
+
 __all__: tuple[str, ...] = (
     "c",
     "config",
@@ -19,13 +30,14 @@ __all__: tuple[str, ...] = (
     "db_oracle",
     "e",
     "h",
+    "lazy",
     "lazy_attribute",
     "m",
     "main",
+    "normalize_lazy_imports",
     "p",
     "r",
     "s",
-    "services",
     "settings",
     "t",
     "u",
@@ -35,7 +47,16 @@ __all__: tuple[str, ...] = (
 _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
-            "flext_core": ("core", "d", "h", "lazy_attribute", "r", "services", "x"),
+            "flext_core": (
+                "core",
+                "d",
+                "h",
+                "lazy",
+                "lazy_attribute",
+                "normalize_lazy_imports",
+                "r",
+                "x",
+            ),
             "flext_db_oracle": (
                 "c",
                 "config",

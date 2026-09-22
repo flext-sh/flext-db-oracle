@@ -17,6 +17,8 @@ if TYPE_CHECKING:
     from .schema import FlextDbOracleServiceSchema
     from .singer import FlextDbOracleServiceSinger
     from .sql_builder import FlextDbOracleServiceSqlBuilder
+
+
 __all__: tuple[str, ...] = (
     "FlextDbOracleApiRuntime",
     "FlextDbOracleServiceConnection",
