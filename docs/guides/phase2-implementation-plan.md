@@ -31,7 +31,8 @@
   - [Immediate Actions (Next 24 hours)](#immediate-actions-next-24-hours)
   - [Short Term (Next 3 days)](#short-term-next-3-days)
   - [Long Term (Phase Completion)](#long-term-phase-completion)
-  <!-- TOC END -->
+
+<!-- TOC END -->
 
 **Phase**: CLI Enhancement | **Status**: In Progress | **Completion**: 60% **Start
 Date**: 2026-04-14 | **Target Completion**: 2025-10-20

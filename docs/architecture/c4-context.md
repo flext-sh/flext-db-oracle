@@ -26,7 +26,8 @@
 - [Evolution and Roadmap](#evolution-and-roadmap)
   - [Current Version (0.9.0)](#current-version-090)
   - [Future Versions](#future-versions)
-  <!-- TOC END -->
+
+<!-- TOC END -->
 
 **System Context for Oracle Database Integration in FLEXT Ecosystem**
 

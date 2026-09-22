@@ -45,7 +45,8 @@
   - [Adding New Validation Rules](#adding-new-validation-rules_1)
   - [Improving Reports](#improving-reports)
   - [System Extensions](#system-extensions)
-  <!-- TOC END -->
+
+<!-- TOC END -->
 
 **Automated documentation maintenance system for flext-db-oracle with comprehensive
 quality assurance, validation, and continuous improvement.**

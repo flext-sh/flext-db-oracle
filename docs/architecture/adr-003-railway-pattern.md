@@ -30,7 +30,8 @@
   - [Migration Strategy](#migration-strategy)
   - [Future Considerations](#future-considerations)
   - [Related Decisions](#related-decisions)
-  <!-- TOC END -->
+
+<!-- TOC END -->
 
 **ADR Number**: 003 **Title**: Railway Pattern Implementation with r[T] **Date**:
 2025-01-25 **Status**: Accepted
@@ -58,7 +59,7 @@ Implement Railway Pattern error handling throughout flext-db-oracle using r\[T\]
 
 **Core Pattern:**
 
-```python notest
+```{.python .notest}
 from __future__ import annotations
 
 

@@ -20,7 +20,8 @@
 - [Component Evolution](#component-evolution)
   - [Current State (v0.9.0)](#current-state-v090)
   - [Future Enhancements](#future-enhancements)
-  <!-- TOC END -->
+
+<!-- TOC END -->
 
 **Component Architecture for flext-db-oracle Library**
 
@@ -150,7 +151,7 @@ graph TB
 
 **Key Interfaces**:
 
-```python notest
+```{.python .notest}
 from __future__ import annotations
 
 from flext_core import p, s, t
@@ -215,6 +216,7 @@ target
 from __future__ import annotations
 
 from pydantic import SecretStr
+
 from flext_core import m, t
 
 
