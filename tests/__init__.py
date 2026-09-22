@@ -10,7 +10,6 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli import cli
-    from flext_infra import docs_main, infra, main
     from flext_tests import (
         active_rules,
         api,
@@ -26,10 +25,9 @@ if TYPE_CHECKING:
         tm,
         tv,
     )
-    from pydantic_core import from_json, to_json, to_jsonable_python
 
     from flext_core import core, d, h, lazy_attribute, r, x
-    from flext_db_oracle import db_oracle, e
+    from flext_db_oracle import db_oracle, e, main
 
     from . import e2e, integration, unit
     from .base import TestsFlextDbOracleServiceBase, TestsFlextDbOracleServiceBase as s
@@ -56,12 +54,9 @@ __all__: tuple[str, ...] = (
     "d",
     "db_oracle",
     "discover_repository_root",
-    "docs_main",
     "e",
     "e2e",
-    "from_json",
     "h",
-    "infra",
     "install_local_packages",
     "integration",
     "lazy_attribute",
@@ -78,8 +73,6 @@ __all__: tuple[str, ...] = (
     "tf",
     "tk",
     "tm",
-    "to_json",
-    "to_jsonable_python",
     "tv",
     "u",
     "unit",
@@ -101,8 +94,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ".utilities": ("TestsFlextDbOracleUtilities", "u"),
             "flext_cli": ("cli",),
             "flext_core": ("core", "d", "h", "lazy_attribute", "r", "x"),
-            "flext_db_oracle": ("db_oracle", "e"),
-            "flext_infra": ("docs_main", "infra", "main"),
+            "flext_db_oracle": ("db_oracle", "e", "main"),
             "flext_tests": (
                 "active_rules",
                 "api",
@@ -118,7 +110,6 @@ _LAZY_IMPORTS = MappingProxyType(
                 "tm",
                 "tv",
             ),
-            "pydantic_core": ("from_json", "to_json", "to_jsonable_python"),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,

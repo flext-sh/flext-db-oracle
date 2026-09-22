@@ -20,8 +20,6 @@ from .__version__ import (
 )
 
 if TYPE_CHECKING:
-    from pydantic_core import from_json, to_json, to_jsonable_python
-
     from flext_core import core, d, h, lazy_attribute, r, x
 
     from . import services
@@ -29,6 +27,7 @@ if TYPE_CHECKING:
     from ._settings import DbOracleSettings, FlextDbOracleSettings, settings
     from .api import FlextDbOracleApi, db_oracle
     from .base import FlextDbOracleServiceBase, s
+    from .cli import main
     from .client import FlextDbOracleClient
     from .constants import FlextDbOracleConstants, c
     from .dispatcher import FlextDbOracleDispatcher
@@ -81,18 +80,16 @@ __all__: tuple[str, ...] = (
     "d",
     "db_oracle",
     "e",
-    "from_json",
     "h",
     "lazy_attribute",
     "m",
+    "main",
     "p",
     "r",
     "s",
     "services",
     "settings",
     "t",
-    "to_json",
-    "to_jsonable_python",
     "u",
     "x",
 )
@@ -104,6 +101,7 @@ _LAZY_IMPORTS = MappingProxyType(
             "._settings": ("DbOracleSettings", "FlextDbOracleSettings", "settings"),
             ".api": ("FlextDbOracleApi", "db_oracle"),
             ".base": ("FlextDbOracleServiceBase", "s"),
+            ".cli": ("main",),
             ".client": ("FlextDbOracleClient",),
             ".constants": ("FlextDbOracleConstants", "c"),
             ".dispatcher": ("FlextDbOracleDispatcher",),
@@ -122,7 +120,6 @@ _LAZY_IMPORTS = MappingProxyType(
             ".typings": ("FlextDbOracleTypes", "t"),
             ".utilities": ("FlextDbOracleUtilities", "u"),
             "flext_core": ("core", "d", "h", "lazy_attribute", "r", "x"),
-            "pydantic_core": ("from_json", "to_json", "to_jsonable_python"),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
