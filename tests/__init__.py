@@ -37,6 +37,8 @@ if TYPE_CHECKING:
     from .settings import TestsFlextDbOracleSettings
     from .typings import TestsFlextDbOracleTypes, t
     from .utilities import TestsFlextDbOracleUtilities, u
+
+
 __all__: tuple[str, ...] = (
     "TestsFlextDbOracleConstants",
     "TestsFlextDbOracleModels",

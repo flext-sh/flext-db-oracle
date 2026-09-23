@@ -44,6 +44,8 @@ if TYPE_CHECKING:
     from .services.sql_builder import FlextDbOracleServiceSqlBuilder
     from .typings import FlextDbOracleTypes, t
     from .utilities import FlextDbOracleUtilities, u
+
+
 __all__: tuple[str, ...] = (
     "DbOracleSettings",
     "FlextDbOracleApi",

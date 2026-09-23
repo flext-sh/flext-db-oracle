@@ -30,7 +30,8 @@
   - [Future Enhancements](#future-enhancements)
   - [Migration Strategy](#migration-strategy)
   - [Related Decisions](#related-decisions)
-  <!-- TOC END -->
+
+<!-- TOC END -->
 
 **ADR Number**: 002 **Title**: SQLAlchemy Abstraction Strategy for Oracle Integration
 **Date**: 2025-01-20 **Status**: Accepted

@@ -15,7 +15,7 @@
   - [Type Safety Coverage](#type-safety-coverage)
   - [Code Quality Standards](#code-quality-standards)
 - [Test Infrastructure](#test-infrastructure)
-  - [Test Organization```](#test-organization)
+  - [Test Organization](#test-organization)
   - [Test Coverage Areas](#test-coverage-areas)
   - [Test Quality Metrics](#test-quality-metrics)
 - [Code Evolution and Maintenance](#code-evolution-and-maintenance)
@@ -25,7 +25,8 @@
   - [Memory and CPU Usage](#memory-and-cpu-usage)
   - [Scalability Metrics](#scalability-metrics)
   - [Optimization Opportunities](#optimization-opportunities)
-  <!-- TOC END -->
+
+<!-- TOC END -->
 
 **Code-Level Architecture for Oracle Database Integration**
 
@@ -172,7 +173,7 @@ graph TB
 main classes and version information **Pattern**: Selective imports to maintain clean
 public interface
 
-```python notest
+```{.python .notest}
 # Key exports
 __all__: list[str] = [
     "FlextDbOracleApi",  # Main API

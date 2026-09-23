@@ -28,7 +28,8 @@
   - [Architecture Terms](#architecture-terms)
   - [Oracle Database Terms](#oracle-database-terms)
   - [FLEXT Ecosystem Terms](#flext-ecosystem-terms)
-  <!-- TOC END -->
+
+<!-- TOC END -->
 
 **flext-db-oracle - Enterprise Oracle Database Integration** **Arc42 Section 1:
 Introduction and Goals**
@@ -224,7 +225,7 @@ Presentation Layer → Application Layer → Domain Layer ← Infrastructure Lay
 
 #### Error Handling Flow
 
-```python notest
+```{.python .notest}
 # Railway Pattern Implementation
 from __future__ import annotations
 

@@ -35,7 +35,8 @@
 - [Success Metrics](#success-metrics)
   - [Quality Metrics](#quality-metrics)
   - [Process Metrics](#process-metrics)
-  <!-- TOC END -->
+
+<!-- TOC END -->
 
 **Comprehensive maintenance framework for flext-db-oracle documentation quality
 assurance.**

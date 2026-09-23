@@ -57,7 +57,7 @@ verification).
   classes listed under Module Map above.
 - Public extensions exposed by this project: `FlextDbOracleApi`,
   `FlextDbOracleApiRuntime`, `FlextDbOracleClient`, `FlextDbOracleConfig`,
-  `FlextDbOracleConstants`, `FlextDbOracleDispatcher` (+15 more).
+  `FlextDbOracleConstants`, `FlextDbOracleDispatcher` (+14 more).
 - Library abstraction boundaries: see AGENTS.md §2.7.
 
 ## Quality Gates

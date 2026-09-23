@@ -11,6 +11,8 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 if TYPE_CHECKING:
     from .base import FlextDbOracleModelsBase
     from .password import FlextDbOraclePassword
+
+
 __all__: tuple[str, ...] = ("FlextDbOracleModelsBase", "FlextDbOraclePassword")
 
 _LAZY_IMPORTS = MappingProxyType(

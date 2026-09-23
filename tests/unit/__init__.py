@@ -10,6 +10,8 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
     from .exceptions import FlextDbOracleTestExceptions, e
+
+
 __all__: tuple[str, ...] = ("FlextDbOracleTestExceptions", "e")
 
 _LAZY_IMPORTS = MappingProxyType(

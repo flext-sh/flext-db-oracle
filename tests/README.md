@@ -82,8 +82,8 @@ tests/
 
 - `test_api.py` - Basic API functionality and error handling
 - `test_api_comprehensive.py` - Complete API surface coverage
-- `test_api_missing_coverage.py` - Edge cases and error scenarios
-- `test_api_real_execution.py` - Real database execution scenarios
+- runtime_bootstrap_options
+- runtime_bootstrap_options
 
 #### **Configuration Tests (`test_config.py`)**
 

@@ -46,8 +46,8 @@ and reliable testing of business logic.
 
 - `test_api.py` - Basic API functionality with mocked dependencies
 - `test_api_comprehensive.py` - Complete API surface coverage
-- `test_api_missing_coverage.py` - Edge cases and error scenarios
-- `test_api_real_execution.py` - API behavior with realistic mocked data
+- runtime_bootstrap_options
+- runtime_bootstrap_options
 
 ### **Configuration Tests**
 

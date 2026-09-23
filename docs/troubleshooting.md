@@ -18,7 +18,8 @@
   - [No DataFrame support](#no-dataframe-support)
 - [Testing](#testing)
   - [Oracle XE container](#oracle-xe-container)
-  <!-- TOC END -->
+
+<!-- TOC END -->
 
 Common issues and solutions for flext-db-oracle.
 
