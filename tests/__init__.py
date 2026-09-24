@@ -9,23 +9,7 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_tests import (
-        api,
-        cli,
-        config,
-        install_local_packages,
-        load_infra_report,
-        services,
-        settings,
-        td,
-        tf,
-        tk,
-        tm,
-        tv,
-    )
-
-    from flext_core import core, d, h, lazy_attribute, r, x
-    from flext_db_oracle import db_oracle, e, main
+    from flext_tests import api, d, e, h, r, td, tf, tk, tm, tv, x
 
     from . import e2e, integration, unit
     from .base import TestsFlextDbOracleServiceBase, TestsFlextDbOracleServiceBase as s
@@ -47,25 +31,15 @@ __all__: tuple[str, ...] = (
     "TestsFlextDbOracleUtilities",
     "api",
     "c",
-    "cli",
-    "config",
-    "core",
     "d",
-    "db_oracle",
     "e",
     "e2e",
     "h",
-    "install_local_packages",
     "integration",
-    "lazy_attribute",
-    "load_infra_report",
     "m",
-    "main",
     "p",
     "r",
     "s",
-    "services",
-    "settings",
     "t",
     "td",
     "tf",
@@ -90,21 +64,18 @@ _LAZY_IMPORTS = MappingProxyType(
             ".typings": ("TestsFlextDbOracleTypes", "t"),
             ".unit": ("unit",),
             ".utilities": ("TestsFlextDbOracleUtilities", "u"),
-            "flext_core": ("core", "d", "h", "lazy_attribute", "r", "x"),
-            "flext_db_oracle": ("db_oracle", "e", "main"),
             "flext_tests": (
                 "api",
-                "cli",
-                "config",
-                "install_local_packages",
-                "load_infra_report",
-                "services",
-                "settings",
+                "d",
+                "e",
+                "h",
+                "r",
                 "td",
                 "tf",
                 "tk",
                 "tm",
                 "tv",
+                "x",
             ),
         }),
         alias_groups=MappingProxyType({}),
