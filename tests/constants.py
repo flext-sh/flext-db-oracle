@@ -20,7 +20,7 @@ class TestsFlextDbOracleConstants(FlextTestsConstants, c):
     class Tests(FlextTestsConstants.Tests):
         """Test-specific constants."""
 
-        ORACLE_CONTAINER = "flext-oracle-db-test"
+        ORACLE_CONTAINER: ClassVar[str] = "flext-oracle-db-test"
         SINGER_TYPE_MAP_TEST_CASES: Mapping[str, str] = MappingProxyType({
             "string": "VARCHAR2(4000)",
             "integer": "NUMBER(38)",
