@@ -26,14 +26,14 @@ if TYPE_CHECKING:
     from ._config import FlextDbOracleConfig, config
     from ._settings import DbOracleSettings, FlextDbOracleSettings, settings
     from .api import FlextDbOracleApi, db_oracle
-    from .base import FlextDbOracleServiceBase, s
+    from .base import FlextDbOracleServiceBase, FlextDbOracleServiceBase as s
     from .cli import main
     from .client import FlextDbOracleClient
     from .constants import FlextDbOracleConstants, c
     from .dispatcher import FlextDbOracleDispatcher
-    from .exceptions import FlextDbOracleExceptions, e
-    from .models import FlextDbOracleModels, m
-    from .protocols import FlextDbOracleProtocols, p
+    from .exceptions import FlextDbOracleExceptions, FlextDbOracleExceptions as e
+    from .models import FlextDbOracleModels, FlextDbOracleModels as m
+    from .protocols import FlextDbOracleProtocols, FlextDbOracleProtocols as p
     from .services.api_runtime import FlextDbOracleApiRuntime
     from .services.connection import FlextDbOracleServiceConnection
     from .services.facade import FlextDbOracleServices
@@ -42,8 +42,8 @@ if TYPE_CHECKING:
     from .services.schema import FlextDbOracleServiceSchema
     from .services.singer import FlextDbOracleServiceSinger
     from .services.sql_builder import FlextDbOracleServiceSqlBuilder
-    from .typings import FlextDbOracleTypes, t
-    from .utilities import FlextDbOracleUtilities, u
+    from .typings import FlextDbOracleTypes, FlextDbOracleTypes as t
+    from .utilities import FlextDbOracleUtilities, FlextDbOracleUtilities as u
 
 
 __all__: tuple[str, ...] = (

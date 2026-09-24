@@ -8,10 +8,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import oracledb
-from flext_cli import t
+from flext_cli import FlextCliTypes
 
 
-class FlextDbOracleTypes(t):
+class FlextDbOracleTypes(FlextCliTypes):
     """Oracle database-specific type definitions extending t via MRO."""
 
     class DbOracle:
@@ -20,8 +20,8 @@ class FlextDbOracleTypes(t):
         OracleDatabaseError: type[Exception] = oracledb.DatabaseError
         OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
-        type QueryParameters = t.JsonMapping
-        type CliScalar = t.Scalar | None
+        type QueryParameters = FlextCliTypes.JsonMapping
+        type CliScalar = FlextCliTypes.Scalar | None
 
 
 t = FlextDbOracleTypes

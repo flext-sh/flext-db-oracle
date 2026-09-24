@@ -15,14 +15,14 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import Engine as SAEngine, text
 
-from flext_core import s
+from flext_core import FlextService
 from flext_db_oracle import FlextDbOracleSettings, c, m, p, r, t, u
 
 if TYPE_CHECKING:
     from collections.abc import MutableMapping, MutableSequence
 
 
-class FlextDbOracleServiceBase(s, u.DbOracle):
+class FlextDbOracleServiceBase(FlextService, u.DbOracle):
     """Base mixin providing static helpers and SQLAlchemy wrappers.
 
     All service mixins inherit from this base, which provides:

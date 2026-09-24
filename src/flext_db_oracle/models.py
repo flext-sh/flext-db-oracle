@@ -14,14 +14,14 @@ from datetime import datetime
 from types import MappingProxyType
 from typing import ClassVar, cast
 
-from flext_cli import m, u
+from flext_cli import FlextCliModels, u
 
 from flext_db_oracle import c, t
 
 from ._models.password import FlextDbOraclePassword
 
 
-class FlextDbOracleModels(m):
+class FlextDbOracleModels(FlextCliModels):
     """Oracle database models using flext-core exclusively.
 
     Contains ONLY pure domain models (Entity, Value, AggregateRoot, etc.).
@@ -35,14 +35,16 @@ class FlextDbOracleModels(m):
 
         Password: type[FlextDbOraclePassword] = FlextDbOraclePassword
 
-        class DbOracleDomainModel(m.BaseModel):
+        class DbOracleDomainModel(FlextCliModels.BaseModel):
             """Base model for FlextDbOracle with standard Pydantic v2 configuration."""
 
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-                use_enum_values=True,
-                validate_default=True,
-                str_strip_whitespace=True,
-                extra="forbid",
+            model_config: ClassVar[FlextCliModels.ConfigDict] = (
+                FlextCliModels.ConfigDict(
+                    use_enum_values=True,
+                    validate_default=True,
+                    str_strip_whitespace=True,
+                    extra="forbid",
+                )
             )
 
         class RowData(DbOracleDomainModel):
@@ -59,10 +61,12 @@ class FlextDbOracleModels(m):
             data_type: str
             nullable: bool = True
 
-        class ConnectionStatus(m.Entity, m.FlexibleModel):
+        class ConnectionStatus(FlextCliModels.Entity, FlextCliModels.FlexibleModel):
             """Connection status using flext-core Entity."""
 
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=False)
+            model_config: ClassVar[FlextCliModels.ConfigDict] = (
+                FlextCliModels.ConfigDict(frozen=False)
+            )
 
             connected: bool = u.Field(
                 False, description="Whether connection is active", validate_default=True
@@ -217,10 +221,12 @@ class FlextDbOracleModels(m):
                     raise ValueError(msg)
                 return self
 
-        class QueryResult(m.Entity, m.FlexibleModel):
+        class QueryResult(FlextCliModels.Entity, FlextCliModels.FlexibleModel):
             """Query result using flext-core Entity."""
 
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=False)
+            model_config: ClassVar[FlextCliModels.ConfigDict] = (
+                FlextCliModels.ConfigDict(frozen=False)
+            )
 
             query: str = u.Field(description="SQL query that produced the result")
             result_data: t.JsonList = u.Field(
@@ -336,7 +342,7 @@ class FlextDbOracleModels(m):
                     raise ValueError(msg)
                 return self
 
-        class OperationRecord(m.Entity):
+        class OperationRecord(FlextCliModels.Entity):
             """Operation tracking record for observability workflows."""
 
             operation_type: str = u.Field(description="Type of database operation")
@@ -347,7 +353,7 @@ class FlextDbOracleModels(m):
             )
             timestamp: str = u.Field(description="ISO timestamp of operation")
 
-        class HealthStatus(m.Entity):
+        class HealthStatus(FlextCliModels.Entity):
             """Service health status record."""
 
             status: str = u.Field(description="Health status indicator")
@@ -381,7 +387,7 @@ class FlextDbOracleModels(m):
                     return True
                 return key in self.model_dump()
 
-        class TableMetadata(m.Entity):
+        class TableMetadata(FlextCliModels.Entity):
             """Complete table metadata for Oracle introspection."""
 
             table_name: str = u.Field(description="Oracle table name")
@@ -407,7 +413,7 @@ class FlextDbOracleModels(m):
                 """Check if key is in table metadata."""
                 return key in self.model_dump()
 
-        class TypeMapping(m.Entity):
+        class TypeMapping(FlextCliModels.Entity):
             """Singer-to-Oracle type mapping."""
 
             mapping: t.StrMapping = u.Field(
@@ -428,7 +434,7 @@ class FlextDbOracleModels(m):
                 """Check if key is in type mapping."""
                 return key in self.mapping
 
-        class SingerField(m.Entity):
+        class SingerField(FlextCliModels.Entity):
             """Singer field definition."""
 
             type: str | t.StrSequence = u.Field(
@@ -437,7 +443,7 @@ class FlextDbOracleModels(m):
                 validate_default=True,
             )
 
-        class SingerSchema(m.Entity):
+        class SingerSchema(FlextCliModels.Entity):
             """Singer schema container with typed properties."""
 
             properties: t.MappingKV[str, FlextDbOracleModels.DbOracle.SingerField] = (
@@ -449,7 +455,7 @@ class FlextDbOracleModels(m):
                 )
             )
 
-        class Table(m.Entity):
+        class Table(FlextCliModels.Entity):
             """Table metadata using flext-core Entity."""
 
             name: str = u.Field(description="Table name")
@@ -460,7 +466,7 @@ class FlextDbOracleModels(m):
                 default_factory=tuple, description="Column definitions for the table"
             )
 
-        class Column(m.Entity):
+        class Column(FlextCliModels.Entity):
             """Column metadata using flext-core Entity."""
 
             name: str = u.Field(description="Column name")
@@ -504,7 +510,7 @@ class FlextDbOracleModels(m):
                     "default_value",
                 }
 
-        class Schema(m.Entity):
+        class Schema(FlextCliModels.Entity):
             """Schema metadata using flext-core Entity."""
 
             name: str = u.Field(description="Schema name")
@@ -512,7 +518,7 @@ class FlextDbOracleModels(m):
                 default_factory=tuple, description="Tables within this schema"
             )
 
-        class CreateIndexConfig(m.Entity):
+        class CreateIndexConfig(FlextCliModels.Entity):
             """Create index settings using flext-core Entity."""
 
             table_name: str = u.Field(description="Target table for the index")
@@ -538,16 +544,16 @@ class FlextDbOracleModels(m):
             )
 
         # Command classes for dispatcher integration
-        class ConnectCommand(m.Entity):
+        class ConnectCommand(FlextCliModels.Entity):
             """Command to establish Oracle connection."""
 
-        class DisconnectCommand(m.Entity):
+        class DisconnectCommand(FlextCliModels.Entity):
             """Command to close Oracle connection."""
 
-        class TestConnectionCommand(m.Entity):
+        class TestConnectionCommand(FlextCliModels.Entity):
             """Command to test Oracle connection."""
 
-        class ExecuteQueryCommand(m.Entity):
+        class ExecuteQueryCommand(FlextCliModels.Entity):
             """Command to execute SELECT query."""
 
             sql: str = u.Field(description="SQL SELECT query to execute")
@@ -555,7 +561,7 @@ class FlextDbOracleModels(m):
                 None, description="Query bind parameters", validate_default=True
             )
 
-        class FetchOneCommand(m.Entity):
+        class FetchOneCommand(FlextCliModels.Entity):
             """Command to fetch single row."""
 
             sql: str = u.Field(description="SQL query to fetch a single row")
@@ -563,7 +569,7 @@ class FlextDbOracleModels(m):
                 None, description="Query bind parameters", validate_default=True
             )
 
-        class ExecuteStatementCommand(m.Entity):
+        class ExecuteStatementCommand(FlextCliModels.Entity):
             """Command to execute INSERT/UPDATE/DELETE."""
 
             sql: str = u.Field(description="SQL DML statement to execute")
@@ -571,7 +577,7 @@ class FlextDbOracleModels(m):
                 None, description="Statement bind parameters", validate_default=True
             )
 
-        class ExecuteManyCommand(m.Entity):
+        class ExecuteManyCommand(FlextCliModels.Entity):
             """Command to execute batch statements."""
 
             sql: str = u.Field(description="SQL statement for batch execution")
@@ -580,17 +586,17 @@ class FlextDbOracleModels(m):
                 description="List of parameter sets for batch execution",
             )
 
-        class GetSchemasCommand(m.Entity):
+        class GetSchemasCommand(FlextCliModels.Entity):
             """Command to retrieve all schemas."""
 
-        class GetTablesCommand(m.Entity):
+        class GetTablesCommand(FlextCliModels.Entity):
             """Command to retrieve tables in schema."""
 
             schema_name: str | None = u.Field(
                 None, description="Schema to list tables from", validate_default=True
             )
 
-        class GetColumnsCommand(m.Entity):
+        class GetColumnsCommand(FlextCliModels.Entity):
             """Command to retrieve columns in table."""
 
             table: str = u.Field(description="Table to retrieve columns from")

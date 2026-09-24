@@ -12,14 +12,14 @@ from typing import TYPE_CHECKING, ClassVar
 
 from flext_tests import FlextTestsUtilities, tk
 
-from flext_db_oracle import u
+from flext_db_oracle import FlextDbOracleUtilities
 from tests import c, m, t
 
 if TYPE_CHECKING:
     from collections.abc import MutableMapping
 
 
-class TestsFlextDbOracleUtilities(FlextTestsUtilities, u):
+class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
     """Test utilities for flext-db-oracle."""
 
     class Tests(FlextTestsUtilities.Tests):

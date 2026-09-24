@@ -13,12 +13,12 @@ if TYPE_CHECKING:
 
     from . import e2e, integration, unit
     from .base import TestsFlextDbOracleServiceBase, TestsFlextDbOracleServiceBase as s
-    from .constants import TestsFlextDbOracleConstants, c
-    from .models import TestsFlextDbOracleModels, m
-    from .protocols import TestsFlextDbOracleProtocols, p
+    from .constants import TestsFlextDbOracleConstants, TestsFlextDbOracleConstants as c
+    from .models import TestsFlextDbOracleModels, TestsFlextDbOracleModels as m
+    from .protocols import TestsFlextDbOracleProtocols, TestsFlextDbOracleProtocols as p
     from .settings import TestsFlextDbOracleSettings
-    from .typings import TestsFlextDbOracleTypes, t
-    from .utilities import TestsFlextDbOracleUtilities, u
+    from .typings import TestsFlextDbOracleTypes, TestsFlextDbOracleTypes as t
+    from .utilities import TestsFlextDbOracleUtilities, TestsFlextDbOracleUtilities as u
 
 
 __all__: tuple[str, ...] = (

@@ -10,25 +10,25 @@ from typing import TYPE_CHECKING
 
 from flext_tests import FlextTestsModels
 
-from flext_db_oracle import m
+from flext_db_oracle import FlextDbOracleModels
 
 if TYPE_CHECKING:
     from tests import t
 
 
-class TestsFlextDbOracleModels(FlextTestsModels, m):
+class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
     """Test models for flext-db-oracle."""
 
     class Tests(FlextTestsModels.Tests):
         """Test-specific models."""
 
-        class StubResult(m.DbOracle.DbOracleDomainModel):
+        class StubResult(FlextDbOracleModels.DbOracle.DbOracleDomainModel):
             """Minimal result stub for dynamic integration tests."""
 
             failure: bool = False
             error: str = ""
 
-        class StubPluginEntity(m.DbOracle.DbOracleDomainModel):
+        class StubPluginEntity(FlextDbOracleModels.DbOracle.DbOracleDomainModel):
             """Stub plugin entity compatible with service integration tests."""
 
             name: str
