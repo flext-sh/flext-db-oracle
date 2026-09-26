@@ -81,6 +81,18 @@ class TestsFlextDbOracleApi:
         """valid() is True when port and service name satisfy the contract."""
         tm.that(api.valid(), eq=True)
 
+    @staticmethod
+    def _is_runtime(candidate: p.Base) -> bool:
+        """Report structural conformance without a type-narrowed argument."""
+        return isinstance(candidate, p.DbOracle.Runtime)
+
+    def test_api_satisfies_its_own_runtime_protocol(
+        self, api: FlextDbOracleApi
+    ) -> None:
+        """The real facade structurally satisfies its own declared Runtime protocol."""
+        tm.that(self._is_runtime(api), eq=True)
+        tm.that(api.valid(), eq=True)
+
     def test_url_derived_service_name_is_uppercased(self) -> None:
         """from_url normalizes the parsed service name to upper case."""
         result = FlextDbOracleApi.from_url("oracle://user:pass@host:1521/service")

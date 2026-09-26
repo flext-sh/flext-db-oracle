@@ -495,6 +495,25 @@ class FlextDbOracleProtocols(FlextCliProtocols):
                 """
                 ...
 
+        @runtime_checkable
+        class Runtime(FlextCliProtocols.Base, Protocol):
+            """Protocol for a runtime Oracle API service that reports its own validity.
+
+            Declares only the ``valid`` capability this member actually consumes,
+            deliberately not extending ``p.Service`` while that base still carries
+            unimplemented members (``service_info``, ``ok``, ``fail_op``) which
+            would make this protocol structurally unsatisfiable by real services.
+            """
+
+            def valid(self) -> bool:
+                """Check whether the runtime configuration is valid.
+
+                Returns:
+                bool: True when the configuration is usable, False otherwise.
+
+                """
+                ...
+
 
 p = FlextDbOracleProtocols
 

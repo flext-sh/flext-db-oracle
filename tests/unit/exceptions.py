@@ -14,5 +14,3 @@ class FlextDbOracleTestExceptions(FlextDbOracleExceptions):
 
 
 e = FlextDbOracleTestExceptions
-
-__all__: list[str] = ["FlextDbOracleTestExceptions", "e"]
