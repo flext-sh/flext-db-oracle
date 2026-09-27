@@ -9,16 +9,19 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_tests import api, d, e, h, r, td, tf, tk, tm, tv, x
+    from flext_tests import api, td, tf, tk, tm, tv
+
+    from flext_core import d, h, r, x
+    from flext_db_oracle import e
 
     from . import e2e, integration, unit
     from .base import TestsFlextDbOracleServiceBase, TestsFlextDbOracleServiceBase as s
-    from .constants import TestsFlextDbOracleConstants, c
-    from .models import TestsFlextDbOracleModels, m
-    from .protocols import TestsFlextDbOracleProtocols, p
+    from .constants import TestsFlextDbOracleConstants, TestsFlextDbOracleConstants as c
+    from .models import TestsFlextDbOracleModels, TestsFlextDbOracleModels as m
+    from .protocols import TestsFlextDbOracleProtocols, TestsFlextDbOracleProtocols as p
     from .settings import TestsFlextDbOracleSettings
-    from .typings import TestsFlextDbOracleTypes, t
-    from .utilities import TestsFlextDbOracleUtilities, u
+    from .typings import TestsFlextDbOracleTypes, TestsFlextDbOracleTypes as t
+    from .utilities import TestsFlextDbOracleUtilities, TestsFlextDbOracleUtilities as u
 
 
 __all__: tuple[str, ...] = (
@@ -64,19 +67,9 @@ _LAZY_IMPORTS = MappingProxyType(
             ".typings": ("TestsFlextDbOracleTypes", "t"),
             ".unit": ("unit",),
             ".utilities": ("TestsFlextDbOracleUtilities", "u"),
-            "flext_tests": (
-                "api",
-                "d",
-                "e",
-                "h",
-                "r",
-                "td",
-                "tf",
-                "tk",
-                "tm",
-                "tv",
-                "x",
-            ),
+            "flext_core": ("d", "h", "r", "x"),
+            "flext_db_oracle": ("e",),
+            "flext_tests": ("api", "td", "tf", "tk", "tm", "tv"),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,

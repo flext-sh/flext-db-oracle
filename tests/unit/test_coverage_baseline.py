@@ -87,8 +87,8 @@ class TestsFlextDbOracleCoverageBaseline:
         column = m.DbOracle.Column(name="ID", data_type="NUMBER")
         tm.that(column["column_name"], eq="ID")
         tm.that(column["data_type"], eq="NUMBER")
-        tm.that(column, has="nullable")
-        tm.that(column, lacks="unknown_key")
+        tm.that("nullable" in column, eq=True)
+        tm.that("unknown_key" in column, eq=False)
         tm.that(column["unknown_key"], eq="")
 
     def test_service_exposes_bound_settings(

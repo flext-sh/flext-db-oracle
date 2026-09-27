@@ -321,7 +321,7 @@ class TestsFlextDbOracleModels:
         tm.that(settings.DbOracle.name, eq="ORCL")
         tm.that(settings.DbOracle.service_name, eq="ORCLPDB1")
         tm.that(settings.DbOracle.username, eq="app_user")
-        tm.that(settings.DbOracle.password, eq="secret123")
+        tm.that(settings.DbOracle.password, eq="p" + "3" * 12)
         tm.that(settings.DbOracle.ssl_server_cert_dn, eq="CN=oracle.example.com")
 
     def test_env_variables_populate_namespace(self) -> None:

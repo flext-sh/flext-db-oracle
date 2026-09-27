@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_cli import p
+from flext_cli import FlextCliProtocols
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from flext_db_oracle import m, t
 
 
-class FlextDbOracleProtocols(p):
+class FlextDbOracleProtocols(FlextCliProtocols):
     """Oracle database protocols extending FlextProtocols.
 
     Extends FlextProtocols to inherit all foundation protocols (Result, Service, etc.)
@@ -491,6 +491,25 @@ class FlextDbOracleProtocols(p):
 
                 Returns:
                 r[t.JsonMapping]: Health status or error
+
+                """
+                ...
+
+        @runtime_checkable
+        class Runtime(FlextCliProtocols.Base, Protocol):
+            """Protocol for a runtime Oracle API service that reports its own validity.
+
+            Declares only the ``valid`` capability this member actually consumes,
+            deliberately not extending ``p.Service`` while that base still carries
+            unimplemented members (``service_info``, ``ok``, ``fail_op``) which
+            would make this protocol structurally unsatisfiable by real services.
+            """
+
+            def valid(self) -> bool:
+                """Check whether the runtime configuration is valid.
+
+                Returns:
+                bool: True when the configuration is usable, False otherwise.
 
                 """
                 ...
