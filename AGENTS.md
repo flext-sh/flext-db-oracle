@@ -51,9 +51,12 @@ src/flext_db_oracle/
 
 ## Commands
 
+Run from the workspace root (selector-free; the root dispatcher routes to every
+member — `PROJECT=` is not a root Make variable):
+
 ```bash
-make check PROJECT=flext-db-oracle
-make test PROJECT=flext-db-oracle # tests/{unit,integration,e2e}
+make check
+make test
 ```
 
 <!-- AIHUB-AGENTS-SCOPE-LOCAL-END -->
