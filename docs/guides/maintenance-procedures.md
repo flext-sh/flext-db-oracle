@@ -472,5 +472,5 @@ free -h # Memory
 
 ---
 
-**Documentation Maintenance Framework v1.0.0** **Last Updated**: 2026-04-14 **Next
-Review**: 2025-11-10
+**Documentation Maintenance Framework v1.0.0** **Last Updated**: 2026-04-14
+**Next Review**: 2025-11-10

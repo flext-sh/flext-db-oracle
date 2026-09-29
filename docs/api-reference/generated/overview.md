@@ -8,14 +8,28 @@
 
 <!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
 
+- Package: `flext_db_oracle`
 - Version: `0.12.0`
 - Description: FLEXT DB Oracle - Enterprise Oracle Database Operations Library
-- Governed projects: `0`
-- Project classes: _none_
-
-Generated from workspace discovery, `pyproject.toml`, public exports, and docstrings.
+- Doc summary: Flext Db Oracle package.
+- Classifiers: Development Status :: 3 - Alpha, Intended Audience :: Developers,
+  Operating System :: OS Independent, Programming Language :: Python :: 3 :: Only,
+  Programming Language :: Python :: 3.13, Topic :: Database, Topic :: Software
+  Development :: Libraries :: Python Modules, Typing :: Typed
+- Project class: `domain`
+- Keywords: `database`, `enterprise`, `flext`, `oracle`, `sql`, `typed`
+- Main facades: `FlextDbOracleApi`, `FlextDbOracleApiRuntime`, `FlextDbOracleClient`,
+  `FlextDbOracleConfig`, `FlextDbOracleConstants`, `FlextDbOracleDispatcher`,
+  `FlextDbOracleExceptions`, `FlextDbOracleModels` (+12 more)
+- Alias exports: `c`, `d`, `e`, `h`, `m`, `p`, `r`, `s`, `t`, `u`, `x`
+- Public symbol exports: `DbOracleSettings`, `FlextDbOracleApi`,
+  `FlextDbOracleApiRuntime`, `FlextDbOracleClient`, `FlextDbOracleConfig`,
+  `FlextDbOracleConstants`, `FlextDbOracleDispatcher`, `FlextDbOracleExceptions`,
+  `FlextDbOracleModels`, `FlextDbOracleProtocols` (+15 more)
+- Exported module shortcuts: `services`
+- Generated module pages: `20`
 
 ## Next Pages
 
-- [Workspace Module Pages](projects/index.md)
-- [Project Catalog](../../projects/generated/catalog.md)
+- [Public API](public-api.md)
+- [Module Index](modules/index.md)
