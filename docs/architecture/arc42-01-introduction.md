@@ -31,8 +31,8 @@
 
 <!-- TOC END -->
 
-**flext-db-oracle - Enterprise Oracle Database Integration** **Arc42 Section 1:
-Introduction and Goals**
+**flext-db-oracle - Enterprise Oracle Database Integration**
+**Arc42 Section 1: Introduction and Goals**
 
 ## 1.1 Purpose and Scope
 
@@ -88,8 +88,8 @@ all Oracle-related data operations across 32+ FLEXT projects.
 
 #### Data Engineer
 
-**Concerns:** Database connectivity, query performance, data integrity **Quality
-Attributes:** Performance, reliability, security
+**Concerns:** Database connectivity, query performance, data integrity
+**Quality Attributes:** Performance, reliability, security
 
 #### Application Developer
 
@@ -115,8 +115,8 @@ Security, performance, reliability
 
 #### Product Manager
 
-**Concerns:** Feature completeness, user satisfaction, roadmap planning **Quality
-Attributes:** Usability, reliability, performance
+**Concerns:** Feature completeness, user satisfaction, roadmap planning
+**Quality Attributes:** Usability, reliability, performance
 
 #### Security Officer
 
