@@ -24,10 +24,10 @@ dependencies = [
   "dependency-injector>=4.49.1",
   "flext-cli @ git+https://github.com/flext-sh/flext-cli.git@0.12.0-dev",
   "flext-core @ git+https://github.com/flext-sh/flext-core.git@0.12.0-dev",
-  "oracledb>=26.0.0",
+  "oracledb>=26.0.1",
   "packaging>=26.3",
   "pydantic>=2.13.5",
-  "pydantic-settings>=2.14.2,<2.15",
+  "pydantic-settings>=2.14.2,<2.16",
   "pyyaml>=6.0.3",
   "sqlalchemy>=2.0.54",
   "structlog>=25.5.0,<27",
@@ -79,6 +79,7 @@ dev = [
   "mkdocstrings>=1.0.6",
   "mkdocstrings-python>=2.0.8",
   "mypy>=2.3.1",
+  "platformdirs>=4.12.0",
   "pymdown-extensions",
   "pyrefly>=1.2.0",
   "pyright>=1.1.411",
@@ -411,7 +412,7 @@ addopts = [
   "--durations=10",
   "--timeout=10",
 ]
-flext_slow_timeout_seconds = "60"
+flext_slow_timeout_seconds = "30"
 asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
   "error",

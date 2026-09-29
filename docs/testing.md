@@ -61,16 +61,16 @@
 
 **Issue**:
 `ImportError: cannot import name 'TestsFlextBuilders' from 'flext_tests.matchers'`
-**Impact**: Major test files failing to import, blocking test execution **Files
-Affected**: `tests/unit/test_api.py` and potentially others **Root Cause**: Missing or
-renamed exports in flext-core test utilities
+**Impact**: Major test files failing to import, blocking test execution
+**Files Affected**: `tests/unit/test_api.py` and potentially others **Root Cause**:
+Missing or renamed exports in flext-core test utilities
 
 #### 2. **Pydantic Deprecation Warnings**
 
 **Issue**: `PydanticDeprecatedSince20: Support for class-based settings is deprecated`
-**Impact**: Warnings in production code, potential future breaking changes **Files
-Affected**: `src/flext_db_oracle/exceptions.py:28` **Root Cause**: Using deprecated
-Pydantic v1 style configuration
+**Impact**: Warnings in production code, potential future breaking changes
+**Files Affected**: `src/flext_db_oracle/exceptions.py:28` **Root Cause**: Using
+deprecated Pydantic v1 style configuration
 
 #### 3. **Constants Test Failures**
 
