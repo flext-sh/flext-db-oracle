@@ -173,8 +173,6 @@ def shared_oracle_container(docker_control: tk) -> str:
     Long first-boot (SHARED_CONTAINERS startup_timeout=900) is not a per-case wait.
     DB login readiness is enforced by ``connected_oracle_api`` (skip on failure).
     """
-    if tk.ci_disables_docker():
-        pytest.skip(c.Tests.DOCKER_CI_SKIP_REASON)
     container_name = _ORACLE_CONTAINER_NAME
     probe_budget = c.Tests.DOCKER_PROBE_MAX_WAIT_SECONDS
     target = docker_control.target_config
