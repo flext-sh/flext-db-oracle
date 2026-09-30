@@ -165,7 +165,7 @@ and Python-oracledb while providing:
 
 #### System Administrator
 
-- **Needs**: Database REDACTED_LDAP_BIND_PASSWORDistration tools, monitoring dashboards
+- **Needs**: Database administration tools, monitoring dashboards
 - **Concerns**: System performance, resource utilization, security
 
 #### QA Engineer
@@ -233,13 +233,13 @@ and Python-oracledb while providing:
 - Connection pooling and lifecycle management
 - Schema introspection and metadata extraction
 - Query building and execution with error handling
-- CLI interface for REDACTED_LDAP_BIND_PASSWORDistrative operations
+- CLI interface for administrative operations
 - Comprehensive testing and quality assurance
 - Documentation and maintenance automation
 
 ### Out of Scope
 
-- Database server REDACTED_LDAP_BIND_PASSWORDistration (backup, restore, etc.)
+- Database server administration (backup, restore, etc.)
 - Data modeling and schema design
 - Business logic implementation
 - User interface development

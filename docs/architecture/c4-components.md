@@ -175,7 +175,7 @@ class FlextDbOracleApi(s):
 
 **Pattern**: Command Pattern **Responsibilities**:
 
-- Command-line interface for REDACTED_LDAP_BIND_PASSWORDistrative operations
+- Command-line interface for administrative operations
 - Command registration and dispatching
 - User interaction and feedback
 - Integration with Click framework

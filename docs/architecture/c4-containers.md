@@ -137,14 +137,13 @@ database integration with FLEXT patterns **Responsibilities**:
 
 - Provide type-safe Oracle database operations
 - Implement railway-oriented error handling
-- Offer CLI interface for REDACTED_LDAP_BIND_PASSWORDistrative operations
+- Offer CLI interface for administrative operations
 - Support connection pooling and transaction management
 
 **Key Interfaces**:
 
 - **API Interface**: `FlextDbOracleApi` - Main programmatic interface
-- **CLI Interface**: `FlextDbOracleCli` - Command-line
-  REDACTED_LDAP_BIND_PASSWORDistrative tools
+- **CLI Interface**: `FlextDbOracleCli` - Command-line administrative tools
 - **Configuration Interface**: Environment variables and configuration files
 
 ### Supporting Applications
