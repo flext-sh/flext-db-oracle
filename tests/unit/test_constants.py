@@ -382,6 +382,7 @@ class TestsFlextDbOracleConstants:
 
     # ---- real Oracle integration (public API, fail-loud when unavailable) -
 
+    @pytest.mark.docker
     def test_oracle_constants_real_connection_validation(
         self, connected_oracle_api: FlextDbOracleApi, *, oracle_available: bool
     ) -> None:
@@ -405,6 +406,7 @@ class TestsFlextDbOracleConstants:
         in_range = c.DbOracle.MIN_PORT <= default_port <= c.DbOracle.MAX_PORT
         tm.that(in_range, eq=True)
 
+    @pytest.mark.docker
     def test_oracle_data_types_real_validation(
         self, connected_oracle_api: FlextDbOracleApi, *, oracle_available: bool
     ) -> None:
@@ -434,6 +436,7 @@ class TestsFlextDbOracleConstants:
         tm.ok(u.DbOracle.escape_oracle_identifier(long_name))
         tm.that(c.DbOracle.MAX_VARCHAR_LENGTH, eq=4000)
 
+    @pytest.mark.docker
     def test_oracle_performance_constants_real_timing(
         self, connected_oracle_api: FlextDbOracleApi, *, oracle_available: bool
     ) -> None:
