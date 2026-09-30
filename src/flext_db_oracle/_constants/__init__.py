@@ -11,11 +11,13 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 if TYPE_CHECKING:
     from .base import FlextDbOracleConstantsBase
     from .exceptions import FlextDbOracleConstantsExceptions
+    from .values import FlextDbOracleConstantsValues
 
 
 __all__: tuple[str, ...] = (
     "FlextDbOracleConstantsBase",
     "FlextDbOracleConstantsExceptions",
+    "FlextDbOracleConstantsValues",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
@@ -23,6 +25,7 @@ _LAZY_IMPORTS = MappingProxyType(
         MappingProxyType({
             ".base": ("FlextDbOracleConstantsBase",),
             ".exceptions": ("FlextDbOracleConstantsExceptions",),
+            ".values": ("FlextDbOracleConstantsValues",),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
