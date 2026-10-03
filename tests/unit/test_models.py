@@ -25,7 +25,10 @@ class TestsFlextDbOracleModels:
     def test_connected_status_reports_connected_description() -> None:
         """A connected status exposes a 'Connected' human-readable description."""
         status = m.DbOracle.ConnectionStatus(
-            connected=True, host="localhost", service_name="XEPDB1", username="system",
+            connected=True,
+            host="localhost",
+            service_name="XEPDB1",
+            username="system",
         )
         tm.that(status.status_description, eq="Connected")
         tm.that(status.healthy, eq=True)
@@ -53,11 +56,14 @@ class TestsFlextDbOracleModels:
         ],
     )
     def test_performance_info_reflects_connection_time(
-        connection_time: float, rating: str,
+        connection_time: float,
+        rating: str,
     ) -> None:
         """performance_info categorizes the measured connection time."""
         status = m.DbOracle.ConnectionStatus(
-            connected=True, host="localhost", connection_time=connection_time,
+            connected=True,
+            host="localhost",
+            connection_time=connection_time,
         )
         tm.that(status.performance_info, has=rating)
 
@@ -65,7 +71,8 @@ class TestsFlextDbOracleModels:
     def test_connected_without_host_is_rejected() -> None:
         """Consistency validator rejects a connected status without a host."""
         with pytest.raises(
-            ValueError, match="Connected status requires host information",
+            ValueError,
+            match="Connected status requires host information",
         ):
             m.DbOracle.ConnectionStatus(connected=True, host="", port=1521)
 
@@ -146,11 +153,13 @@ class TestsFlextDbOracleModels:
         [(50, "Excellent"), (300, "Good"), (1500, "Acceptable"), (2500, "Slow")],
     )
     def test_performance_rating_without_results_uses_time_thresholds(
-        execution_time_ms: int, rating: str,
+        execution_time_ms: int,
+        rating: str,
     ) -> None:
         """With no rows, performance_rating is decided by execution time alone."""
         result = m.DbOracle.QueryResult(
-            query="SELECT 1", execution_time_ms=execution_time_ms,
+            query="SELECT 1",
+            execution_time_ms=execution_time_ms,
         )
         tm.that(result.has_results, eq=False)
         tm.that(result.performance_rating, eq=rating)
@@ -229,7 +238,10 @@ class TestsFlextDbOracleModels:
     def test_column_defaults_and_explicit_values() -> None:
         """Column exposes type, nullability and default value through public fields."""
         column = m.DbOracle.Column(
-            name="user_id", data_type="NUMBER(38)", nullable=False, default_value="NULL",
+            name="user_id",
+            data_type="NUMBER(38)",
+            nullable=False,
+            default_value="NULL",
         )
         tm.that(column.name, eq="user_id")
         tm.that(column.data_type, eq="NUMBER(38)")

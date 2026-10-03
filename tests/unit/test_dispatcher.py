@@ -69,7 +69,8 @@ class TestsFlextDbOracleDispatcher:
     def test_execute_query_command_carries_sql_and_parameters() -> None:
         """ExecuteQueryCommand preserves sql and explicit parameters."""
         cmd = m.DbOracle.ExecuteQueryCommand(
-            sql="SELECT 1 FROM DUAL", parameters={"limit": 10},
+            sql="SELECT 1 FROM DUAL",
+            parameters={"limit": 10},
         )
         tm.that(cmd.sql, eq="SELECT 1 FROM DUAL")
         tm.that(cmd.parameters, eq={"limit": 10})
@@ -116,7 +117,8 @@ class TestsFlextDbOracleDispatcher:
     def test_execute_many_command_preserves_parameter_batches() -> None:
         """ExecuteManyCommand keeps the ordered batch of parameter mappings."""
         cmd = m.DbOracle.ExecuteManyCommand(
-            sql="INSERT INTO t VALUES (:v)", parameters_list=[{"v": 1}, {"v": 2}],
+            sql="INSERT INTO t VALUES (:v)",
+            parameters_list=[{"v": 1}, {"v": 2}],
         )
         tm.that(cmd.sql, eq="INSERT INTO t VALUES (:v)")
         tm.that(list(cmd.parameters_list), eq=[{"v": 1}, {"v": 2}])
@@ -131,7 +133,8 @@ class TestsFlextDbOracleDispatcher:
     @staticmethod
     @pytest.mark.parametrize(("schema_name", "expected"), [("HR", "HR"), (None, None)])
     def test_get_tables_command_schema_is_optional(
-        schema_name: str | None, expected: str | None,
+        schema_name: str | None,
+        expected: str | None,
     ) -> None:
         """GetTablesCommand accepts an optional schema, defaulting to None."""
         cmd = m.DbOracle.GetTablesCommand(schema_name=schema_name)
@@ -147,7 +150,8 @@ class TestsFlextDbOracleDispatcher:
     def test_command_round_trips_through_model_dump() -> None:
         """Public model_dump surfaces the command's declared field values."""
         cmd = m.DbOracle.ExecuteQueryCommand(
-            sql="SELECT * FROM DUAL", parameters={"a": 1},
+            sql="SELECT * FROM DUAL",
+            parameters={"a": 1},
         )
         dumped = cmd.model_dump()
         tm.that(dumped["sql"], eq="SELECT * FROM DUAL")

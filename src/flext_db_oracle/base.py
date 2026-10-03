@@ -103,7 +103,9 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
         return r[SAEngine].ok(engine)
 
     def execute_rows(
-        self, sql: str, params: m.ConfigMap | None = None,
+        self,
+        sql: str,
+        params: m.ConfigMap | None = None,
     ) -> p.Result[Sequence[m.Dict]]:
         """Execute a SQL query in composed service facades.
 

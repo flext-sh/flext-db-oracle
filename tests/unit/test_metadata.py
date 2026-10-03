@@ -118,7 +118,8 @@ class TestsFlextDbOracleMetadata:
 
     @staticmethod
     def test_settings_property_exposes_supplied_connection_config(
-        services: FlextDbOracleServices, settings: FlextDbOracleSettings,
+        services: FlextDbOracleServices,
+        settings: FlextDbOracleSettings,
     ) -> None:
         """The settings property returns the exact configuration supplied."""
         bound = services.settings
@@ -137,7 +138,8 @@ class TestsFlextDbOracleMetadata:
 
     @staticmethod
     def test_execute_returns_active_settings_as_success(
-        services: FlextDbOracleServices, settings: FlextDbOracleSettings,
+        services: FlextDbOracleServices,
+        settings: FlextDbOracleSettings,
     ) -> None:
         """execute() succeeds and yields the active Oracle configuration."""
         value = tm.ok(services.execute())
@@ -202,7 +204,9 @@ class TestsFlextDbOracleMetadata:
         [("NUMBER", False), ("VARCHAR2", True), ("DATE", True)],
     )
     def test_column_exposes_public_field_state(
-        data_type: str, *, nullable: bool,
+        data_type: str,
+        *,
+        nullable: bool,
     ) -> None:
         """Column reflects the field values supplied through its public API."""
         column = m.DbOracle.Column(name="ID", data_type=data_type, nullable=nullable)
@@ -227,7 +231,10 @@ class TestsFlextDbOracleMetadata:
     def test_column_model_dump_roundtrips_public_fields() -> None:
         """model_dump surfaces the public column fields for serialization."""
         column = m.DbOracle.Column(
-            name="AMOUNT", data_type="NUMBER", nullable=True, primary_key=True,
+            name="AMOUNT",
+            data_type="NUMBER",
+            nullable=True,
+            primary_key=True,
         )
         dumped = column.model_dump()
         tm.that(dumped["name"], eq="AMOUNT")
@@ -243,7 +250,9 @@ class TestsFlextDbOracleMetadata:
             m.DbOracle.Column(name="NAME", data_type="VARCHAR2", nullable=True),
         ]
         table = m.DbOracle.Table(
-            name="COMPLEX_TABLE", owner="APP_SCHEMA", columns=columns,
+            name="COMPLEX_TABLE",
+            owner="APP_SCHEMA",
+            columns=columns,
         )
         tm.that(table.name, eq="COMPLEX_TABLE")
         tm.that(table.owner, eq="APP_SCHEMA")

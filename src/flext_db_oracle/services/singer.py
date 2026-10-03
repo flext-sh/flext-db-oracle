@@ -50,7 +50,8 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
         return r[str].ok(oracle_type)
 
     def map_singer_schema(
-        self, singer_schema: m.DbOracle.SingerSchema | t.JsonMapping,
+        self,
+        singer_schema: m.DbOracle.SingerSchema | t.JsonMapping,
     ) -> p.Result[m.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified.
 

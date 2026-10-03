@@ -84,7 +84,9 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
     @classmethod
     def _compile_statement_with_binds(
-        cls, statement: ClauseElement, bind_names: t.MappingKV[str, str],
+        cls,
+        statement: ClauseElement,
+        bind_names: t.MappingKV[str, str],
     ) -> str:
         sql = cls._compile_statement(statement)
         for column_name, bind_name in bind_names.items():
@@ -93,7 +95,9 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
     @staticmethod
     def _build_table_clause(
-        table_name: str, column_names: t.StrSequence, schema: str | None = None,
+        table_name: str,
+        column_names: t.StrSequence,
+        schema: str | None = None,
     ) -> TableClause:
         """Build a ``table()`` clause with Oracle-safe identifier quoting.
 
@@ -107,19 +111,19 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         return table(
             table_name.upper()
             if c.DbOracle.IDENTIFIER_RE.fullmatch(table_name)
-            else quoted_name(table_name, True),
+            else quoted_name(table_name, quote=True),
             *(
                 column(
                     column_name
                     if c.DbOracle.IDENTIFIER_RE.fullmatch(column_name)
-                    else quoted_name(column_name, True),
+                    else quoted_name(column_name, quote=True),
                 )
                 for column_name in column_names
             ),
             schema=(
                 schema.upper()
                 if schema and c.DbOracle.IDENTIFIER_RE.fullmatch(schema)
-                else quoted_name(schema, True)
+                else quoted_name(schema, quote=True)
                 if schema
                 else None
             ),
@@ -138,7 +142,8 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             return r[str].fail(f"Invalid CREATE INDEX settings: {e}", exception=e)
 
     def _create_index_sql(
-        self, settings: m.DbOracle.CreateIndexConfig,
+        self,
+        settings: m.DbOracle.CreateIndexConfig,
     ) -> p.Result[str]:
         """Compile CREATE INDEX SQL from validated settings.
 
@@ -190,7 +195,10 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         )
 
     def build_delete_statement(
-        self, table_name: str, where_columns: t.StrSequence, schema: str | None = None,
+        self,
+        table_name: str,
+        where_columns: t.StrSequence,
+        schema: str | None = None,
     ) -> p.Result[str]:
         """Build DELETE statement through SQLAlchemy Core Oracle compilation.
 
@@ -274,7 +282,9 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             for index, column_name in enumerate(condition_columns)
         }
         table_clause = self._build_table_clause(
-            table_name, statement_columns, schema_name,
+            table_name,
+            statement_columns,
+            schema_name,
         )
         selected_column_clauses = [
             table_clause.c[column_name] for column_name in selected_columns
@@ -348,7 +358,8 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             return r[str].fail(f"Invalid CREATE TABLE settings: {e}", exception=e)
 
     def _normalize_table_columns(
-        self, columns: t.SequenceOf[m.DbOracle.Column | t.JsonMapping],
+        self,
+        columns: t.SequenceOf[m.DbOracle.Column | t.JsonMapping],
     ) -> t.SequenceOf[m.DbOracle.Column]:
         """Normalize raw column payloads into Column models.
 
@@ -420,7 +431,9 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         )
 
     def drop_table_ddl(
-        self, table_name: str, schema: str | None = None,
+        self,
+        table_name: str,
+        schema: str | None = None,
     ) -> p.Result[str]:
         """Generate DROP TABLE DDL through SQLAlchemy Oracle DDL compilation.
 
@@ -431,7 +444,9 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         normalized_schema_name = self._normalize_identifier(schema) if schema else None
         metadata = MetaData()
         table_object = Table(
-            normalized_table_name, metadata, schema=normalized_schema_name,
+            normalized_table_name,
+            metadata,
+            schema=normalized_schema_name,
         )
         ddl = self._compile_statement(DropTable(table_object))
         return r[str].ok(ddl)

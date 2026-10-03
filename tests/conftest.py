@@ -89,7 +89,8 @@ def _cleanup_dirty_oracle_container() -> None:
         return
     container_name = _ORACLE_CONTAINER_NAME
     docker = tk.shared(
-        container_name, repository_root=Path(__file__).resolve().parents[2],
+        container_name,
+        repository_root=Path(__file__).resolve().parents[2],
     )
     dirty_containers = docker.dirty_containers
     if not dirty_containers:
@@ -122,7 +123,8 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[None]) ->
 
 
 def _mark_dirty_on_oracle_service_failure(
-    item: pytest.Item, call: pytest.CallInfo[None],
+    item: pytest.Item,
+    call: pytest.CallInfo[None],
 ) -> None:
     """Mark the shared Oracle container dirty when an Oracle service error occurs."""
     if call.excinfo is None:
@@ -146,7 +148,8 @@ def _mark_dirty_on_oracle_service_failure(
     if not is_service_failure:
         return
     docker = tk.shared(
-        _ORACLE_CONTAINER_NAME, repository_root=Path(__file__).resolve().parents[2],
+        _ORACLE_CONTAINER_NAME,
+        repository_root=Path(__file__).resolve().parents[2],
     )
     docker.mark_container_dirty(_ORACLE_CONTAINER_NAME)
     logger.error(
@@ -164,7 +167,8 @@ def docker_control() -> tk:
         The resulting ``tk``.
     """
     return tk.shared(
-        _ORACLE_CONTAINER_NAME, repository_root=Path(__file__).resolve().parents[2],
+        _ORACLE_CONTAINER_NAME,
+        repository_root=Path(__file__).resolve().parents[2],
     )
 
 
@@ -198,7 +202,9 @@ def shared_oracle_container(docker_control: tk) -> str:
     # TCP-only probe: oracledb.connect on a half-ready listener leaks sockets that
     # become PytestUnraisableExceptionWarning under filterwarnings=error.
     tcp_ready = docker_control.wait_for_port_ready(
-        host, resolved_port, max_wait=probe_budget,
+        host,
+        resolved_port,
+        max_wait=probe_budget,
     )
     if tcp_ready.failure:
         pytest.skip(

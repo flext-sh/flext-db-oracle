@@ -48,7 +48,9 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         FlextDbOracleServiceBase.__init__(self, settings)
 
     def fetch_columns(
-        self, table_name: str, schema_name: str | None = None,
+        self,
+        table_name: str,
+        schema_name: str | None = None,
     ) -> p.Result[Sequence[m.DbOracle.Column]]:
         """Get column information for Oracle table.
 
@@ -78,7 +80,8 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
                     == "Y",
                     primary_key=False,
                     default_value=str(
-                        row.root.get("DATA_DEFAULT") or row.root.get("data_default", ""),
+                        row.root.get("DATA_DEFAULT")
+                        or row.root.get("data_default", ""),
                     ),
                 )
                 for row in rows
@@ -86,7 +89,9 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         )
 
     def fetch_primary_key_columns(
-        self, table_name: str, schema_name: str | None = None,
+        self,
+        table_name: str,
+        schema_name: str | None = None,
     ) -> p.Result[t.StrSequence]:
         """Alias for get_primary_keys.
 
@@ -96,7 +101,9 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         return self.fetch_primary_keys(table_name, schema_name)
 
     def fetch_primary_keys(
-        self, table_name: str, schema: str | None = None,
+        self,
+        table_name: str,
+        schema: str | None = None,
     ) -> p.Result[t.StrSequence]:
         """Get primary key column names for specified table.
 
@@ -145,7 +152,9 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         )
 
     def fetch_table_metadata(
-        self, table_name: str, schema: str | None = None,
+        self,
+        table_name: str,
+        schema: str | None = None,
     ) -> p.Result[m.DbOracle.TableMetadata]:
         """Get complete table metadata.
 
@@ -189,7 +198,9 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         ).map_error(lambda e: f"Failed to get table metadata: {e}")
 
     def fetch_table_row_count(
-        self, table_name: str, schema_name: str | None = None,
+        self,
+        table_name: str,
+        schema_name: str | None = None,
     ) -> p.Result[int]:
         """Get row count through SQLAlchemy Core Oracle compilation.
 
@@ -202,12 +213,12 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
                 table(
                     table_name.upper()
                     if c.DbOracle.IDENTIFIER_RE.fullmatch(table_name)
-                    else quoted_name(table_name, True),
+                    else quoted_name(table_name, quote=True),
                     schema=(
                         schema_name.upper()
                         if schema_name
                         and c.DbOracle.IDENTIFIER_RE.fullmatch(schema_name)
-                        else quoted_name(schema_name, True)
+                        else quoted_name(schema_name, quote=True)
                         if schema_name
                         else None
                     ),

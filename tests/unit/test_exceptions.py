@@ -46,7 +46,9 @@ class TestsFlextDbOracleExceptions:
     def test_error_preserves_supplied_metadata() -> None:
         """Error retains oracle_error_code and sql_state as given."""
         error = FlextDbOracleExceptions.Error(
-            "with metadata", oracle_error_code="ORA-12345", sql_state="08001",
+            "with metadata",
+            oracle_error_code="ORA-12345",
+            sql_state="08001",
         )
 
         tm.that(error.oracle_error_code, eq="ORA-12345")
@@ -69,7 +71,9 @@ class TestsFlextDbOracleExceptions:
     def test_processing_error_preserves_metadata() -> None:
         """ProcessingError retains operation-type and stage metadata."""
         error = FlextDbOracleExceptions.ProcessingError(
-            "batch failed", operation_type="INSERT", processing_stage="commit",
+            "batch failed",
+            operation_type="INSERT",
+            processing_stage="commit",
         )
 
         tm.that(error.operation_type, eq="INSERT")
@@ -79,7 +83,9 @@ class TestsFlextDbOracleExceptions:
     def test_timeout_error_preserves_metadata() -> None:
         """OracleTimeoutError retains query-id and elapsed-time metadata."""
         error = FlextDbOracleExceptions.OracleTimeoutError(
-            "query timed out", query_id="q-42", elapsed_time=12.5,
+            "query timed out",
+            query_id="q-42",
+            elapsed_time=12.5,
         )
 
         tm.that(error.query_id, eq="q-42")
@@ -96,7 +102,8 @@ class TestsFlextDbOracleExceptions:
         ],
     )
     def test_each_error_extends_its_flext_core_base(
-        factory: type[e.BaseError], base: type[e.BaseError],
+        factory: type[e.BaseError],
+        base: type[e.BaseError],
     ) -> None:
         """Every Oracle error is a subclass of its flext-core base contract."""
         assert issubclass(factory, base)

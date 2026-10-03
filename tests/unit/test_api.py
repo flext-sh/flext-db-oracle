@@ -13,13 +13,16 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
+from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, p
-from flext_db_oracle.services.facade import FlextDbOracleServices
-from tests import t
+
+if TYPE_CHECKING:
+    from flext_db_oracle.services.facade import FlextDbOracleServices
+    from tests import t
 
 
 class TestsFlextDbOracleApi:
@@ -27,7 +30,8 @@ class TestsFlextDbOracleApi:
 
     @staticmethod
     def _settings(
-        host: str = "127.0.0.1", service_name: str = "TEST",
+        host: str = "127.0.0.1",
+        service_name: str = "TEST",
     ) -> FlextDbOracleSettings:
         """Build an unreachable-but-valid settings value for offline behavior.
 
@@ -104,7 +108,8 @@ class TestsFlextDbOracleApi:
         return isinstance(candidate, p.DbOracle.Runtime)
 
     def test_api_satisfies_its_own_runtime_protocol(
-        self, api: FlextDbOracleApi,
+        self,
+        api: FlextDbOracleApi,
     ) -> None:
         """The real facade structurally satisfies its own declared Runtime protocol."""
         tm.that(self._is_runtime(api), eq=True)
@@ -184,7 +189,8 @@ class TestsFlextDbOracleApi:
         ],
     )
     def test_operations_fail_gracefully_when_not_connected(
-        api: FlextDbOracleApi, operation: str,
+        api: FlextDbOracleApi,
+        operation: str,
     ) -> None:
         """Every data operation returns a failure mentioning the missing connection."""
         calls: Mapping[str, Callable[[], p.Result[bool]]] = {
@@ -250,7 +256,9 @@ class TestsFlextDbOracleApi:
         ],
     )
     def test_optimize_query_collapses_whitespace(
-        api: FlextDbOracleApi, raw: str, expected: str,
+        api: FlextDbOracleApi,
+        raw: str,
+        expected: str,
     ) -> None:
         """optimize_query normalizes runs of whitespace to single spaces."""
         result = api.optimize_query(raw)
@@ -268,10 +276,12 @@ class TestsFlextDbOracleApi:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "singer_type", ["string", "integer", "number", "boolean", "date-time"],
+        "singer_type",
+        ["string", "integer", "number", "boolean", "date-time"],
     )
     def test_convert_singer_type_yields_oracle_type(
-        api: FlextDbOracleApi, singer_type: str,
+        api: FlextDbOracleApi,
+        singer_type: str,
     ) -> None:
         """convert_singer_type maps each Singer type to a non-empty Oracle type."""
         result = api.convert_singer_type(singer_type)
@@ -387,7 +397,9 @@ class TestsFlextDbOracleApi:
         """A schema-qualified build_select references both schema and table."""
         services = FlextDbOracleServices(settings=settings)
         result = services.build_select(
-            "test_table", ["col1"], schema_name="test_schema",
+            "test_table",
+            ["col1"],
+            schema_name="test_schema",
         )
         tm.ok(result)
         sql_upper = result.value.upper()

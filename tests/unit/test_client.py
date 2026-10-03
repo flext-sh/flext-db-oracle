@@ -67,7 +67,8 @@ class TestsFlextDbOracleClient:
         [("valid_name", "valid_name"), ("Table1", "Table1"), ("COL_A_1", "COL_A_1")],
     )
     def test_escape_identifier_accepts_valid_names(
-        identifier: str, expected: str,
+        identifier: str,
+        expected: str,
     ) -> None:
         """Valid identifiers are returned unchanged in a success result."""
         result = u.DbOracle.escape_oracle_identifier(identifier)
@@ -86,7 +87,8 @@ class TestsFlextDbOracleClient:
         ],
     )
     def test_escape_identifier_rejects_bad_names(
-        identifier: str, error: str,
+        identifier: str,
+        error: str,
     ) -> None:
         """Blank or non-alphanumeric identifiers fail with a specific error."""
         result = u.DbOracle.escape_oracle_identifier(identifier)
@@ -121,7 +123,8 @@ class TestsFlextDbOracleClient:
         ],
     )
     def test_validate_identifier_rejects_empty_and_reserved(
-        identifier: str, error: str,
+        identifier: str,
+        error: str,
     ) -> None:
         """Empty or reserved-word identifiers fail with the matching error."""
         result = u.DbOracle.validate_identifier(identifier)
