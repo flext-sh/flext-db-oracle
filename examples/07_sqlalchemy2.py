@@ -1,9 +1,9 @@
 """Oracle SQLAlchemy 2.0 integration example.
 
+This example demonstrates Oracle configuration setup for SQLAlchemy 2.0.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
-This example demonstrates Oracle configuration setup for SQLAlchemy 2.0.
 """
 
 from __future__ import annotations
@@ -35,14 +35,14 @@ def create_oracle_config() -> FlextDbOracleSettings:
             "service_name": "DEMO",
             "username": "demo_user",
             "password": os.environ.get("FLEXT_DEMO_ORACLE_PASSWORD", "<demo>"),
-        }
+        },
     })
 
 
 def _display_sqlalchemy_setup(settings: FlextDbOracleSettings) -> None:
     """Display SQLAlchemy 2.0 configuration details."""
     logger.info(
-        f"✅ Configuration created: {settings.DbOracle.host}:{settings.DbOracle.port}"
+        f"✅ Configuration created: {settings.DbOracle.host}:{settings.DbOracle.port}",
     )
     logger.info("🔗 SQLAlchemy connection URL format configured")
     logger.info(f"📍 Host: {settings.DbOracle.host}:{settings.DbOracle.port}")

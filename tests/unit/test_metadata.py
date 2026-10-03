@@ -96,8 +96,9 @@ def _call_test_connection(services: FlextDbOracleServices) -> p.Result[bool]:
 class TestsFlextDbOracleMetadata:
     """Public-contract tests for Oracle metadata introspection."""
 
+    @staticmethod
     @pytest.fixture
-    def settings(self) -> FlextDbOracleSettings:
+    def settings() -> FlextDbOracleSettings:
         """Return in-memory Oracle settings pointing at no reachable host."""
         return FlextDbOracleSettings.model_validate({
             "DbOracle": {
@@ -106,16 +107,18 @@ class TestsFlextDbOracleMetadata:
                 "service_name": "TEST",
                 "username": "test",
                 "password": "test",
-            }
+            },
         })
 
+    @staticmethod
     @pytest.fixture
-    def services(self, settings: FlextDbOracleSettings) -> FlextDbOracleServices:
+    def services(settings: FlextDbOracleSettings) -> FlextDbOracleServices:
         """Return a freshly composed, unconnected services facade."""
         return FlextDbOracleServices(settings=settings)
 
+    @staticmethod
     def test_settings_property_exposes_supplied_connection_config(
-        self, services: FlextDbOracleServices, settings: FlextDbOracleSettings
+        services: FlextDbOracleServices, settings: FlextDbOracleSettings,
     ) -> None:
         """The settings property returns the exact configuration supplied."""
         bound = services.settings
@@ -125,19 +128,22 @@ class TestsFlextDbOracleMetadata:
         tm.that(bound.DbOracle.service_name, eq="TEST")
         tm.that(bound.DbOracle.username, eq="test")
 
+    @staticmethod
     def test_new_facade_reports_not_connected(
-        self, services: FlextDbOracleServices
+        services: FlextDbOracleServices,
     ) -> None:
         """A freshly built facade is not connected until connect succeeds."""
         tm.that(services.connected(), eq=False)
 
+    @staticmethod
     def test_execute_returns_active_settings_as_success(
-        self, services: FlextDbOracleServices, settings: FlextDbOracleSettings
+        services: FlextDbOracleServices, settings: FlextDbOracleSettings,
     ) -> None:
         """execute() succeeds and yields the active Oracle configuration."""
         value = tm.ok(services.execute())
         tm.that(value, eq=settings)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("label", "call"),
         [
@@ -154,7 +160,6 @@ class TestsFlextDbOracleMetadata:
         ],
     )
     def test_metadata_op_fails_when_not_connected(
-        self,
         services: FlextDbOracleServices,
         label: str,
         call: Callable[[FlextDbOracleServices], p.Result[_T]],
@@ -165,35 +170,39 @@ class TestsFlextDbOracleMetadata:
         error = tm.fail(result, has="Not connected")
         tm.that(bool(error), eq=True)
 
+    @staticmethod
     def test_failed_op_recovers_via_unwrap_or_default(
-        self, services: FlextDbOracleServices
+        services: FlextDbOracleServices,
     ) -> None:
         """A failed result yields the caller default via unwrap_or."""
         fallback: list[str] = ["<none>"]
         recovered = services.fetch_schemas().unwrap_or(fallback)
         tm.that(recovered, eq=fallback)
 
+    @staticmethod
     def test_map_does_not_run_transform_on_failure(
-        self, services: FlextDbOracleServices
+        services: FlextDbOracleServices,
     ) -> None:
         """map() is skipped for a failure and the error is preserved intact."""
         mapped = services.fetch_tables("APP_SCHEMA").map(len)
         tm.fail(mapped, has="Not connected")
 
+    @staticmethod
     def test_recover_swaps_a_failed_metadata_op_for_success(
-        self, services: FlextDbOracleServices
+        services: FlextDbOracleServices,
     ) -> None:
         """Recover turns a failure into a success carrying the fallback."""
         recovered = services.fetch_schemas().recover(lambda _error: ["RECOVERED"])
         value = tm.ok(recovered)
         tm.that(value, eq=["RECOVERED"])
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("data_type", "nullable"),
         [("NUMBER", False), ("VARCHAR2", True), ("DATE", True)],
     )
     def test_column_exposes_public_field_state(
-        self, data_type: str, *, nullable: bool
+        data_type: str, *, nullable: bool,
     ) -> None:
         """Column reflects the field values supplied through its public API."""
         column = m.DbOracle.Column(name="ID", data_type=data_type, nullable=nullable)
@@ -203,7 +212,8 @@ class TestsFlextDbOracleMetadata:
         tm.that(column.primary_key, eq=False)
         tm.that(column.default_value, eq="")
 
-    def test_column_supports_mapping_access_contract(self) -> None:
+    @staticmethod
+    def test_column_supports_mapping_access_contract() -> None:
         """Column exposes a public key lookup and membership contract."""
         column = m.DbOracle.Column(name="CODE", data_type="VARCHAR2")
         tm.that(column["name"], eq="CODE")
@@ -213,10 +223,11 @@ class TestsFlextDbOracleMetadata:
         tm.that("missing_key" in column, eq=False)
         tm.that(column["missing_key"], eq="")
 
-    def test_column_model_dump_roundtrips_public_fields(self) -> None:
+    @staticmethod
+    def test_column_model_dump_roundtrips_public_fields() -> None:
         """model_dump surfaces the public column fields for serialization."""
         column = m.DbOracle.Column(
-            name="AMOUNT", data_type="NUMBER", nullable=True, primary_key=True
+            name="AMOUNT", data_type="NUMBER", nullable=True, primary_key=True,
         )
         dumped = column.model_dump()
         tm.that(dumped["name"], eq="AMOUNT")
@@ -224,14 +235,15 @@ class TestsFlextDbOracleMetadata:
         tm.that(dumped["nullable"], eq=True)
         tm.that(dumped["primary_key"], eq=True)
 
-    def test_table_aggregates_its_columns(self) -> None:
+    @staticmethod
+    def test_table_aggregates_its_columns() -> None:
         """Table exposes its name, owner, and ordered column collection."""
         columns = [
             m.DbOracle.Column(name="ID", data_type="NUMBER", nullable=False),
             m.DbOracle.Column(name="NAME", data_type="VARCHAR2", nullable=True),
         ]
         table = m.DbOracle.Table(
-            name="COMPLEX_TABLE", owner="APP_SCHEMA", columns=columns
+            name="COMPLEX_TABLE", owner="APP_SCHEMA", columns=columns,
         )
         tm.that(table.name, eq="COMPLEX_TABLE")
         tm.that(table.owner, eq="APP_SCHEMA")
@@ -239,7 +251,8 @@ class TestsFlextDbOracleMetadata:
         tm.that(table.columns[0].name, eq="ID")
         tm.that(table.columns[1].name, eq="NAME")
 
-    def test_table_defaults_owner_and_columns_when_omitted(self) -> None:
+    @staticmethod
+    def test_table_defaults_owner_and_columns_when_omitted() -> None:
         """A table declared with only a name defaults owner and columns."""
         table = m.DbOracle.Table(name="BARE")
         tm.that(table.name, eq="BARE")

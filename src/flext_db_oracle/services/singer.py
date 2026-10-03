@@ -38,7 +38,11 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
         singer_type: str | t.StrSequence = "string",
         _format_hint: str | None = None,
     ) -> p.Result[str]:
-        """Convert Singer type to Oracle type via the config-owned type map."""
+        """Convert Singer type to Oracle type via the config-owned type map.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+        """
         singer_type = self._normalize_singer_type(singer_type)
         if _format_hint == "date-time":
             return r[str].ok("TIMESTAMP")
@@ -46,9 +50,13 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
         return r[str].ok(oracle_type)
 
     def map_singer_schema(
-        self, singer_schema: m.DbOracle.SingerSchema | t.JsonMapping
+        self, singer_schema: m.DbOracle.SingerSchema | t.JsonMapping,
     ) -> p.Result[m.DbOracle.TypeMapping]:
-        """Map Singer schema to Oracle types - simplified."""
+        """Map Singer schema to Oracle types - simplified.
+
+        Returns:
+            The resulting ``p.Result[m.DbOracle.TypeMapping]``.
+        """
         raw_properties: t.JsonDict = {}
         if isinstance(singer_schema, m.DbOracle.SingerSchema):
             schema_model = singer_schema
@@ -56,7 +64,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
             raw_props_value = singer_schema.get("properties", {})
             if not isinstance(raw_props_value, dict):
                 return r[m.DbOracle.TypeMapping].fail(
-                    "Singer schema properties must be a mapping"
+                    "Singer schema properties must be a mapping",
                 )
             raw_properties = raw_props_value
             normalized_properties: MutableMapping[str, m.DbOracle.SingerField] = {}
@@ -65,18 +73,18 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
                     field_type = field_def.get("type", "string")
                     if isinstance(field_type, str):
                         normalized_properties[field_name] = m.DbOracle.SingerField(
-                            type=field_type
+                            type=field_type,
                         )
                     else:
                         normalized_properties[field_name] = m.DbOracle.SingerField(
-                            type="string"
+                            type="string",
                         )
                 else:
                     normalized_properties[field_name] = m.DbOracle.SingerField(
-                        type="string"
+                        type="string",
                     )
             schema_model = m.DbOracle.SingerSchema.model_validate({
-                "properties": normalized_properties
+                "properties": normalized_properties,
             })
         mapping = m.ConfigMap(root={})
         for field_name, field_def in schema_model.properties.items():
@@ -90,7 +98,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
                 mapping.root[field_name] = conversion.value
         normalized_mapping = {key: str(value) for key, value in mapping.root.items()}
         type_mapping = m.DbOracle.TypeMapping.model_validate({
-            "mapping": normalized_mapping
+            "mapping": normalized_mapping,
         })
         return r[m.DbOracle.TypeMapping].ok(type_mapping)
 

@@ -1,4 +1,8 @@
-"""Behavioral contract of the shared test-container registry constants."""
+"""Behavioral contract of the shared test-container registry constants.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -13,24 +17,33 @@ from tests import c
 class TestsFlextDbOracleConftestConstants:
     """Behavioral contract of the shared test-container registry constants."""
 
-    def test_shared_containers_is_a_mapping(self) -> None:
+    @staticmethod
+    def test_shared_containers_is_a_mapping() -> None:
         # Act / Assert: public contract exposes a read-mappable registry.
+        """Test shared containers is a mapping."""
         tm.that(c.Tests.SHARED_CONTAINERS, is_=Mapping)
 
-    def test_shared_containers_registry_is_stable_across_access(self) -> None:
+    @staticmethod
+    def test_shared_containers_registry_is_stable_across_access() -> None:
         # Idempotence: the constant resolves to the same registry each access.
+        """Test shared containers registry is stable across access."""
         first = c.Tests.SHARED_CONTAINERS
         second = c.Tests.SHARED_CONTAINERS
         tm.that(dict(first) == dict(second), eq=True)
 
-    def test_oracle_container_is_registered(self) -> None:
+    @staticmethod
+    def test_oracle_container_is_registered() -> None:
         # Act / Assert: the oracle DB test container is part of the contract.
+        """Test oracle container is registered."""
         tm.that(c.Tests.ORACLE_CONTAINER in c.Tests.SHARED_CONTAINERS, eq=True)
 
-    def test_oracle_container_config_is_a_mapping(self) -> None:
+    @staticmethod
+    def test_oracle_container_config_is_a_mapping() -> None:
+        """Test oracle container config is a mapping."""
         config = c.Tests.SHARED_CONTAINERS[c.Tests.ORACLE_CONTAINER]
         tm.that(config, is_=Mapping)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("key", "expected"),
         [
@@ -42,13 +55,16 @@ class TestsFlextDbOracleConftestConstants:
         ],
     )
     def test_oracle_container_config_exposes_connection_contract(
-        self, key: str, expected: str | int
+        key: str, expected: str | int,
     ) -> None:
         # Public contract: oracle container advertises its connection metadata.
+        """Test oracle container config exposes connection contract."""
         config = c.Tests.SHARED_CONTAINERS[c.Tests.ORACLE_CONTAINER]
         tm.that(config[key], eq=expected)
 
-    def test_oracle_container_config_declares_expected_fields(self) -> None:
+    @staticmethod
+    def test_oracle_container_config_declares_expected_fields() -> None:
+        """Test oracle container config declares expected fields."""
         config = c.Tests.SHARED_CONTAINERS[c.Tests.ORACLE_CONTAINER]
         tm.that(
             sorted(config)
@@ -56,7 +72,9 @@ class TestsFlextDbOracleConftestConstants:
             eq=True,
         )
 
-    def test_missing_container_lookup_raises_key_error(self) -> None:
+    @staticmethod
+    def test_missing_container_lookup_raises_key_error() -> None:
         # Error path: unknown container names are not silently defaulted.
+        """Test missing container lookup raises key error."""
         with pytest.raises(KeyError):
             _ = c.Tests.SHARED_CONTAINERS["flext-nonexistent-test"]

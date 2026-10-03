@@ -26,14 +26,18 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
         """Test-specific utilities."""
 
         _PORT_BINDINGS_ADAPTER: ClassVar[m.TypeAdapter[t.StrMapping]] = m.TypeAdapter(
-            t.StrMapping
+            t.StrMapping,
         )
 
         @classmethod
         def normalize_port_bindings(
-            cls, value: t.JsonValue | t.JsonMapping
+            cls, value: t.JsonValue | t.JsonMapping,
         ) -> t.StrMapping:
-            """Normalize Docker port bindings into a typed mapping."""
+            """Normalize Docker port bindings into a typed mapping.
+
+            Returns:
+                The resulting ``t.StrMapping``.
+            """
             # Why: no-hidden-errors — propagate a malformed Docker port
             # payload instead of masking it as "no bindings".
             validated: t.StrMapping = cls._PORT_BINDINGS_ADAPTER.validate_python(value)
@@ -41,9 +45,13 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
 
         @classmethod
         def resolve_oracle_test_port(
-            cls, docker_control: tk, container_name: str
+            cls, docker_control: tk, container_name: str,
         ) -> int:
-            """Resolve the exposed Oracle test port from Docker state."""
+            """Resolve the exposed Oracle test port from Docker state.
+
+            Returns:
+                The resulting ``int``.
+            """
             env_port = os.getenv("TEST_ORACLE_PORT")
             if env_port is not None and env_port.isdigit():
                 env_port_int = int(env_port)
@@ -52,7 +60,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
                     status_value = status_result.value
                     raw_ports = getattr(status_value, "ports", {})
                     ports = cls.normalize_port_bindings(
-                        raw_ports if isinstance(raw_ports, dict) else {}
+                        raw_ports if isinstance(raw_ports, dict) else {},
                     )
                     for container_port, host_port in ports.items():
                         if (
@@ -73,7 +81,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
                     status_value = status_result.value
                     raw_ports = getattr(status_value, "ports", {})
                     ports = cls.normalize_port_bindings(
-                        raw_ports if isinstance(raw_ports, dict) else {}
+                        raw_ports if isinstance(raw_ports, dict) else {},
                     )
                     for container_port, host_port in ports.items():
                         if container_port.startswith("1521") and host_port.isdigit():
@@ -87,17 +95,25 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
             _registry: ClassVar[MutableMapping[str, m.Tests.StubPluginEntity]] = {}
 
             def register_plugin(
-                self, plugin: m.Tests.StubPluginEntity
+                self, plugin: m.Tests.StubPluginEntity,
             ) -> m.Tests.StubResult:
-                """Register a plugin in the in-memory registry."""
+                """Register a plugin in the in-memory registry.
+
+                Returns:
+                    The resulting ``m.Tests.StubResult``.
+                """
                 self._registry[plugin.name] = plugin
                 return m.Tests.StubResult()
 
             def unregister_plugin(self, plugin_name: str) -> m.Tests.StubResult:
-                """Remove a plugin from the in-memory registry."""
+                """Remove a plugin from the in-memory registry.
+
+                Returns:
+                    The resulting ``m.Tests.StubResult``.
+                """
                 if plugin_name not in self._registry:
                     return m.Tests.StubResult(
-                        failure=True, error=f"Plugin '{plugin_name}' not found"
+                        failure=True, error=f"Plugin '{plugin_name}' not found",
                     )
                 del self._registry[plugin_name]
                 return m.Tests.StubResult()

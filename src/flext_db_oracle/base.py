@@ -36,10 +36,10 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
     _db_config: FlextDbOracleSettings | None = u.PrivateAttr()
     _engine: SAEngine | None = u.PrivateAttr(default_factory=lambda: None)
     _operations: MutableSequence[m.DbOracle.OperationRecord] = u.PrivateAttr(
-        default_factory=list[m.DbOracle.OperationRecord]
+        default_factory=list[m.DbOracle.OperationRecord],
     )
     _plugins: MutableMapping[str, t.JsonPayload] = u.PrivateAttr(
-        default_factory=dict[str, t.JsonPayload]
+        default_factory=dict[str, t.JsonPayload],
     )
     _metrics: t.MutableJsonMapping = u.PrivateAttr(default_factory=dict)
 
@@ -50,7 +50,11 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
 
     @property
     def db_config(self) -> FlextDbOracleSettings:
-        """The initialized Oracle database configuration."""
+        """The initialized Oracle database configuration.
+
+        Raises:
+            RuntimeError: If Database configuration not initialized.
+        """
         settings = self._db_config
         if settings is None:
             msg = "Database configuration not initialized"
@@ -58,11 +62,19 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
         return settings
 
     def connected(self) -> bool:
-        """Check if the service has an active SQLAlchemy engine."""
+        """Check if the service has an active SQLAlchemy engine.
+
+        Returns:
+            The resulting ``bool``.
+        """
         return self._engine is not None
 
     def _parse_count_from_rows(self, rows: t.SequenceOf[m.Dict]) -> int:
-        """Parse COUNT(*) value from normalized query rows."""
+        """Parse COUNT(*) value from normalized query rows.
+
+        Returns:
+            The resulting ``int``.
+        """
         if not rows:
             return 0
         count_raw = rows[0].root.get("count")
@@ -70,21 +82,34 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
             return 0
         return self._parse_count_value(str(count_raw))
 
-    def _get_current_timestamp(self) -> str:
-        """Get current timestamp for operation tracking."""
+    @staticmethod
+    def _get_current_timestamp() -> str:
+        """Get current timestamp for operation tracking.
+
+        Returns:
+            The resulting ``str``.
+        """
         return str(int(time.time()))
 
     def _get_engine(self) -> p.Result[SAEngine]:
-        """Get database engine."""
+        """Get database engine.
+
+        Returns:
+            The resulting ``p.Result[SAEngine]``.
+        """
         engine = self._engine
         if engine is None or not self.connected():
             return r[SAEngine].fail("Not connected to database")
         return r[SAEngine].ok(engine)
 
     def execute_rows(
-        self, sql: str, params: m.ConfigMap | None = None
+        self, sql: str, params: m.ConfigMap | None = None,
     ) -> p.Result[Sequence[m.Dict]]:
-        """Execute a SQL query in composed service facades."""
+        """Execute a SQL query in composed service facades.
+
+        Returns:
+            The resulting ``p.Result[Sequence[m.Dict]]``.
+        """
         if not self.connected():
             return r[Sequence[m.Dict]].fail("Not connected to database")
         engine_result = self._get_engine()
