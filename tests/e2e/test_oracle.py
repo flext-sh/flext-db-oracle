@@ -116,7 +116,9 @@ class TestsFlextDbOracleOracle:
         list(c.Tests.SINGER_TYPE_MAP_TEST_CASES.items()),
     )
     def test_convert_singer_type_returns_expected_oracle_type(
-        offline_api: FlextDbOracleApi, singer_type: str, expected_oracle_type: str,
+        offline_api: FlextDbOracleApi,
+        singer_type: str,
+        expected_oracle_type: str,
     ) -> None:
         """convert_singer_type maps each Singer type to its Oracle SQL type."""
         result = offline_api.convert_singer_type(singer_type)
@@ -152,7 +154,9 @@ class TestsFlextDbOracleOracle:
         return {key.upper(): value for key, value in row.root.items()}
 
     def _concurrent_source_rows(
-        self, api1: FlextDbOracleApi, api2: FlextDbOracleApi,
+        self,
+        api1: FlextDbOracleApi,
+        api2: FlextDbOracleApi,
     ) -> t.Pair[Mapping[str, t.JsonPayload], Mapping[str, t.JsonPayload]]:
         """Return one query row from each concurrent API context."""
         with api1, api2:
@@ -167,9 +171,12 @@ class TestsFlextDbOracleOracle:
 
     @pytest.mark.e2e
     def test_complete_crud_workflow_returns_expected_results(
-        self, real_oracle_config: FlextDbOracleSettings,
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
-        """A connect->create->insert->query->update->drop lifecycle behaves per contract."""
+        """A connect->create->insert->query->update->drop lifecycle behaves per
+        contract.
+        """
         table = "E2E_TEST_TABLE"
         with FlextDbOracleApi(settings=real_oracle_config) as api:
             tm.ok(api.test_connection())
@@ -215,7 +222,8 @@ class TestsFlextDbOracleOracle:
                 )
                 tm.ok(updated)
                 verify = api.query(
-                    "SELECT EMAIL FROM E2E_TEST_TABLE WHERE ID = :id", {"id": 3},
+                    "SELECT EMAIL FROM E2E_TEST_TABLE WHERE ID = :id",
+                    {"id": 3},
                 )
                 tm.ok(verify)
                 tm.that(len(verify.value), eq=1)
@@ -226,7 +234,8 @@ class TestsFlextDbOracleOracle:
 
     @pytest.mark.e2e
     def test_concurrent_apis_return_independent_query_results(
-        self, real_oracle_config: FlextDbOracleSettings,
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Two concurrent API contexts each return their own query result."""
         api1 = FlextDbOracleApi(real_oracle_config, context_name="connection1")

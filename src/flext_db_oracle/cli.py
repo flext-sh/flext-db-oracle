@@ -6,7 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle import t
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_db_oracle import t
 
 
 def main(args: t.StrSequence | None = None) -> int:

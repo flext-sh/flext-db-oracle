@@ -288,7 +288,9 @@ class TestsFlextDbOracleOracleExample:
 
     @staticmethod
     def test_connect_with_invalid_credentials_fails_with_reason() -> None:
-        """Connecting with bad credentials yields a failure carrying a diagnostic reason."""
+        """Connecting with bad credentials yields a failure carrying a diagnostic
+        reason.
+        """
         invalid_config = FlextDbOracleSettings.model_validate({
             "DbOracle": {
                 "host": "localhost",

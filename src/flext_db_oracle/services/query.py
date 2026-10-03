@@ -42,7 +42,9 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         FlextDbOracleServiceBase.__init__(self, settings)
 
     def execute_many(
-        self, sql: str, params_list: t.SequenceOf[t.JsonMapping | m.ConfigMap],
+        self,
+        sql: str,
+        params_list: t.SequenceOf[t.JsonMapping | m.ConfigMap],
     ) -> p.Result[int]:
         """Execute SQL statement multiple times.
 
@@ -73,7 +75,9 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     # Protocol (protocols.py), never a base class of this mixin, so pyrefly's
     # nominal @override check has no matching parent attribute to verify.
     def execute_query(
-        self, sql: str, params: m.ConfigMap | None = None,
+        self,
+        sql: str,
+        params: m.ConfigMap | None = None,
     ) -> p.Result[Sequence[m.Dict]]:
         """Execute SQL query and return results.
 
@@ -94,7 +98,9 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             return r[Sequence[m.Dict]].fail_op("Query execution", e)
 
     def execute_statement(
-        self, sql: str, params: m.ConfigMap | None = None,
+        self,
+        sql: str,
+        params: m.ConfigMap | None = None,
     ) -> p.Result[int]:
         """Execute SQL statement and return affected rows.
 
@@ -115,7 +121,9 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             return r[int].fail_op("Statement execution", e)
 
     def fetch_one(
-        self, sql: str, params: m.ConfigMap | None = None,
+        self,
+        sql: str,
+        params: m.ConfigMap | None = None,
     ) -> p.Result[m.Dict | None]:
         """Execute query and return first result.
 

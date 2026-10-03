@@ -153,7 +153,8 @@ class TestsFlextDbOracleOracle:
 
     # ---------------------------------------------- container-gated: real flow
     def test_connect_then_query_dual_returns_single_row(
-        self, oracle_config: FlextDbOracleSettings,
+        self,
+        oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Connecting and querying DUAL returns exactly one row on success."""
         connected_api = self._connect(oracle_config)
@@ -167,7 +168,8 @@ class TestsFlextDbOracleOracle:
         tm.that(connected_api.connected(), eq=False)
 
     def test_metadata_queries_return_string_sequences(
-        self, oracle_config: FlextDbOracleSettings,
+        self,
+        oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Schema/table/column lookups return string sequences on success."""
         connected_api = self._connect(oracle_config)
@@ -195,7 +197,9 @@ class TestsFlextDbOracleOracle:
         ["INVALID SQL STATEMENT", "SELECT * FROM NONEXISTENT_TABLE_12345"],
     )
     def test_invalid_sql_yields_failure_result(
-        self, oracle_config: FlextDbOracleSettings, invalid_sql: str,
+        self,
+        oracle_config: FlextDbOracleSettings,
+        invalid_sql: str,
     ) -> None:
         """Malformed or unresolvable SQL surfaces as a failure result."""
         connected_api = self._connect(oracle_config)
@@ -218,7 +222,9 @@ class TestsFlextDbOracleOracle:
         tm.that(api.connected(), eq=False)
 
     def test_insert_update_delete_roundtrip_is_observable_via_queries(
-        self, connected_oracle_api: FlextDbOracleApi, test_database_setup: t.StrMapping,
+        self,
+        connected_oracle_api: FlextDbOracleApi,
+        test_database_setup: t.StrMapping,
     ) -> None:
         """DML mutations are observable through subsequent SELECT results."""
         tm.that(test_database_setup, has="test_table")
@@ -257,7 +263,8 @@ class TestsFlextDbOracleOracle:
 
     @pytest.mark.usefixtures("test_database_setup")
     def test_committed_row_is_visible_after_commit(
-        self, connected_oracle_api: FlextDbOracleApi,
+        self,
+        connected_oracle_api: FlextDbOracleApi,
     ) -> None:
         """A committed insert is readable and cleanup removes it again."""
         insert = connected_oracle_api.execute_statement(
@@ -288,7 +295,8 @@ class TestsFlextDbOracleOracle:
         assert all(isinstance(name, str) for name in schemas)
 
     def test_health_status_reports_connected_and_healthy(
-        self, real_oracle_config: FlextDbOracleSettings,
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Health status of a live connection is connected, healthy, aged >= 0."""
         connected_api = self._connect(real_oracle_config)

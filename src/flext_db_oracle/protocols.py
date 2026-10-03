@@ -112,7 +112,9 @@ class FlextDbOracleProtocols(FlextCliProtocols):
             """Protocol for Oracle query execution operations."""
 
             def execute_many(
-                self, sql: str, params_list: t.SequenceOf[t.JsonMapping],
+                self,
+                sql: str,
+                params_list: t.SequenceOf[t.JsonMapping],
             ) -> p.Result[int]:
                 """Execute Oracle SQL statement with multiple parameter sets.
 
@@ -127,7 +129,9 @@ class FlextDbOracleProtocols(FlextCliProtocols):
                 ...
 
             def execute_query(
-                self, sql: str, params: t.JsonMapping | None = None,
+                self,
+                sql: str,
+                params: t.JsonMapping | None = None,
             ) -> p.Result[Sequence[m.Dict]]:
                 """Execute Oracle SQL query.
 
@@ -142,7 +146,9 @@ class FlextDbOracleProtocols(FlextCliProtocols):
                 ...
 
             def execute_statement(
-                self, sql: str, params: t.JsonMapping | None = None,
+                self,
+                sql: str,
+                params: t.JsonMapping | None = None,
             ) -> p.Result[bool]:
                 """Execute Oracle SQL statement.
 
@@ -157,7 +163,9 @@ class FlextDbOracleProtocols(FlextCliProtocols):
                 ...
 
             def fetch_one(
-                self, sql: str, params: t.JsonMapping | None = None,
+                self,
+                sql: str,
+                params: t.JsonMapping | None = None,
             ) -> p.Result[m.Dict | None]:
                 """Fetch single result from Oracle query.
 
@@ -176,7 +184,9 @@ class FlextDbOracleProtocols(FlextCliProtocols):
             """Protocol for Oracle schema introspection operations."""
 
             def fetch_columns(
-                self, table: str, schema: str | None = None,
+                self,
+                table: str,
+                schema: str | None = None,
             ) -> p.Result[Sequence[m.DbOracle.Column]]:
                 """Get column information for Oracle table.
 
@@ -191,7 +201,9 @@ class FlextDbOracleProtocols(FlextCliProtocols):
                 ...
 
             def fetch_primary_keys(
-                self, table: str, schema: str | None = None,
+                self,
+                table: str,
+                schema: str | None = None,
             ) -> p.Result[t.StrSequence]:
                 """Get primary key columns for Oracle table.
 
@@ -215,7 +227,9 @@ class FlextDbOracleProtocols(FlextCliProtocols):
                 ...
 
             def fetch_table_metadata(
-                self, table: str, schema: str | None = None,
+                self,
+                table: str,
+                schema: str | None = None,
             ) -> p.Result[m.DbOracle.TableMetadata]:
                 """Get Oracle table metadata.
 
@@ -230,7 +244,8 @@ class FlextDbOracleProtocols(FlextCliProtocols):
                 ...
 
             def fetch_tables(
-                self, schema: str | None = None,
+                self,
+                schema: str | None = None,
             ) -> p.Result[t.StrSequence]:
                 """Get list of tables in Oracle schema.
 
@@ -248,7 +263,9 @@ class FlextDbOracleProtocols(FlextCliProtocols):
             """Protocol for Oracle SQL statement building operations."""
 
             def build_delete_statement(
-                self, table: str, where_clause: str,
+                self,
+                table: str,
+                where_clause: str,
             ) -> p.Result[str]:
                 """Build Oracle DELETE statement.
 
@@ -263,7 +280,9 @@ class FlextDbOracleProtocols(FlextCliProtocols):
                 ...
 
             def build_insert_statement(
-                self, table: str, data: t.JsonMapping,
+                self,
+                table: str,
+                data: t.JsonMapping,
             ) -> p.Result[tuple[str, t.JsonMapping]]:
                 """Build Oracle INSERT statement.
 
@@ -301,7 +320,10 @@ class FlextDbOracleProtocols(FlextCliProtocols):
                 ...
 
             def build_update_statement(
-                self, table: str, data: t.JsonMapping, where_clause: str,
+                self,
+                table: str,
+                data: t.JsonMapping,
+                where_clause: str,
             ) -> p.Result[tuple[str, t.JsonMapping]]:
                 """Build Oracle UPDATE statement.
 
@@ -362,7 +384,9 @@ class FlextDbOracleProtocols(FlextCliProtocols):
                 ...
 
             def drop_table_ddl(
-                self, table: str, schema: str | None = None,
+                self,
+                table: str,
+                schema: str | None = None,
             ) -> p.Result[str]:
                 """Generate Oracle DROP TABLE DDL.
 
@@ -390,7 +414,10 @@ class FlextDbOracleProtocols(FlextCliProtocols):
                 ...
 
             def record_metric(
-                self, name: str, value: float, tags: t.StrMapping | None = None,
+                self,
+                name: str,
+                value: float,
+                tags: t.StrMapping | None = None,
             ) -> p.Result[bool]:
                 """Record Oracle database metric.
 
@@ -406,7 +433,11 @@ class FlextDbOracleProtocols(FlextCliProtocols):
                 ...
 
             def track_operation(
-                self, operation: str, duration: float, *, success: bool,
+                self,
+                operation: str,
+                duration: float,
+                *,
+                success: bool,
             ) -> p.Result[bool]:
                 """Track Oracle operation performance.
 
@@ -447,7 +478,9 @@ class FlextDbOracleProtocols(FlextCliProtocols):
                 ...
 
             def register_plugin(
-                self, name: str, plugin: t.JsonPayload,
+                self,
+                name: str,
+                plugin: t.JsonPayload,
             ) -> p.Result[bool]:
                 """Register Oracle database plugin.
 

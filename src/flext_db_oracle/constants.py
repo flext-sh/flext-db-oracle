@@ -30,7 +30,8 @@ class FlextDbOracleConstants(c):
     """
 
     class DbOracle(
-        FlextDbOracleConstantsExceptions.DbOracle, FlextDbOracleConstantsValues.DbOracle,
+        FlextDbOracleConstantsExceptions.DbOracle,
+        FlextDbOracleConstantsValues.DbOracle,
     ):
         """Oracle domain constants namespace with flat SSOT members.
 

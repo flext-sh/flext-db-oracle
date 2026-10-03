@@ -57,7 +57,8 @@ class TestsFlextDbOracleCli:
         ],
     )
     def test_default_preferences_are_populated(
-        preference_key: str, expected_value: str | int,
+        preference_key: str,
+        expected_value: str | int,
     ) -> None:
         """Default user preferences expose the documented defaults."""
         client = FlextDbOracleClient()
@@ -95,7 +96,8 @@ class TestsFlextDbOracleCli:
         client = FlextDbOracleClient()
         tm.ok(
             client.configure_preferences(
-                default_output_format="json", connection_timeout=60,
+                default_output_format="json",
+                connection_timeout=60,
             ),
         )
         tm.that(client.user_preferences["default_output_format"], eq="json")
@@ -130,7 +132,8 @@ class TestsFlextDbOracleCli:
         ],
     )
     def test_privileged_operations_fail_without_connection(
-        method_name: str, args: t.VariadicTuple[str],
+        method_name: str,
+        args: t.VariadicTuple[str],
     ) -> None:
         """Every privileged operation fails fast when no connection is active."""
         client = FlextDbOracleClient()
@@ -304,7 +307,8 @@ class TestsFlextDbOracleCli:
     ) -> None:
         """Every supported output format yields a non-empty string result."""
         formatted = u.DbOracle.format_query_result(
-            {"column1": "value1", "column2": "value2"}, format_type=format_type,
+            {"column1": "value1", "column2": "value2"},
+            format_type=format_type,
         )
         tm.ok(formatted)
         unwrapped = formatted.unwrap()

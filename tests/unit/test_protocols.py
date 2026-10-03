@@ -15,12 +15,15 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
+from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
 
 from flext_db_oracle import p
-from tests import t
+
+if TYPE_CHECKING:
+    from tests import t
 
 # (public name, protocol class, promised method surface) — the contract each
 # Oracle domain protocol advertises to implementers.
@@ -113,7 +116,9 @@ class TestsFlextDbOracleProtocols:
         ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
     )
     def test_protocol_is_runtime_checkable(
-        _name: str, protocol: type, methods: t.VariadicTuple[str],
+        _name: str,
+        protocol: type,
+        methods: t.VariadicTuple[str],
     ) -> None:
         """Each protocol supports isinstance() — its public runtime-check contract."""
         implementer = _implementer(methods)
@@ -128,7 +133,9 @@ class TestsFlextDbOracleProtocols:
         ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
     )
     def test_full_method_surface_satisfies_protocol(
-        _name: str, protocol: type, methods: t.VariadicTuple[str],
+        _name: str,
+        protocol: type,
+        methods: t.VariadicTuple[str],
     ) -> None:
         """An object with the full promised surface is recognised as implementer."""
         implementer = _implementer(methods)
@@ -142,7 +149,9 @@ class TestsFlextDbOracleProtocols:
         ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
     )
     def test_missing_any_single_method_breaks_conformance(
-        _name: str, protocol: type, methods: t.VariadicTuple[str],
+        _name: str,
+        protocol: type,
+        methods: t.VariadicTuple[str],
     ) -> None:
         """Dropping any one promised method makes the object a non-implementer."""
         for dropped in methods:
