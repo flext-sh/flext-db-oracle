@@ -67,7 +67,8 @@ class TestsFlextDbOracleOracleExceptions:
         ids=["error", "connection", "processing", "timeout"],
     )
     def test_members_inherit_flext_core_categories(
-        factory: Callable[[], BaseException], expected_base: type[BaseException],
+        factory: Callable[[], BaseException],
+        expected_base: type[BaseException],
     ) -> None:
         """Each Oracle error is-a its flext-core category and an e.BaseError."""
         exc = factory()
@@ -80,7 +81,9 @@ class TestsFlextDbOracleOracleExceptions:
     def test_error_carries_oracle_metadata() -> None:
         """Error exposes Oracle error code and SQL state as public fields."""
         exc = FlextDbOracleExceptions.Error(
-            "table missing", oracle_error_code="ORA-00942", sql_state="42S02",
+            "table missing",
+            oracle_error_code="ORA-00942",
+            sql_state="42S02",
         )
 
         tm.that(exc.oracle_error_code, eq="ORA-00942")
@@ -102,7 +105,9 @@ class TestsFlextDbOracleOracleExceptions:
     def test_processing_error_carries_operation_metadata() -> None:
         """ProcessingError exposes operation type and processing stage."""
         exc = FlextDbOracleExceptions.ProcessingError(
-            "insert failed", operation_type="INSERT", processing_stage="parse",
+            "insert failed",
+            operation_type="INSERT",
+            processing_stage="parse",
         )
 
         tm.that(exc.operation_type, eq="INSERT")
@@ -112,7 +117,9 @@ class TestsFlextDbOracleOracleExceptions:
     def test_timeout_error_carries_query_metadata() -> None:
         """OracleTimeoutError exposes query id and elapsed time."""
         exc = FlextDbOracleExceptions.OracleTimeoutError(
-            "query timed out", query_id="q-42", elapsed_time=1.5,
+            "query timed out",
+            query_id="q-42",
+            elapsed_time=1.5,
         )
 
         tm.that(exc.query_id, eq="q-42")
@@ -154,7 +161,8 @@ class TestsFlextDbOracleOracleExceptions:
     def test_connection_error_is_raisable_and_catchable_as_category() -> None:
         """A raised OracleConnectionError is caught via its flext-core category."""
         exc = FlextDbOracleExceptions.OracleConnectionError(
-            "unreachable", tns_error="TNS-12541",
+            "unreachable",
+            tns_error="TNS-12541",
         )
 
         def _raise() -> None:
@@ -177,7 +185,8 @@ class TestsFlextDbOracleOracleExceptions:
                 raise root
             except ValueError as driver_error:
                 wrapped = FlextDbOracleExceptions.Error(
-                    "authentication failed", oracle_error_code="ORA-01017",
+                    "authentication failed",
+                    oracle_error_code="ORA-01017",
                 )
                 raise wrapped from driver_error
 

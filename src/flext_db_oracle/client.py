@@ -26,10 +26,14 @@ class FlextDbOracleClient(s):
     """
 
     debug: bool = u.Field(
-        False, description="Enable debug output", validate_default=True,
+        default=False,
+        description="Enable debug output",
+        validate_default=True,
     )
     current_connection: FlextDbOracleApi | None = u.Field(
-        None, description="Active Oracle API connection instance", validate_default=True,
+        None,
+        description="Active Oracle API connection instance",
+        validate_default=True,
     )
     user_preferences: m.ConfigMap = u.Field(
         default_factory=lambda: m.ConfigMap(
@@ -70,7 +74,9 @@ class FlextDbOracleClient(s):
 
     @classmethod
     def _run_cli_command(
-        cls, operation: str, params: t.MappingKV[str, t.Scalar],
+        cls,
+        operation: str,
+        params: t.MappingKV[str, t.Scalar],
     ) -> p.Result[str]:
         """Run a normalized CLI operation.
 
@@ -101,9 +107,10 @@ class FlextDbOracleClient(s):
         try:
             self.user_preferences.root.update(preferences)
             self.logger.info(
-                "Client preferences updated", preferences_info=str(preferences),
+                "Client preferences updated",
+                preferences_info=str(preferences),
             )
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except c.DbOracle.EXC_DB_CONNECT as e:
             return r[bool].fail_op("Preference configuration", e)
 
@@ -213,7 +220,7 @@ class FlextDbOracleClient(s):
             result: p.Result[bool] = self.current_connection.disconnect()
             self.current_connection = None
             return result
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @override
     def execute(self) -> p.Result[p.Base]:
@@ -226,7 +233,9 @@ class FlextDbOracleClient(s):
         return r[p.Base].ok(self._oracle_config)
 
     def execute_query(
-        self, sql: str, params: t.DbOracle.QueryParameters | None = None,
+        self,
+        sql: str,
+        params: t.DbOracle.QueryParameters | None = None,
     ) -> p.Result[str]:
         """Execute SQL query with formatted output.
 
@@ -236,7 +245,9 @@ class FlextDbOracleClient(s):
         """
         query_params = m.ConfigMap.model_validate(params or {})
         operation_result = self._execute_with_chain(
-            "query", sql=sql, params=query_params,
+            "query",
+            sql=sql,
+            params=query_params,
         )
         format_type = str(
             self.user_preferences.root.get("default_output_format", "table"),
@@ -275,7 +286,8 @@ class FlextDbOracleClient(s):
 
         """
         operation_result: p.Result[m.ConfigMap] = self._execute_with_chain(
-            "list_tables", schema=schema or "",
+            "list_tables",
+            schema=schema or "",
         )
         format_type = str(
             self.user_preferences.root.get("default_output_format", "table"),
@@ -303,7 +315,8 @@ class FlextDbOracleClient(s):
         ]
 
     def _adapt_data_for_table(
-        self, data: m.ConfigMap,
+        self,
+        data: m.ConfigMap,
     ) -> p.Result[Sequence[m.ConfigMap]]:
         """Adapt data for table display.
 
@@ -320,7 +333,8 @@ class FlextDbOracleClient(s):
         return result
 
     def _adapt_data_root(
-        self, data_root: t.MappingKV[str, t.JsonPayload],
+        self,
+        data_root: t.MappingKV[str, t.JsonPayload],
     ) -> t.SequenceOf[m.ConfigMap]:
         """Adapt one ConfigMap root into table rows.
 
@@ -386,7 +400,9 @@ class FlextDbOracleClient(s):
             return r[m.ConfigMap].fail_op("Health check", e)
 
     def _execute_operation(
-        self, operation: str, **params: t.Scalar | m.ConfigMap,
+        self,
+        operation: str,
+        **params: t.Scalar | m.ConfigMap,
     ) -> p.Result[m.ConfigMap]:
         """Execute Oracle operation with error handling.
 
@@ -402,7 +418,9 @@ class FlextDbOracleClient(s):
             return r[m.ConfigMap].fail_op("Operation", e)
 
     def _dispatch_operation(
-        self, operation: str, params: t.MappingKV[str, t.Scalar | m.ConfigMap],
+        self,
+        operation: str,
+        params: t.MappingKV[str, t.Scalar | m.ConfigMap],
     ) -> p.Result[m.ConfigMap]:
         """Dispatch one validated Oracle client operation.
 
@@ -422,7 +440,9 @@ class FlextDbOracleClient(s):
                 return r[m.ConfigMap].fail(f"Unknown operation: {operation}")
 
     def _execute_with_chain(
-        self, operation: str, **params: t.Scalar | m.ConfigMap,
+        self,
+        operation: str,
+        **params: t.Scalar | m.ConfigMap,
     ) -> p.Result[m.ConfigMap]:
         """Execute operation with validation chain.
 
@@ -436,7 +456,9 @@ class FlextDbOracleClient(s):
         return self._execute_operation(operation, **params)
 
     def _format_and_display_result(
-        self, operation_result: p.Result[m.ConfigMap], format_type: str = "table",
+        self,
+        operation_result: p.Result[m.ConfigMap],
+        format_type: str = "table",
     ) -> p.Result[str]:
         """Format and display operation result.
 
@@ -489,7 +511,8 @@ class FlextDbOracleClient(s):
         )
 
     def _get_formatter_strategy(
-        self, format_type: str,
+        self,
+        format_type: str,
     ) -> p.Result[Callable[[m.ConfigMap], p.Result[str]]]:
         """Get formatter strategy for output format.
 
@@ -513,7 +536,8 @@ class FlextDbOracleClient(s):
             )
         except c.DbOracle.EXC_DB_CONNECT as e:
             return r[Callable[[m.ConfigMap], p.Result[str]]].fail(
-                f"Formatter strategy error: {e}", exception=e,
+                f"Formatter strategy error: {e}",
+                exception=e,
             )
 
     def _handle_health_check_operation(self) -> p.Result[m.ConfigMap]:
@@ -543,7 +567,8 @@ class FlextDbOracleClient(s):
         )
 
     def _handle_list_tables_operation(
-        self, **params: t.Scalar | m.ConfigMap,
+        self,
+        **params: t.Scalar | m.ConfigMap,
     ) -> p.Result[m.ConfigMap]:
         """Handle list tables operation.
 
@@ -560,7 +585,8 @@ class FlextDbOracleClient(s):
         )
 
     def _handle_query_operation(
-        self, **params: t.Scalar | m.ConfigMap,
+        self,
+        **params: t.Scalar | m.ConfigMap,
     ) -> p.Result[m.ConfigMap]:
         """Handle query operation.
 
@@ -598,7 +624,7 @@ class FlextDbOracleClient(s):
             return r[bool].fail("No active Oracle connection")
         if not self.current_connection.connected():
             return r[bool].fail("Oracle connection not active")
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
 __all__: t.StrSequence = ("FlextDbOracleClient",)

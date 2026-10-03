@@ -50,7 +50,8 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                 success=False,
             )
         self._engine = self._sqlalchemy_create_engine(
-            url_result.value, connect_timeout=self.db_config.DbOracle.timeout,
+            url_result.value,
+            connect_timeout=self.db_config.DbOracle.timeout,
         )
         try:
             with self._engine_connect(self._engine) as conn:
@@ -76,7 +77,8 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                     try:
                         with self._engine_connect(self._engine) as conn:
                             _ = self._connection_execute(
-                                conn, text("SELECT 1 FROM dual"),
+                                conn,
+                                text("SELECT 1 FROM dual"),
                             )
                         self.logger.info(
                             f"Connected to Oracle database: {self.db_config.DbOracle.host}",
@@ -103,7 +105,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             self._engine_dispose(engine)
             self._engine = None
             self.logger.info("Disconnected from Oracle database")
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @override
     def execute(self) -> p.Result[p.Base]:
@@ -191,7 +193,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         try:
             with self._engine_connect(engine_result.value) as conn:
                 _ = self._connection_execute(conn, text("SELECT 1 FROM dual"))
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except c.DbOracle.EXC_DB_BROAD as e:
             return r[bool].fail_op("Connection test", e)
 
@@ -212,7 +214,8 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             yield txn
 
     def _assemble_connection_url(
-        self, password: m.DbOracle.Password | str,
+        self,
+        password: m.DbOracle.Password | str,
     ) -> p.Result[str]:
         """Assemble Oracle connection URL from validated password.
 

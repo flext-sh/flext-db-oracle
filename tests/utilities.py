@@ -31,7 +31,8 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
 
         @classmethod
         def normalize_port_bindings(
-            cls, value: t.JsonValue | t.JsonMapping,
+            cls,
+            value: t.JsonValue | t.JsonMapping,
         ) -> t.StrMapping:
             """Normalize Docker port bindings into a typed mapping.
 
@@ -45,7 +46,9 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
 
         @classmethod
         def resolve_oracle_test_port(
-            cls, docker_control: tk, container_name: str,
+            cls,
+            docker_control: tk,
+            container_name: str,
         ) -> int:
             """Resolve the exposed Oracle test port from Docker state.
 
@@ -95,7 +98,8 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
             _registry: ClassVar[MutableMapping[str, m.Tests.StubPluginEntity]] = {}
 
             def register_plugin(
-                self, plugin: m.Tests.StubPluginEntity,
+                self,
+                plugin: m.Tests.StubPluginEntity,
             ) -> m.Tests.StubResult:
                 """Register a plugin in the in-memory registry.
 
@@ -113,7 +117,8 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
                 """
                 if plugin_name not in self._registry:
                     return m.Tests.StubResult(
-                        failure=True, error=f"Plugin '{plugin_name}' not found",
+                        failure=True,
+                        error=f"Plugin '{plugin_name}' not found",
                     )
                 del self._registry[plugin_name]
                 return m.Tests.StubResult()

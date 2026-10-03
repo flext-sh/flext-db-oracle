@@ -11,11 +11,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleSettings
-from flext_db_oracle.services.facade import FlextDbOracleServices
 from tests import m
+
+if TYPE_CHECKING:
+    from flext_db_oracle.services.facade import FlextDbOracleServices
 
 
 class TestsFlextDbOracleCoverageBaseline:
@@ -81,7 +85,10 @@ class TestsFlextDbOracleCoverageBaseline:
     def test_column_exposes_public_fields() -> None:
         """Column stores name/type/nullable/default as public field state."""
         column = m.DbOracle.Column(
-            name="ID", data_type="NUMBER", nullable=False, default_value="1",
+            name="ID",
+            data_type="NUMBER",
+            nullable=False,
+            default_value="1",
         )
         tm.that(column.name, eq="ID")
         tm.that(column.data_type, eq="NUMBER")
@@ -100,7 +107,8 @@ class TestsFlextDbOracleCoverageBaseline:
 
     @staticmethod
     def test_service_exposes_bound_settings(
-        test_service: FlextDbOracleServices, test_settings: FlextDbOracleSettings,
+        test_service: FlextDbOracleServices,
+        test_settings: FlextDbOracleSettings,
     ) -> None:
         """The facade returns the exact settings it was constructed with."""
         tm.that(test_service.settings, eq=test_settings)
@@ -115,7 +123,8 @@ class TestsFlextDbOracleCoverageBaseline:
 
     @staticmethod
     def test_service_execute_returns_active_configuration(
-        test_service: FlextDbOracleServices, test_settings: FlextDbOracleSettings,
+        test_service: FlextDbOracleServices,
+        test_settings: FlextDbOracleSettings,
     ) -> None:
         """execute() yields the active configuration as its default result."""
         result = test_service.execute()

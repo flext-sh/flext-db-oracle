@@ -10,8 +10,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from flext_core import FlextExceptions
-from flext_db_oracle import p, t
+
+if TYPE_CHECKING:
+    from flext_db_oracle import p, t
 
 
 class FlextDbOracleExceptions(FlextExceptions):

@@ -75,7 +75,7 @@ class FlextDbOracleUtilitiesDbOracle:
             return r[bool].fail("Oracle identifier too long")
         if identifier.upper() in c.DbOracle.ORACLE_RESERVED:
             return r[bool].fail("Oracle identifier is reserved word")
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def escape_oracle_identifier(identifier: str) -> p.Result[str]:
@@ -93,7 +93,9 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @classmethod
     def format_query_result(
-        cls, result: t.JsonPayload, format_type: str = "table",
+        cls,
+        result: t.JsonPayload,
+        format_type: str = "table",
     ) -> p.Result[str]:
         """Format a query result to string or JSON.
 
@@ -117,7 +119,9 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @classmethod
     def generate_query_hash(
-        cls, query: str, params: t.JsonMapping | None,
+        cls,
+        query: str,
+        params: t.JsonMapping | None,
     ) -> p.Result[str]:
         """Generate a SHA-256 hash for a query and its parameters.
 
@@ -186,7 +190,8 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @staticmethod
     def _sqlalchemy_create_engine(
-        url: str, connect_timeout: int | None = None,
+        url: str,
+        connect_timeout: int | None = None,
     ) -> SAEngine:
         """Create SQLAlchemy engine with optional connection timeout.
 

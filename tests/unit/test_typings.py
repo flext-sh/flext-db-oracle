@@ -34,7 +34,9 @@ class TestsFlextDbOracleTypings:
 
     @staticmethod
     def test_facade_composes_cli_types_via_mro() -> None:
-        """Facade extends the flext-cli ``t`` facade so inherited members stay reachable."""
+        """Facade extends the flext-cli ``t`` facade so inherited members stay
+        reachable.
+        """
         assert issubclass(FlextDbOracleTypes, cli_types)
         assert hasattr(FlextDbOracleTypes, "Scalar")
 
@@ -52,7 +54,8 @@ class TestsFlextDbOracleTypings:
         ],
     )
     def test_oracle_exception_bindings_map_to_driver(
-        attribute: str, expected: type[Exception],
+        attribute: str,
+        expected: type[Exception],
     ) -> None:
         """Oracle exception aliases bind to the driver's exception classes."""
         bound = getattr(FlextDbOracleTypes.DbOracle, attribute)

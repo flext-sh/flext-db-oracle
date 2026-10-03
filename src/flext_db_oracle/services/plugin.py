@@ -93,7 +93,10 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         return r[m.ConfigMap].ok(m.ConfigMap(root=dict.fromkeys(plugin_names, True)))
 
     def record_metric(
-        self, name: str, value: float, tags: m.ConfigMap | t.JsonMapping | None = None,
+        self,
+        name: str,
+        value: float,
+        tags: m.ConfigMap | t.JsonMapping | None = None,
     ) -> p.Result[bool]:
         """Record metric in the local service metrics registry.
 
@@ -110,7 +113,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
             }
             metric_payload = {"value": value, "tags": normalized_tags}
         self._metrics[name] = metric_payload
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def register_plugin(self, name: str, plugin: t.JsonPayload) -> p.Result[bool]:
         """Register plugin in local service registry.
@@ -121,7 +124,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         if not name:
             return r[bool].fail("Plugin name is required")
         self._plugins[name] = plugin
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def track_operation(
         self,
@@ -175,7 +178,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         if name not in self._plugins:
             return e.fail_not_found("Plugin", name, result_type=r[bool])
         self._plugins.pop(name)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
 __all__: list[str] = ["FlextDbOracleServicePlugin"]

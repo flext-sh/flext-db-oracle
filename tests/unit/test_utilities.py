@@ -47,7 +47,8 @@ class TestsFlextDbOracleUtilitiesUnit:
         params: t.IntMapping = {"id": 1}
         hash_value: str = tm.ok(
             u.DbOracle.generate_query_hash(
-                "SELECT * FROM table WHERE id = :id", params
+                "SELECT * FROM table WHERE id = :id",
+                params,
             ),
         )
         tm.that(hash_value, is_=str)
