@@ -1,9 +1,9 @@
 """Simple working Oracle example demonstrating configuration setup.
 
+This example demonstrates basic configuration and setup functionality.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
-This example demonstrates basic configuration and setup functionality.
 """
 
 from __future__ import annotations
@@ -16,11 +16,15 @@ logger = u.fetch_logger(__name__)
 
 
 def _resolve_settings() -> FlextDbOracleSettings:
-    """Resolve settings from the env-backed singleton or fallback demo config."""
+    """Resolve settings from the env-backed singleton or fallback demo config.
+
+    Returns:
+        The resulting ``FlextDbOracleSettings``.
+    """
     settings = FlextDbOracleSettings.fetch_global()
     if settings.DbOracle.password:
         logger.info(
-            f"✅ Configuration created: {settings.DbOracle.host}:{settings.DbOracle.port}"
+            f"✅ Configuration created: {settings.DbOracle.host}:{settings.DbOracle.port}",
         )
     else:
         settings = FlextDbOracleSettings.model_validate({
@@ -28,7 +32,7 @@ def _resolve_settings() -> FlextDbOracleSettings:
                 "host": "demo-host",
                 "username": "demo-user",
                 "password": os.environ.get("FLEXT_DEMO_ORACLE_PASSWORD", "<demo>"),
-            }
+            },
         })
         logger.info("✅ Demo configuration created")
     return settings

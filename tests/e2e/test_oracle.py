@@ -33,8 +33,9 @@ _NOT_CONNECTED = "not connected to database"
 class TestsFlextDbOracleOracle:
     """Behavioral end-to-end tests for the Oracle API public contract."""
 
+    @staticmethod
     @pytest.fixture
-    def offline_settings(self) -> FlextDbOracleSettings:
+    def offline_settings() -> FlextDbOracleSettings:
         """Return settings pointing at an unreachable host for offline contract tests."""
         return FlextDbOracleSettings.model_validate({
             "DbOracle": {
@@ -43,15 +44,21 @@ class TestsFlextDbOracleOracle:
                 "service_name": "INVALID_DB",
                 "username": "invalid_user",
                 "password": "p" + "1" * 10,
-            }
+            },
         })
 
+    @staticmethod
     @pytest.fixture
-    def offline_api(self, offline_settings: FlextDbOracleSettings) -> FlextDbOracleApi:
-        """Unconnected API instance for pure-logic and error-path behavior."""
+    def offline_api(offline_settings: FlextDbOracleSettings) -> FlextDbOracleApi:
+        """Unconnected API instance for pure-logic and error-path behavior.
+
+        Returns:
+            The resulting ``FlextDbOracleApi``.
+        """
         return FlextDbOracleApi(offline_settings)
 
-    def test_env_vars_populate_settings_namespace(self) -> None:
+    @staticmethod
+    def test_env_vars_populate_settings_namespace() -> None:
         """ORACLE_DBORACLE__* env vars populate the public settings namespace."""
         FlextDbOracleSettings.reset_for_testing()
         env = {
@@ -74,24 +81,27 @@ class TestsFlextDbOracleOracle:
         tm.that(settings.DbOracle.pool_min, eq=2)
         tm.that(settings.DbOracle.pool_max, eq=20)
 
+    @staticmethod
     def test_query_without_connection_fails_with_not_connected_error(
-        self, offline_api: FlextDbOracleApi
+        offline_api: FlextDbOracleApi,
     ) -> None:
         """Query returns a failure naming the missing connection."""
         result = offline_api.query("SELECT 1 FROM DUAL")
         tm.fail(result)
         tm.that((result.error or "").lower(), has=_NOT_CONNECTED)
 
+    @staticmethod
     def test_fetch_tables_without_connection_fails_with_not_connected_error(
-        self, offline_api: FlextDbOracleApi
+        offline_api: FlextDbOracleApi,
     ) -> None:
         """fetch_tables returns a failure naming the missing connection."""
         result = offline_api.fetch_tables()
         tm.fail(result)
         tm.that((result.error or "").lower(), has=_NOT_CONNECTED)
 
+    @staticmethod
     def test_transaction_reports_disconnected_status_when_offline(
-        self, offline_api: FlextDbOracleApi
+        offline_api: FlextDbOracleApi,
     ) -> None:
         """Transaction succeeds and reports the current (disconnected) state."""
         result = offline_api.transaction()
@@ -100,20 +110,22 @@ class TestsFlextDbOracleOracle:
         tm.that(status["connected"], eq=False)
         tm.that(status["transaction_available"], eq=True)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("singer_type", "expected_oracle_type"),
         list(c.Tests.SINGER_TYPE_MAP_TEST_CASES.items()),
     )
     def test_convert_singer_type_returns_expected_oracle_type(
-        self, offline_api: FlextDbOracleApi, singer_type: str, expected_oracle_type: str
+        offline_api: FlextDbOracleApi, singer_type: str, expected_oracle_type: str,
     ) -> None:
         """convert_singer_type maps each Singer type to its Oracle SQL type."""
         result = offline_api.convert_singer_type(singer_type)
         tm.ok(result)
         tm.that(result.value, has=expected_oracle_type)
 
+    @staticmethod
     def test_map_singer_schema_maps_properties_to_oracle_column_types(
-        self, offline_api: FlextDbOracleApi
+        offline_api: FlextDbOracleApi,
     ) -> None:
         """map_singer_schema converts each JSON-Schema property to an Oracle type."""
         singer_schema: t.JsonMapping = {
@@ -121,7 +133,7 @@ class TestsFlextDbOracleOracle:
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
                 "is_active": {"type": "boolean"},
-            }
+            },
         }
         result = offline_api.map_singer_schema(singer_schema)
         tm.ok(result)
@@ -132,11 +144,15 @@ class TestsFlextDbOracleOracle:
 
     @staticmethod
     def _row_mapping(row: m.Dict) -> Mapping[str, t.JsonPayload]:
-        """Expose a query row's public mapping regardless of case handling."""
+        """Expose a query row's public mapping regardless of case handling.
+
+        Returns:
+            The resulting ``Mapping[str, t.JsonPayload]``.
+        """
         return {key.upper(): value for key, value in row.root.items()}
 
     def _concurrent_source_rows(
-        self, api1: FlextDbOracleApi, api2: FlextDbOracleApi
+        self, api1: FlextDbOracleApi, api2: FlextDbOracleApi,
     ) -> t.Pair[Mapping[str, t.JsonPayload], Mapping[str, t.JsonPayload]]:
         """Return one query row from each concurrent API context."""
         with api1, api2:
@@ -151,7 +167,7 @@ class TestsFlextDbOracleOracle:
 
     @pytest.mark.e2e
     def test_complete_crud_workflow_returns_expected_results(
-        self, real_oracle_config: FlextDbOracleSettings
+        self, real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """A connect->create->insert->query->update->drop lifecycle behaves per contract."""
         table = "E2E_TEST_TABLE"
@@ -161,7 +177,7 @@ class TestsFlextDbOracleOracle:
             tm.ok(schemas)
             assert schemas.value
             create = api.execute_sql(
-                f"CREATE TABLE {table} ( ID NUMBER(10) NOT NULL PRIMARY KEY, NAME VARCHAR2(100) NOT NULL, EMAIL VARCHAR2(255))"
+                f"CREATE TABLE {table} ( ID NUMBER(10) NOT NULL PRIMARY KEY, NAME VARCHAR2(100) NOT NULL, EMAIL VARCHAR2(255))",
             )
             tm.ok(create)
             try:
@@ -199,7 +215,7 @@ class TestsFlextDbOracleOracle:
                 )
                 tm.ok(updated)
                 verify = api.query(
-                    "SELECT EMAIL FROM E2E_TEST_TABLE WHERE ID = :id", {"id": 3}
+                    "SELECT EMAIL FROM E2E_TEST_TABLE WHERE ID = :id", {"id": 3},
                 )
                 tm.ok(verify)
                 tm.that(len(verify.value), eq=1)
@@ -210,7 +226,7 @@ class TestsFlextDbOracleOracle:
 
     @pytest.mark.e2e
     def test_concurrent_apis_return_independent_query_results(
-        self, real_oracle_config: FlextDbOracleSettings
+        self, real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Two concurrent API contexts each return their own query result."""
         api1 = FlextDbOracleApi(real_oracle_config, context_name="connection1")
@@ -219,10 +235,11 @@ class TestsFlextDbOracleOracle:
         tm.that(row1["SOURCE"], eq="API1")
         tm.that(row2["SOURCE"], eq="API2")
 
+    @staticmethod
     @pytest.mark.e2e
     @pytest.mark.benchmark
     def test_benchmark_query_returns_single_row(
-        self, real_oracle_config: FlextDbOracleSettings
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """A trivial benchmark query returns exactly one row from the database."""
         with FlextDbOracleApi(settings=real_oracle_config) as api:

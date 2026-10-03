@@ -13,9 +13,8 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_core import FlextConstants as c
-
-from ._constants.exceptions import FlextDbOracleConstantsExceptions
-from ._constants.values import FlextDbOracleConstantsValues
+from flext_db_oracle._constants.exceptions import FlextDbOracleConstantsExceptions
+from flext_db_oracle._constants.values import FlextDbOracleConstantsValues
 
 
 class FlextDbOracleConstants(c):
@@ -31,7 +30,7 @@ class FlextDbOracleConstants(c):
     """
 
     class DbOracle(
-        FlextDbOracleConstantsExceptions.DbOracle, FlextDbOracleConstantsValues.DbOracle
+        FlextDbOracleConstantsExceptions.DbOracle, FlextDbOracleConstantsValues.DbOracle,
     ):
         """Oracle domain constants namespace with flat SSOT members.
 

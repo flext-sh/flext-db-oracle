@@ -1,4 +1,8 @@
-"""Oracle password value object."""
+"""Oracle password value object.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -11,7 +15,7 @@ class FlextDbOraclePassword(m.RootModel[str]):
     """Password value object used by Oracle settings."""
 
     root: str = u.Field(
-        default="", description="Oracle database password", validate_default=True
+        default="", description="Oracle database password", validate_default=True,
     )
 
     @override
@@ -25,7 +29,11 @@ class FlextDbOraclePassword(m.RootModel[str]):
 
     @override
     def __eq__(self, other: object) -> bool:
-        """Compare wrapped password value with wrappers and raw strings."""
+        """Compare wrapped password value with wrappers and raw strings.
+
+        Returns:
+            The resulting ``bool``.
+        """
         if isinstance(other, FlextDbOraclePassword):
             return self.root == other.root
         if isinstance(other, str):

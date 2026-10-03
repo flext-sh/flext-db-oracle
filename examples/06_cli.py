@@ -138,7 +138,7 @@ def run_cli_command(cmd: t.StrSequence) -> t.Triple[int, str, str]:
             stdout="",
             stderr=result.error or "Command failed",
             outcome=m.Cli.ProcessOutcome(
-                raw_return_code=1, timed_out=False, forwarded_signal=None
+                raw_return_code=1, timed_out=False, forwarded_signal=None,
             ),
         )
         return (failed.outcome.raw_return_code, failed.stdout, failed.stderr)

@@ -1,4 +1,8 @@
-"""FlextDbOracle utilities mixin for Oracle-specific helpers."""
+"""FlextDbOracle utilities mixin for Oracle-specific helpers.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -18,9 +22,8 @@ from sqlalchemy import (
     create_engine,
 )
 
+from flext_db_oracle._settings import settings
 from flext_db_oracle.constants import FlextDbOracleConstants as c
-
-from .._settings import settings
 
 if TYPE_CHECKING:
     import contextlib
@@ -61,7 +64,11 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @staticmethod
     def validate_identifier(identifier: str) -> p.Result[bool]:
-        """Validate an Oracle identifier."""
+        """Validate an Oracle identifier.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+        """
         if not identifier:
             return r[bool].fail("Empty Oracle identifier")
         if len(identifier) > c.DbOracle.MAX_IDENTIFIER_LENGTH:
@@ -72,7 +79,11 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @staticmethod
     def escape_oracle_identifier(identifier: str) -> p.Result[str]:
-        """Escape and validate an Oracle identifier for safe use."""
+        """Escape and validate an Oracle identifier for safe use.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+        """
         if not identifier.strip():
             return r[str].fail("Empty Oracle identifier")
         if not identifier.replace("_", "").isalnum():
@@ -82,9 +93,13 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @classmethod
     def format_query_result(
-        cls, result: t.JsonPayload, format_type: str = "table"
+        cls, result: t.JsonPayload, format_type: str = "table",
     ) -> p.Result[str]:
-        """Format a query result to string or JSON."""
+        """Format a query result to string or JSON.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+        """
         if format_type == "json":
             json_payload: t.JsonValue = u.normalize_to_json_value(result)
             return r[str].ok(t.json_value_adapter().dump_json(json_payload).decode())
@@ -92,15 +107,23 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @staticmethod
     def format_sql_for_oracle(sql: str) -> p.Result[str]:
-        """Normalize SQL string formatting for Oracle execution."""
+        """Normalize SQL string formatting for Oracle execution.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+        """
         normalized = " ".join(sql.split())
         return r[str].ok(normalized)
 
     @classmethod
     def generate_query_hash(
-        cls, query: str, params: t.JsonMapping | None
+        cls, query: str, params: t.JsonMapping | None,
     ) -> p.Result[str]:
-        """Generate a SHA-256 hash for a query and its parameters."""
+        """Generate a SHA-256 hash for a query and its parameters.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+        """
         sorted_params = dict(sorted((params or {}).items()))
         serialized = t.json_mapping_adapter().dump_json(sorted_params).decode()
         payload = f"{query}|{serialized}".encode()
@@ -113,6 +136,8 @@ class FlextDbOracleUtilitiesDbOracle:
         Raises:
             TypeError: ``value`` is not a mapping.
 
+        Returns:
+            The resulting ``m.ConfigMap``.
         """
         # Why: no-hidden-errors — propagate the raw failure instead of
         # masking a malformed mapping as an empty/None sentinel.
@@ -123,19 +148,34 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @staticmethod
     def normalize_params(params: m.ConfigMap | None) -> m.ConfigMap:
-        """Normalize optional parameters into ConfigMap."""
+        """Normalize optional parameters into ConfigMap.
+
+        Returns:
+            The resulting ``m.ConfigMap``.
+        """
         if params is not None:
             return params
         return m.ConfigMap(root={})
 
     @staticmethod
     def _parse_count_value(value: str) -> int:
-        """Parse row count value from a numeric count string."""
+        """Parse row count value from a numeric count string.
+
+        Returns:
+            The resulting ``int``.
+        """
         return int(value)
 
     @staticmethod
     def _normalize_singer_type(value: str | t.StrSequence) -> str:
-        """Normalize Singer type input to a single string value."""
+        """Normalize Singer type input to a single string value.
+
+        Returns:
+            The resulting ``str``.
+
+        Raises:
+            ValueError: If Singer type sequence must not be empty.
+        """
         if isinstance(value, str):
             return value
         validated = u.validate_value(t.str_sequence_adapter(), value).unwrap()
@@ -146,9 +186,13 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @staticmethod
     def _sqlalchemy_create_engine(
-        url: str, connect_timeout: int | None = None
+        url: str, connect_timeout: int | None = None,
     ) -> SAEngine:
-        """Create SQLAlchemy engine with optional connection timeout."""
+        """Create SQLAlchemy engine with optional connection timeout.
+
+        Returns:
+            The resulting ``SAEngine``.
+        """
         connect_args: t.MutableMappingKV[str, int] = {}
         if connect_timeout is not None:
             connect_args["tcp_connect_timeout"] = connect_timeout
@@ -162,14 +206,22 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @staticmethod
     def _engine_connect(engine: SAEngine) -> SAConnection:
-        """Open connection context manager from engine."""
+        """Open connection context manager from engine.
+
+        Returns:
+            The resulting ``SAConnection``.
+        """
         return engine.connect()
 
     @staticmethod
     def _engine_begin(
         engine: SAEngine,
     ) -> contextlib.AbstractContextManager[SAConnection]:
-        """Open transaction context manager from engine."""
+        """Open transaction context manager from engine.
+
+        Returns:
+            The resulting ``contextlib.AbstractContextManager[SAConnection]``.
+        """
         return engine.begin()
 
     @staticmethod
@@ -191,6 +243,10 @@ class FlextDbOracleUtilitiesDbOracle:
         statement: TextClause,
         parameters: m.ConfigMap | None = None,
     ) -> CursorResult[t.VariadicTuple[t.JsonValue]]:
-        """Execute statement on SQL connection."""
+        """Execute statement on SQL connection.
+
+        Returns:
+            The resulting ``CursorResult[t.VariadicTuple[t.JsonValue]]``.
+        """
         normalized_params = cls.normalize_params(parameters)
         return connection.execute(statement, normalized_params.root)

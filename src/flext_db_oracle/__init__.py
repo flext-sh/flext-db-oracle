@@ -1,49 +1,55 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Flext Db Oracle package."""
+"""Flext Db Oracle package.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import build_lazy_import_map, install_lazy_exports
-
-from .__version__ import (
-    __author__ as __author__,
-    __author_email__ as __author_email__,
-    __description__ as __description__,
-    __license__ as __license__,
-    __title__ as __title__,
-    __url__ as __url__,
-    __version__ as __version__,
-    __version_info__ as __version_info__,
+from flext_core import build_lazy_import_map, install_lazy_exports
+from flext_db_oracle.__version__ import (
+    __author__,
+    __author_email__,
+    __description__,
+    __license__,
+    __title__,
+    __url__,
+    __version__,
+    __version_info__,
 )
 
 if TYPE_CHECKING:
     from flext_core import d, h, r, x
-
-    from . import services
-    from ._config import FlextDbOracleConfig, config
-    from ._settings import DbOracleSettings, FlextDbOracleSettings, settings
-    from .api import FlextDbOracleApi, db_oracle
-    from .base import FlextDbOracleServiceBase, FlextDbOracleServiceBase as s
-    from .cli import main
-    from .client import FlextDbOracleClient
-    from .constants import FlextDbOracleConstants, c
-    from .dispatcher import FlextDbOracleDispatcher
-    from .exceptions import FlextDbOracleExceptions, FlextDbOracleExceptions as e
-    from .models import FlextDbOracleModels, FlextDbOracleModels as m
-    from .protocols import FlextDbOracleProtocols, FlextDbOracleProtocols as p
-    from .services.api_runtime import FlextDbOracleApiRuntime
-    from .services.connection import FlextDbOracleServiceConnection
-    from .services.facade import FlextDbOracleServices
-    from .services.plugin import FlextDbOracleServicePlugin
-    from .services.query import FlextDbOracleServiceQuery
-    from .services.schema import FlextDbOracleServiceSchema
-    from .services.singer import FlextDbOracleServiceSinger
-    from .services.sql_builder import FlextDbOracleServiceSqlBuilder
-    from .typings import FlextDbOracleTypes, FlextDbOracleTypes as t
-    from .utilities import FlextDbOracleUtilities, FlextDbOracleUtilities as u
+    from flext_db_oracle import services
+    from flext_db_oracle._config import FlextDbOracleConfig, config
+    from flext_db_oracle._settings import (
+        DbOracleSettings,
+        FlextDbOracleSettings,
+        settings,
+    )
+    from flext_db_oracle.api import FlextDbOracleApi, db_oracle
+    from flext_db_oracle.base import FlextDbOracleServiceBase, s
+    from flext_db_oracle.cli import main
+    from flext_db_oracle.client import FlextDbOracleClient
+    from flext_db_oracle.constants import FlextDbOracleConstants, c
+    from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
+    from flext_db_oracle.exceptions import FlextDbOracleExceptions, e
+    from flext_db_oracle.models import FlextDbOracleModels, m
+    from flext_db_oracle.protocols import FlextDbOracleProtocols, p
+    from flext_db_oracle.services.api_runtime import FlextDbOracleApiRuntime
+    from flext_db_oracle.services.connection import FlextDbOracleServiceConnection
+    from flext_db_oracle.services.facade import FlextDbOracleServices
+    from flext_db_oracle.services.plugin import FlextDbOracleServicePlugin
+    from flext_db_oracle.services.query import FlextDbOracleServiceQuery
+    from flext_db_oracle.services.schema import FlextDbOracleServiceSchema
+    from flext_db_oracle.services.singer import FlextDbOracleServiceSinger
+    from flext_db_oracle.services.sql_builder import FlextDbOracleServiceSqlBuilder
+    from flext_db_oracle.typings import FlextDbOracleTypes, t
+    from flext_db_oracle.utilities import FlextDbOracleUtilities, u
 
 
 __all__: tuple[str, ...] = (
@@ -123,7 +129,7 @@ _LAZY_IMPORTS = MappingProxyType(
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
-    )
+    ),
 )
 
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)
