@@ -1,19 +1,33 @@
-<!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
-
 # flext-db-oracle API Overview
+
+<!-- TOC START -->
+
+- [Next Pages](#next-pages)
+
+<!-- TOC END -->
+
+<!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
 
 - Package: `flext_db_oracle`
 - Version: `0.20.0`
 - Description: FLEXT DB Oracle - Enterprise Oracle Database Operations Library
 - Doc summary: Flext Db Oracle package.
-- Classifiers: `Development Status :: 3 - Alpha`, `Intended Audience :: Developers`, `Operating System :: OS Independent`, `Programming Language :: Python :: 3 :: Only`, `Programming Language :: Python :: 3.13`, `Topic :: Database` (+2 more)
+- Classifiers: Development Status :: 3 - Alpha, Intended Audience :: Developers,
+  Operating System :: OS Independent, Programming Language :: Python :: 3 :: Only,
+  Programming Language :: Python :: 3.13, Topic :: Database, Topic :: Software
+  Development :: Libraries :: Python Modules, Typing :: Typed
 - Project class: `domain`
 - Keywords: `database`, `enterprise`, `flext`, `oracle`, `sql`, `typed`
-- Main facades: `FlextDbOracleApi`, `FlextDbOracleApiRuntime`, `FlextDbOracleConstants`, `FlextDbOracleDispatcher`, `FlextDbOracleExceptions`, `FlextDbOracleModels`, `FlextDbOracleProtocols`, `FlextDbOracleServiceBase` (+10 more)
+- Main facades: `FlextDbOracleApi`, `FlextDbOracleApiRuntime`, `FlextDbOracleClient`,
+  `FlextDbOracleConfig`, `FlextDbOracleConstants`, `FlextDbOracleDispatcher`,
+  `FlextDbOracleExceptions`, `FlextDbOracleModels` (+12 more)
 - Alias exports: `c`, `d`, `e`, `h`, `m`, `p`, `r`, `s`, `t`, `u`, `x`
-- Public symbol exports: `FlextDbOracleApi`, `FlextDbOracleApiRuntime`, `FlextDbOracleConstants`, `FlextDbOracleDispatcher`, `FlextDbOracleExceptions`, `FlextDbOracleModels`, `FlextDbOracleProtocols`, `FlextDbOracleServiceBase`, `FlextDbOracleServiceConnection`, `FlextDbOracleServicePlugin` (+10 more)
-- Exported module shortcuts: _none_
-- Generated module pages: `17`
+- Public symbol exports: `DbOracleSettings`, `FlextDbOracleApi`,
+  `FlextDbOracleApiRuntime`, `FlextDbOracleClient`, `FlextDbOracleConfig`,
+  `FlextDbOracleConstants`, `FlextDbOracleDispatcher`, `FlextDbOracleExceptions`,
+  `FlextDbOracleModels`, `FlextDbOracleProtocols` (+15 more)
+- Exported module shortcuts: `services`
+- Generated module pages: `11`
 
 ## Next Pages
 

@@ -1,113 +1,172 @@
-# AGENTS.md — Project Pointer
+# AGENTS.md — flext-db-oracle
 
-<!-- BEGIN UNIVERSAL AGENT LAW (portable; regenerable; do not edit inside) -->
-## Universal Agent Law (portable core)
+> **Parent workspace law** lives in [`../AGENTS.md`](../AGENTS.md) — read it first.
+> Universal engineering core: `~/.agents/UNIVERSAL_CORE.md`. Composition: global
+> skills + parent/root `AGENTS.md` + this scope delta. Do not re-embed universal law.
+>
+> **Standalone / independent mode:** when `../AGENTS.md` does not resolve, pin the
+> parent raw `AGENTS.md` URL to the same branch/release as this package (never
+> `main`): <https://raw.githubusercontent.com/flext-sh/flext/0.12.0-dev/AGENTS.md>
 
-**This block is the inviolable, agent-agnostic core of engineering conduct for this repository.** It is
-self-contained: it binds any AI agent — Claude, Codex, Gemini, Cursor, Cline, GitHub Copilot, or any other —
-and any user, with or without access to the author's personal configuration. The live user's explicit
-instructions override this block; nothing else does. These rules apply to every project type and every
-session, and may not be relaxed, reinterpreted, or scoped-out for convenience, speed, or perceived triviality.
+<!-- AIHUB-AGENTS-SCOPE-LOCAL-BEGIN -->
 
-### 1. Zero-Tolerance / Strict-Total
+**Package:** `flext_db_oracle` · deps: `flext-cli`, `flext-core`
 
-- **Always** fix the root cause — generically, cleanly, via reuse of existing canonical code — and validate it
-  in the same turn with the actual command, its exit code, and the relevant output line.
-- **Always** remove superseded code in the same cycle the replacement lands. No dead code "for later".
-- **Always** fail loud when the single source of truth (identity, config, contract, version) is absent — never
-  substitute a guess, a local copy, or an alternative path.
-- **Never** use a fallback, compatibility wrapper, legacy branch, allowlist/carve-out, skip, suppression,
-  hardcode, stub, fake, `TODO`/`FIXME`, or a side-script to make a gate pass.
-- **Never** classify a failure surfaced by the current task as "pre-existing", "cosmetic", "unrelated", or
-  "acceptable legacy". If it appears in your flow, you own it.
+## Overview
 
-### 2. Fix-Forward-Only
+Enterprise Oracle database operations library. Base for the Oracle Singer connectors
+(`flext-tap-oracle`, `flext-target-oracle`, `flext-dbt-oracle`).
 
-Multiple agents may share one working tree. Reverting to a past state silently destroys another agent's
-in-flight work. **Accept the current state and fix forward.** Discarding changes via `git checkout -- <path>`,
-`git restore`, `git reset --hard`, `git reset <path>`, `git stash` (hiding others' work), `git clean`, or
-`git revert` of another's commit is **forbidden**. If you think you must revert → **STOP and ask the user**;
-never unilaterally revert shared work.
+## Structure
 
-### 3. Root Cause Only — No Workarounds
+```text
+src/flext_db_oracle/
+├── api.py            # FlextDbOracleApi facade
+├── base.py client.py dispatcher.py exceptions.py
+├── services/         # connection, query, schema, SQL building, Singer, plugins, API runtime
+├── constants.py typings.py protocols.py models.py utilities.py   # AUTO-GENERATED facets
+└── _models/ _utilities/db_oracle.py
+```
 
-No TODOs, stubs, fakes, fallbacks, compat wrappers, or "temporary" workarounds. No suppression directives
-(`# type: ignore`, blanket `# noqa`, `@ts-ignore`, `eslint-disable`, etc.) and no escape-hatch typing
-(`Any`, bare `object`, unchecked casts) unless carrying a one-line documented justification. A bypass that
-hides a symptom is a defect even when the gate turns green.
+## Code Map
 
-### 4. Stay In Scope
+| Symbol                      | Kind  | Location            | Role                                        |
+| --------------------------- | ----- | ------------------- | ------------------------------------------- |
+| `FlextDbOracleApi`          | class | `api.py`            | facade; ctor resolves `settings.DbOracle.*` |
+| `FlextDbOracleClient`       | class | `client.py`         | connection client                           |
+| `FlextDbOracleDispatcher`   | class | `dispatcher.py`     | command dispatch                            |
+| `FlextDbOracleServiceQuery` | class | `services/query.py` | query service                               |
 
-Do exactly what the user asked — nothing more. No unrequested refactors, renames, cleanups, "obvious
-improvements", or adjacent fixes. Found something unrelated? Mention it in one sentence; do not touch it.
+## Conventions (specific to this package)
 
-### 5. Evidence Before Done — Report Honesty Is 100% Mandatory
+- **Settings are namespaced** — access `settings.DbOracle.*`
+  (host/port/user/service_name/context_name), never flat `settings.host`. The API ctor
+  resolves them from that namespace.
+- Config/settings canonical pattern: ADR-012.
+- Codemod governance (ast-grep + make mod): ADR-014.
 
-"Done" means the **complete chain validated** with objective evidence (command + exit code + output), not
-conclusion-by-sample. **Never** present partial, assumed, speculative, or unverified results as verified.
-State explicitly when a step was skipped, when a check failed (paste the output), and when a result is
-unverified. If something only worked via a workaround, say so — it is not "done".
+## Anti-Patterns / Gotchas
 
-### 6. Execute As Planned, Else Stop And Ask
+- Downstream consumers construct config as nested `{"DbOracle": {...}}` — flat
+  construction is dropped (`extra=ignore`).
 
-Execute the agreed plan exactly. On anything that cannot be done cleanly — a blocked tool, a missing source of
-truth, a real ambiguity, or a step that would require a bad practice — **STOP and ask**, presenting concrete
-options. **Every option must be a clean, root-cause solution.** Fallback, hack, hardcode, suppression, skip,
-or stub are **forbidden as suggestions** — never offer one, even labelled "quick" or "temporary". Any
-mid-execution deviation from the plan requires explicit user confirmation **before** applying.
+## Commands
 
-### 7. Blocked-Operation Protocol
+Run from the workspace root (selector-free; the root dispatcher routes to every
+member — `PROJECT=` is not a root Make variable):
 
-When a tool, command, or edit is blocked (deny rule, security hook, sandbox, missing permission, unavailable
-integration): (1) **Stop** — do not retry a variation or seek a bypass; (2) **diagnose in one sentence** what
-was blocked and why; (3) **hand the exact command or edit to the user** to run on their side; (4) **wait for
-their output** before continuing; (5) **never claim done because a substitute ran** — a successful bypass is
-still a violation. Forbidden bypass techniques include `bash -c`/`sh -c` subshell wrapping, `eval`/`exec`,
-`env <blocked>`, `xargs <blocked>`, absolute-path swaps to dodge prefix deny rules, pipes/command-chains into a
-blocked command, and invoking it via a `subprocess` call.
+```bash
+make check
+make test
+```
 
-### 8. Strict, Most-Restrictive Typing
+<!-- AIHUB-AGENTS-SCOPE-LOCAL-END -->
 
-Use the most restrictive type that compiles. No `Any`, no bare `object`, no suppression of type errors. Fix
-types at the source; depend on declared contracts, not loosely-typed escape hatches.
+<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:970c3bf2 -->
 
-### 9. Universal Engineering Principles (always, no exception)
+## Beads Issue Tracker
 
-- **SSOT** — one authoritative source per fact; reference it, never duplicate or restate it; fail loud when
-  absent.
-- **SOLID** — SRP / OCP / LSP / ISP / DIP respected. Type-switching where polymorphism applies, fat
-  interfaces, and god-objects are defects.
-- **YAGNI** — no speculative params, dead branches, future-hooks, or single-implementation abstractions.
-  Build only what the task needs now; delete the rest.
-- **DI / DIP** — depend on abstractions (protocols/interfaces); inject collaborators; no hidden globals or
-  hard-wired construction inside business logic.
+This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow
+context and commands.
 
-### 10. Land Scoped Work Immediately
+### Quick Reference
 
-After scoped green validation, run `git add`/`commit`/fast-forward `push` for the active bead lane using explicit pathspecs. The operator grants durable authorization for normal scoped landing; never leave verified work only in the working tree. Write commits as the user with no agent/bot attribution — no `Co-Authored-By`, no "Generated with …" trailer, and never override author/committer identity. Escalate only destructive, non-fast-forward, history-rewrite, rollback, tag, or cross-lane ambiguity.
+```bash
+bd ready              # Find available work
+bd show <id>          # View issue details
+bd update <id> --claim  # Claim work
+bd close <id>         # Complete work
+```
 
-### 11. Multi-Agent Coordination
+### Rules
 
-Agents may share one working tree. Coordinate through a committed task board (e.g.
-`<repo>/.agents/coordination/tasks.md`): claim a task with an ownership + lease entry before editing, heartbeat
-the lease, set `done`/`blocked` on finish, and recover stale tasks from git history. Commit small and often so
-a fresh agent rebuilds state from `git log`. **Never overwrite or discard another agent's work** (see Rule 2);
-on a divergent approach, stop and escalate to the user.
+- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO
+  lists
+- Run `bd prime` for detailed command reference and session close protocol
+- Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
 
-### 12. When Unsure — Ask
+**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data`
+on your git remote; `.beads/issues.jsonl` is a passive export. See
+<https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md> for details and
+anti-patterns.
 
-If a task is unclear, ambiguous, or would expand scope → ask one focused question. If an action is hard to
-reverse, affects shared state, or could surprise the user → confirm first. Normal scoped Git landing has durable operator authorization after validation. Confirm only destructive, non-fast-forward, cross-lane, or ambiguous actions.
+## Agent Context Profiles
 
-### 13. Destructive Commands — Archive, Don't Destroy
+The managed Beads block is task-tracking guidance, not permission to override
+repository, user, or orchestrator instructions.
 
-Prefer non-destructive moves: archive a file as `<file>.bak` instead of deleting it. Do not escalate privileges (`sudo`/`su`), change ownership/permissions, force-push, rewrite history, tag releases, or fetch arbitrary network resources without explicit user confirmation. Normal scoped fast-forward push after validation is required by Rule 10. Use the agent's structured file/search/edit tools over raw destructive
-shell commands.
-<!-- END UNIVERSAL AGENT LAW -->
+- **Conservative (default)**: Use `bd` for task tracking. Do not run git commits, git
+  pushes, or Dolt remote sync unless explicitly asked. At handoff, report changed files,
+  validation, and suggested next commands.
+- **Minimal**: Keep tool instruction files as pointers to `bd prime`; use the same
+  conservative git policy unless active instructions say otherwise.
+- **Team-maintainer**: Only when the repository explicitly opts in, agents may close
+  beads, run quality gates, commit, and push as part of session close. A current "do not
+  commit" or "do not push" instruction still wins.
 
-Canonical source: [../AGENTS.md](../AGENTS.md).
+## Session Completion
 
-- Read and follow [../AGENTS.md](../AGENTS.md) first.
-- Load scoped rules only from [../.agents/skills/](../.agents/skills/).
-- Never use fallback instruction paths.
-- Keep this file pointer-only and concise.
+This protocol applies when ending a Beads implementation workflow. It is subordinate to
+explicit user, repository, and orchestrator instructions.
+
+1. **File issues for remaining work** - Create beads for anything that needs follow-up
+2. **Run quality gates** (if code changed) - Tests, linters, builds
+3. **Update issue status** - Close finished work, update in-progress items
+4. **Handle git/sync by active profile**:
+
+   ```bash
+   # Conservative/minimal/default: report status and proposed commands; wait for approval.
+   git status
+   
+   # Team-maintainer opt-in only, unless current instructions forbid it:
+   git pull --rebase
+   bd dolt push
+   git push
+   git status
+   ```
+
+5. **Hand off** - Summarize changes, validation, issue status, and any blocked
+   sync/commit/push step
+
+**Critical rules:**
+
+- Explicit user or orchestrator instructions override this Beads block.
+- Do not commit or push without clear authority from the active profile or the current
+  user request.
+- If a required sync or push is blocked, stop and report the exact command and error.
+
+<!-- END BEADS INTEGRATION -->
+
+<!-- BEGIN BEADS CODEX SETUP: generated by bd setup codex -->
+
+## Beads Issue Tracker
+
+Use Beads (`bd`) for durable task tracking in repositories that include it. Use the
+`beads` skill at `.agents/skills/beads/SKILL.md` (project install) or
+`~/.agents/skills/beads/SKILL.md` (global install) for Beads workflow guidance, then use
+the `bd` CLI for issue operations.
+
+### Quick Reference
+
+```bash
+bd ready                # Find available work
+bd show <id>            # View issue details
+bd update <id> --claim  # Claim work
+bd close <id>           # Complete work
+bd prime                # Refresh Beads context
+```
+
+### Rules
+
+- Use `bd` for all task tracking; do not create markdown TODO lists.
+- Run `bd prime` when Beads context is missing or stale. Codex 0.129.0+ can load Beads
+  context automatically through native hooks; use `/hooks` to inspect or toggle them.
+- Keep persistent project memory in Beads via `bd remember`; do not create ad hoc memory
+  files.
+
+**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data`
+on your git remote; `.beads/issues.jsonl` is a passive export. See
+<https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md> for details and
+anti-patterns.
+
+<!-- END BEADS CODEX SETUP -->

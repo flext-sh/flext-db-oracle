@@ -1,12 +1,17 @@
-"""FlextDbOracle utilities module."""
+"""FlextDbOracle utilities module.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
-from flext_cli import u
+from flext_cli import FlextCliUtilities
+
 from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
 
 
-class FlextDbOracleUtilities(u, FlextDbOracleUtilitiesDbOracle):
+class FlextDbOracleUtilities(FlextCliUtilities):
     """FlextDbOracle utilities extending FlextUtilities with Oracle-specific helpers.
 
     Architecture: Advanced utilities with ZERO code bloat through:

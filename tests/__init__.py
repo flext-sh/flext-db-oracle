@@ -1,42 +1,81 @@
-# AUTO-GENERATED FILE — canonical lazy tests facade. Regenerate with: make gen
-"""Test package facade exposing the project test aliases lazily."""
+# AUTO-GENERATED FILE — Regenerate with: make gen
+"""Tests package.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
+from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import build_lazy_import_map, install_lazy_exports
+from flext_core import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from tests.base import (
-        TestsFlextDbOracleServiceBase as TestsFlextDbOracleServiceBase,
-        s as s,
-    )
-    from tests.constants import (
-        TestsFlextDbOracleConstants as TestsFlextDbOracleConstants,
-        c as c,
-    )
-    from tests.models import (
-        TestsFlextDbOracleModels as TestsFlextDbOracleModels,
-        m as m,
-    )
-    from tests.protocols import (
-        TestsFlextDbOracleProtocols as TestsFlextDbOracleProtocols,
-        p,
-    )
-    from tests.typings import TestsFlextDbOracleTypes as TestsFlextDbOracleTypes, t as t
-    from tests.utilities import (
-        TestsFlextDbOracleUtilities as TestsFlextDbOracleUtilities,
-        u,
-    )
+    from flext_tests import api, td, tf, tk, tm
 
-_LAZY_IMPORTS = build_lazy_import_map({
-    ".constants": ("TestsFlextDbOracleConstants", "c"),
-    ".typings": ("TestsFlextDbOracleTypes", "t"),
-    ".protocols": ("TestsFlextDbOracleProtocols", "p"),
-    ".models": ("TestsFlextDbOracleModels", "m"),
-    ".utilities": ("TestsFlextDbOracleUtilities", "u"),
-    ".base": ("TestsFlextDbOracleServiceBase", "s"),
-})
+    from flext_core import d, h, r, x
+    from flext_db_oracle import e
+    from tests import e2e, integration, unit
+    from tests.base import TestsFlextDbOracleServiceBase, s
+    from tests.constants import TestsFlextDbOracleConstants, c
+    from tests.models import TestsFlextDbOracleModels, m
+    from tests.protocols import TestsFlextDbOracleProtocols, p
+    from tests.settings import TestsFlextDbOracleSettings
+    from tests.typings import TestsFlextDbOracleTypes, t
+    from tests.utilities import TestsFlextDbOracleUtilities, u
 
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)
+
+__all__: tuple[str, ...] = (
+    "TestsFlextDbOracleConstants",
+    "TestsFlextDbOracleModels",
+    "TestsFlextDbOracleProtocols",
+    "TestsFlextDbOracleServiceBase",
+    "TestsFlextDbOracleSettings",
+    "TestsFlextDbOracleTypes",
+    "TestsFlextDbOracleUtilities",
+    "api",
+    "c",
+    "d",
+    "e",
+    "e2e",
+    "h",
+    "integration",
+    "m",
+    "p",
+    "r",
+    "s",
+    "t",
+    "td",
+    "tf",
+    "tk",
+    "tm",
+    "u",
+    "unit",
+    "x",
+)
+
+_LAZY_IMPORTS = MappingProxyType(
+    build_lazy_import_map(
+        MappingProxyType({
+            ".base": ("TestsFlextDbOracleServiceBase", "s"),
+            ".constants": ("TestsFlextDbOracleConstants", "c"),
+            ".e2e": ("e2e",),
+            ".integration": ("integration",),
+            ".models": ("TestsFlextDbOracleModels", "m"),
+            ".protocols": ("TestsFlextDbOracleProtocols", "p"),
+            ".settings": ("TestsFlextDbOracleSettings",),
+            ".typings": ("TestsFlextDbOracleTypes", "t"),
+            ".unit": ("unit",),
+            ".utilities": ("TestsFlextDbOracleUtilities", "u"),
+            "flext_core": ("d", "h", "r", "x"),
+            "flext_db_oracle": ("e",),
+            "flext_tests": ("api", "td", "tf", "tk", "tm"),
+        }),
+        alias_groups=MappingProxyType({}),
+        sort_keys=False,
+    ),
+)
+
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

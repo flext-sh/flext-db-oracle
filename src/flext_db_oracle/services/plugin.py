@@ -13,7 +13,16 @@ from collections.abc import Sequence
 
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
-from flext_db_oracle import FlextDbOracleServiceBase, e, m, p, r, t, u
+from flext_db_oracle import (
+    FlextDbOracleServiceBase,
+    FlextDbOracleSettings,
+    e,
+    m,
+    p,
+    r,
+    t,
+    u,
+)
 
 
 class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
@@ -23,8 +32,22 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
     record_metric, get_metrics, track_operation, get_operations.
     """
 
+    # flext-1wjg1.16: pydantic model classes synthesize their own __init__
+    # from fields unless the class defines one explicitly, so a mixin that
+    # relies on inheriting FlextDbOracleServiceBase.__init__ ends up with a
+    # generated kwargs-only signature (settings_type=/runtime_settings=/...)
+    # instead -- a bad-override against FlextDbOracleServices.__init__. Every
+    # mixin needs its own explicit wrapper to keep the positional contract.
+    def __init__(self, settings: FlextDbOracleSettings) -> None:
+        """Initialize shared Oracle service state for this mixin."""
+        FlextDbOracleServiceBase.__init__(self, settings)
+
     def fetch_metrics(self) -> p.Result[m.DbOracle.HealthStatus]:
-        """Get metrics status with observability integration."""
+        """Get metrics status with observability integration.
+
+        Returns:
+            The resulting ``p.Result[m.DbOracle.HealthStatus]``.
+        """
         status = "connected" if self.connected() else "disconnected"
         metrics_payload: t.StrMapping = {
             metric_name: str(metric_value)
@@ -37,15 +60,23 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
                 "service": "oracle",
                 "database": self.db_config.DbOracle.service_name,
                 "metrics": metrics_payload,
-            })
+            }),
         )
 
     def fetch_operations(self) -> p.Result[Sequence[m.DbOracle.OperationRecord]]:
-        """Get tracked operations."""
+        """Get tracked operations.
+
+        Returns:
+            The resulting ``p.Result[Sequence[m.DbOracle.OperationRecord]]``.
+        """
         return r[Sequence[m.DbOracle.OperationRecord]].ok(list(self._operations))
 
     def fetch_plugin(self, name: str) -> p.Result[t.JsonPayload]:
-        """Get plugin data from local service registry."""
+        """Get plugin data from local service registry.
+
+        Returns:
+            The resulting ``p.Result[t.JsonPayload]``.
+        """
         if not name:
             return r[t.JsonPayload].fail("Plugin name is required")
         if name not in self._plugins:
@@ -53,14 +84,25 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         return r[t.JsonPayload].ok(self._plugins[name])
 
     def list_plugins(self) -> p.Result[m.ConfigMap]:
-        """List plugin names from local service registry."""
+        """List plugin names from local service registry.
+
+        Returns:
+            The resulting ``p.Result[m.ConfigMap]``.
+        """
         plugin_names = list(self._plugins.keys())
         return r[m.ConfigMap].ok(m.ConfigMap(root=dict.fromkeys(plugin_names, True)))
 
     def record_metric(
-        self, name: str, value: float, tags: m.ConfigMap | t.JsonMapping | None = None
+        self,
+        name: str,
+        value: float,
+        tags: m.ConfigMap | t.JsonMapping | None = None,
     ) -> p.Result[bool]:
-        """Record metric in the local service metrics registry."""
+        """Record metric in the local service metrics registry.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+        """
         if not name:
             return r[bool].fail("Metric name is required")
         metric_payload: t.JsonValue = value
@@ -71,14 +113,18 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
             }
             metric_payload = {"value": value, "tags": normalized_tags}
         self._metrics[name] = metric_payload
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def register_plugin(self, name: str, plugin: t.JsonPayload) -> p.Result[bool]:
-        """Register plugin in local service registry."""
+        """Register plugin in local service registry.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+        """
         if not name:
             return r[bool].fail("Plugin name is required")
         self._plugins[name] = plugin
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def track_operation(
         self,
@@ -88,7 +134,11 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         success: bool = True,
         metadata: m.ConfigMap | t.JsonMapping | None = None,
     ) -> p.Result[bool]:
-        """Track database operation for monitoring."""
+        """Track database operation for monitoring.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+        """
 
         def _track() -> bool:
             metadata_value = (
@@ -118,13 +168,17 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         ).map_error(lambda e: f"Failed to track operation: {e}")
 
     def unregister_plugin(self, name: str) -> p.Result[bool]:
-        """Unregister plugin from local service registry."""
+        """Unregister plugin from local service registry.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+        """
         if not name:
             return r[bool].fail("Plugin name is required")
         if name not in self._plugins:
             return e.fail_not_found("Plugin", name, result_type=r[bool])
         self._plugins.pop(name)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
 __all__: list[str] = ["FlextDbOracleServicePlugin"]

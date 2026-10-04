@@ -16,7 +16,7 @@ from urllib.parse import quote_plus
 from sqlalchemy import Connection as SAConnection, text
 
 from flext_core import r
-from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, u
+from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleSettings, c, m, p, u
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -31,8 +31,18 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
     get_connection, get_connection_status, transaction, connected.
     """
 
+    # flext-1wjg1.16: see services/plugin.py -- explicit wrapper keeps this
+    # mixin's __init__ positional instead of pydantic's synthesized kwargs-only one.
+    def __init__(self, settings: FlextDbOracleSettings) -> None:
+        """Initialize shared Oracle service state for this mixin."""
+        FlextDbOracleServiceBase.__init__(self, settings)
+
     def connect(self) -> p.Result[Self]:
-        """Establish Oracle database connection."""
+        """Establish Oracle database connection.
+
+        Returns:
+            The resulting ``p.Result[Self]``.
+        """
         url_result = self._build_connection_url()
         if url_result.failure:
             return r[Self](
@@ -40,26 +50,24 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                 success=False,
             )
         self._engine = self._sqlalchemy_create_engine(
-            url_result.value, connect_timeout=self.db_config.DbOracle.timeout
+            url_result.value,
+            connect_timeout=self.db_config.DbOracle.timeout,
         )
         try:
             with self._engine_connect(self._engine) as conn:
                 _ = self._connection_execute(conn, text("SELECT 1 FROM dual"))
             self.logger.info(
-                f"Connected to Oracle database: {self.db_config.DbOracle.host}"
+                f"Connected to Oracle database: {self.db_config.DbOracle.host}",
             )
             ok_result: p.Result[Self] = r.ok(self)
-            return ok_result
         except c.DbOracle.EXC_DB_BROAD as e:
             local_host = self.db_config.DbOracle.host in {
                 "localhost",
                 c.DbOracle.LOOPBACK_IP,
             }
             default_port = c.DbOracle.DEFAULT_PORT
-            effective_port = self.db_config.DbOracle.port
             if local_host and self.db_config.DbOracle.port != default_port:
-                effective_port = default_port
-                retry_url_result = self._build_connection_url(port=effective_port)
+                retry_url_result = self._build_connection_url(port=default_port)
                 if retry_url_result.success:
                     self._engine = self._sqlalchemy_create_engine(
                         retry_url_result.value,
@@ -68,36 +76,58 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                     try:
                         with self._engine_connect(self._engine) as conn:
                             _ = self._connection_execute(
-                                conn, text("SELECT 1 FROM dual")
+                                conn,
+                                text("SELECT 1 FROM dual"),
                             )
                         self.logger.info(
-                            f"Connected to Oracle database: {self.db_config.DbOracle.host}"
+                            f"Connected to Oracle database: {self.db_config.DbOracle.host}",
                         )
                         nested_ok: p.Result[Self] = r.ok(self)
-                        return nested_ok
                     except c.DbOracle.EXC_DB_BROAD:
                         self._engine = None
+                    else:
+                        return nested_ok
             self._engine = None
             self.logger.exception("Oracle connection failed")
             return r[Self](error=f"Connection failed: {e}", success=False)
+        else:
+            return ok_result
 
     def disconnect(self) -> p.Result[bool]:
-        """Disconnect from Oracle database."""
+        """Disconnect from Oracle database.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+        """
         engine = self._engine
         if engine is not None:
             self._engine_dispose(engine)
             self._engine = None
             self.logger.info("Disconnected from Oracle database")
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @override
-    def execute(self) -> p.Result[p.BaseModel]:
-        """Execute main domain service operation - return active settings."""
-        return r[p.BaseModel].ok(self.db_config)
+    def execute(self) -> p.Result[p.Base]:
+        """Execute main domain service operation - return settings.
+
+        Returns:
+            The resulting ``p.Result[p.Base]``.
+        """
+        test_result = self.test_connection()
+        if test_result.success:
+            return r[p.Base].ok(self.db_config)
+        return r[p.Base].fail(test_result.error or "Connection test failed")
 
     @contextmanager
     def fetch_connection(self) -> Generator[SAConnection]:
-        """Get database connection context manager."""
+        """Get database connection context manager.
+
+        Yields:
+            Each ``SAConnection``.
+
+        Raises:
+            RuntimeError: If No database connection established.
+        """
         engine = self._engine
         if engine is None:
             msg = "No database connection established"
@@ -106,7 +136,11 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             yield connection
 
     def fetch_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
-        """Get connection status - simplified."""
+        """Get connection status - simplified.
+
+        Returns:
+            The resulting ``p.Result[m.DbOracle.ConnectionStatus]``.
+        """
         now = u.now()
         return r[m.DbOracle.ConnectionStatus].ok(
             m.DbOracle.ConnectionStatus(
@@ -121,11 +155,15 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                 username=self.db_config.DbOracle.username,
                 db_version="",
                 error_message="" if self.connected() else "Connection unavailable",
-            )
+            ),
         )
 
     def health_check(self) -> p.Result[m.DbOracle.HealthStatus]:
-        """Perform health check."""
+        """Perform health check.
+
+        Returns:
+            The resulting ``p.Result[m.DbOracle.HealthStatus]``.
+        """
         return r[m.DbOracle.HealthStatus].ok(
             m.DbOracle.HealthStatus(
                 status=c.HealthStatus.HEALTHY.value
@@ -139,23 +177,34 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                     "host": self.db_config.DbOracle.host,
                     "port": self.db_config.DbOracle.port,
                 },
-            )
+            ),
         )
 
     def test_connection(self) -> p.Result[bool]:
-        """Test Oracle database connection."""
+        """Test Oracle database connection.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+        """
         engine_result = self._get_engine()
         if engine_result.failure:
             return r[bool].fail("Not connected to database")
         try:
             with self._engine_connect(engine_result.value) as conn:
                 _ = self._connection_execute(conn, text("SELECT 1 FROM dual"))
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except c.DbOracle.EXC_DB_BROAD as e:
             return r[bool].fail_op("Connection test", e)
 
     def transaction(self) -> Generator[SAConnection]:
-        """Get transaction context for database operations."""
+        """Get transaction context for database operations.
+
+        Yields:
+            Each ``SAConnection``.
+
+        Raises:
+            RuntimeError: If No database connection established.
+        """
         engine = self._engine
         if engine is None:
             msg = "No database connection established"
@@ -164,9 +213,15 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             yield txn
 
     def _assemble_connection_url(
-        self, password: m.DbOracle.Password | str, port: int | None = None
+        self,
+        password: m.DbOracle.Password | str,
+        port: int | None = None,
     ) -> p.Result[str]:
-        """Assemble Oracle connection URL from validated password."""
+        """Assemble Oracle connection URL from validated password.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+        """
         encoded_password = quote_plus(str(password).encode())
         service_name = self.db_config.DbOracle.service_name
         effective_port = port if port is not None else self.db_config.DbOracle.port
@@ -175,14 +230,18 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         return r[str].ok(url)
 
     def _build_connection_url(self, port: int | None = None) -> p.Result[str]:
-        """Build Oracle connection URL from configuration."""
+        """Build Oracle connection URL from configuration.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+        """
         try:
             password = self.db_config.DbOracle.password
             if not password:
                 return r[str].fail("Password is required for database connection")
             return self._assemble_connection_url(password, port=port)
         except c.DbOracle.EXC_DB_BROAD as e:
-            return r[str].fail(f"Failed to build connection URL: {e}")
+            return r[str].fail(f"Failed to build connection URL: {e}", exception=e)
 
 
 __all__: list[str] = ["FlextDbOracleServiceConnection"]

@@ -25,13 +25,15 @@
 
 <!-- TOC END -->
 
-This directory contains the complete source code for FLEXT DB Oracle, an enterprise Oracle database integration library built on Clean Architecture principles.
+This directory contains the complete source code for FLEXT DB Oracle, an enterprise
+Oracle database integration library built on Clean Architecture principles.
 
 ## 📁 Module Organization
 
 ### **Core Application Layer**
 
-- **`flext_db_oracle/api.py`** - Main application service providing high-level Oracle operations
+- **`flext_db_oracle/api.py`** - Main application service providing high-level Oracle
+  operations
 - **`flext_db_oracle/cli.py`** - Command-line interface for Oracle database operations
 
 ### **Configuration and Infrastructure Layer**
@@ -48,7 +50,7 @@ This directory contains the complete source code for FLEXT DB Oracle, an enterpr
 
 ### **Foundation Layer**
 
-- **`flext_db_oracle/__init__.py`** - Public API exports and library initialization
+- runtime_bootstrap_options
 - **`flext_db_oracle/constants.py`** - Oracle-specific constants and defaults
 - **`flext_db_oracle/exceptions.py`** - Oracle-specific exception hierarchy
 - **`flext_db_oracle/py.typed`** - Type checking marker for MyPy compliance
@@ -174,6 +176,8 @@ All code must pass these validation steps:
 - `make test` - Test suite with 90%+ coverage requirement
 - `make security` - Security scanning with Bandit and pip-audit
 
-______________________________________________________________________
+---
 
-This source code structure provides the foundation for enterprise Oracle database integration within the FLEXT ecosystem, following industry best practices and architectural patterns.
+This source code structure provides the foundation for enterprise Oracle database
+integration within the FLEXT ecosystem, following industry best practices and
+architectural patterns.

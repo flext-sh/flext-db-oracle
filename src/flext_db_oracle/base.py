@@ -10,19 +10,19 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Engine as SAEngine
+from sqlalchemy import Engine as SAEngine, text
 
-from flext_core import s
-from flext_db_oracle import FlextDbOracleSettings, m, p, r, t, u
-from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
+from flext_core import FlextService
+from flext_db_oracle import FlextDbOracleSettings, c, m, p, r, t, u
 
 if TYPE_CHECKING:
-    from collections.abc import MutableMapping, MutableSequence, Sequence
+    from collections.abc import MutableMapping, MutableSequence
 
 
-class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
+class FlextDbOracleServiceBase(FlextService, u.DbOracle):
     """Base mixin providing static helpers and SQLAlchemy wrappers.
 
     All service mixins inherit from this base, which provides:
@@ -36,21 +36,25 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
     _db_config: FlextDbOracleSettings | None = u.PrivateAttr()
     _engine: SAEngine | None = u.PrivateAttr(default_factory=lambda: None)
     _operations: MutableSequence[m.DbOracle.OperationRecord] = u.PrivateAttr(
-        default_factory=list[m.DbOracle.OperationRecord]
+        default_factory=list[m.DbOracle.OperationRecord],
     )
     _plugins: MutableMapping[str, t.JsonPayload] = u.PrivateAttr(
-        default_factory=dict[str, t.JsonPayload]
+        default_factory=dict[str, t.JsonPayload],
     )
     _metrics: t.MutableJsonMapping = u.PrivateAttr(default_factory=dict)
 
     def __init__(self, settings: FlextDbOracleSettings) -> None:
         """Initialize shared Oracle service state."""
-        super().__init__(runtime_settings=settings)
+        super().__init__()
         self._db_config = settings
 
     @property
     def db_config(self) -> FlextDbOracleSettings:
-        """The initialized Oracle database configuration."""
+        """The initialized Oracle database configuration.
+
+        Raises:
+            RuntimeError: If Database configuration not initialized.
+        """
         settings = self._db_config
         if settings is None:
             msg = "Database configuration not initialized"
@@ -58,11 +62,19 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
         return settings
 
     def connected(self) -> bool:
-        """Check if the service has an active SQLAlchemy engine."""
+        """Check if the service has an active SQLAlchemy engine.
+
+        Returns:
+            The resulting ``bool``.
+        """
         return self._engine is not None
 
     def _parse_count_from_rows(self, rows: t.SequenceOf[m.Dict]) -> int:
-        """Parse COUNT(*) value from normalized query rows."""
+        """Parse COUNT(*) value from normalized query rows.
+
+        Returns:
+            The resulting ``int``.
+        """
         if not rows:
             return 0
         count_raw = rows[0].root.get("count")
@@ -70,24 +82,51 @@ class FlextDbOracleServiceBase(s, FlextDbOracleUtilitiesDbOracle):
             return 0
         return self._parse_count_value(str(count_raw))
 
-    def _get_current_timestamp(self) -> str:
-        """Get current timestamp for operation tracking."""
+    @staticmethod
+    def _get_current_timestamp() -> str:
+        """Get current timestamp for operation tracking.
+
+        Returns:
+            The resulting ``str``.
+        """
         return str(int(time.time()))
 
     def _get_engine(self) -> p.Result[SAEngine]:
-        """Get database engine."""
+        """Get database engine.
+
+        Returns:
+            The resulting ``p.Result[SAEngine]``.
+        """
         engine = self._engine
         if engine is None or not self.connected():
             return r[SAEngine].fail("Not connected to database")
         return r[SAEngine].ok(engine)
 
-    def execute_query(
-        self, sql: str, params: m.ConfigMap | None = None
+    def execute_rows(
+        self,
+        sql: str,
+        params: m.ConfigMap | None = None,
     ) -> p.Result[Sequence[m.Dict]]:
-        """Execute a SQL query in composed service facades."""
-        del sql, params
-        msg = "execute_query requires the composed DB Oracle service facade"
-        raise NotImplementedError(msg)
+        """Execute a SQL query in composed service facades.
+
+        Returns:
+            The resulting ``p.Result[Sequence[m.Dict]]``.
+        """
+        if not self.connected():
+            return r[Sequence[m.Dict]].fail("Not connected to database")
+        engine_result = self._get_engine()
+        if engine_result.failure:
+            return r[Sequence[m.Dict]].from_failure(engine_result)
+        try:
+            with self._engine_connect(engine_result.value) as connection:
+                result = self._connection_execute(connection, text(sql), params)
+                rows: Sequence[m.Dict] = [
+                    m.Dict(root={str(key): str(value) for key, value in row.items()})
+                    for row in result.mappings().all()
+                ]
+                return r[Sequence[m.Dict]].ok(rows)
+        except c.DbOracle.EXC_DB_BROAD as error:
+            return r[Sequence[m.Dict]].fail_op("Query execution", error)
 
 
 s = FlextDbOracleServiceBase

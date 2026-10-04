@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Callable
 
 import pytest
 from flext_tests import tm
@@ -20,17 +20,16 @@ from flext_tests import tm
 from flext_core import e
 from flext_db_oracle.exceptions import FlextDbOracleExceptions, e as oracle_e
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
 
 class TestsFlextDbOracleOracleExceptions:
     """Behavioral contract for the Oracle exception family."""
 
-    def test_family_alias_exposes_facade(self) -> None:
+    @staticmethod
+    def test_family_alias_exposes_facade() -> None:
         """The `e` alias exported by the module is the facade class itself."""
         assert oracle_e is FlextDbOracleExceptions
 
+    @staticmethod
     @pytest.mark.parametrize(
         "factory",
         [
@@ -42,7 +41,7 @@ class TestsFlextDbOracleOracleExceptions:
         ids=["error", "connection", "processing", "timeout"],
     )
     def test_message_is_preserved_and_rendered(
-        self, factory: Callable[[], FlextDbOracleExceptions.Error]
+        factory: Callable[[], FlextDbOracleExceptions.Error],
     ) -> None:
         """Every family member preserves its message on the public surface."""
         exc = factory()
@@ -50,21 +49,26 @@ class TestsFlextDbOracleOracleExceptions:
         tm.that(exc.message, eq="boom")
         tm.that(str(exc), has="boom")
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("factory", "expected_base"),
         [
             (lambda: FlextDbOracleExceptions.Error("m"), e.BaseError),
             (
                 lambda: FlextDbOracleExceptions.OracleConnectionError("m"),
-                e.ConnectionError,
+                e.FlextConnectionError,
             ),
             (lambda: FlextDbOracleExceptions.ProcessingError("m"), e.OperationError),
-            (lambda: FlextDbOracleExceptions.OracleTimeoutError("m"), e.TimeoutError),
+            (
+                lambda: FlextDbOracleExceptions.OracleTimeoutError("m"),
+                e.FlextTimeoutError,
+            ),
         ],
         ids=["error", "connection", "processing", "timeout"],
     )
     def test_members_inherit_flext_core_categories(
-        self, factory: Callable[[], BaseException], expected_base: type[BaseException]
+        factory: Callable[[], BaseException],
+        expected_base: type[BaseException],
     ) -> None:
         """Each Oracle error is-a its flext-core category and an e.BaseError."""
         exc = factory()
@@ -73,16 +77,20 @@ class TestsFlextDbOracleOracleExceptions:
         tm.that(exc, is_=e.BaseError)
         tm.that(exc, is_=Exception)
 
-    def test_error_carries_oracle_metadata(self) -> None:
+    @staticmethod
+    def test_error_carries_oracle_metadata() -> None:
         """Error exposes Oracle error code and SQL state as public fields."""
         exc = FlextDbOracleExceptions.Error(
-            "table missing", oracle_error_code="ORA-00942", sql_state="42S02"
+            "table missing",
+            oracle_error_code="ORA-00942",
+            sql_state="42S02",
         )
 
         tm.that(exc.oracle_error_code, eq="ORA-00942")
         tm.that(exc.sql_state, eq="42S02")
 
-    def test_connection_error_carries_tns_metadata(self) -> None:
+    @staticmethod
+    def test_connection_error_carries_tns_metadata() -> None:
         """OracleConnectionError exposes TNS and connection-string context."""
         exc = FlextDbOracleExceptions.OracleConnectionError(
             "cannot connect",
@@ -93,24 +101,31 @@ class TestsFlextDbOracleOracleExceptions:
         tm.that(exc.tns_error, eq="TNS-12154")
         tm.that(exc.connection_string, eq="host:1521/XEPDB1")
 
-    def test_processing_error_carries_operation_metadata(self) -> None:
+    @staticmethod
+    def test_processing_error_carries_operation_metadata() -> None:
         """ProcessingError exposes operation type and processing stage."""
         exc = FlextDbOracleExceptions.ProcessingError(
-            "insert failed", operation_type="INSERT", processing_stage="parse"
+            "insert failed",
+            operation_type="INSERT",
+            processing_stage="parse",
         )
 
         tm.that(exc.operation_type, eq="INSERT")
         tm.that(exc.processing_stage, eq="parse")
 
-    def test_timeout_error_carries_query_metadata(self) -> None:
+    @staticmethod
+    def test_timeout_error_carries_query_metadata() -> None:
         """OracleTimeoutError exposes query id and elapsed time."""
         exc = FlextDbOracleExceptions.OracleTimeoutError(
-            "query timed out", query_id="q-42", elapsed_time=1.5
+            "query timed out",
+            query_id="q-42",
+            elapsed_time=1.5,
         )
 
         tm.that(exc.query_id, eq="q-42")
         tm.that(exc.elapsed_time, eq=pytest.approx(1.5))
 
+    @staticmethod
     @pytest.mark.parametrize(
         "factory",
         [
@@ -122,7 +137,7 @@ class TestsFlextDbOracleOracleExceptions:
         ids=["error", "connection", "processing", "timeout"],
     )
     def test_metadata_defaults_to_none_when_omitted(
-        self, factory: Callable[[], BaseException]
+        factory: Callable[[], BaseException],
     ) -> None:
         """Optional metadata is absent (None) unless explicitly supplied."""
         exc = factory()
@@ -142,23 +157,26 @@ class TestsFlextDbOracleOracleExceptions:
         }
         assert all(value is None for value in present.values())
 
-    def test_connection_error_is_raisable_and_catchable_as_category(self) -> None:
+    @staticmethod
+    def test_connection_error_is_raisable_and_catchable_as_category() -> None:
         """A raised OracleConnectionError is caught via its flext-core category."""
         exc = FlextDbOracleExceptions.OracleConnectionError(
-            "unreachable", tns_error="TNS-12541"
+            "unreachable",
+            tns_error="TNS-12541",
         )
 
         def _raise() -> None:
             raise exc
 
-        with pytest.raises(e.ConnectionError) as caught:
+        with pytest.raises(e.FlextConnectionError) as caught:
             _raise()
 
         assert caught.value is exc
         tm.that(exc.tns_error, eq="TNS-12541")
         tm.that(str(caught.value), has="unreachable")
 
-    def test_raise_from_preserves_cause_chain(self) -> None:
+    @staticmethod
+    def test_raise_from_preserves_cause_chain() -> None:
         """Wrapping a driver error preserves the original via __cause__."""
         root = ValueError("ORA-01017: invalid username/password")
 
@@ -167,7 +185,8 @@ class TestsFlextDbOracleOracleExceptions:
                 raise root
             except ValueError as driver_error:
                 wrapped = FlextDbOracleExceptions.Error(
-                    "authentication failed", oracle_error_code="ORA-01017"
+                    "authentication failed",
+                    oracle_error_code="ORA-01017",
                 )
                 raise wrapped from driver_error
 

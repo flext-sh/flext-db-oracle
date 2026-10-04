@@ -1,12 +1,14 @@
 """Simple working Oracle example demonstrating configuration setup.
 
+This example demonstrates basic configuration and setup functionality.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
-This example demonstrates basic configuration and setup functionality.
 """
 
 from __future__ import annotations
+
+import os
 
 from flext_db_oracle import FlextDbOracleSettings, u
 
@@ -14,19 +16,23 @@ logger = u.fetch_logger(__name__)
 
 
 def _resolve_settings() -> FlextDbOracleSettings:
-    """Resolve settings from the env-backed singleton or fallback demo config."""
+    """Resolve settings from the env-backed singleton or fallback demo config.
+
+    Returns:
+        The resulting ``FlextDbOracleSettings``.
+    """
     settings = FlextDbOracleSettings.fetch_global()
     if settings.DbOracle.password:
         logger.info(
-            f"✅ Configuration created: {settings.DbOracle.host}:{settings.DbOracle.port}"
+            f"✅ Configuration created: {settings.DbOracle.host}:{settings.DbOracle.port}",
         )
     else:
         settings = FlextDbOracleSettings.model_validate({
             "DbOracle": {
                 "host": "demo-host",
                 "username": "demo-user",
-                "password": "demo-password",
-            }
+                "password": os.environ.get("FLEXT_DEMO_ORACLE_PASSWORD", "<demo>"),
+            },
         })
         logger.info("✅ Demo configuration created")
     return settings
@@ -48,11 +54,10 @@ def _display_configuration(settings: FlextDbOracleSettings) -> None:
 def demonstrate_real_functionality() -> None:
     """Demonstrate configuration and basic setup functionality."""
     logger.info("=== FLEXT Oracle Example - Configuration Demo ===")
-    try:
-        settings = _resolve_settings()
-        _display_configuration(settings)
-    except (ValueError, OSError, RuntimeError):
-        logger.exception("❌ Unexpected error")
+    # Why: no-hidden-errors — let a real failure escape with its traceback
+    # instead of a broad except that only logs and hides the cause.
+    settings = _resolve_settings()
+    _display_configuration(settings)
 
 
 def main() -> None:

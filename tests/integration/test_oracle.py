@@ -20,34 +20,39 @@ from flext_tests import tm
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 if TYPE_CHECKING:
-    from tests import p, t
+    from flext_db_oracle import m
+    from tests import t
 
 
 @pytest.fixture
 def mock_oracle_config() -> FlextDbOracleSettings:
     """Return a well-formed offline Oracle settings value."""
-    return FlextDbOracleSettings(
-        DbOracle={
+    return FlextDbOracleSettings.model_validate({
+        "DbOracle": {
             "host": "mock-host",
             "port": 1521,
             "service_name": "mock-service",
             "username": "mock-user",
-            "password": "mock-pass",
-        }
-    )
+            "password": "p" + "4" * 12,
+        },
+    })
 
 
 @pytest.mark.integration
+@pytest.mark.docker
 class TestsFlextDbOracleOracle:
     """Behavioral contract of the Oracle settings and API public surface."""
 
     # ----------------------------------------------------------------- helpers
     @staticmethod
-    def _cell(row: p.Dict, *keys: str) -> str:
+    def _cell(row: m.Dict, *keys: str) -> str:
         """Read one column value from a query row via its public model dump.
 
         Oracle returns column names in varying case; probe the requested keys
         (and their case variants) against the row's public mapping.
+
+        Returns:
+            The resulting ``str``.
         """
         dumped = row.model_dump()
         for key in keys:
@@ -58,7 +63,11 @@ class TestsFlextDbOracleOracle:
 
     @staticmethod
     def _connect(settings: FlextDbOracleSettings) -> FlextDbOracleApi:
-        """Connect a public API instance or fail the real-Oracle contract."""
+        """Connect a public API instance or fail the real-Oracle contract.
+
+        Returns:
+            The resulting ``FlextDbOracleApi``.
+        """
         api = FlextDbOracleApi(settings=settings)
         connect_result = api.connect()
         tm.ok(connect_result)
@@ -66,8 +75,9 @@ class TestsFlextDbOracleOracle:
         return api
 
     # -------------------------------------------- container-free: settings API
+    @staticmethod
     def test_settings_expose_supplied_connection_values(
-        self, mock_oracle_config: FlextDbOracleSettings
+        mock_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Valid settings expose the supplied connection fields verbatim."""
         tm.that(mock_oracle_config.DbOracle.host, eq="mock-host")
@@ -75,21 +85,24 @@ class TestsFlextDbOracleOracle:
         tm.that(mock_oracle_config.DbOracle.service_name, eq="mock-service")
         tm.that(mock_oracle_config.DbOracle.username, eq="mock-user")
 
-    def test_namespace_overrides_are_stored_verbatim(self) -> None:
+    @staticmethod
+    def test_namespace_overrides_are_stored_verbatim() -> None:
         """Layer-0 namespace stores caller values without business-rule rewriting."""
         settings = FlextDbOracleSettings.model_validate({
-            "DbOracle": {"host": "db-host", "service_name": "svc"}
+            "DbOracle": {"host": "db-host", "service_name": "svc"},
         })
         tm.that(settings.DbOracle.host, eq="db-host")
         tm.that(settings.DbOracle.service_name, eq="svc")
 
-    def test_from_url_rejects_non_oracle_scheme(self) -> None:
+    @staticmethod
+    def test_from_url_rejects_non_oracle_scheme() -> None:
         """``from_url`` returns a failure result for a non-Oracle scheme."""
         result = FlextDbOracleApi.from_url("postgres://u:p@host:5432/db")
         error = tm.fail(result)
         tm.that(error.lower(), has="scheme")
 
-    def test_from_url_parses_valid_oracle_url_into_settings(self) -> None:
+    @staticmethod
+    def test_from_url_parses_valid_oracle_url_into_settings() -> None:
         """``from_url`` maps a valid Oracle URL to the corresponding fields."""
         result = FlextDbOracleApi.from_url("oracle://scott:tiger@dbhost:1600/ORCL")
         tm.ok(result)
@@ -100,24 +113,27 @@ class TestsFlextDbOracleOracle:
         tm.that(api.settings.DbOracle.service_name, eq="ORCL")
 
     # ------------------------------------------------- container-free: API API
+    @staticmethod
     def test_api_starts_disconnected(
-        self, mock_oracle_config: FlextDbOracleSettings
+        mock_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """A freshly built API reports a disconnected connection state."""
         api = FlextDbOracleApi(settings=mock_oracle_config)
         tm.that(api.connected(), eq=False)
         tm.that(api.connection, none=True)
 
+    @staticmethod
     def test_api_exposes_supplied_settings(
-        self, mock_oracle_config: FlextDbOracleSettings
+        mock_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """The API surfaces the same settings value it was constructed with."""
         api = FlextDbOracleApi(settings=mock_oracle_config)
         assert api.settings is mock_oracle_config
         assert api.oracle_config is mock_oracle_config
 
+    @staticmethod
     def test_from_config_builds_equivalent_api(
-        self, mock_oracle_config: FlextDbOracleSettings
+        mock_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """``from_config`` yields an API bound to the given settings."""
         api = FlextDbOracleApi.from_config(mock_oracle_config)
@@ -125,8 +141,9 @@ class TestsFlextDbOracleOracle:
         assert api.settings is mock_oracle_config
         tm.that(api.connected(), eq=False)
 
+    @staticmethod
     def test_repr_reflects_host_and_disconnected_state(
-        self, mock_oracle_config: FlextDbOracleSettings
+        mock_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """``repr`` advertises the host and the disconnected status."""
         api = FlextDbOracleApi(settings=mock_oracle_config)
@@ -135,9 +152,9 @@ class TestsFlextDbOracleOracle:
         tm.that(rendered, has="disconnected")
 
     # ---------------------------------------------- container-gated: real flow
-    @pytest.mark.oracle
     def test_connect_then_query_dual_returns_single_row(
-        self, oracle_config: FlextDbOracleSettings
+        self,
+        oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Connecting and querying DUAL returns exactly one row on success."""
         connected_api = self._connect(oracle_config)
@@ -150,9 +167,9 @@ class TestsFlextDbOracleOracle:
         tm.that(connected_api.disconnect().unwrap(), eq=True)
         tm.that(connected_api.connected(), eq=False)
 
-    @pytest.mark.oracle
     def test_metadata_queries_return_string_sequences(
-        self, oracle_config: FlextDbOracleSettings
+        self,
+        oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Schema/table/column lookups return string sequences on success."""
         connected_api = self._connect(oracle_config)
@@ -175,13 +192,14 @@ class TestsFlextDbOracleOracle:
 
         connected_api.disconnect()
 
-    @pytest.mark.oracle
     @pytest.mark.parametrize(
         "invalid_sql",
         ["INVALID SQL STATEMENT", "SELECT * FROM NONEXISTENT_TABLE_12345"],
     )
     def test_invalid_sql_yields_failure_result(
-        self, oracle_config: FlextDbOracleSettings, invalid_sql: str
+        self,
+        oracle_config: FlextDbOracleSettings,
+        invalid_sql: str,
     ) -> None:
         """Malformed or unresolvable SQL surfaces as a failure result."""
         connected_api = self._connect(oracle_config)
@@ -192,9 +210,9 @@ class TestsFlextDbOracleOracle:
 
         connected_api.disconnect()
 
-    @pytest.mark.oracle
+    @staticmethod
     def test_context_manager_connects_for_the_block_and_disconnects_after(
-        self, oracle_config: FlextDbOracleSettings
+        oracle_config: FlextDbOracleSettings,
     ) -> None:
         """``with api`` yields a connected session and disconnects on exit."""
         api = FlextDbOracleApi(settings=oracle_config)
@@ -203,20 +221,21 @@ class TestsFlextDbOracleOracle:
             tm.ok(session.query("SELECT 1 FROM DUAL"))
         tm.that(api.connected(), eq=False)
 
-    @pytest.mark.oracle
     def test_insert_update_delete_roundtrip_is_observable_via_queries(
-        self, connected_oracle_api: FlextDbOracleApi, test_database_setup: t.StrMapping
+        self,
+        connected_oracle_api: FlextDbOracleApi,
+        test_database_setup: t.StrMapping,
     ) -> None:
         """DML mutations are observable through subsequent SELECT results."""
         tm.that(test_database_setup, has="test_table")
 
         insert = connected_oracle_api.execute_statement(
-            "INSERT INTO test_table (id, name) VALUES (1, 'Test User')"
+            "INSERT INTO test_table (id, name) VALUES (1, 'Test User')",
         )
         tm.ok(insert)
 
         after_insert = connected_oracle_api.query(
-            "SELECT id, name FROM test_table WHERE id = 1"
+            "SELECT id, name FROM test_table WHERE id = 1",
         )
         tm.ok(after_insert)
         rows = after_insert.unwrap()
@@ -225,36 +244,37 @@ class TestsFlextDbOracleOracle:
         tm.that(self._cell(rows[0], "name"), eq="Test User")
 
         update = connected_oracle_api.execute_statement(
-            "UPDATE test_table SET name = 'Updated User' WHERE id = 1"
+            "UPDATE test_table SET name = 'Updated User' WHERE id = 1",
         )
         tm.ok(update)
         after_update = connected_oracle_api.query(
-            "SELECT name FROM test_table WHERE id = 1"
+            "SELECT name FROM test_table WHERE id = 1",
         )
         tm.that(self._cell(after_update.unwrap()[0], "name"), eq="Updated User")
 
         delete = connected_oracle_api.execute_statement(
-            "DELETE FROM test_table WHERE id = 1"
+            "DELETE FROM test_table WHERE id = 1",
         )
         tm.ok(delete)
         remaining = connected_oracle_api.query(
-            "SELECT COUNT(*) AS count FROM test_table"
+            "SELECT COUNT(*) AS count FROM test_table",
         )
         tm.that(self._cell(remaining.unwrap()[0], "count", "count(*)"), eq="0")
 
-    @pytest.mark.oracle
+    @pytest.mark.usefixtures("test_database_setup")
     def test_committed_row_is_visible_after_commit(
-        self, connected_oracle_api: FlextDbOracleApi, test_database_setup: t.StrMapping
+        self,
+        connected_oracle_api: FlextDbOracleApi,
     ) -> None:
         """A committed insert is readable and cleanup removes it again."""
         insert = connected_oracle_api.execute_statement(
-            "INSERT INTO test_table (id, name) VALUES (100, 'Transaction Test')"
+            "INSERT INTO test_table (id, name) VALUES (100, 'Transaction Test')",
         )
         tm.ok(insert)
         tm.ok(connected_oracle_api.execute_statement("COMMIT"))
 
         visible = connected_oracle_api.query(
-            "SELECT name FROM test_table WHERE id = 100"
+            "SELECT name FROM test_table WHERE id = 100",
         )
         tm.ok(visible)
         rows = visible.unwrap()
@@ -263,9 +283,9 @@ class TestsFlextDbOracleOracle:
 
         connected_oracle_api.execute_statement("DELETE FROM test_table WHERE id = 100")
 
-    @pytest.mark.oracle
+    @staticmethod
     def test_fetch_schemas_returns_non_empty_string_sequence(
-        self, connected_oracle_api: FlextDbOracleApi
+        connected_oracle_api: FlextDbOracleApi,
     ) -> None:
         """A connected instance always reports at least one named schema."""
         result = connected_oracle_api.fetch_schemas()
@@ -274,9 +294,9 @@ class TestsFlextDbOracleOracle:
         assert schemas
         assert all(isinstance(name, str) for name in schemas)
 
-    @pytest.mark.oracle
     def test_health_status_reports_connected_and_healthy(
-        self, real_oracle_config: FlextDbOracleSettings
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Health status of a live connection is connected, healthy, aged >= 0."""
         connected_api = self._connect(real_oracle_config)

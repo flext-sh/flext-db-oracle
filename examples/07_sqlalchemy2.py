@@ -1,12 +1,14 @@
 """Oracle SQLAlchemy 2.0 integration example.
 
+This example demonstrates Oracle configuration setup for SQLAlchemy 2.0.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
-This example demonstrates Oracle configuration setup for SQLAlchemy 2.0.
 """
 
 from __future__ import annotations
+
+import os
 
 from flext_db_oracle import FlextDbOracleSettings, u
 
@@ -20,27 +22,27 @@ def create_oracle_config() -> FlextDbOracleSettings:
         FlextDbOracleSettings: Configured Oracle database settings.
 
     """
-    try:
-        settings_value = FlextDbOracleSettings.fetch_global()
-        if settings_value.DbOracle.password:
-            return settings_value
-    except (ValueError, OSError, RuntimeError):
-        logger.debug("Could not load settings from environment, using demo settings")
+    # Why: no-hidden-errors — check the resolved value instead of masking a
+    # real failure behind a broad except.
+    settings_value = FlextDbOracleSettings.fetch_global()
+    if settings_value.DbOracle.password:
+        return settings_value
+    logger.debug("No password in environment settings, using demo settings")
     return FlextDbOracleSettings.model_validate({
         "DbOracle": {
             "host": "demo-oracle.example.com",
             "port": 1521,
             "service_name": "DEMO",
             "username": "demo_user",
-            "password": "demo_password",
-        }
+            "password": os.environ.get("FLEXT_DEMO_ORACLE_PASSWORD", "<demo>"),
+        },
     })
 
 
 def _display_sqlalchemy_setup(settings: FlextDbOracleSettings) -> None:
     """Display SQLAlchemy 2.0 configuration details."""
     logger.info(
-        f"✅ Configuration created: {settings.DbOracle.host}:{settings.DbOracle.port}"
+        f"✅ Configuration created: {settings.DbOracle.host}:{settings.DbOracle.port}",
     )
     logger.info("🔗 SQLAlchemy connection URL format configured")
     logger.info(f"📍 Host: {settings.DbOracle.host}:{settings.DbOracle.port}")
@@ -51,11 +53,10 @@ def _display_sqlalchemy_setup(settings: FlextDbOracleSettings) -> None:
 def demonstrate_sqlalchemy_setup() -> None:
     """Demonstrate SQLAlchemy 2.0 configuration setup."""
     logger.info("=== FLEXT Oracle SQLAlchemy 2.0 Setup ===")
-    try:
-        settings = create_oracle_config()
-        _display_sqlalchemy_setup(settings)
-    except (ValueError, OSError, RuntimeError):
-        logger.exception("❌ Configuration setup failed")
+    # Why: no-hidden-errors — let a real failure escape with its traceback
+    # instead of a broad except that only logs and hides the cause.
+    settings = create_oracle_config()
+    _display_sqlalchemy_setup(settings)
 
 
 def main() -> None:

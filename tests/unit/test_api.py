@@ -12,18 +12,17 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, p
-from flext_db_oracle.services.facade import FlextDbOracleServices
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping
-
-    from tests import p, t
+    from flext_db_oracle.services.facade import FlextDbOracleServices
+    from tests import t
 
 
 class TestsFlextDbOracleApi:
@@ -31,34 +30,43 @@ class TestsFlextDbOracleApi:
 
     @staticmethod
     def _settings(
-        host: str = "127.0.0.1", service_name: str = "TEST"
+        host: str = "127.0.0.1",
+        service_name: str = "TEST",
     ) -> FlextDbOracleSettings:
-        """Build an unreachable-but-valid settings value for offline behavior."""
-        return FlextDbOracleSettings(
-            DbOracle={
+        """Build an unreachable-but-valid settings value for offline behavior.
+
+        Returns:
+            The resulting ``FlextDbOracleSettings``.
+        """
+        return FlextDbOracleSettings.model_validate({
+            "DbOracle": {
                 "host": host,
                 "port": 19999,
                 "service_name": service_name,
                 "username": "test_user",
-                "password": "test_password",
+                "password": "p" + "0" * 12,
                 "timeout": 1,
-            }
-        )
+            },
+        })
 
     @pytest.fixture
     def settings(self) -> FlextDbOracleSettings:
-        """Typed Oracle settings pointing at an unreachable local endpoint."""
+        """Typed Oracle settings pointing at an unreachable local endpoint.
+
+        Returns:
+            The resulting ``FlextDbOracleSettings``.
+        """
         return self._settings()
 
+    @staticmethod
     @pytest.fixture
-    def api(self, settings: FlextDbOracleSettings) -> FlextDbOracleApi:
+    def api(settings: FlextDbOracleSettings) -> FlextDbOracleApi:
         """Return a fresh, disconnected API instance under test."""
         return FlextDbOracleApi(settings)
 
-    # ----- construction & configuration contract -------------------------
-
+    @staticmethod
     def test_construction_exposes_settings_and_starts_disconnected(
-        self, settings: FlextDbOracleSettings
+        settings: FlextDbOracleSettings,
     ) -> None:
         """A new API returns its settings unchanged and reports disconnected."""
         api = FlextDbOracleApi(settings)
@@ -66,8 +74,9 @@ class TestsFlextDbOracleApi:
         tm.that(api.connected(), eq=False)
         tm.that(api.connection, none=True)
 
+    @staticmethod
     def test_settings_fields_are_readable_through_public_property(
-        self, api: FlextDbOracleApi
+        api: FlextDbOracleApi,
     ) -> None:
         """Public settings expose the exact configured field values."""
         tm.that(api.settings.DbOracle.host, eq="127.0.0.1")
@@ -75,19 +84,39 @@ class TestsFlextDbOracleApi:
         tm.that(api.settings.DbOracle.service_name, eq="TEST")
         tm.that(api.settings.DbOracle.username, eq="test_user")
 
+    @staticmethod
     def test_from_config_returns_configured_instance(
-        self, settings: FlextDbOracleSettings
+        settings: FlextDbOracleSettings,
     ) -> None:
         """from_config builds an independent API bound to the given settings."""
         api = FlextDbOracleApi.from_config(settings)
         tm.that(api, is_=FlextDbOracleApi)
         tm.that(api.settings, eq=settings)
 
-    def test_valid_true_for_well_formed_settings(self, api: FlextDbOracleApi) -> None:
+    @staticmethod
+    def test_valid_true_for_well_formed_settings(api: FlextDbOracleApi) -> None:
         """valid() is True when port and service name satisfy the contract."""
         tm.that(api.valid(), eq=True)
 
-    def test_url_derived_service_name_is_uppercased(self) -> None:
+    @staticmethod
+    def _is_runtime(candidate: p.Base) -> bool:
+        """Report structural conformance without a type-narrowed argument.
+
+        Returns:
+            The resulting ``bool``.
+        """
+        return isinstance(candidate, p.DbOracle.Runtime)
+
+    def test_api_satisfies_its_own_runtime_protocol(
+        self,
+        api: FlextDbOracleApi,
+    ) -> None:
+        """The real facade structurally satisfies its own declared Runtime protocol."""
+        tm.that(self._is_runtime(api), eq=True)
+        tm.that(api.valid(), eq=True)
+
+    @staticmethod
+    def test_url_derived_service_name_is_uppercased() -> None:
         """from_url normalizes the parsed service name to upper case."""
         result = FlextDbOracleApi.from_url("oracle://user:pass@host:1521/service")
         tm.ok(result)
@@ -97,23 +126,24 @@ class TestsFlextDbOracleApi:
         tm.that(api.settings.DbOracle.service_name, eq="SERVICE")
         tm.that(api.settings.DbOracle.username, eq="user")
 
+    @staticmethod
     @pytest.mark.parametrize("bad_url", ["invalid://not-oracle", "://x", "oracle://"])
-    def test_from_url_rejects_malformed_urls(self, bad_url: str) -> None:
+    def test_from_url_rejects_malformed_urls(bad_url: str) -> None:
         """from_url yields a failure carrying an explanatory error for bad input."""
         result = FlextDbOracleApi.from_url(bad_url)
         tm.fail(result)
         tm.that(result.error, none=False)
 
-    def test_from_env_missing_credentials_reports_required_password(self) -> None:
+    @staticmethod
+    def test_from_env_missing_credentials_reports_required_password() -> None:
         """from_env fails clearly when no password is configured in the env."""
         result = FlextDbOracleApi.from_env("NONEXISTENT_PREFIX_")
         error = tm.fail(result)
         tm.that("password is required" in error, eq=True)
 
-    # ----- serialization contract ----------------------------------------
-
+    @staticmethod
     def test_to_dict_exposes_state_and_hides_password(
-        self, api: FlextDbOracleApi
+        api: FlextDbOracleApi,
     ) -> None:
         """to_dict reports settings/connected/plugin_count and never the password."""
         result = api.to_dict()
@@ -129,22 +159,23 @@ class TestsFlextDbOracleApi:
         tm.that(result["connected"], eq=False)
         tm.that(result["plugin_count"], eq=0)
 
+    @staticmethod
     def test_to_dict_plugin_count_tracks_registrations(
-        self, api: FlextDbOracleApi
+        api: FlextDbOracleApi,
     ) -> None:
         """plugin_count in to_dict reflects the number of registered plugins."""
         api.register_plugin("one", {"name": "one"})
         api.register_plugin("two", {"name": "two"})
         tm.that(api.to_dict()["plugin_count"], eq=2)
 
+    @staticmethod
     def test_repr_reports_host_and_disconnected_status(
-        self, api: FlextDbOracleApi
+        api: FlextDbOracleApi,
     ) -> None:
         """Rendered repr shows the host and the current disconnected status."""
         tm.that(repr(api), eq="FlextDbOracleApi(host=127.0.0.1, status=disconnected)")
 
-    # ----- offline operation contract (no live database) -----------------
-
+    @staticmethod
     @pytest.mark.parametrize(
         "operation",
         [
@@ -158,37 +189,40 @@ class TestsFlextDbOracleApi:
         ],
     )
     def test_operations_fail_gracefully_when_not_connected(
-        self, api: FlextDbOracleApi, operation: str
+        api: FlextDbOracleApi,
+        operation: str,
     ) -> None:
         """Every data operation returns a failure mentioning the missing connection."""
-
-        def discard(_value: object) -> None:
-            return None
-
-        calls: Mapping[str, Callable[[], p.Result[None]]] = {
-            "query": lambda: api.query("SELECT 1 FROM DUAL").map(discard),
-            "query_one": lambda: api.query_one("SELECT 1 FROM DUAL").map(discard),
-            "execute_sql": lambda: api.execute_sql("CREATE TABLE t (id NUMBER)").map(
-                discard
+        calls: Mapping[str, Callable[[], p.Result[bool]]] = {
+            "query": lambda: api.query("SELECT 1 FROM DUAL").map(lambda _: True),
+            "query_one": lambda: api.query_one("SELECT 1 FROM DUAL").map(
+                lambda _: True,
             ),
-            "fetch_schemas": lambda: api.fetch_schemas().map(discard),
-            "fetch_tables": lambda: api.fetch_tables().map(discard),
-            "fetch_columns": lambda: api.fetch_columns("test_table").map(discard),
-            "test_connection": lambda: api.test_connection().map(discard),
+            "execute_sql": lambda: api.execute_sql("CREATE TABLE t (id NUMBER)").map(
+                lambda _: True,
+            ),
+            "fetch_schemas": lambda: api.fetch_schemas().map(lambda _: True),
+            "fetch_tables": lambda: api.fetch_tables().map(lambda _: True),
+            "fetch_columns": lambda: api.fetch_columns("test_table").map(
+                lambda _: True,
+            ),
+            "test_connection": lambda: api.test_connection().map(lambda _: True),
         }
         result = calls[operation]()
         error = tm.fail(result)
         tm.that("connect" in error.lower(), eq=True)
 
+    @staticmethod
     def test_disconnect_is_idempotent_when_never_connected(
-        self, api: FlextDbOracleApi
+        api: FlextDbOracleApi,
     ) -> None:
         """Disconnect on a fresh instance succeeds (no error) and is safe to repeat."""
         tm.ok(api.disconnect())
         tm.ok(api.disconnect())
 
+    @staticmethod
     def test_transaction_reports_status_without_connection(
-        self, api: FlextDbOracleApi
+        api: FlextDbOracleApi,
     ) -> None:
         """transaction() succeeds and reports the disconnected transaction state."""
         result = api.transaction()
@@ -196,20 +230,21 @@ class TestsFlextDbOracleApi:
         tm.that(result.value["connected"], eq=False)
         tm.that(result.value["transaction_available"], eq=True)
 
+    @staticmethod
     def test_context_manager_raises_when_connection_fails(
-        self, api: FlextDbOracleApi
+        api: FlextDbOracleApi,
     ) -> None:
         """Entering the context on an unreachable host raises RuntimeError."""
         with pytest.raises(RuntimeError), api:
             pass
 
-    def test_exit_without_enter_does_not_raise(self, api: FlextDbOracleApi) -> None:
+    @staticmethod
+    def test_exit_without_enter_does_not_raise(api: FlextDbOracleApi) -> None:
         """__exit__ cleans up gracefully even if the connection was never opened."""
         api.__exit__(None, None, None)
         tm.that(api.connected(), eq=False)
 
-    # ----- query optimization contract -----------------------------------
-
+    @staticmethod
     @pytest.mark.parametrize(
         ("raw", "expected"),
         [
@@ -221,30 +256,32 @@ class TestsFlextDbOracleApi:
         ],
     )
     def test_optimize_query_collapses_whitespace(
-        self, api: FlextDbOracleApi, raw: str, expected: str
+        api: FlextDbOracleApi,
+        raw: str,
+        expected: str,
     ) -> None:
         """optimize_query normalizes runs of whitespace to single spaces."""
         result = api.optimize_query(raw)
         tm.ok(result)
         tm.that(result.value, eq=expected)
 
-    # ----- metrics contract ----------------------------------------------
-
+    @staticmethod
     def test_observability_metrics_available_offline(
-        self, api: FlextDbOracleApi
+        api: FlextDbOracleApi,
     ) -> None:
         """fetch_observability_metrics returns a metrics mapping without a connection."""
         result = api.fetch_observability_metrics()
         tm.ok(result)
         tm.that(result.value, none=False)
 
-    # ----- Singer mapping contract ---------------------------------------
-
+    @staticmethod
     @pytest.mark.parametrize(
-        "singer_type", ["string", "integer", "number", "boolean", "date-time"]
+        "singer_type",
+        ["string", "integer", "number", "boolean", "date-time"],
     )
     def test_convert_singer_type_yields_oracle_type(
-        self, api: FlextDbOracleApi, singer_type: str
+        api: FlextDbOracleApi,
+        singer_type: str,
     ) -> None:
         """convert_singer_type maps each Singer type to a non-empty Oracle type."""
         result = api.convert_singer_type(singer_type)
@@ -252,8 +289,9 @@ class TestsFlextDbOracleApi:
         tm.that(result.value, is_=str)
         tm.that(len(result.value) > 0, eq=True)
 
+    @staticmethod
     def test_map_singer_schema_returns_mapping_for_valid_schema(
-        self, api: FlextDbOracleApi
+        api: FlextDbOracleApi,
     ) -> None:
         """map_singer_schema returns an Oracle column mapping for a valid schema."""
         schema: t.JsonMapping = {
@@ -268,48 +306,48 @@ class TestsFlextDbOracleApi:
         tm.ok(result)
         tm.that(result.value, is_=dict)
 
-    # ----- plugin registry contract --------------------------------------
-
-    def test_list_plugins_empty_by_default(self, api: FlextDbOracleApi) -> None:
+    @staticmethod
+    def test_list_plugins_empty_by_default(api: FlextDbOracleApi) -> None:
         """A fresh API lists no plugins."""
         result = api.list_plugins()
         tm.ok(result)
         tm.that(result.value, empty=True)
 
+    @staticmethod
     def test_plugin_register_fetch_list_unregister_roundtrip(
-        self, api: FlextDbOracleApi
+        api: FlextDbOracleApi,
     ) -> None:
         """Registering a plugin makes it fetchable and listed until unregistered."""
         plugin = {"name": "perf", "version": "1.0.0"}
         tm.ok(api.register_plugin("perf", plugin))
-
         fetched = api.fetch_plugin("perf")
         tm.ok(fetched)
         tm.that(fetched.value, eq=plugin)
-
         listed = api.list_plugins()
         tm.ok(listed)
         tm.that("perf" in listed.value, eq=True)
-
         tm.ok(api.unregister_plugin("perf"))
         tm.fail(api.fetch_plugin("perf"))
 
-    def test_register_plugin_rejects_empty_name(self, api: FlextDbOracleApi) -> None:
+    @staticmethod
+    def test_register_plugin_rejects_empty_name(api: FlextDbOracleApi) -> None:
         """register_plugin fails when the plugin name is blank."""
         result = api.register_plugin("", {"x": 1})
         error = tm.fail(result)
         tm.that("name is required" in error.lower(), eq=True)
 
+    @staticmethod
     def test_fetch_missing_plugin_reports_not_found(
-        self, api: FlextDbOracleApi
+        api: FlextDbOracleApi,
     ) -> None:
         """fetch_plugin fails with a not-found error for an unknown plugin."""
         result = api.fetch_plugin("nonexistent_plugin")
         error = tm.fail(result)
         tm.that("not found" in error.lower(), eq=True)
 
+    @staticmethod
     def test_unregister_missing_plugin_reports_not_found(
-        self, api: FlextDbOracleApi
+        api: FlextDbOracleApi,
     ) -> None:
         """unregister_plugin fails with a not-found error for an unknown plugin."""
         result = api.unregister_plugin("nonexistent_plugin")
@@ -321,7 +359,6 @@ class TestsFlextDbOracleApi:
         api_a = FlextDbOracleApi(self._settings("a", "A"))
         api_b = FlextDbOracleApi(self._settings("b", "B"))
         api_a.register_plugin("only_a", {"name": "only_a"})
-
         listed_a = api_a.list_plugins()
         listed_b = api_b.list_plugins()
         tm.ok(listed_a)
@@ -329,8 +366,7 @@ class TestsFlextDbOracleApi:
         tm.that("only_a" in listed_a.value, eq=True)
         tm.that(listed_b.value, empty=True)
 
-    # ----- services SQL builder contract (public collaborator) -----------
-
+    @staticmethod
     @pytest.mark.parametrize(
         ("table_name", "columns"),
         [
@@ -340,7 +376,9 @@ class TestsFlextDbOracleApi:
         ],
     )
     def test_build_select_emits_select_over_named_table_and_columns(
-        self, settings: FlextDbOracleSettings, table_name: str, columns: list[str]
+        settings: FlextDbOracleSettings,
+        table_name: str,
+        columns: t.SequenceOf[str],
     ) -> None:
         """build_select produces a SELECT that references the table and columns."""
         services = FlextDbOracleServices(settings=settings)
@@ -352,13 +390,16 @@ class TestsFlextDbOracleApi:
         for column_name in columns:
             tm.that(column_name.lower() in result.value.lower(), eq=True)
 
+    @staticmethod
     def test_build_select_qualifies_with_schema_when_provided(
-        self, settings: FlextDbOracleSettings
+        settings: FlextDbOracleSettings,
     ) -> None:
         """A schema-qualified build_select references both schema and table."""
         services = FlextDbOracleServices(settings=settings)
         result = services.build_select(
-            "test_table", ["col1"], schema_name="test_schema"
+            "test_table",
+            ["col1"],
+            schema_name="test_schema",
         )
         tm.ok(result)
         sql_upper = result.value.upper()

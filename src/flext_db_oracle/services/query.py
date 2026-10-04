@@ -10,11 +10,19 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING
 
 from sqlalchemy import text
 
-from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
+from flext_db_oracle import (
+    FlextDbOracleServiceBase,
+    FlextDbOracleSettings,
+    c,
+    m,
+    p,
+    r,
+    t,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import CursorResult
@@ -27,15 +35,27 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     fetch_one, generate_query_hash, result normalization.
     """
 
+    # flext-1wjg1.16: see services/plugin.py -- explicit wrapper keeps this
+    # mixin's __init__ positional instead of pydantic's synthesized kwargs-only one.
+    def __init__(self, settings: FlextDbOracleSettings) -> None:
+        """Initialize shared Oracle service state for this mixin."""
+        FlextDbOracleServiceBase.__init__(self, settings)
+
     def execute_many(
-        self, sql: str, params_list: t.SequenceOf[t.JsonMapping | m.ConfigMap]
+        self,
+        sql: str,
+        params_list: t.SequenceOf[t.JsonMapping | m.ConfigMap],
     ) -> p.Result[int]:
-        """Execute SQL statement multiple times."""
+        """Execute SQL statement multiple times.
+
+        Returns:
+            The resulting ``p.Result[int]``.
+        """
         if not self.connected():
             return r[int].fail("Not connected to database")
         engine_result = self._get_engine()
         if engine_result.failure:
-            return r[int].fail(engine_result.error or "Failed to get database engine")
+            return r[int].from_failure(engine_result)
         try:
             with self._engine_begin(engine_result.value) as conn:
                 total_affected = 0
@@ -51,18 +71,24 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         except c.DbOracle.EXC_DB_BROAD as e:
             return r[int].fail_op("Bulk execution", e)
 
-    @override
+    # flext-1wjg1.16: not a real override -- QueryExecutor is a structural
+    # Protocol (protocols.py), never a base class of this mixin, so pyrefly's
+    # nominal @override check has no matching parent attribute to verify.
     def execute_query(
-        self, sql: str, params: m.ConfigMap | None = None
+        self,
+        sql: str,
+        params: m.ConfigMap | None = None,
     ) -> p.Result[Sequence[m.Dict]]:
-        """Execute SQL query and return results."""
+        """Execute SQL query and return results.
+
+        Returns:
+            The resulting ``p.Result[Sequence[m.Dict]]``.
+        """
         if not self.connected():
             return r[Sequence[m.Dict]].fail("Not connected to database")
         engine_result = self._get_engine()
         if engine_result.failure:
-            return r[Sequence[m.Dict]].fail(
-                engine_result.error or "Failed to get database engine"
-            )
+            return r[Sequence[m.Dict]].from_failure(engine_result)
         try:
             with self._engine_connect(engine_result.value) as conn:
                 result = self._connection_execute(conn, text(sql), params)
@@ -72,14 +98,20 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             return r[Sequence[m.Dict]].fail_op("Query execution", e)
 
     def execute_statement(
-        self, sql: str, params: m.ConfigMap | None = None
+        self,
+        sql: str,
+        params: m.ConfigMap | None = None,
     ) -> p.Result[int]:
-        """Execute SQL statement and return affected rows."""
+        """Execute SQL statement and return affected rows.
+
+        Returns:
+            The resulting ``p.Result[int]``.
+        """
         if not self.connected():
             return r[int].fail("Not connected to database")
         engine_result = self._get_engine()
         if engine_result.failure:
-            return r[int].fail(engine_result.error or "Failed to get database engine")
+            return r[int].from_failure(engine_result)
         try:
             with self._engine_begin(engine_result.value) as conn:
                 result = self._connection_execute(conn, text(sql), params)
@@ -89,17 +121,28 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             return r[int].fail_op("Statement execution", e)
 
     def fetch_one(
-        self, sql: str, params: m.ConfigMap | None = None
+        self,
+        sql: str,
+        params: m.ConfigMap | None = None,
     ) -> p.Result[m.Dict | None]:
-        """Execute query and return first result."""
+        """Execute query and return first result.
+
+        Returns:
+            The resulting ``p.Result[m.Dict | None]``.
+        """
         return self.execute_query(sql, params).map(
-            lambda rows: rows[0] if rows else None
+            lambda rows: rows[0] if rows else None,
         )
 
+    @staticmethod
     def _normalize_query_rows(
-        self, query_result: CursorResult[tuple[t.JsonValue, ...]]
+        query_result: CursorResult[t.VariadicTuple[t.JsonValue]],
     ) -> t.SequenceOf[m.Dict]:
-        """Normalize SQLAlchemy query result rows into typed mapping models."""
+        """Normalize SQLAlchemy query result rows into typed mapping models.
+
+        Returns:
+            The resulting ``t.SequenceOf[m.Dict]``.
+        """
         mapping_result = query_result.mappings()
         rows = mapping_result.all()
         result: t.SequenceOf[m.Dict] = [
@@ -108,8 +151,13 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         ]
         return result
 
-    def _normalize_row(self, row: t.JsonMapping) -> m.Dict:
-        """Normalize a single SQLAlchemy mapping row into a typed map."""
+    @staticmethod
+    def _normalize_row(row: t.JsonMapping) -> m.Dict:
+        """Normalize a single SQLAlchemy mapping row into a typed map.
+
+        Returns:
+            The resulting ``m.Dict``.
+        """
         payload: dict[str, t.JsonPayload] = dict(row)
         return m.Dict(root=payload)
 

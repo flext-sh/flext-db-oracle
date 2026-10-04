@@ -24,7 +24,9 @@
 
 <!-- TOC END -->
 
-This directory contains integration tests for FLEXT DB Oracle that require actual Oracle database connectivity. These tests validate component interactions, database operations, and real-world scenarios with live Oracle instances.
+This directory contains integration tests for FLEXT DB Oracle that require actual Oracle
+database connectivity. These tests validate component interactions, database operations,
+and real-world scenarios with live Oracle instances.
 
 ## 🎯 Integration Test Principles
 
@@ -259,9 +261,9 @@ Integration tests use isolated test schemas to avoid conflicts:
 
 ```bash
 # Complete test environment setup
-make test-integration-setup     # Start Oracle XE and configure schemas
-make test-integration          # Run integration tests
-make test-integration-cleanup  # Stop Oracle and cleanup resources
+make test-integration-setup   # Start Oracle XE and configure schemas
+make test-integration         # Run integration tests
+make test-integration-cleanup # Stop Oracle and cleanup resources
 ```
 
 ### **Continuous Integration**
@@ -273,4 +275,6 @@ Integration tests are configured for CI/CD environments:
 - **Performance regression** detection
 - **Resource cleanup** after test completion
 
-These integration tests ensure FLEXT DB Oracle works correctly with real Oracle databases while maintaining performance and reliability standards in production environments.
+These integration tests ensure FLEXT DB Oracle works correctly with real Oracle
+databases while maintaining performance and reliability standards in production
+environments.

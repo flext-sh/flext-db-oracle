@@ -20,7 +20,15 @@ from sqlalchemy.exc import (
 )
 from sqlalchemy.sql import quoted_name
 
-from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, t, u
+from flext_db_oracle import (
+    FlextDbOracleServiceBase,
+    FlextDbOracleSettings,
+    c,
+    m,
+    p,
+    t,
+    u,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -33,50 +41,75 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
     get_schemas, get_tables, get_table_metadata, get_table_row_count.
     """
 
+    # flext-1wjg1.16: see plugin.py -- explicit wrapper keeps this mixin's
+    # __init__ positional instead of pydantic's synthesized kwargs-only one.
+    def __init__(self, settings: FlextDbOracleSettings) -> None:
+        """Initialize shared Oracle service state for this mixin."""
+        FlextDbOracleServiceBase.__init__(self, settings)
+
     def fetch_columns(
-        self, table_name: str, schema_name: str | None = None
+        self,
+        table_name: str,
+        schema_name: str | None = None,
     ) -> p.Result[Sequence[m.DbOracle.Column]]:
-        """Get column information for Oracle table."""
+        """Get column information for Oracle table.
+
+        Returns:
+            The resulting ``p.Result[Sequence[m.DbOracle.Column]]``.
+        """
         if schema_name:
             sql = "\nSELECT column_name, data_type, data_length, data_precision, data_scale, nullable\nFROM all_tab_columns\nWHERE table_name = UPPER(:table_name) AND owner = UPPER(:schema_name)\nORDER BY column_id\n"
             params = m.ConfigMap(
-                root={"table_name": table_name, "schema_name": schema_name}
+                root={"table_name": table_name, "schema_name": schema_name},
             )
         else:
             sql = "\nSELECT column_name, data_type, data_length, data_precision, data_scale, nullable\nFROM user_tab_columns\nWHERE table_name = UPPER(:table_name)\nORDER BY column_id\n"
             params = m.ConfigMap(root={"table_name": table_name})
-        return self.execute_query(sql, params).map(
+        return self.execute_rows(sql, params).map(
             lambda rows: [
                 m.DbOracle.Column(
                     name=str(
-                        row.root.get("COLUMN_NAME") or row.root.get("column_name", "")
+                        row.root.get("COLUMN_NAME") or row.root.get("column_name", ""),
                     ),
                     data_type=str(
-                        row.root.get("DATA_TYPE") or row.root.get("data_type", "")
+                        row.root.get("DATA_TYPE") or row.root.get("data_type", ""),
                     ),
                     nullable=str(
-                        row.root.get("NULLABLE") or row.root.get("nullable", "Y")
+                        row.root.get("NULLABLE") or row.root.get("nullable", "Y"),
                     )
                     == "Y",
                     primary_key=False,
                     default_value=str(
-                        row.root.get("DATA_DEFAULT") or row.root.get("data_default", "")
+                        row.root.get("DATA_DEFAULT")
+                        or row.root.get("data_default", ""),
                     ),
                 )
                 for row in rows
-            ]
+            ],
         )
 
     def fetch_primary_key_columns(
-        self, table_name: str, schema_name: str | None = None
+        self,
+        table_name: str,
+        schema_name: str | None = None,
     ) -> p.Result[t.StrSequence]:
-        """Alias for get_primary_keys."""
+        """Alias for get_primary_keys.
+
+        Returns:
+            The resulting ``p.Result[t.StrSequence]``.
+        """
         return self.fetch_primary_keys(table_name, schema_name)
 
     def fetch_primary_keys(
-        self, table_name: str, schema: str | None = None
+        self,
+        table_name: str,
+        schema: str | None = None,
     ) -> p.Result[t.StrSequence]:
-        """Get primary key column names for specified table."""
+        """Get primary key column names for specified table.
+
+        Returns:
+            The resulting ``p.Result[t.StrSequence]``.
+        """
 
         def _fetch_keys() -> t.StrSequence:
             if schema:
@@ -85,7 +118,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             else:
                 sql = "\n                SELECT column_name\n                FROM user_constraints c, user_cons_columns cc\n                WHERE c.constraint_type = 'P'\n                AND c.constraint_name = cc.constraint_name\n                AND c.table_name = UPPER(:table_name)\n                ORDER BY cc.position\n                "
                 params = m.ConfigMap(root={"table_name": table_name})
-            query_result = self.execute_query(sql, params)
+            query_result = self.execute_rows(sql, params)
             if query_result.failure:
                 raise RuntimeError(query_result.error or "Query execution failed")
             return [str(row.root["column_name"]) for row in query_result.value]
@@ -105,19 +138,29 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         ).map_error(lambda e: f"Failed to get primary keys: {e}")
 
     def fetch_schemas(self) -> p.Result[t.StrSequence]:
-        """Get list of Oracle schemas."""
+        """Get list of Oracle schemas.
+
+        Returns:
+            The resulting ``p.Result[t.StrSequence]``.
+        """
         sql = "SELECT username as schema_name FROM all_users WHERE username NOT IN ('SYS', 'SYSTEM', 'ANONYMOUS', 'XDB', 'CTXSYS', 'MDSYS', 'WMSYS') ORDER BY username"
-        return self.execute_query(sql).map(
+        return self.execute_rows(sql).map(
             lambda rows: [
                 str(row.root.get("SCHEMA_NAME") or row.root.get("schema_name", ""))
                 for row in rows
-            ]
+            ],
         )
 
     def fetch_table_metadata(
-        self, table_name: str, schema: str | None = None
+        self,
+        table_name: str,
+        schema: str | None = None,
     ) -> p.Result[m.DbOracle.TableMetadata]:
-        """Get complete table metadata."""
+        """Get complete table metadata.
+
+        Returns:
+            The resulting ``p.Result[m.DbOracle.TableMetadata]``.
+        """
 
         def _fetch_metadata() -> m.DbOracle.TableMetadata:
             columns_result = self.fetch_columns(table_name, schema)
@@ -155,30 +198,36 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         ).map_error(lambda e: f"Failed to get table metadata: {e}")
 
     def fetch_table_row_count(
-        self, table_name: str, schema_name: str | None = None
+        self,
+        table_name: str,
+        schema_name: str | None = None,
     ) -> p.Result[int]:
-        """Get row count through SQLAlchemy Core Oracle compilation."""
+        """Get row count through SQLAlchemy Core Oracle compilation.
+
+        Returns:
+            The resulting ``p.Result[int]``.
+        """
 
         def _fetch_count() -> int:
             statement = select(func.count().label("count")).select_from(
                 table(
                     table_name.upper()
                     if c.DbOracle.IDENTIFIER_RE.fullmatch(table_name)
-                    else quoted_name(table_name, True),
+                    else quoted_name(table_name, quote=True),
                     schema=(
                         schema_name.upper()
                         if schema_name
                         and c.DbOracle.IDENTIFIER_RE.fullmatch(schema_name)
-                        else quoted_name(schema_name, True)
+                        else quoted_name(schema_name, quote=True)
                         if schema_name
                         else None
                     ),
-                )
+                ),
             )
             sql = c.DbOracle.collapse_whitespace(
-                str(statement.compile(dialect=oracle_dialect()))
+                str(statement.compile(dialect=oracle_dialect())),
             ).strip()
-            query_result = self.execute_query(sql)
+            query_result = self.execute_rows(sql)
             if query_result.failure:
                 raise RuntimeError(query_result.error or "Query execution failed")
             return self._parse_count_from_rows(query_result.value)
@@ -196,18 +245,22 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         ).map_error(lambda e: f"Failed to get row count: {e}")
 
     def fetch_tables(self, schema: str | None = None) -> p.Result[t.StrSequence]:
-        """Get list of tables in Oracle schema."""
+        """Get list of tables in Oracle schema.
+
+        Returns:
+            The resulting ``p.Result[t.StrSequence]``.
+        """
         if schema:
             sql = "SELECT table_name FROM all_tables WHERE owner = UPPER(:schema_name) ORDER BY table_name"
             params: m.ConfigMap | None = m.ConfigMap(root={"schema_name": schema})
         else:
             sql = "SELECT table_name FROM user_tables ORDER BY table_name"
             params = None
-        return self.execute_query(sql, params).map(
+        return self.execute_rows(sql, params).map(
             lambda rows: [
                 str(row.root.get("TABLE_NAME") or row.root.get("table_name", ""))
                 for row in rows
-            ]
+            ],
         )
 
 

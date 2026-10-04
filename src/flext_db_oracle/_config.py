@@ -1,10 +1,8 @@
-"""FlextDbOracleConfig — frozen, validated config singleton for flext-db-oracle.
+"""FlextDbOracleConfig — frozen config singleton for flext-db-oracle (ADR-005 §7).
 
-Every ``config/*.yaml`` file is auto-discovered and deep-merged at first
-``fetch_global`` call (model-less, ``extra=allow`` at the FlextConfig base).
-The flat YAML is then validated into the pure-Pydantic ``_models.config``
-shapes and exposed as typed domain objects under ``config.DbOracle`` — never a
-model-less dict subscript.
+Model-less: business rules live in ``config/*.yaml`` under the ``DbOracle:`` key and
+are exposed through the open ``config.DbOracle`` namespace (``extra="allow"``), with
+no per-domain model. Access is ``config.DbOracle.<domain>[<key>...]``.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -12,26 +10,34 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from functools import cached_property
-from pathlib import Path
-from typing import ClassVar
+from typing import Annotated
 
-from flext_cli import FlextCliConfig
-from flext_db_oracle._models.config import FlextDbOracleConfigModels
+from flext_cli import FlextCliConfig, m
+
+from flext_core import FlextSettings
 
 
-class FlextDbOracleConfig(FlextCliConfig):
-    """DbOracle config auto-loaded from ``config/*.yaml`` and validated via models."""
+class _DbOracleNamespace(m.BaseModel):
+    """Open, frozen namespace exposing every ``config/*.yaml`` domain model-less."""
 
-    CONFIG_DIR: ClassVar[str] = str(Path(__file__).resolve().parent / "config")
+    model_config = m.ConfigDict(extra="allow", frozen=True)
 
-    @cached_property
-    def DbOracle(self) -> FlextDbOracleConfigModels.DbOracle:
-        """Validated ``DbOracle`` business-rule config namespace."""
-        root = FlextDbOracleConfigModels.Root.model_validate(
-            dict(self.model_extra or {})
-        )
-        return root.DbOracle
+
+class FlextDbOracleConfig(FlextSettings, FlextCliConfig):
+    """DbOracle config auto-loaded model-less from ``config/*.yaml``.
+
+    MRO carries ``FlextSettings`` FIRST (ENFORCE-042); unlike never-instantiated
+    namespace holders, this class IS instantiated by ``fetch_global``, so the
+    instance-inert holder contract does not apply and pydantic settings
+    construction machinery stays intact.
+    """
+
+    DbOracle: Annotated[
+        _DbOracleNamespace,
+        m.Field(
+            description="Open namespace exposing ``config/*.yaml`` under ``DbOracle``.",
+        ),
+    ] = _DbOracleNamespace()
 
 
 config: FlextDbOracleConfig = FlextDbOracleConfig.fetch_global()

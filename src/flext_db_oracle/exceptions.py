@@ -10,17 +10,22 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import e
+from typing import TYPE_CHECKING
+
+from flext_core import FlextExceptions
+
+if TYPE_CHECKING:
+    from flext_db_oracle import p, t
 
 
-class FlextDbOracleExceptions(e):
+class FlextDbOracleExceptions(FlextExceptions):
     """Oracle database-specific exceptions extending e.
 
     Provides Oracle-specific exception types with database metadata
     and error categorization for Oracle database operations.
     """
 
-    class Error(e.BaseError):
+    class Error(FlextExceptions.BaseError):
         """Base Oracle error extending e.BaseError."""
 
         def __init__(
@@ -35,8 +40,8 @@ class FlextDbOracleExceptions(e):
             self.oracle_error_code = oracle_error_code
             self.sql_state = sql_state
 
-    class OracleConnectionError(e.ConnectionError):
-        """Oracle connection error extending e.ConnectionError."""
+    class OracleConnectionError(FlextExceptions.FlextConnectionError):
+        """Oracle connection error extending e.FlextConnectionError."""
 
         def __init__(
             self,
@@ -44,13 +49,14 @@ class FlextDbOracleExceptions(e):
             *,
             tns_error: str | None = None,
             connection_string: str | None = None,
+            metadata: p.HasModelDump | t.JsonValue | None = None,
         ) -> None:
             """Initialize connection error with TNS and connection metadata."""
-            super().__init__(message)
+            super().__init__(message, metadata=metadata)
             self.tns_error = tns_error
             self.connection_string = connection_string
 
-    class ProcessingError(e.OperationError):
+    class ProcessingError(FlextExceptions.OperationError):
         """Oracle processing error extending e.OperationError."""
 
         def __init__(
@@ -59,14 +65,15 @@ class FlextDbOracleExceptions(e):
             *,
             operation_type: str | None = None,
             processing_stage: str | None = None,
+            metadata: p.HasModelDump | t.JsonValue | None = None,
         ) -> None:
             """Initialize processing error with operation type and stage metadata."""
-            super().__init__(message)
+            super().__init__(message, metadata=metadata)
             self.operation_type = operation_type
             self.processing_stage = processing_stage
 
-    class OracleTimeoutError(e.TimeoutError):
-        """Oracle timeout error extending e.TimeoutError."""
+    class OracleTimeoutError(FlextExceptions.FlextTimeoutError):
+        """Oracle timeout error extending e.FlextTimeoutError."""
 
         def __init__(
             self,

@@ -14,19 +14,20 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
 
-from tests import p, t
+from flext_db_oracle import p
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from tests import t
 
 # (public name, protocol class, promised method surface) — the contract each
 # Oracle domain protocol advertises to implementers.
-_DB_ORACLE_CONTRACTS: tuple[t.Tests.ProtocolContract, ...] = (
+_DB_ORACLE_CONTRACTS: t.VariadicTuple[t.Tests.ProtocolContract] = (
     ("Connection", p.DbOracle.Connection, ("connect", "disconnect", "connected")),
     (
         "OraclePlugin",
@@ -86,8 +87,12 @@ def _stub(_self: object) -> None:
     """Method-surface stub used to synthesise protocol implementers."""
 
 
-def _implementer(methods: tuple[str, ...]) -> object:
-    """Build an object exposing exactly ``methods`` as callables."""
+def _implementer(methods: t.VariadicTuple[str]) -> object:
+    """Build an object exposing exactly ``methods`` as callables.
+
+    Returns:
+        The resulting ``object``.
+    """
     namespace: Mapping[str, object] = dict.fromkeys(methods, _stub)
     cls = type("SyntheticImplementer", (), dict(namespace))
     return cls()
@@ -96,20 +101,24 @@ def _implementer(methods: tuple[str, ...]) -> object:
 class TestsFlextDbOracleProtocols:
     """Contract behavior of the FlextDbOracleProtocols.DbOracle namespace."""
 
-    def test_db_oracle_namespace_exposes_every_documented_protocol(self) -> None:
+    @staticmethod
+    def test_db_oracle_namespace_exposes_every_documented_protocol() -> None:
         """The public DbOracle namespace exposes exactly the promised protocols."""
         exposed = {name for name in dir(p.DbOracle) if not name.startswith("_")}
         promised = {name for name, _proto, _methods in _DB_ORACLE_CONTRACTS}
 
         assert promised <= exposed
 
+    @staticmethod
     @pytest.mark.parametrize(
-        ("name", "protocol", "methods"),
+        ("_name", "protocol", "methods"),
         _DB_ORACLE_CONTRACTS,
         ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
     )
     def test_protocol_is_runtime_checkable(
-        self, name: str, protocol: type, methods: tuple[str, ...]
+        _name: str,
+        protocol: type,
+        methods: t.VariadicTuple[str],
     ) -> None:
         """Each protocol supports isinstance() — its public runtime-check contract."""
         implementer = _implementer(methods)
@@ -117,41 +126,49 @@ class TestsFlextDbOracleProtocols:
         # A runtime-checkable protocol answers isinstance without raising.
         tm.that(implementer, is_=protocol)
 
+    @staticmethod
     @pytest.mark.parametrize(
-        ("name", "protocol", "methods"),
+        ("_name", "protocol", "methods"),
         _DB_ORACLE_CONTRACTS,
         ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
     )
     def test_full_method_surface_satisfies_protocol(
-        self, name: str, protocol: type, methods: tuple[str, ...]
+        _name: str,
+        protocol: type,
+        methods: t.VariadicTuple[str],
     ) -> None:
         """An object with the full promised surface is recognised as implementer."""
         implementer = _implementer(methods)
 
         tm.that(implementer, is_=protocol)
 
+    @staticmethod
     @pytest.mark.parametrize(
-        ("name", "protocol", "methods"),
+        ("_name", "protocol", "methods"),
         _DB_ORACLE_CONTRACTS,
         ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
     )
     def test_missing_any_single_method_breaks_conformance(
-        self, name: str, protocol: type, methods: tuple[str, ...]
+        _name: str,
+        protocol: type,
+        methods: t.VariadicTuple[str],
     ) -> None:
         """Dropping any one promised method makes the object a non-implementer."""
         for dropped in methods:
             partial = tuple(m for m in methods if m != dropped)
             implementer = _implementer(partial)
 
-            assert not isinstance(implementer, protocol), f"{name}:{dropped}"
+            assert not isinstance(implementer, protocol), f"{_name}:{dropped}"
 
-    def test_empty_object_conforms_to_no_db_oracle_protocol(self) -> None:
+    @staticmethod
+    def test_empty_object_conforms_to_no_db_oracle_protocol() -> None:
         """A bare object satisfies none of the Oracle protocols (structural gate)."""
         bare = object()
 
         for name, protocol, _methods in _DB_ORACLE_CONTRACTS:
             assert not isinstance(bare, protocol), name
 
-    def test_foundation_result_protocol_inherited_from_flext_cli(self) -> None:
+    @staticmethod
+    def test_foundation_result_protocol_inherited_from_flext_cli() -> None:
         """FlextDbOracleProtocols inherits foundation protocols (Result) from flext_cli."""
         assert hasattr(p, "Result")

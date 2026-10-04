@@ -1,4 +1,8 @@
-"""FlextDbOracle utilities mixin for Oracle-specific helpers."""
+"""FlextDbOracle utilities mixin for Oracle-specific helpers.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -7,6 +11,10 @@ from collections.abc import Mapping
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
+# mro-6int (claude-ulw): import aliases from upstream (flext_core/flext_cli) and
+# the settings singleton from the concrete _settings leaf, not the own package
+# facade, to break the flext_db_oracle package-init circular import.
+from flext_cli import m, p, r, t, u
 from sqlalchemy import (
     Connection as SAConnection,
     Engine as SAEngine,
@@ -14,12 +22,8 @@ from sqlalchemy import (
     create_engine,
 )
 
-# mro-6int (claude-ulw): import aliases from upstream (flext_core/flext_cli) and
-# the settings singleton from the concrete _settings leaf, not the own package
-# facade, to break the flext_db_oracle package-init circular import.
-from flext_cli import m, p, r, t, u
-from flext_db_oracle import FlextDbOracleConstants as c
 from flext_db_oracle._settings import settings
+from flext_db_oracle.constants import FlextDbOracleConstants as c
 
 if TYPE_CHECKING:
     import contextlib
@@ -39,16 +43,6 @@ class FlextDbOracleUtilitiesDbOracle:
         parsed = u.DbOracle.Args.parse_kwargs(kwargs, enum_fields)
 
     """
-
-    class StrictIntValue(m.RootModel[int]):
-        """Strict integer parser via Pydantic validation."""
-
-        root: int
-
-    class CountValue(m.RootModel[int | str]):
-        """Numeric value parser accepting int or numeric string."""
-
-        root: int | str
 
     @staticmethod
     def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type[E]:
@@ -70,18 +64,26 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @staticmethod
     def validate_identifier(identifier: str) -> p.Result[bool]:
-        """Validate an Oracle identifier."""
+        """Validate an Oracle identifier.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+        """
         if not identifier:
             return r[bool].fail("Empty Oracle identifier")
         if len(identifier) > c.DbOracle.MAX_IDENTIFIER_LENGTH:
             return r[bool].fail("Oracle identifier too long")
         if identifier.upper() in c.DbOracle.ORACLE_RESERVED:
             return r[bool].fail("Oracle identifier is reserved word")
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def escape_oracle_identifier(identifier: str) -> p.Result[str]:
-        """Escape and validate an Oracle identifier for safe use."""
+        """Escape and validate an Oracle identifier for safe use.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+        """
         if not identifier.strip():
             return r[str].fail("Empty Oracle identifier")
         if not identifier.replace("_", "").isalnum():
@@ -91,9 +93,15 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @classmethod
     def format_query_result(
-        cls, result: t.JsonPayload, format_type: str = "table"
+        cls,
+        result: t.JsonPayload,
+        format_type: str = "table",
     ) -> p.Result[str]:
-        """Format a query result to string or JSON."""
+        """Format a query result to string or JSON.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+        """
         if format_type == "json":
             json_payload: t.JsonValue = u.normalize_to_json_value(result)
             return r[str].ok(t.json_value_adapter().dump_json(json_payload).decode())
@@ -101,82 +109,95 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @staticmethod
     def format_sql_for_oracle(sql: str) -> p.Result[str]:
-        """Normalize SQL string formatting for Oracle execution."""
+        """Normalize SQL string formatting for Oracle execution.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+        """
         normalized = " ".join(sql.split())
         return r[str].ok(normalized)
 
     @classmethod
     def generate_query_hash(
-        cls, query: str, params: t.JsonMapping | None
+        cls,
+        query: str,
+        params: t.JsonMapping | None,
     ) -> p.Result[str]:
-        """Generate a SHA-256 hash for a query and its parameters."""
+        """Generate a SHA-256 hash for a query and its parameters.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+        """
         sorted_params = dict(sorted((params or {}).items()))
         serialized = t.json_mapping_adapter().dump_json(sorted_params).decode()
         payload = f"{query}|{serialized}".encode()
         return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
 
     @staticmethod
-    def validate_config_map(value: t.JsonValue | t.JsonMapping) -> m.ConfigMap | None:
-        """Validate arbitrary mapping input as ConfigMap."""
+    def validate_config_map(value: t.JsonValue | t.JsonMapping) -> m.ConfigMap:
+        """Validate arbitrary mapping input as ConfigMap.
+
+        Raises:
+            TypeError: ``value`` is not a mapping.
+
+        Returns:
+            The resulting ``m.ConfigMap``.
+        """
+        # Why: no-hidden-errors — propagate the raw failure instead of
+        # masking a malformed mapping as an empty/None sentinel.
         if not isinstance(value, Mapping):
-            return None
-        try:
-            return m.ConfigMap.model_validate({"root": dict(value)})
-        except c.ValidationError:
-            return None
+            msg = f"Oracle config map requires a mapping, got {type(value).__name__}"
+            raise TypeError(msg)
+        return m.ConfigMap.model_validate({"root": dict(value)})
 
     @staticmethod
     def normalize_params(params: m.ConfigMap | None) -> m.ConfigMap:
-        """Normalize optional parameters into ConfigMap."""
+        """Normalize optional parameters into ConfigMap.
+
+        Returns:
+            The resulting ``m.ConfigMap``.
+        """
         if params is not None:
             return params
         return m.ConfigMap(root={})
 
-    @classmethod
-    def _parse_rowcount(cls, value: t.JsonValue) -> int:
-        """Parse strict integer rowcount via Pydantic."""
-        if isinstance(value, int):
+    @staticmethod
+    def _parse_count_value(value: str) -> int:
+        """Parse row count value from a numeric count string.
+
+        Returns:
+            The resulting ``int``.
+        """
+        return int(value)
+
+    @staticmethod
+    def _normalize_singer_type(value: str | t.StrSequence) -> str:
+        """Normalize Singer type input to a single string value.
+
+        Returns:
+            The resulting ``str``.
+
+        Raises:
+            ValueError: If Singer type sequence must not be empty.
+        """
+        if isinstance(value, str):
             return value
-        try:
-            validated_rowcount: int = cls.StrictIntValue.model_validate(value).root
-            return validated_rowcount
-        except c.ValidationError:
-            return 0
-
-    @classmethod
-    def _parse_count_value(cls, value: t.JsonValue) -> int:
-        """Parse row count value accepting int or numeric string."""
-        result: int
-        if isinstance(value, int):
-            result = value
-        elif isinstance(value, str):
-            try:
-                result = int(value)
-            except ValueError:
-                result = 0
-        else:
-            try:
-                result = int(cls.CountValue.model_validate(value).root)
-            except c.ValidationError:
-                result = 0
-            except c.EXC_TYPE_VALIDATION:
-                result = 0
-        return result
-
-    @classmethod
-    def _normalize_singer_type(cls, value: str | t.StrSequence) -> str:
-        """Normalize Singer type input to a single string value."""
-        try:
-            values = t.str_sequence_adapter().validate_python(value)
-        except c.ValidationError:
-            return str(value)
-        return values[0] if values else "string"
+        validated = u.validate_value(t.str_sequence_adapter(), value).unwrap()
+        if not validated:
+            msg = "Singer type sequence must not be empty"
+            raise ValueError(msg)
+        return validated[0]
 
     @staticmethod
     def _sqlalchemy_create_engine(
-        url: str, connect_timeout: int | None = None
+        url: str,
+        connect_timeout: int | None = None,
     ) -> SAEngine:
-        """Create SQLAlchemy engine with optional connection timeout."""
+        """Create SQLAlchemy engine with optional connection timeout.
+
+        Returns:
+            The resulting ``SAEngine``.
+        """
         connect_args: t.MutableMappingKV[str, int] = {}
         if connect_timeout is not None:
             connect_args["tcp_connect_timeout"] = connect_timeout
@@ -190,14 +211,22 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @staticmethod
     def _engine_connect(engine: SAEngine) -> SAConnection:
-        """Open connection context manager from engine."""
+        """Open connection context manager from engine.
+
+        Returns:
+            The resulting ``SAConnection``.
+        """
         return engine.connect()
 
     @staticmethod
     def _engine_begin(
         engine: SAEngine,
     ) -> contextlib.AbstractContextManager[SAConnection]:
-        """Open transaction context manager from engine."""
+        """Open transaction context manager from engine.
+
+        Returns:
+            The resulting ``contextlib.AbstractContextManager[SAConnection]``.
+        """
         return engine.begin()
 
     @staticmethod
@@ -218,7 +247,11 @@ class FlextDbOracleUtilitiesDbOracle:
         connection: SAConnection,
         statement: TextClause,
         parameters: m.ConfigMap | None = None,
-    ) -> CursorResult[tuple[t.JsonValue, ...]]:
-        """Execute statement on SQL connection."""
+    ) -> CursorResult[t.VariadicTuple[t.JsonValue]]:
+        """Execute statement on SQL connection.
+
+        Returns:
+            The resulting ``CursorResult[t.VariadicTuple[t.JsonValue]]``.
+        """
         normalized_params = cls.normalize_params(parameters)
         return connection.execute(statement, normalized_params.root)

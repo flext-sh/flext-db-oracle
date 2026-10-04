@@ -1,4 +1,8 @@
-"""Oracle password value object."""
+"""Oracle password value object.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -19,13 +23,17 @@ class FlextDbOraclePassword(m.RootModel[str]):
         """Return wrapped password as plain string."""
         return self.root
 
-    def get_secret_value(self) -> str:
+    def fetch_secret_value(self) -> str:
         """Return wrapped password for secret consumers."""
         return self.root
 
     @override
     def __eq__(self, other: object) -> bool:
-        """Compare wrapped password value with wrappers and raw strings."""
+        """Compare wrapped password value with wrappers and raw strings.
+
+        Returns:
+            The resulting ``bool``.
+        """
         if isinstance(other, FlextDbOraclePassword):
             return self.root == other.root
         if isinstance(other, str):

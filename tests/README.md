@@ -30,13 +30,16 @@
 
 <!-- TOC END -->
 
-This directory contains the comprehensive test suite for FLEXT DB Oracle, implementing a layered testing strategy with unit, integration, and end-to-end tests following Clean Architecture principles and enterprise testing standards.
+This directory contains the comprehensive test suite for FLEXT DB Oracle, implementing a
+layered testing strategy with unit, integration, and end-to-end tests following Clean
+Architecture principles and enterprise testing standards.
 
 ## 🧪 Test Structure
 
 ### **Test Organization**
 
-The test suite is organized into three distinct layers, each serving specific testing purposes:
+The test suite is organized into three distinct layers, each serving specific testing
+purposes:
 
 ```
 tests/
@@ -79,8 +82,8 @@ tests/
 
 - `test_api.py` - Basic API functionality and error handling
 - `test_api_comprehensive.py` - Complete API surface coverage
-- `test_api_missing_coverage.py` - Edge cases and error scenarios
-- `test_api_real_execution.py` - Real database execution scenarios
+- runtime_bootstrap_options
+- runtime_bootstrap_options
 
 #### **Configuration Tests (`test_config.py`)**
 
@@ -180,14 +183,14 @@ Our test suite follows Clean Architecture principles with clear separation of co
 make test
 
 # Run tests by category
-pytest tests/unit/                    # Unit tests only
-pytest tests/integration/             # Integration tests only
-pytest tests/e2e/                     # End-to-end tests only
+pytest tests/unit/        # Unit tests only
+pytest tests/integration/ # Integration tests only
+pytest tests/e2e/         # End-to-end tests only
 
 # Run tests by marker
-pytest -m "not slow"                  # Fast tests only
-pytest -m integration                 # Integration tests only
-pytest -m oracle                      # Oracle-specific tests
+pytest -m "not slow"  # Fast tests only
+pytest -m integration # Integration tests only
+pytest -m oracle      # Oracle-specific tests
 ```
 
 ### **Test Configuration**
@@ -248,7 +251,10 @@ All tests must pass these quality standards:
 
 ### **Test Naming Conventions**
 
-```python notest
+```python
+from __future__ import annotations
+
+
 # Test naming pattern: test_<method>_<scenario>_<expected_result>
 def test_connect_with_valid_config_returns_success():
     """Test successful connection with valid configuration."""
@@ -336,13 +342,14 @@ def test_complete_workflow_without_mocks():
 
 ```bash
 # Fast feedback loop during development
-pytest tests/unit/ -x --tb=short      # Stop on first failure
+pytest tests/unit/ -x --tb=short # Stop on first failure
 
 # Complete validation before commit
-make val                          # Full validation pipeline
+make check # Validate quality gates
+make test  # Validate runtime behavior
 
 # Performance testing
-pytest tests/integration/ --benchmark  # Performance benchmarks
+pytest tests/integration/ --benchmark # Performance benchmarks
 ```
 
 ### **CI/CD Integration**
@@ -354,6 +361,7 @@ Tests are integrated into CI/CD pipelines with:
 - **Failure analysis** with logs and stack traces
 - **Performance regression detection** through benchmarks
 
-______________________________________________________________________
+---
 
-This test suite ensures FLEXT DB Oracle maintains quality standards while providing fast feedback for development and reliable validation for production deployments.
+This test suite ensures FLEXT DB Oracle maintains quality standards while providing fast
+feedback for development and reliable validation for production deployments.
