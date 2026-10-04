@@ -449,6 +449,8 @@ class FlextDbOracleApiRuntime(FlextDbOracleServiceBase):
         Returns:
             The resulting ``p.Result[t.StrMapping]``.
         """
+        if not singer_schema:
+            return r[t.StrMapping].fail("Schema must be a mapping")
         return self._services.map_singer_schema(singer_schema).map(
             lambda value: value.mapping,
         )
