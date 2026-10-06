@@ -30,7 +30,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         | t.SequenceOf[t.StrMapping]
         | t.SequenceOf[t.IntMapping]
         | None
-    ] = m.TypeAdapter(
+    ] = u.type_adapter(
         t.SequenceOf[Mapping[str, int | str | bool]]
         | t.SequenceOf[t.StrMapping]
         | t.SequenceOf[t.IntMapping]

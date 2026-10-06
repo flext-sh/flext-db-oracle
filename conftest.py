@@ -1,4 +1,4 @@
-# Copyright 2026 FLEXT
+# Copyright (c) 2026 FLEXT Team. All rights reserved.
 """Pytest bootstrap for flext-db-oracle local package resolution."""
 
 from __future__ import annotations

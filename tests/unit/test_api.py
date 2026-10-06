@@ -269,7 +269,7 @@ class TestsFlextDbOracleApi:
     def test_observability_metrics_available_offline(
         api: FlextDbOracleApi,
     ) -> None:
-        """fetch_observability_metrics returns a metrics mapping without a connection."""
+        """fetch_observability_metrics returns metrics without a connection."""
         result = api.fetch_observability_metrics()
         tm.ok(result)
         tm.that(result.value, none=False)

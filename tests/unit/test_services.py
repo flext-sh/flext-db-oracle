@@ -249,7 +249,10 @@ class TestsFlextDbOracleServices:
         tm.ok(result)
         tm.that(
             result.value,
-            eq="CREATE UNIQUE INDEX APP.IDX_USERS_EMAIL ON APP.USERS (EMAIL) TABLESPACE USERS_TS PARALLEL 2",
+            eq=(
+                "CREATE UNIQUE INDEX APP.IDX_USERS_EMAIL ON APP.USERS (EMAIL) "
+                "TABLESPACE USERS_TS PARALLEL 2"
+            ),
         )
 
     @staticmethod
