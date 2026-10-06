@@ -11,7 +11,7 @@ from typing import override
 from flext_core import m, u
 
 
-class FlextDbOraclePassword(m.RootModel[str]):
+class FlextDbOracleCredentialModel(m.RootModel[str]):
     """Password value object used by Oracle settings."""
 
     root: str = u.Field(
@@ -36,7 +36,7 @@ class FlextDbOraclePassword(m.RootModel[str]):
         Returns:
             The resulting ``bool``.
         """
-        if isinstance(other, FlextDbOraclePassword):
+        if isinstance(other, FlextDbOracleCredentialModel):
             return self.root == other.root
         if isinstance(other, str):
             return self.root == other
