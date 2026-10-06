@@ -19,9 +19,9 @@ import pytest
 from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, p
+from flext_db_oracle.services.facade import FlextDbOracleServices
 
 if TYPE_CHECKING:
-    from flext_db_oracle.services.facade import FlextDbOracleServices
     from tests import t
 
 
