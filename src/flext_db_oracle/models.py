@@ -14,10 +14,10 @@ from datetime import datetime
 from types import MappingProxyType
 from typing import ClassVar, cast
 
-from flext_cli import FlextCliModels, u
+from flext_cli import FlextCliModels
 
-from flext_db_oracle import c, t
-from flext_db_oracle._models.password import FlextDbOraclePassword
+from flext_db_oracle import c, t, u
+from flext_db_oracle._models.credential import FlextDbOracleCredentialModel
 
 
 class FlextDbOracleModels(FlextCliModels):
@@ -32,7 +32,7 @@ class FlextDbOracleModels(FlextCliModels):
     class DbOracle:
         """DbOracle domain namespace."""
 
-        Password: type[FlextDbOraclePassword] = FlextDbOraclePassword
+        Password: type[FlextDbOracleCredentialModel] = FlextDbOracleCredentialModel
 
         class DbOracleDomainModel(FlextCliModels.BaseModel):
             """Base model for FlextDbOracle with standard Pydantic v2 configuration."""
