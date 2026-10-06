@@ -97,14 +97,10 @@ The documentation maintenance system consists of several integrated components:
 Run daily automated checks using the maintenance script:
 
 ```bash
-# Complete audit and validation
-make docs DOCS_PHASE=all PROJECT=flext-db-oracle
+# Complete audit and validation in one lifecycle
+make docs
 
-# Quick validation only
-make docs DOCS_PHASE=validate
-
-# Generate audit report
-make docs DOCS_PHASE=audit
+# Reports land in .reports/docs/
 ```
 
 ### Quality Gates
@@ -113,11 +109,11 @@ make docs DOCS_PHASE=audit
 
 ```bash
 # Pre-commit quality check
-make docs DOCS_PHASE=validate
+make docs
 
 # Include in CI/CD pipeline
 - name: Validate Documentation
-run: make docs DOCS_PHASE=validate
+run: make docs
 ```
 
 ## Weekly Maintenance Tasks
@@ -128,7 +124,8 @@ run: make docs DOCS_PHASE=validate
 
 ```bash
 # Check for stale content (>90 days)
-make docs DOCS_PHASE=audit | grep "stale_content"
+make docs
+grep "stale_content" .reports/docs/audit-report.md
 
 # Review and update outdated information
 # Priority: README.md, API docs, implementation guides
@@ -138,7 +135,8 @@ make docs DOCS_PHASE=audit | grep "stale_content"
 
 ```bash
 # Validate all external links
-make docs DOCS_PHASE=audit | grep "broken_link"
+make docs
+grep "broken_link" .reports/docs/audit-report.md
 
 # Update or remove broken references
 # Priority: External documentation, API references
@@ -148,7 +146,8 @@ make docs DOCS_PHASE=audit | grep "broken_link"
 
 ```bash
 # Check internal document references
-make docs DOCS_PHASE=audit | grep "broken_link"
+make docs
+grep "broken_link" .reports/docs/audit-report.md
 
 # Fix relative paths and anchor links
 # Update changed file locations
@@ -185,7 +184,7 @@ make docs DOCS_PHASE=audit | grep "broken_link"
 
 ```bash
 # Generate comprehensive audit report
-make docs DOCS_PHASE=all PROJECT=flext-db-oracle
+make docs
 
 # Review all files with issues
 # Focus on critical and high-severity items first
@@ -423,8 +422,8 @@ pip list | grep PyYAML
 # Validate configuration
 python -c "import yaml; yaml.safe_load(open('docs/maintenance_config.yaml'))"
 
-# Debug script execution
-python -m compileall scripts/documentation
+# Debug execution through the canonical lifecycle
+make docs
 ```
 
 #### Configuration Issues
@@ -444,10 +443,10 @@ ls docs/ scripts/
 
 ```bash
 # Monitor execution time
-time make docs DOCS_PHASE=audit
+time make docs
 
-# Reduce scope for debugging
-make docs DOCS_PHASE=validate
+# Re-run after repairs; validate and audit gate the same lifecycle
+make docs
 
 # Check system resources
 df -h   # Disk space
