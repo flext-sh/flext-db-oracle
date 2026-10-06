@@ -10,7 +10,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core import build_lazy_import_map, install_lazy_exports
+from flext_core import install_lazy_exports
 from flext_db_oracle.__version__ import (
     __author__,
     __author_email__,
@@ -100,36 +100,47 @@ __all__: tuple[str, ...] = (
     "x",
 )
 
-_LAZY_IMPORTS = MappingProxyType(
-    build_lazy_import_map(
-        MappingProxyType({
-            "._config": ("FlextDbOracleConfig", "config"),
-            "._settings": ("DbOracleSettings", "FlextDbOracleSettings", "settings"),
-            ".api": ("FlextDbOracleApi", "db_oracle"),
-            ".base": ("FlextDbOracleServiceBase", "s"),
-            ".cli": ("main",),
-            ".client": ("FlextDbOracleClient",),
-            ".constants": ("FlextDbOracleConstants", "c"),
-            ".dispatcher": ("FlextDbOracleDispatcher",),
-            ".exceptions": ("FlextDbOracleExceptions", "e"),
-            ".models": ("FlextDbOracleModels", "m"),
-            ".protocols": ("FlextDbOracleProtocols", "p"),
-            ".services": ("services",),
-            ".services.api_runtime": ("FlextDbOracleApiRuntime",),
-            ".services.connection": ("FlextDbOracleServiceConnection",),
-            ".services.facade": ("FlextDbOracleServices",),
-            ".services.plugin": ("FlextDbOracleServicePlugin",),
-            ".services.query": ("FlextDbOracleServiceQuery",),
-            ".services.schema": ("FlextDbOracleServiceSchema",),
-            ".services.singer": ("FlextDbOracleServiceSinger",),
-            ".services.sql_builder": ("FlextDbOracleServiceSqlBuilder",),
-            ".typings": ("FlextDbOracleTypes", "t"),
-            ".utilities": ("FlextDbOracleUtilities", "u"),
-            "flext_core": ("d", "h", "r", "x"),
-        }),
-        alias_groups=MappingProxyType({}),
-        sort_keys=False,
-    ),
+install_lazy_exports(
+    __name__,
+    globals(),
+    MappingProxyType({
+        "DbOracleSettings": "._settings",
+        "FlextDbOracleApi": ".api",
+        "FlextDbOracleApiRuntime": ".services.api_runtime",
+        "FlextDbOracleClient": ".client",
+        "FlextDbOracleConfig": "._config",
+        "FlextDbOracleConstants": ".constants",
+        "FlextDbOracleDispatcher": ".dispatcher",
+        "FlextDbOracleExceptions": ".exceptions",
+        "FlextDbOracleModels": ".models",
+        "FlextDbOracleProtocols": ".protocols",
+        "FlextDbOracleServiceBase": ".base",
+        "FlextDbOracleServiceConnection": ".services.connection",
+        "FlextDbOracleServicePlugin": ".services.plugin",
+        "FlextDbOracleServiceQuery": ".services.query",
+        "FlextDbOracleServiceSchema": ".services.schema",
+        "FlextDbOracleServiceSinger": ".services.singer",
+        "FlextDbOracleServiceSqlBuilder": ".services.sql_builder",
+        "FlextDbOracleServices": ".services.facade",
+        "FlextDbOracleSettings": "._settings",
+        "FlextDbOracleTypes": ".typings",
+        "FlextDbOracleUtilities": ".utilities",
+        "c": ".constants",
+        "config": "._config",
+        "d": "flext_core",
+        "db_oracle": ".api",
+        "e": ".exceptions",
+        "h": "flext_core",
+        "m": ".models",
+        "main": ".cli",
+        "p": ".protocols",
+        "r": "flext_core",
+        "s": ".base",
+        "services": ".services",
+        "settings": "._settings",
+        "t": ".typings",
+        "u": ".utilities",
+        "x": "flext_core",
+    }),
+    public_exports=__all__,
 )
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

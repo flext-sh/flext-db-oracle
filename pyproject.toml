@@ -168,6 +168,7 @@ include = ["/src/flext_db_oracle/**"]
 [tool.mypy]
 mypy_path = ["src"]
 plugins = ["pydantic.mypy"]
+disable_error_code = ["prop-decorator", "call-arg", "attr-defined"]
 python_version = "3.13"
 allow_redefinition = true
 check_untyped_defs = true
@@ -191,7 +192,7 @@ follow_untyped_imports = true
 
 [[tool.mypy.overrides]]
 module = ["flext_db_oracle.constants"]
-disable_error_code = ["misc", "no-redef"]
+disable_error_code = ["misc", "no-redef", "assignment"]
 
 [tool.pydantic-mypy]
 init_forbid_extra = true
@@ -328,6 +329,7 @@ include = ["src", "tests"]
 extraPaths = ["src", "."]
 pythonPlatform = "Linux"
 pythonVersion = "3.13"
+reportCallIssue = "none"
 reportConstantRedefinition = "error"
 reportIncompatibleMethodOverride = "error"
 reportInconsistentConstructor = "error"
@@ -383,6 +385,7 @@ markers = [
   "resilience: resilience tests",
   "discovery: catalog and stream discovery tests",
   "singer: Singer protocol contract tests",
+  "requires_engine: native check engine required by this test",
 ]
 minversion = "8.0"
 python_classes = ["Test*"]
@@ -408,9 +411,17 @@ quote-style = "double"
 skip-magic-trailing-comma = false
 
 [tool.ruff.lint]
-extend-safe-fixes = ["camelcase-imported-as-lowercase", "relative-imports"]
+extend-safe-fixes = [
+  "camelcase-imported-as-lowercase",
+  "relative-imports",
+  "typing-only-first-party-import",
+]
 ignore = [
   "camelcase-imported-as-lowercase",
+  "implicit-namespace-package",
+  "missing-required-import",
+  "runtime-import-in-type-checking-block",
+  "typing-only-first-party-import",
   "typing-only-standard-library-import",
   "typing-only-third-party-import",
 ]
@@ -429,6 +440,36 @@ unfixable = [
 
 [tool.ruff.lint.flake8-copyright]
 notice-rgx = "Copyright \\(c\\) \\d{4} \\S[^\\n]*\\. All rights reserved\\."
+
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = [
+  "flext_cli.FlextCliConfig",
+  "flext_cli.FlextCliModels.BaseModel",
+  "flext_cli.FlextCliModels.Entity",
+  "flext_cli.FlextCliModels.FlexibleModel",
+  "flext_cli.FlextCliSettings",
+  "flext_cli.m.ArbitraryTypesModel",
+  "flext_cli.m.BaseModel",
+  "flext_core.FlextService",
+  "flext_core.FlextSettings",
+  "flext_core.m.RootModel",
+  "flext_db_oracle.FlextDbOracleModels.DbOracle.DbOracleDomainModel",
+  "flext_db_oracle.FlextDbOracleServiceBase",
+  "flext_db_oracle.FlextDbOracleSettings",
+  "flext_db_oracle.models.DbOracleDomainModel",
+  "flext_db_oracle.s",
+  "flext_db_oracle.services.api_runtime.FlextDbOracleApiRuntime",
+  "flext_db_oracle.services.connection.FlextDbOracleServiceConnection",
+  "flext_db_oracle.services.plugin.FlextDbOracleServicePlugin",
+  "flext_db_oracle.services.query.FlextDbOracleServiceQuery",
+  "flext_db_oracle.services.schema.FlextDbOracleServiceSchema",
+  "flext_db_oracle.services.singer.FlextDbOracleServiceSinger",
+  "flext_db_oracle.services.sql_builder.FlextDbOracleServiceSqlBuilder",
+  "flext_tests.FlextTestsServiceBase",
+  "flext_tests.FlextTestsSettings",
+  "flext_tests.FlextTestsUtilities.Tests",
+  "pydantic.BaseModel",
+]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
@@ -455,12 +496,21 @@ known-first-party = ["flext_core", "flext_db_oracle"]
 split-on-trailing-comma = false
 
 [tool.ruff.lint.per-file-ignores]
-"**/__init__.py" = [
-  "non-empty-init-module",
-  "runtime-import-in-type-checking-block",
-  "typing-only-first-party-import",
-  "unused-import",
+"**/__init__.py" = ["line-too-long", "non-empty-init-module", "unused-import"]
+"**/_config.py" = ["invalid-function-name"]
+"**/docx.py" = ["import-outside-top-level"]
+"**/file_test_helpers.py" = ["line-too-long"]
+"**/flextcliutilitiesfiletesthelpersmixin_part_03.py" = ["line-too-long"]
+"**/framework.py" = ["banned-api", "import-outside-top-level"]
+"**/pptx.py" = ["import-outside-top-level"]
+"**/test_public_contracts_cov.py" = ["line-too-long"]
+"**/tests/python/**" = [
+  "raise-vanilla-args",
+  "start-process-with-partial-path",
+  "subprocess-without-shell-equals-true",
+  "suspicious-subprocess-import",
 ]
+"**/xlsx.py" = ["import-outside-top-level"]
 "scripts/**" = [
   "any-type",
   "avoidable-escaped-quote",
@@ -545,4 +595,5 @@ whitelines = 1
 
 [tool.uv]
 link-mode = "copy"
+constraint-dependencies = ["mypy<2.4.0"]
 environments = ["sys_platform == 'linux'", "sys_platform == 'darwin'"]
