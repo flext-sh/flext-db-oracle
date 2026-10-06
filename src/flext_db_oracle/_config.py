@@ -16,12 +16,7 @@ from flext_cli import FlextCliConfig
 
 from flext_core import FlextSettings
 from flext_db_oracle import m
-
-
-class _DbOracleNamespace(m.BaseModel):
-    """Open, frozen namespace exposing every ``config/*.yaml`` domain model-less."""
-
-    model_config = m.ConfigDict(extra="allow", frozen=True)
+import flext_db_oracle._models._db_oracle_namespace
 
 
 class FlextDbOracleConfig(FlextSettings, FlextCliConfig):
@@ -34,11 +29,11 @@ class FlextDbOracleConfig(FlextSettings, FlextCliConfig):
     """
 
     DbOracle: Annotated[
-        _DbOracleNamespace,
+        flext_db_oracle._models._db_oracle_namespace._DbOracleNamespace,
         m.Field(
             description="Open namespace exposing ``config/*.yaml`` under ``DbOracle``.",
         ),
-    ] = _DbOracleNamespace()
+    ] = flext_db_oracle._models._db_oracle_namespace._DbOracleNamespace()
 
 
 config: FlextDbOracleConfig = FlextDbOracleConfig.fetch_global()
