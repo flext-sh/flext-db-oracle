@@ -224,7 +224,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         Returns:
             The resulting ``p.Result[str]``.
         """
-        encoded_password = quote_plus(str(password).encode())
+        encoded_password = quote_plus(password.encode())
         service_name = self.db_config.DbOracle.service_name
         effective_port = port if port is not None else self.db_config.DbOracle.port
         base = f"oracle+oracledb://{self.db_config.DbOracle.username}:{encoded_password}@{self.db_config.DbOracle.host}:{effective_port}"

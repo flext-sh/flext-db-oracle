@@ -199,8 +199,8 @@ class FlextDbOracleModels(FlextCliModels):
                     else "Disconnected"
                 )
 
-            @staticmethod
             @u.field_serializer("connection_time", when_used="json")
+            @staticmethod
             def serialize_connection_time(value: float) -> str:
                 """Format connection time with units.
 
@@ -209,8 +209,8 @@ class FlextDbOracleModels(FlextCliModels):
                 """
                 return f"{value:.3f}s"
 
-            @staticmethod
             @u.field_serializer("last_check", "last_activity", when_used="json")
+            @staticmethod
             def serialize_datetime(value: datetime) -> str:
                 """Format datetime as ISO string.
 
@@ -219,8 +219,8 @@ class FlextDbOracleModels(FlextCliModels):
                 """
                 return value.isoformat()
 
-            @staticmethod
             @u.field_serializer("error_message")
+            @staticmethod
             def serialize_error_message(value: str) -> str:
                 """Truncate long error messages.
 
@@ -362,8 +362,8 @@ class FlextDbOracleModels(FlextCliModels):
                     else "Slow"
                 )
 
-            @staticmethod
             @u.field_serializer("execution_time_ms", when_used="json")
+            @staticmethod
             def serialize_execution_time(value: int) -> str:
                 """Format execution time with appropriate units.
 

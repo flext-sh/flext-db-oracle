@@ -35,6 +35,18 @@ class FlextDbOracleApiDataRuntime(FlextDbOracleServiceBase):
     _context_name: str = u.PrivateAttr(default_factory=lambda: "oracle-api")
     _dispatcher: p.Dispatcher = u.PrivateAttr()
 
+    def __init__(
+        self,
+        settings: FlextDbOracleSettings,
+        context_name: str | None = None,
+    ) -> None:
+        """Initialize shared Oracle API state and composed services."""
+        super().__init__(settings)
+        self._oracle_config = settings
+        self._services = FlextDbOracleServices(settings=self._oracle_config)
+        self._context_name = context_name or "oracle-api"
+        self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
+
     def convert_singer_type(
         self,
         singer_type: str | t.StrSequence,
@@ -377,11 +389,7 @@ class FlextDbOracleApiRuntime(FlextDbOracleApiDataRuntime):
         context_name: str | None = None,
     ) -> None:
         """Initialize the API with Oracle configuration and flext-core integration."""
-        super().__init__(settings)
-        self._oracle_config = settings
-        self._services = FlextDbOracleServices(settings=self._oracle_config)
-        self._context_name = context_name or "oracle-api"
-        self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
+        super().__init__(settings, context_name)
 
     @override
     def __repr__(self) -> str:
