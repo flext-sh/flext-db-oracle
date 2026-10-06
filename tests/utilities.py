@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING, ClassVar
 
 from flext_tests import FlextTestsUtilities, tk
 
-from flext_db_oracle import FlextDbOracleUtilities
-from tests import c, m, t, u
+from flext_db_oracle import FlextDbOracleUtilities, u
+from tests import c, m, t
 
 if TYPE_CHECKING:
     from collections.abc import MutableMapping
