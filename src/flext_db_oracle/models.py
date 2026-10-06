@@ -17,7 +17,7 @@ from typing import ClassVar, cast
 from flext_cli import FlextCliModels
 
 from flext_db_oracle import c, t, u
-from flext_db_oracle._models.credential import FlextDbOracleCredentialModel
+from flext_db_oracle._models.password import FlextDbOraclePassword
 
 
 class FlextDbOracleModels(FlextCliModels):
@@ -32,7 +32,7 @@ class FlextDbOracleModels(FlextCliModels):
     class DbOracle:
         """DbOracle domain namespace."""
 
-        Password: type[FlextDbOracleCredentialModel] = FlextDbOracleCredentialModel
+        Password: type[FlextDbOraclePassword] = FlextDbOraclePassword
 
         class DbOracleDomainModel(FlextCliModels.BaseModel):
             """Base model for FlextDbOracle with standard Pydantic v2 configuration."""
