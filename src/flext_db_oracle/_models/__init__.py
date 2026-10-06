@@ -14,17 +14,17 @@ from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_db_oracle._models.base import FlextDbOracleModelsBase
-    from flext_db_oracle._models.password import FlextDbOraclePassword
+    from flext_db_oracle._models.credential import FlextDbOracleCredentialModel
 
 
-__all__: tuple[str, ...] = ("FlextDbOracleModelsBase", "FlextDbOraclePassword")
+__all__: tuple[str, ...] = ("FlextDbOracleModelsBase", "FlextDbOracleCredentialModel")
 
 install_lazy_exports(
     __name__,
     globals(),
     MappingProxyType({
         "FlextDbOracleModelsBase": ".base",
-        "FlextDbOraclePassword": ".password",
+        "FlextDbOracleCredentialModel": ".credential",
     }),
     public_exports=__all__,
 )

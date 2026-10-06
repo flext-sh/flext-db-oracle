@@ -14,9 +14,14 @@ from typing import Annotated
 
 from flext_cli import FlextCliConfig
 
-import flext_db_oracle._models._db_oracle_namespace
 from flext_core import FlextSettings
 from flext_db_oracle import m
+
+
+class _DbOracleNamespace(m.BaseModel):
+    """Open, frozen namespace exposing every ``config/*.yaml`` domain model-less."""
+
+    model_config = m.ConfigDict(extra="allow", frozen=True)
 
 
 class FlextDbOracleConfig(FlextSettings, FlextCliConfig):
@@ -29,11 +34,11 @@ class FlextDbOracleConfig(FlextSettings, FlextCliConfig):
     """
 
     DbOracle: Annotated[
-        flext_db_oracle._models._db_oracle_namespace._DbOracleNamespace,
+        _DbOracleNamespace,
         m.Field(
             description="Open namespace exposing ``config/*.yaml`` under ``DbOracle``.",
         ),
-    ] = flext_db_oracle._models._db_oracle_namespace._DbOracleNamespace()
+    ] = _DbOracleNamespace()
 
 
 config: FlextDbOracleConfig = FlextDbOracleConfig.fetch_global()
