@@ -10,7 +10,7 @@ import os
 import time
 from typing import TYPE_CHECKING, ClassVar
 
-from flext_tests import FlextTestsUtilities, tk
+from flext_tests import FlextTestsDocker, FlextTestsModels, FlextTestsUtilities
 
 from flext_db_oracle import FlextDbOracleUtilities, u
 from tests import c, m, t
@@ -47,17 +47,14 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
         @classmethod
         def _oracle_host_ports(
             cls,
-            status_value: object,
+            status_value: FlextTestsModels.Tests.ContainerInfo,
         ) -> t.StrMapping:
             """Normalize the port bindings carried by a container status value.
 
             Returns:
                 The resulting ``t.StrMapping``.
             """
-            raw_ports = getattr(status_value, "ports", {})
-            return cls.normalize_port_bindings(
-                raw_ports if isinstance(raw_ports, dict) else {},
-            )
+            return cls.normalize_port_bindings(status_value.ports)
 
         @classmethod
         def _env_port_matches(
@@ -107,7 +104,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
         @classmethod
         def resolve_oracle_test_port(
             cls,
-            docker_control: tk,
+            docker_control: FlextTestsDocker,
             container_name: str,
         ) -> int:
             """Resolve the exposed Oracle test port from Docker state.

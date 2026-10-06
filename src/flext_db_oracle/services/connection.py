@@ -216,7 +216,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
 
     def _assemble_connection_url(
         self,
-        password: m.DbOracle.Password | str,
+        password: str,
         port: int | None = None,
     ) -> p.Result[str]:
         """Assemble Oracle connection URL from validated password.

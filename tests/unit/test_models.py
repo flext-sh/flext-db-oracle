@@ -311,7 +311,7 @@ class TestsFlextDbOracleModels:
             "index_name": "idx_users_email",
         }
         with pytest.raises(ValueError, match="columns"):
-            m.DbOracle.CreateIndexConfig(**payload)
+            m.DbOracle.CreateIndexConfig.model_validate(payload)
 
     @staticmethod
     def test_positive_index_parallel_degree_is_enforced() -> None:

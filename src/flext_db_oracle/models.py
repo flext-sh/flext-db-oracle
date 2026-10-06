@@ -50,7 +50,7 @@ class FlextDbOracleModels(FlextCliModels):
             """Typed row payload for query results."""
 
             values: t.JsonList = u.Field(
-                default_factory=tuple,
+                default_factory=tuple[t.JsonValue, ...],
                 description="Row column values",
             )
 
@@ -267,7 +267,7 @@ class FlextDbOracleModels(FlextCliModels):
 
             query: str = u.Field(description="SQL query that produced the result")
             result_data: t.JsonList = u.Field(
-                default_factory=tuple,
+                default_factory=tuple[t.JsonValue, ...],
                 description="Raw result data from query execution",
             )
             row_count: t.NonNegativeInt = u.Field(
@@ -283,11 +283,11 @@ class FlextDbOracleModels(FlextCliModels):
 
             # Additional Oracle-specific query result details
             columns: t.StrSequence = u.Field(
-                default_factory=tuple,
+                default_factory=tuple[str, ...],
                 description="Column names in result set",
             )
             rows: t.SequenceOf[FlextDbOracleModels.DbOracle.RowData] = u.Field(
-                default_factory=tuple,
+                default_factory=lambda: (),
                 description="Typed row data from query result",
             )
             query_hash: str = u.Field(
@@ -468,12 +468,12 @@ class FlextDbOracleModels(FlextCliModels):
             )
             columns: t.SequenceOf[FlextDbOracleModels.DbOracle.ColumnMetadata] = (
                 u.Field(
-                    default_factory=tuple,
+                    default_factory=lambda: (),
                     description="Column metadata for the table",
                 )
             )
             primary_keys: t.StrSequence = u.Field(
-                default_factory=tuple,
+                default_factory=tuple[str, ...],
                 description="Primary key column names",
             )
 
@@ -559,7 +559,7 @@ class FlextDbOracleModels(FlextCliModels):
                 validate_default=True,
             )
             columns: t.SequenceOf[FlextDbOracleModels.DbOracle.Column] = u.Field(
-                default_factory=tuple,
+                default_factory=lambda: (),
                 description="Column definitions for the table",
             )
 
@@ -622,7 +622,7 @@ class FlextDbOracleModels(FlextCliModels):
 
             name: str = u.Field(description="Schema name")
             tables: t.SequenceOf[FlextDbOracleModels.DbOracle.Table] = u.Field(
-                default_factory=tuple,
+                default_factory=lambda: (),
                 description="Tables within this schema",
             )
 
@@ -700,7 +700,7 @@ class FlextDbOracleModels(FlextCliModels):
 
             sql: str = u.Field(description="SQL statement for batch execution")
             parameters_list: t.SequenceOf[t.JsonMapping] = u.Field(
-                default_factory=tuple,
+                default_factory=tuple[t.JsonMapping, ...],
                 description="List of parameter sets for batch execution",
             )
 

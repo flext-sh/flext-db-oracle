@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 
 import oracledb
 import pytest
-from flext_tests import tk
+from flext_tests import FlextTestsDocker, tk
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from flext_db_oracle.services.facade import FlextDbOracleServices
@@ -161,7 +161,7 @@ def _mark_dirty_on_oracle_service_failure(
 
 
 @pytest.fixture(scope="session")
-def docker_control() -> tk:
+def docker_control() -> FlextTestsDocker:
     """Provide tk instance for container management.
 
     Returns:
@@ -174,7 +174,7 @@ def docker_control() -> tk:
 
 
 @pytest.fixture(scope="session")
-def shared_oracle_container(docker_control: tk) -> str:
+def shared_oracle_container(docker_control: FlextTestsDocker) -> str:
     """Start and maintain flext-oracle-db-test container.
 
     Probe budget stays under flext-infra pytest case-timeout (30s). Cold Oracle
