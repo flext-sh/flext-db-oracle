@@ -14,9 +14,9 @@ from typing import Annotated
 
 from flext_cli import FlextCliConfig
 
+import flext_db_oracle._models._db_oracle_namespace
 from flext_core import FlextSettings
 from flext_db_oracle import m
-import flext_db_oracle._models._db_oracle_namespace
 
 
 class FlextDbOracleConfig(FlextSettings, FlextCliConfig):

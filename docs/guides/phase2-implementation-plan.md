@@ -41,13 +41,13 @@ Date**: 2026-04-14 | **Target Completion**: 2025-10-20
 
 ### Phase Goals
 
-Complete the CLI enhancement by replacing placeholder implementations with functional
+Complete the CLI enhancement by replacing stub implementations with functional
 Rich integrations, implementing proper output formatting, and adding interactive
 features.
 
 ### Success Criteria
 
-- ✅ All CLI formatters functional (no SimpleNamespace placeholders)
+- ✅ All CLI formatters functional (no SimpleNamespace stubs)
 - ✅ Rich integration complete with proper styling
 - ✅ Consistent output formatting across all commands
 - ✅ Interactive prompts and user confirmations working
@@ -270,7 +270,7 @@ ______________________________________________________________________
 
 #### Day 1 (2026-04-14): Foundation Analysis
 
-- ✅ Analyzed current CLI structure and placeholder locations
+- ✅ Analyzed current CLI structure and stub locations
 - ✅ Identified SimpleNamespace usage in `client.py:60-74`
 - ✅ Reviewed Rich integration patterns from flext-cli
 - ✅ Established implementation approach and priorities
@@ -304,7 +304,7 @@ ______________________________________________________________________
 
 #### Functional Requirements
 
-- [ ] All `SimpleNamespace` placeholders replaced with Rich implementations
+- [ ] All `SimpleNamespace` stubs replaced with Rich implementations
 - [ ] CLI commands display properly formatted output
 - [ ] Progress indicators work for long-running operations
 - [ ] Error messages are user-friendly and informative
@@ -330,13 +330,13 @@ ______________________________________________________________________
 
 ### Current Blockers
 
-1. **SimpleNamespace Dependencies**: Existing code depends on placeholder structure
+1. **SimpleNamespace Dependencies**: Existing code depends on stub structure
 1. **Rich Learning Curve**: Team needs to understand Rich API patterns
 1. **Backward Compatibility**: Must maintain CLI interface compatibility
 
 ### Risk Mitigation
 
-1. **Incremental Implementation**: Replace placeholders one at a time
+1. **Incremental Implementation**: Replace stubs one at a time
 1. **Comprehensive Testing**: Test each replacement before proceeding
 1. **Documentation Updates**: Update docs as features are implemented
 
@@ -370,7 +370,7 @@ ______________________________________________________________________
 
 ### Immediate Actions (Next 24 hours)
 
-1. **Start Rich Table Implementation**: Replace table formatter placeholder
+1. **Start Rich Table Implementation**: Replace table formatter stub
 1. **Create Rich Integration Plan**: Detailed implementation steps
 1. **Test Current CLI**: Establish baseline functionality
 

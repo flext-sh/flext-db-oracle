@@ -210,23 +210,24 @@ layer) **Responsibilities**:
 ```python
 from __future__ import annotations
 
-from flext_core import p, r, t
+from flext_core import m, p, r, t
 
 
-class OracleConfig:
+class OracleConfig(m.BaseModel):
     pass
 
 
-class Connection:
-    pass
+class Connection(m.BaseModel):
+    settings: OracleConfig
 
 
-class QueryResult:
-    pass
+class QueryResult(m.BaseModel):
+    sql: str
+    params: t.JsonMapping | None = None
 
 
-class SchemaInfo:
-    pass
+class SchemaInfo(m.BaseModel):
+    name: str
 
 
 class Transaction:
@@ -235,15 +236,17 @@ class Transaction:
 
 class FlextDbOracleApi:
     def connect(self, settings: OracleConfig) -> p.Result[Connection]:
-        return r[Connection].ok(Connection())
+        return r[Connection].ok(Connection(settings=settings))
 
     def execute_query(
-        self, sql: str, params: t.JsonMapping | None = None
+        self,
+        sql: str,
+        params: t.JsonMapping | None = None,
     ) -> p.Result[QueryResult]:
-        return r[QueryResult].ok(QueryResult())
+        return r[QueryResult].ok(QueryResult(sql=sql, params=params))
 
     def get_schema_info(self, schema: str) -> p.Result[SchemaInfo]:
-        return r[SchemaInfo].ok(SchemaInfo())
+        return r[SchemaInfo].ok(SchemaInfo(name=schema))
 
     def begin_transaction(self) -> p.Result[Transaction]:
         return r[Transaction].ok(Transaction())

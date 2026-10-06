@@ -215,6 +215,8 @@ target
 ```python
 from __future__ import annotations
 
+import os
+
 from pydantic import SecretStr
 
 from flext_core import m, t
@@ -235,11 +237,18 @@ class QueryResult(m.BaseModel):
     execution_time: float
 
 
+oracle_password = SecretStr(os.getenv("ORACLE_PASSWORD", ""))
 config = OracleConfig(
-    host="localhost", service_name="XEPDB1", username="system", password="Oracle123"
+    host="localhost",
+    service_name="XEPDB1",
+    username="system",
+    password=oracle_password,
 )
 result = QueryResult(
-    rows=[[1, "test"]], columns=["id", "name"], row_count=1, execution_time=0.05
+    rows=[[1, "test"]],
+    columns=["id", "name"],
+    row_count=1,
+    execution_time=0.05,
 )
 print(config.service_name)
 print(result.row_count)

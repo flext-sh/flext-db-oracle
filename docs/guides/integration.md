@@ -27,7 +27,7 @@ settings = FlextDbOracleSettings.model_validate({
         "service_name": "XEPDB1",
         "username": "system",
         "password": "Oracle123",
-    }
+    },
 })
 api = FlextDbOracleApi(settings)
 
@@ -73,7 +73,7 @@ settings = FlextDbOracleSettings.model_validate({
         "service_name": "XEPDB1",
         "username": "system",
         "password": "Oracle123",
-    }
+    },
 })
 cli = FlextDbOracleServices(settings)
 result = cli.health_check()
@@ -95,7 +95,7 @@ settings = FlextDbOracleSettings.model_validate({
         "service_name": "XEPDB1",
         "username": "system",
         "password": "Oracle123",
-    }
+    },
 })
 api = FlextDbOracleApi(settings)
 ```

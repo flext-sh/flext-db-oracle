@@ -8,7 +8,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_db_oracle import m
-from flext_db_oracle._config import FlextDbOracleConfig, config, __all__
 
 
 class _DbOracleNamespace(m.BaseModel):
