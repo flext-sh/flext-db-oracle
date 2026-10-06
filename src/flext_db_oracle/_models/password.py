@@ -15,7 +15,9 @@ class FlextDbOraclePassword(m.RootModel[str]):
     """Password value object used by Oracle settings."""
 
     root: str = u.Field(
-        default="", description="Oracle database password", validate_default=True
+        default="",
+        description="Oracle database password",
+        validate_default=True,
     )
 
     @override

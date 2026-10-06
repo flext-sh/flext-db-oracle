@@ -78,13 +78,15 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     @staticmethod
     def _compile_statement(statement: ClauseElement) -> str:
         compiled: str = c.DbOracle.collapse_whitespace(
-            str(statement.compile(dialect=oracle_dialect()))
+            str(statement.compile(dialect=oracle_dialect())),
         ).strip()
         return compiled
 
     @classmethod
     def _compile_statement_with_binds(
-        cls, statement: ClauseElement, bind_names: t.MappingKV[str, str]
+        cls,
+        statement: ClauseElement,
+        bind_names: t.MappingKV[str, str],
     ) -> str:
         sql = cls._compile_statement(statement)
         for column_name, bind_name in bind_names.items():
@@ -142,7 +144,8 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             return r[str].fail(f"Invalid CREATE INDEX settings: {e}", exception=e)
 
     def _create_index_sql(
-        self, settings: m.DbOracle.CreateIndexConfig
+        self,
+        settings: m.DbOracle.CreateIndexConfig,
     ) -> p.Result[str]:
         """Compile CREATE INDEX SQL from validated settings.
 
@@ -194,7 +197,10 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         )
 
     def build_delete_statement(
-        self, table_name: str, where_columns: t.StrSequence, schema: str | None = None
+        self,
+        table_name: str,
+        where_columns: t.StrSequence,
+        schema: str | None = None,
     ) -> p.Result[str]:
         """Build DELETE statement through SQLAlchemy Core Oracle compilation.
 
@@ -209,10 +215,10 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         statement = delete(table_clause)
         for column_name in where_columns:
             statement = statement.where(
-                table_clause.c[column_name] == bindparam(bind_names[column_name])
+                table_clause.c[column_name] == bindparam(bind_names[column_name]),
             )
         sql = c.DbOracle.collapse_whitespace(
-            str(statement.compile(dialect=oracle_dialect()))
+            str(statement.compile(dialect=oracle_dialect())),
         ).strip()
         for column_name, bind_name in bind_names.items():
             sql = sql.replace(f":{bind_name}", f":{column_name}")
@@ -242,10 +248,10 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         })
         if returning_columns:
             statement = statement.returning(
-                *(table_clause.c[column_name] for column_name in returning_columns)
+                *(table_clause.c[column_name] for column_name in returning_columns),
             )
         sql = c.DbOracle.collapse_whitespace(
-            str(statement.compile(dialect=oracle_dialect()))
+            str(statement.compile(dialect=oracle_dialect())),
         ).strip()
         for column_name, bind_name in bind_names.items():
             sql = sql.replace(f":{bind_name}", f":{column_name}")
@@ -271,7 +277,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         selected_columns = list(columns) if columns else []
         condition_columns = tuple(typed_conditions.root) if typed_conditions else ()
         statement_columns = tuple(
-            dict.fromkeys([*selected_columns, *condition_columns])
+            dict.fromkeys([*selected_columns, *condition_columns]),
         )
         bind_names = {
             column_name: f"bind_{index:04d}"
@@ -292,10 +298,10 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         ).select_from(table_clause)
         for column_name in condition_columns:
             statement = statement.where(
-                table_clause.c[column_name] == bindparam(bind_names[column_name])
+                table_clause.c[column_name] == bindparam(bind_names[column_name]),
             )
         sql = c.DbOracle.collapse_whitespace(
-            str(statement.compile(dialect=oracle_dialect()))
+            str(statement.compile(dialect=oracle_dialect())),
         ).strip()
         for column_name, bind_name in bind_names.items():
             sql = sql.replace(f":{bind_name}", f":{column_name}")
@@ -325,10 +331,10 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         })
         for column_name in where_columns:
             statement = statement.where(
-                table_clause.c[column_name] == bindparam(bind_names[column_name])
+                table_clause.c[column_name] == bindparam(bind_names[column_name]),
             )
         sql = c.DbOracle.collapse_whitespace(
-            str(statement.compile(dialect=oracle_dialect()))
+            str(statement.compile(dialect=oracle_dialect())),
         ).strip()
         for column_name, bind_name in bind_names.items():
             sql = sql.replace(f":{bind_name}", f":{column_name}")
@@ -354,7 +360,8 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             return r[str].fail(f"Invalid CREATE TABLE settings: {e}", exception=e)
 
     def _normalize_table_columns(
-        self, columns: t.SequenceOf[m.DbOracle.Column | t.JsonMapping]
+        self,
+        columns: t.SequenceOf[m.DbOracle.Column | t.JsonMapping],
     ) -> t.SequenceOf[m.DbOracle.Column]:
         """Normalize raw column payloads into Column models.
 
@@ -377,12 +384,12 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
                 update={
                     "name": column.name or c.IDENTIFIER_UNKNOWN,
                     "data_type": column.data_type or "VARCHAR2(255)",
-                }
+                },
             )
             return copied
         normalized: m.DbOracle.Column = m.DbOracle.Column.model_validate({
             "name": str(
-                column.get("name") or column.get("column_name") or c.IDENTIFIER_UNKNOWN
+                column.get("name") or column.get("column_name") or c.IDENTIFIER_UNKNOWN,
             ),
             "data_type": str(column.get("data_type") or "VARCHAR2(255)"),
             "nullable": bool(column.get("nullable", True)),
@@ -426,7 +433,9 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         )
 
     def drop_table_ddl(
-        self, table_name: str, schema: str | None = None
+        self,
+        table_name: str,
+        schema: str | None = None,
     ) -> p.Result[str]:
         """Generate DROP TABLE DDL through SQLAlchemy Oracle DDL compilation.
 
@@ -437,7 +446,9 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         normalized_schema_name = self._normalize_identifier(schema) if schema else None
         metadata = MetaData()
         table_object = Table(
-            normalized_table_name, metadata, schema=normalized_schema_name
+            normalized_table_name,
+            metadata,
+            schema=normalized_schema_name,
         )
         ddl = self._compile_statement(DropTable(table_object))
         return r[str].ok(ddl)
