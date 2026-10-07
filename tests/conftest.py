@@ -375,8 +375,8 @@ def _ensure_hr_sample_tables(api: FlextDbOracleApi) -> None:
         api,
         "EMPLOYEES",
         "CREATE TABLE employees (employee_id NUMBER PRIMARY KEY, "
-        "first_name VARCHAR2(50), last_name VARCHAR2(50), "
-        "email VARCHAR2(100), department_id NUMBER, job_id VARCHAR2(20))",
+        "first_name VARCHAR2(50), last_name VARCHAR2(50), email VARCHAR2(100), "
+        "department_id NUMBER, job_id VARCHAR2(20))",
     )
     _seed_row(
         api,

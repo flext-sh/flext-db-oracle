@@ -121,9 +121,8 @@ class FlextDbOracleApiRuntimeExecution(FlextDbOracleApiRuntimeState):
             ),
         )
 
-    @classmethod
+    @staticmethod
     def _normalize_parameters(
-        cls,
         parameters: t.JsonMapping | None = None,
     ) -> p.Result[m.ConfigMap]:
         """Normalize query parameters into the canonical ConfigMap contract.
@@ -206,7 +205,7 @@ class FlextDbOracleApiRuntimeExecution(FlextDbOracleApiRuntimeState):
         """Execute SQL query and return results as QueryResult.
 
         Returns:
-            The resulting ``m.DbOracle.QueryResult``.
+            The resulting ``p.Result[m.DbOracle.QueryResult]``.
         """
         return self._services.execute_query(sql).map(
             lambda data: self._convert_to_query_result(sql, data),

@@ -169,14 +169,14 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
         try:
             env_settings = env_settings_cls()
         except c.ValidationError as exc:
-            fail_result: p.Result[Self] = r.fail(
+            fail_result: p.Result[Self] = r[Self].fail(
                 f"Invalid settings: {exc}",
                 exception=exc,
             )
             return fail_result
 
         if not env_settings.DbOracle.password:
-            password_result: p.Result[Self] = r.fail(
+            password_result: p.Result[Self] = r[Self].fail(
                 "password is required for database connection",
             )
             return password_result
@@ -192,12 +192,14 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
         """
         parsed = urlparse(url)
         if parsed.scheme not in {"oracle", "oracle+oracledb"}:
-            failure: p.Result[Self] = r.fail(
+            failure: p.Result[Self] = r[Self].fail(
                 f"Unsupported Oracle URL scheme: {parsed.scheme}",
             )
             return failure
         if not parsed.hostname:
-            host_failure: p.Result[Self] = r.fail("Oracle URL must include a host")
+            host_failure: p.Result[Self] = r[Self].fail(
+                "Oracle URL must include a host",
+            )
             return host_failure
         path_service = (parsed.path or "").lstrip("/")
         query_service = parse_qs(parsed.query).get("service_name", [None])[0]
