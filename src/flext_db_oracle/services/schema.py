@@ -59,8 +59,8 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         """
         if schema_name:
             sql = (
-                "\nSELECT column_name, data_type, data_length, data_precision, "
-                "data_scale, nullable\n"
+                "\nSELECT column_name, data_type, data_length, "
+                "data_precision, data_scale, nullable\n"
                 "FROM all_tab_columns\n"
                 "WHERE table_name = UPPER(:table_name) "
                 "AND owner = UPPER(:schema_name)\n"
@@ -71,8 +71,8 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             )
         else:
             sql = (
-                "\nSELECT column_name, data_type, data_length, data_precision, "
-                "data_scale, nullable\n"
+                "\nSELECT column_name, data_type, data_length, "
+                "data_precision, data_scale, nullable\n"
                 "FROM user_tab_columns\n"
                 "WHERE table_name = UPPER(:table_name)\n"
                 "ORDER BY column_id\n"
@@ -127,25 +127,23 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         def _fetch_keys() -> t.StrSequence:
             if schema:
                 sql = (
-                    "\n                SELECT column_name\n"
-                    "                FROM all_constraints c, all_cons_columns cc\n"
-                    "                WHERE c.constraint_type = 'P'\n"
-                    "                AND c.constraint_name = cc.constraint_name\n"
-                    "                AND c.table_name = UPPER(:table_name)\n"
-                    "                AND c.owner = UPPER(:schema)\n"
-                    "                ORDER BY cc.position\n"
-                    "                "
+                    "\nSELECT column_name\n"
+                    "FROM all_constraints c, all_cons_columns cc\n"
+                    "WHERE c.constraint_type = 'P'\n"
+                    "AND c.constraint_name = cc.constraint_name\n"
+                    "AND c.table_name = UPPER(:table_name)\n"
+                    "AND c.owner = UPPER(:schema)\n"
+                    "ORDER BY cc.position\n"
                 )
                 params = m.ConfigMap(root={"table_name": table_name, "schema": schema})
             else:
                 sql = (
-                    "\n                SELECT column_name\n"
-                    "                FROM user_constraints c, user_cons_columns cc\n"
-                    "                WHERE c.constraint_type = 'P'\n"
-                    "                AND c.constraint_name = cc.constraint_name\n"
-                    "                AND c.table_name = UPPER(:table_name)\n"
-                    "                ORDER BY cc.position\n"
-                    "                "
+                    "\nSELECT column_name\n"
+                    "FROM user_constraints c, user_cons_columns cc\n"
+                    "WHERE c.constraint_type = 'P'\n"
+                    "AND c.constraint_name = cc.constraint_name\n"
+                    "AND c.table_name = UPPER(:table_name)\n"
+                    "ORDER BY cc.position\n"
                 )
                 params = m.ConfigMap(root={"table_name": table_name})
             query_result = self.execute_rows(sql, params)

@@ -166,8 +166,12 @@ def show_environment_setup() -> None:
         'export FLEXT_TARGET_ORACLE_PORT="1521"\n'
         'export FLEXT_TARGET_ORACLE_SERVICE_NAME="XEPDB1"\n'
         'export FLEXT_TARGET_ORACLE_USERNAME="flext_user"\n'
+<<<<<<<< HEAD:examples/ex_06_cli.py
         'export FLEXT_TARGET_ORACLE_PASSWORD='
         '"${FLEXT_TARGET_ORACLE_PASSWORD}?<set-your-own>"\n'
+========
+        'export FLEXT_TARGET_ORACLE_PASSWORD="<set-from-your-secret-store>"\n'
+>>>>>>>> origin/0.12.0-dev:examples/example_06_cli.py
         "\n# Optional: Connection Pool Settings\n"
         'export FLEXT_TARGET_ORACLE_POOL_MIN="1"\n'
         'export FLEXT_TARGET_ORACLE_POOL_MAX="10"\n'

@@ -465,6 +465,7 @@ runtime-evaluated-base-classes = [
   "flext_db_oracle.m.BaseModel",
   "flext_db_oracle.models.DbOracleDomainModel",
   "flext_db_oracle.s",
+  "flext_db_oracle.services.api_runtime.FlextDbOracleApiDataRuntime",
   "flext_db_oracle.services.api_runtime.FlextDbOracleApiRuntime",
   "flext_db_oracle.services.connection.FlextDbOracleServiceConnection",
   "flext_db_oracle.services.plugin.FlextDbOracleServicePlugin",
@@ -505,6 +506,25 @@ split-on-trailing-comma = false
 [tool.ruff.lint.per-file-ignores]
 "**/__init__.py" = ["line-too-long", "non-empty-init-module", "unused-import"]
 "**/_config.py" = ["invalid-function-name"]
+"**/_utilities/credential.py" = [
+  "subprocess-without-shell-equals-true",
+  "suspicious-subprocess-import",
+]
+"**/bin/**" = [
+  "docstring-missing-exception",
+  "docstring-missing-returns",
+  "import-outside-top-level",
+  "line-too-long",
+  "magic-value-comparison",
+  "missing-copyright-notice",
+  "print",
+  "start-process-with-partial-path",
+  "subprocess-without-shell-equals-true",
+  "suspicious-subprocess-import",
+  "type-check-without-type-error",
+  "undocumented-public-method",
+  "unused-class-method-argument",
+]
 "**/bootstrap.py" = [
   "subprocess-without-shell-equals-true",
   "suspicious-subprocess-import",
@@ -593,6 +613,7 @@ split-on-trailing-comma = false
   "typing-only-first-party-import",
 ]
 "tests/**/*.py" = ["assert"]
+"tests/test_snapshot_drill.py" = ["import-private-name"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

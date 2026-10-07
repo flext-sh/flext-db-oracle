@@ -315,28 +315,37 @@ override PATH := $(RUNTIME_BIN):$(SANITIZED_CALLER_PATH)
 unexport UV
 export FLEXT_INFRA_PYTHON UV_PROJECT UV_PROJECT_ENVIRONMENT VIRTUAL_ENV PATH RUNTIME_ROOT
 
-# The bootstrap is the NATIVE mise/uv surface: `mise install` (locked from the
-# committed mise.lock) provisions every tool including mise itself; `make upg`
-# alone advances versions (`mise lock --bump`, `uv lock --upgrade --refresh`).
-# The lifecycle receives the resolved tool identities as environment.
+# One bootstrap serves `setup` (frozen install) and `upg` (resolve + install);
+# the public verb selects its lifecycle and resolution through target-specific
+# variables.
 TOOL_BOOTSTRAP_LIFECYCLE := _setup_lifecycle
-
-# Pin reader: the github:jdx/mise release line of the committed mise.lock —
-# presentation logic over the one lock source; no separate pin file exists.
-
-
+TOOL_BOOTSTRAP_RESOLVE :=
 .PHONY: _bootstrap_setup_tools
-_bootstrap_setup_tools: _builtin_require_mise
-	@set -eu; \
-	mise_actual="$$(mise --version 2>/dev/null | cut -d ' ' -f1)"; \
-	if [ "$$mise_actual" != "2026.10.3" ]; then \
-		printf 'ERROR: mise %s differs from the declared release %s; run: mise use -g github:jdx/mise@2026.10.3\n' "$$mise_actual" "2026.10.3" >&2; \
+
+_bootstrap_setup_tools:
+	# The lifecycle invokes recursive make through mise, so preserve jobserver FDs.
+	+@set -eu; \
+	if ! command -v mise >/dev/null 2>&1; then \
+		printf 'ERROR: mise is not installed; install it (https://mise.run) and retry\n' >&2; \
 		exit 2; \
 	fi; \
-	export MISE_VERSION="$$mise_pin"; \
-	export SETUP_PYTHON="$$(mise which python)"; \
-	export SETUP_DIRENV="$$(mise which direnv)"; \
-	$(SELF_MAKE) $(TOOL_BOOTSTRAP_LIFECYCLE)
+	if [ "$(TOOL_BOOTSTRAP_RESOLVE)" = "1" ]; then \
+		mise -C "$(PROJECT_ROOT)" lock --bump; \
+	fi; \
+	mise -C "$(PROJECT_ROOT)" install --yes; \
+	mise_pin="$$( awk 'index($$0, "[[tools.\"github:jdx/mise\"]]") == 1 { inside = 1; next } inside && substr($$0, 1, 1) == "[" { exit } inside && $$1 == "version" { gsub(/[",]/, "", $$3); print $$3; exit }' "$(PROJECT_ROOT)/mise.lock" )"; \
+	if [ -z "$$mise_pin" ]; then \
+		printf 'ERROR: mise.lock pins no github:jdx/mise release; run make upg\n' >&2; \
+		exit 2; \
+	fi; \
+	mise_receipt="$$(mise -C "$(PROJECT_ROOT)" exec -- mise --version | cut -d ' ' -f1)"; \
+	if [ "$$mise_receipt" != "$$mise_pin" ]; then \
+		printf 'ERROR: provisioned Mise %s differs from the mise.lock pin %s; run make setup\n' "$$mise_receipt" "$$mise_pin" >&2; \
+		exit 2; \
+	fi; \
+	printf 'setup: mise %s provisioned from mise.lock\n' "$$mise_receipt"; \
+	printf 'setup: entering lifecycle (submodules, environment, hooks) make=%s\n' "$(SELF_MAKE_EXECUTABLE)"; \
+	mise -C "$(PROJECT_ROOT)" exec -- env "CI=$(CI)" $(SELF_MAKE) $(TOOL_BOOTSTRAP_LIFECYCLE)
 
 # Every repository evaluates only itself, locally exactly as in CI: a workspace
 # root consumes its members as installed libraries and never fans a verb out
@@ -392,6 +401,7 @@ _bootstrap_setup_tools: _builtin_require_workspace
 
 # Execute the interpreter provisioned by setup without discovering a project
 # workspace or creating a dependency-resolution file during a runtime command.
+override UV_RUN := env -u MYPYPATH -u VIRTUAL_ENV -u UV_PROJECT -u PROJECT_ROOT PYTHONPATH="$(PROJECT_ROOT)/src" $(UV) run --directory "$(PROJECT_ROOT)" --no-project --python "$(RUNTIME_PYTHON)"
 override UV_RUN := env -u MYPYPATH -u VIRTUAL_ENV -u UV_PROJECT -u PROJECT_ROOT PYTHONPATH="$(PROJECT_ROOT)/src" $(UV) run --directory "$(PROJECT_ROOT)" --no-project --python "$(RUNTIME_PYTHON)"
 # The checked-out flext-infra lane owns every lifecycle verb: a workspace
 # runs the generator it carries (the submodule src), so a broken published
@@ -868,6 +878,7 @@ _builtin-pre-commit:
 # then installs from the fresh lock. Native mise locks are workspace-local, so
 # an attached member relocks its own mise.lock exactly like the runtime root.
 upg: TOOL_BOOTSTRAP_LIFECYCLE := _upg_lifecycle
+upg: TOOL_BOOTSTRAP_RESOLVE := 1
 upg: _bootstrap_setup_tools
 else
 
@@ -1350,9 +1361,14 @@ _builtin_require_mise:
 		printf 'ERROR: missing %s/mise.lock; run make upg\n' "$(RUNTIME_ROOT)" >&2; \
 		exit 2; \
 	fi; \
+	mise_pin="$$( awk 'index($$0, "[[tools.\"github:jdx/mise\"]]") == 1 { inside = 1; next } inside && substr($$0, 1, 1) == "[" { exit } inside && $$1 == "version" { gsub(/[",]/, "", $$3); print $$3; exit }' "$(RUNTIME_ROOT)/mise.lock" )"; \
+	if [ -z "$$mise_pin" ]; then \
+		printf 'ERROR: mise.lock pins no github:jdx/mise release; run make upg\n' "$(RUNTIME_ROOT)" >&2; \
+		exit 2; \
+	fi; \
 	mise_actual="$$(mise --version 2>/dev/null | cut -d ' ' -f1)"; \
-	if [ "$$mise_actual" != "2026.10.3" ]; then \
-		printf 'ERROR: mise %s differs from the declared release %s; run: mise use -g github:jdx/mise@2026.10.3\n' "$$mise_actual" "2026.10.3" >&2; \
+	if [ "$$mise_actual" != "$$mise_pin" ]; then \
+		printf 'ERROR: mise %s differs from the mise.lock pin %s; run make setup\n' "$$mise_actual" "$$mise_pin" >&2; \
 		exit 2; \
 	fi
 
@@ -1410,7 +1426,6 @@ _upg_lifecycle: _builtin_setup_submodules
 	case " $(CUSTOM_DECLARED_TARGETS) " in \
 		*" pre-upg "*) $(SELF_MAKE) pre-upg ;; \
 	esac
-	@mise lock --bump
 	@$(UV) lock --project "$(PROJECT_ROOT)" --upgrade --refresh
 	@$(UV) lock --check --project "$(PROJECT_ROOT)"
 	@$(SELF_MAKE) _builtin_setup_environment
@@ -1775,8 +1790,14 @@ _builtin_mod_snapshots: _builtin_require_environment
 # aggregates per project and one project's findings never stop the sweep. A
 # member profile enforces only itself.
 
+# The workspace profile sweeps every namespace-enabled project of the topology
+# (the root repository and each declared member) in one process: the report
+# aggregates per project and one project's findings never stop the sweep. A
+# member profile enforces only itself.
+
 _builtin_fix_namespace: _builtin_require_environment
 	@$(PROJECT_FLEXT_INFRA) refactor namespace-enforce --repository-root "$(PROJECT_ROOT)" --projects . --apply
+
 
 
 _builtin_fix_accessors: _builtin_require_environment

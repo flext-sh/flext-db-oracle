@@ -48,10 +48,9 @@ class FlextDbOracleDispatcher(FlextService[bool]):
             return services.disconnect().success
 
         def connection_test_handler(_command_data: p.Routable) -> t.JsonPayload:
-            """Handle the Oracle connection test dispatcher command.
+            """Oracle connection test handler.
 
-            The ``command_data`` parameter is required by the dispatcher
-            interface.
+            The ``command_data`` parameter is required by the dispatcher interface.
 
             Returns:
                 The resulting ``t.JsonPayload``.

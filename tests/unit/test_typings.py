@@ -34,7 +34,7 @@ class TestsFlextDbOracleTypings:
 
     @staticmethod
     def test_facade_composes_cli_types_via_mro() -> None:
-        """Facade extends the flext-cli ``t`` facade via MRO.
+        """The facade extends the flext-cli ``t`` facade.
 
         Inherited members stay reachable.
         """
