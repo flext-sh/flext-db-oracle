@@ -7,7 +7,7 @@
   - ["Invalid username/password"](#invalid-usernamepassword)
   - ["Service name not found"](#service-name-not-found)
 - [CLI Issues](#cli-issues)
-  - [SimpleNamespace placeholders](#simplenamespace-placeholders)
+  - [SimpleNamespace stubs](#simplenamespace-stubs)
 - [Installation Issues](#installation-issues)
   - ["No module named 'oracledb'"](#no-module-named-oracledb)
   - ["ImportError: r"](#importerror-r)
@@ -50,14 +50,14 @@ Check service_name parameter matches Oracle database configuration.
 
 ## CLI Issues
 
-### SimpleNamespace placeholders
+### SimpleNamespace stubs
 
-CLI formatter and interactions use placeholder implementations:
+CLI formatter and interactions use stub implementations:
 
 ```python
 from types import SimpleNamespace
 
-# client.py lines 60-67 contain SimpleNamespace placeholders
+# client.py lines 60-67 contain SimpleNamespace stubs
 self = SimpleNamespace()
 self.formatter = SimpleNamespace()
 self.interactions = SimpleNamespace()

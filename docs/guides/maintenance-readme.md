@@ -70,8 +70,8 @@ quality assurance, validation, and continuous improvement.**
 ### Quick Health Check
 
 ```bash
-# Run comprehensive health check
-make docs DOCS_PHASE=audit
+# Run the full docs lifecycle: fix, validate, audit
+make docs
 
 # Output:
 # Documentation Health Check:
@@ -87,23 +87,18 @@ make docs DOCS_PHASE=audit
 ### Automated Maintenance
 
 ```bash
-# Complete maintenance suite
+# Complete maintenance suite: fix and fmt apply repairs,
+# then validate and audit gate the result
 make docs
 
-# Individual operations
-make docs DOCS_PHASE=audit     # Comprehensive audit with report
-make docs DOCS_PHASE=validate  # Quick validation checks
-make docs DOCS_PHASE=fix FIX=1 # Content optimization
+# Reports land in .reports/docs/ (audit-report.md, audit-summary.json)
 ```
 
 ### Manual Operation
 
 ```bash
-# Run specific maintenance tasks
-make docs DOCS_PHASE=all PROJECT=flext-db-oracle
-make docs DOCS_PHASE=audit
-make docs DOCS_PHASE=validate
-make docs DOCS_PHASE=fix FIX=1
+# Run the complete maintenance lifecycle from the workspace root
+make docs
 ```
 
 ## 📋 Maintenance Framework
@@ -115,8 +110,8 @@ make docs DOCS_PHASE=fix FIX=1
 Automated analysis of documentation quality, freshness, and completeness.
 
 ```bash
-make docs DOCS_PHASE=audit
-# Generates: docs/reports/maintenance_report_YYYYMMDD_HHMMSS.md
+make docs
+# Generates: .reports/docs/audit-report.md
 ```
 
 **Audit Features:**
@@ -132,8 +127,8 @@ make docs DOCS_PHASE=audit
 Comprehensive validation of markdown syntax, links, and references.
 
 ```bash
-make docs DOCS_PHASE=validate
-# Returns: 0 (success) or 1 (validation failed)
+make docs
+# Validation failures fail the lifecycle with a non-zero exit
 ```
 
 **Validation Checks:**
@@ -149,8 +144,8 @@ make docs DOCS_PHASE=validate
 Intelligent content enhancement and formatting improvements.
 
 ```bash
-make docs DOCS_PHASE=fix FIX=1
-# Note: Currently generates suggestions only (auto_correct: false)
+make docs
+# Note: the fix phase applies fence repairs and formatting in place
 ```
 
 **Optimization Features:**
@@ -297,11 +292,9 @@ chmod +x .git/hooks/pre-commit
 ### Daily Maintenance (Automated)
 
 ```bash
-# Automated daily audit (CI/CD scheduled)
-make docs DOCS_PHASE=audit
-
-# Quick validation for development
-make docs DOCS_PHASE=validate
+# Automated docs lifecycle (CI/CD scheduled or local):
+# fix, validate, audit in one canonical verb
+make docs
 ```
 
 ### Weekly Review Process
@@ -364,8 +357,9 @@ make docs
 #### Content Freshness Issues
 
 ```bash
-# Identify stale files
-make docs DOCS_PHASE=audit | grep "stale_content"
+# Identify stale files from the audit report
+make docs
+grep "stale_content" .reports/docs/audit-report.md
 
 # Update with current information
 # Add version numbers and dates
@@ -375,8 +369,9 @@ make docs DOCS_PHASE=audit | grep "stale_content"
 #### Link Integrity Problems
 
 ```bash
-# Find broken links
-make docs DOCS_PHASE=audit | grep "broken_link"
+# Find broken links in the audit report
+make docs
+grep "broken_link" .reports/docs/audit-report.md
 
 # Update URLs or remove dead links
 # Replace with working alternatives
@@ -386,8 +381,9 @@ make docs DOCS_PHASE=audit | grep "broken_link"
 #### Style Consistency Issues
 
 ```bash
-# Check style problems
-make docs DOCS_PHASE=audit | grep "broken_link\|forbidden_term"
+# Check style problems in the audit report
+make docs
+grep -E "broken_link|forbidden_term" .reports/docs/audit-report.md
 
 # Standardize formatting
 # Use consistent markers and styles
@@ -405,20 +401,23 @@ from flext_core import t
 
 
 # Extend DocumentationAuditor class
-def _validate_custom_rule(self, content: str) -> list[dict[str, t.JsonValue]]:
-    """Implement custom validation logic."""
-    issues: list[dict[str, t.JsonValue]] = []
+class ExtendedDocumentationAuditor:
+    """Auditor extension point for project-specific validation rules."""
 
-    # Your custom validation logic here
-    if "deprecated_feature" in content:
-        issues.append({
-            "type": "deprecated_reference",
-            "severity": "medium",
-            "message": "References deprecated feature",
-            "suggestion": "Update to current feature or remove reference",
-        })
+    def _validate_custom_rule(self, content: str) -> list[dict[str, t.JsonValue]]:
+        """Implement custom validation logic."""
+        issues: list[dict[str, t.JsonValue]] = []
 
-    return issues
+        # Your custom validation logic here
+        if "deprecated_feature" in content:
+            issues.append({
+                "type": "deprecated_reference",
+                "severity": "medium",
+                "message": "References deprecated feature",
+                "suggestion": "Update to current feature or remove reference",
+            })
+
+        return issues
 ```
 
 ### Custom Quality Metrics
@@ -537,8 +536,8 @@ make status
 # Validate configuration
 python -c "import yaml; yaml.safe_load(open('docs/maintenance_config.yaml'))"
 
-# Debug execution
-PYTHONPATH=src python -m compileall scripts/documentation
+# Debug execution through the canonical lifecycle
+make docs
 ```
 
 #### Configuration Problems
@@ -558,10 +557,10 @@ ls docs/ scripts/
 
 ```bash
 # Monitor execution time
-time make docs DOCS_PHASE=audit
+time make docs
 
 # Debug slow files
-make docs DOCS_PHASE=audit 2>&1 | grep -E "(ERROR|FAIL|timeout)"
+make docs 2>&1 | grep -E "(ERROR|FAIL|timeout)"
 ```
 
 #### Report Generation Issues
