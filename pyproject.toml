@@ -22,8 +22,8 @@ dependencies = [
   "annotated-types>=0.8.0",
   "beartype>=0.22.9",
   "dependency-injector>=4.49.1",
-  "flext-cli @ git+https://github.com/flext-sh/flext-cli.git@0.12.0-dev",
-  "flext-core @ git+https://github.com/flext-sh/flext-core.git@0.12.0-dev",
+  "flext-cli",
+  "flext-core",
   "oracledb>=26.0.1",
   "packaging>=26.3",
   "pydantic>=2.13.5,<3",
@@ -57,15 +57,13 @@ Documentation = "https://github.com/flext-sh/flext/blob/main/README.md"
 Homepage = "https://github.com/flext-sh/flext"
 
 [dependency-groups]
-codegen = [
-  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@0.12.0-dev",
-]
+codegen = ["flext-infra"]
 dev = [
   "actionlint-py>=1.7.12.24",
   "bandit>=1.9.4",
   "deptry",
   "editables>=0.6",
-  "flext-tests @ git+https://github.com/flext-sh/flext-tests.git@0.12.0-dev",
+  "flext-tests",
   "hypothesis",
   "mkdocs",
   "mkdocs-autorefs",
@@ -395,6 +393,8 @@ testpaths = ["tests"]
 
 [tool.ruff]
 extend-exclude = [
+  "**/.archive/**",
+  "**/protos/**",
   "**/.agents/aihub-hooks/**",
   "**/.claude/aihub-hooks/**",
   "**/.codex/aihub-hooks/**",
@@ -505,20 +505,9 @@ split-on-trailing-comma = false
 [tool.ruff.lint.per-file-ignores]
 "**/__init__.py" = ["line-too-long", "non-empty-init-module", "unused-import"]
 "**/_config.py" = ["invalid-function-name"]
-"**/bin/**" = [
-  "docstring-missing-exception",
-  "docstring-missing-returns",
-  "import-outside-top-level",
-  "line-too-long",
-  "magic-value-comparison",
-  "missing-copyright-notice",
-  "print",
-  "start-process-with-partial-path",
+"**/bootstrap.py" = [
   "subprocess-without-shell-equals-true",
   "suspicious-subprocess-import",
-  "type-check-without-type-error",
-  "undocumented-public-method",
-  "unused-class-method-argument",
 ]
 "**/docx.py" = ["import-outside-top-level"]
 "**/file_test_helpers.py" = ["line-too-long"]
@@ -529,6 +518,7 @@ split-on-trailing-comma = false
 "**/tests/**" = [
   "boolean-positional-value-in-call",
   "compare-to-empty-string",
+  "import-private-name",
   "magic-value-comparison",
   "mutable-class-default",
   "no-self-use",
@@ -629,3 +619,15 @@ whitelines = 1
 link-mode = "copy"
 constraint-dependencies = ["mypy<2.4.0"]
 environments = ["sys_platform == 'linux'", "sys_platform == 'darwin'"]
+
+[tool.uv.sources.flext-cli]
+workspace = true
+
+[tool.uv.sources.flext-core]
+workspace = true
+
+[tool.uv.sources.flext-infra]
+workspace = true
+
+[tool.uv.sources.flext-tests]
+workspace = true
