@@ -31,6 +31,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.oracle import dialect as oracle_dialect
 from sqlalchemy.sql import quoted_name
 from sqlalchemy.sql.ddl import CreateIndex, CreateTable, DropTable
+from sqlalchemy.sql.elements import ColumnElement
 from sqlalchemy.types import UserDefinedType
 
 from flext_db_oracle import (
@@ -288,7 +289,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             statement_columns,
             schema_name,
         )
-        selected_column_clauses = [
+        selected_column_clauses: list[ColumnElement[str]] = [
             table_clause.c[column_name] for column_name in selected_columns
         ]
         statement = (

@@ -42,11 +42,13 @@ def create_oracle_config() -> FlextDbOracleSettings:
 def _display_sqlalchemy_setup(settings: FlextDbOracleSettings) -> None:
     """Display SQLAlchemy 2.0 configuration details."""
     logger.info(
-        f"✅ Configuration created: {settings.DbOracle.host}:{settings.DbOracle.port}",
+        "✅ Configuration created: %s:%s",
+        settings.DbOracle.host,
+        settings.DbOracle.port,
     )
     logger.info("🔗 SQLAlchemy connection URL format configured")
-    logger.info(f"📍 Host: {settings.DbOracle.host}:{settings.DbOracle.port}")
-    logger.info(f"📚 Service: {settings.DbOracle.service_name}")
+    logger.info("📍 Host: %s:%s", settings.DbOracle.host, settings.DbOracle.port)
+    logger.info("📚 Service: %s", settings.DbOracle.service_name)
     logger.info("📚 Ready for SQLAlchemy 2.0 integration")
 
 

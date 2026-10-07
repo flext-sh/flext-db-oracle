@@ -160,7 +160,21 @@ def demo_cli_commands() -> None:
 
 def show_environment_setup() -> None:
     """Show how to set up environment for CLI usage."""
-    setup_script = '\n# Oracle Database Configuration\nexport FLEXT_TARGET_ORACLE_HOST="localhost"\nexport FLEXT_TARGET_ORACLE_PORT="1521"\nexport FLEXT_TARGET_ORACLE_SERVICE_NAME="XEPDB1"\nexport FLEXT_TARGET_ORACLE_USERNAME="flext_user"\nexport FLEXT_TARGET_ORACLE_PASSWORD="secure_password"\n\n# Optional: Connection Pool Settings\nexport FLEXT_TARGET_ORACLE_POOL_MIN="1"\nexport FLEXT_TARGET_ORACLE_POOL_MAX="10"\nexport FLEXT_TARGET_ORACLE_TIMEOUT="30"\n\n# Optional: Debug Mode\nexport FLEXT_CLI_DEV_MODE="true"\nexport FLEXT_CLI_LOG_LEVEL="debug"\n'
+    setup_script = (
+        "\n# Oracle Database Configuration\n"
+        'export FLEXT_TARGET_ORACLE_HOST="localhost"\n'
+        'export FLEXT_TARGET_ORACLE_PORT="1521"\n'
+        'export FLEXT_TARGET_ORACLE_SERVICE_NAME="XEPDB1"\n'
+        'export FLEXT_TARGET_ORACLE_USERNAME="flext_user"\n'
+        'export FLEXT_TARGET_ORACLE_PASSWORD="<set-from-your-secret-store>"\n'
+        "\n# Optional: Connection Pool Settings\n"
+        'export FLEXT_TARGET_ORACLE_POOL_MIN="1"\n'
+        'export FLEXT_TARGET_ORACLE_POOL_MAX="10"\n'
+        'export FLEXT_TARGET_ORACLE_TIMEOUT="30"\n'
+        "\n# Optional: Debug Mode\n"
+        'export FLEXT_CLI_DEV_MODE="true"\n'
+        'export FLEXT_CLI_LOG_LEVEL="debug"\n'
+    )
     env_file = Path(".env")
     if not env_file.exists():
         env_file.write_text(setup_script.strip(), encoding="utf-8")

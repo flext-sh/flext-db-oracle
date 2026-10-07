@@ -87,7 +87,10 @@ class TestsFlextDbOracleOracleExample:
         self,
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
-        """After a successful connect ``connected()`` is True, False after disconnect."""
+        """After a successful connect ``connected()`` is True.
+
+        It is False after disconnect.
+        """
         connection = self._connect_services(real_oracle_config)
 
         tm.that(connection.connected(), eq=True)
@@ -178,7 +181,10 @@ class TestsFlextDbOracleOracleExample:
     def test_fetch_schemas_includes_a_system_schema(
         connected_oracle_api: FlextDbOracleApi,
     ) -> None:
-        """``fetch_schemas`` returns a non-empty list containing a known system schema."""
+        """``fetch_schemas`` returns a non-empty list.
+
+        The list contains a known system schema.
+        """
         schemas_result = connected_oracle_api.fetch_schemas()
         tm.ok(schemas_result)
         schemas = schemas_result.value
@@ -288,9 +294,7 @@ class TestsFlextDbOracleOracleExample:
 
     @staticmethod
     def test_connect_with_invalid_credentials_fails_with_reason() -> None:
-        """Connecting with bad credentials yields a failure carrying a diagnostic
-        reason.
-        """
+        """Connecting with bad credentials yields a diagnostic failure."""
         invalid_config = FlextDbOracleSettings.model_validate({
             "DbOracle": {
                 "host": "localhost",
