@@ -30,14 +30,17 @@ export ORACLE_PASSWORD="Oracle123"
 ```python
 import os
 
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+
 # Provide environment values so the API can be built from env vars.
+# Demo credential only; load real values from a secret store or the environment.
+demo_credential = "Oracle123"
 os.environ["ORACLE_DBORACLE__HOST"] = "localhost"
 os.environ["ORACLE_DBORACLE__PORT"] = "1521"
 os.environ["ORACLE_DBORACLE__SERVICE_NAME"] = "XEPDB1"
 os.environ["ORACLE_DBORACLE__USERNAME"] = "system"
-os.environ["ORACLE_DBORACLE__PASSWORD"] = "Oracle123"
+os.environ["ORACLE_DBORACLE__PASSWORD"] = demo_credential
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 # From environment
 api_result = FlextDbOracleApi.from_env()
@@ -51,8 +54,8 @@ settings = FlextDbOracleSettings(
         "port": 1521,
         "service_name": "XEPDB1",
         "username": "system",
-        "password": "Oracle123",
-    }
+        "password": demo_credential,
+    },
 )
 api = FlextDbOracleApi(settings)
 ```

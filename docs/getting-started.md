@@ -55,7 +55,7 @@ settings = FlextDbOracleSettings.model_validate({
         "service_name": "XEPDB1",
         "username": "system",
         "password": "Oracle123",
-    }
+    },
 })
 
 # Create API instance with FLEXT patterns
@@ -83,13 +83,14 @@ settings = FlextDbOracleSettings.model_validate({
         "service_name": "XEPDB1",
         "username": "system",
         "password": "Oracle123",
-    }
+    },
 })
 api = FlextDbOracleApi(settings)
 
 # Execute SELECT query with parameters
 result = api.query(
-    "SELECT table_name FROM user_tables WHERE rownum <= :limit", {"limit": 5}
+    "SELECT table_name FROM user_tables WHERE rownum <= :limit",
+    {"limit": 5},
 )
 
 if result.success:
@@ -111,7 +112,7 @@ settings = FlextDbOracleSettings.model_validate({
         "service_name": "XEPDB1",
         "username": "system",
         "password": "Oracle123",
-    }
+    },
 })
 api = FlextDbOracleApi(settings)
 

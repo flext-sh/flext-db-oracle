@@ -10,7 +10,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core import build_lazy_import_map, install_lazy_exports
+from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_core import d, h, r, x
@@ -19,15 +19,21 @@ if TYPE_CHECKING:
 
 __all__: tuple[str, ...] = ("c", "d", "e", "h", "m", "p", "r", "s", "t", "u", "x")
 
-_LAZY_IMPORTS = MappingProxyType(
-    build_lazy_import_map(
-        MappingProxyType({
-            "flext_core": ("d", "h", "r", "x"),
-            "flext_db_oracle": ("c", "e", "m", "p", "s", "t", "u"),
-        }),
-        alias_groups=MappingProxyType({}),
-        sort_keys=False,
-    ),
+install_lazy_exports(
+    __name__,
+    globals(),
+    MappingProxyType({
+        "c": "flext_db_oracle",
+        "d": "flext_core",
+        "e": "flext_db_oracle",
+        "h": "flext_core",
+        "m": "flext_db_oracle",
+        "p": "flext_db_oracle",
+        "r": "flext_core",
+        "s": "flext_db_oracle",
+        "t": "flext_db_oracle",
+        "u": "flext_db_oracle",
+        "x": "flext_core",
+    }),
+    public_exports=__all__,
 )
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

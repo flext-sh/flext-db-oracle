@@ -7,6 +7,7 @@ CLAUDE.md
 GEMINI.md
 .kilo/**
 .omo/**
+.zcode/**
 .tmp/**
 .claude/**
 .vscode/**
@@ -14,6 +15,9 @@ GEMINI.md
 .snapshots/**
 .benchmarks/**
 .hypothesis/**
+CHANGELOG.md
+docs/docs_config.json
+docs/architecture/architecture_config.json
 .mypy_cache/**
 .pytest_cache/**
 .ruff_cache/**
