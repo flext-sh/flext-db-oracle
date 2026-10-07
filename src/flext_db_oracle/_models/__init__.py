@@ -13,11 +13,18 @@ from typing import TYPE_CHECKING
 from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
+    from flext_db_oracle._models._db_oracle_namespace import (
+        FlextDbOracleModelsDbOracleNamespace,
+    )
     from flext_db_oracle._models.base import FlextDbOracleModelsBase
     from flext_db_oracle._models.credential import FlextDbOracleCredentialModel
 
 
-__all__: tuple[str, ...] = ("FlextDbOracleCredentialModel", "FlextDbOracleModelsBase")
+__all__: tuple[str, ...] = (
+    "FlextDbOracleCredentialModel",
+    "FlextDbOracleModelsBase",
+    "FlextDbOracleModelsDbOracleNamespace",
+)
 
 install_lazy_exports(
     __name__,
@@ -25,6 +32,7 @@ install_lazy_exports(
     MappingProxyType({
         "FlextDbOracleCredentialModel": ".credential",
         "FlextDbOracleModelsBase": ".base",
+        "FlextDbOracleModelsDbOracleNamespace": "._db_oracle_namespace",
     }),
     public_exports=__all__,
 )
