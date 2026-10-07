@@ -68,7 +68,7 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
         table_name: str,
         schema: str | None = None,
     ) -> p.Result[t.StrSequence]:
-        """Delegate primary-key lookup to the schema service.
+        """Delegate primary key retrieval to the schema service.
 
         Returns:
             The resulting ``p.Result[t.StrSequence]``.
