@@ -392,7 +392,10 @@ class FlextDbOracleModels(FlextCliModels):
                 if self.rows and self.columns:
                     for row in self.rows:
                         if len(row.values) != len(self.columns):
-                            msg = f"Row length {len(row.values)} doesn't match column count {len(self.columns)}"
+                            msg = (
+                                f"Row length {len(row.values)} doesn't match "
+                                f"column count {len(self.columns)}"
+                            )
                             raise ValueError(msg)
                 if self.execution_time_ms < 0:
                     msg = "Execution time cannot be negative"

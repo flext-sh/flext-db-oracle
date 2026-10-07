@@ -45,6 +45,30 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
             return validated
 
         @classmethod
+        def _container_1521_host_ports(
+            cls,
+            docker_control: tk,
+            container_name: str,
+        ) -> list[int]:
+            """List host ports mapped from container port 1521 for a container.
+
+            Returns:
+                The resulting ``list[int]``.
+            """
+            status_result = docker_control.fetch_container_status(container_name)
+            if status_result.failure:
+                return []
+            raw_ports = getattr(status_result.value, "ports", {})
+            ports = cls.normalize_port_bindings(
+                raw_ports if isinstance(raw_ports, dict) else {},
+            )
+            return [
+                int(host_port)
+                for container_port, host_port in ports.items()
+                if container_port.startswith("1521") and host_port.isdigit()
+            ]
+
+        @classmethod
         def resolve_oracle_test_port(
             cls,
             docker_control: tk,
@@ -58,20 +82,11 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
             env_port = os.getenv("TEST_ORACLE_PORT")
             if env_port is not None and env_port.isdigit():
                 env_port_int = int(env_port)
-                status_result = docker_control.fetch_container_status(container_name)
-                if status_result.success:
-                    status_value = status_result.value
-                    raw_ports = getattr(status_value, "ports", {})
-                    ports = cls.normalize_port_bindings(
-                        raw_ports if isinstance(raw_ports, dict) else {},
-                    )
-                    for container_port, host_port in ports.items():
-                        if (
-                            container_port.startswith("1521")
-                            and host_port.isdigit()
-                            and int(host_port) == env_port_int
-                        ):
-                            return env_port_int
+                if env_port_int in cls._container_1521_host_ports(
+                    docker_control,
+                    container_name,
+                ):
+                    return env_port_int
             fallback_port = 1522
             container_settings = c.Tests.SHARED_CONTAINERS.get(container_name)
             if container_settings is not None:
@@ -79,16 +94,12 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
                 if isinstance(configured_port, int):
                     fallback_port = configured_port
             for _ in range(30):
-                status_result = docker_control.fetch_container_status(container_name)
-                if status_result.success:
-                    status_value = status_result.value
-                    raw_ports = getattr(status_value, "ports", {})
-                    ports = cls.normalize_port_bindings(
-                        raw_ports if isinstance(raw_ports, dict) else {},
-                    )
-                    for container_port, host_port in ports.items():
-                        if container_port.startswith("1521") and host_port.isdigit():
-                            return int(host_port)
+                host_ports = cls._container_1521_host_ports(
+                    docker_control,
+                    container_name,
+                )
+                if host_ports:
+                    return host_ports[0]
                 time.sleep(2)
             return fallback_port
 

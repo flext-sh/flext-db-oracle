@@ -36,7 +36,7 @@ class TestsFlextDbOracleOracle:
     @staticmethod
     @pytest.fixture
     def offline_settings() -> FlextDbOracleSettings:
-        """Return settings pointing at an unreachable host for offline contract tests."""
+        """Return settings for an unreachable host in offline contract tests."""
         return FlextDbOracleSettings.model_validate({
             "DbOracle": {
                 "host": "nonexistent-host.invalid",
@@ -174,9 +174,7 @@ class TestsFlextDbOracleOracle:
         self,
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
-        """A connect->create->insert->query->update->drop lifecycle behaves per
-        contract.
-        """
+        """A full connect->create->insert->query->update->drop lifecycle passes."""
         table = "E2E_TEST_TABLE"
         with FlextDbOracleApi(settings=real_oracle_config) as api:
             tm.ok(api.test_connection())
@@ -184,7 +182,8 @@ class TestsFlextDbOracleOracle:
             tm.ok(schemas)
             assert schemas.value
             create = api.execute_sql(
-                f"CREATE TABLE {table} ( ID NUMBER(10) NOT NULL PRIMARY KEY, NAME VARCHAR2(100) NOT NULL, EMAIL VARCHAR2(255))",
+                f"CREATE TABLE {table} ( ID NUMBER(10) NOT NULL PRIMARY KEY, "
+                "NAME VARCHAR2(100) NOT NULL, EMAIL VARCHAR2(255))",
             )
             tm.ok(create)
             try:

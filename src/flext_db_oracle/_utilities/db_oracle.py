@@ -137,11 +137,11 @@ class FlextDbOracleUtilitiesDbOracle:
     def validate_config_map(value: t.JsonValue | t.JsonMapping) -> m.ConfigMap:
         """Validate arbitrary mapping input as ConfigMap.
 
-        Raises:
-            TypeError: ``value`` is not a mapping.
-
         Returns:
             The resulting ``m.ConfigMap``.
+
+        Raises:
+            TypeError: ``value`` is not a mapping.
         """
         # Why: no-hidden-errors — propagate the raw failure instead of
         # masking a malformed mapping as an empty/None sentinel.

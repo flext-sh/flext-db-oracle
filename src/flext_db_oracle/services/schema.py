@@ -58,12 +58,25 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             The resulting ``p.Result[Sequence[m.DbOracle.Column]]``.
         """
         if schema_name:
-            sql = "\nSELECT column_name, data_type, data_length, data_precision, data_scale, nullable\nFROM all_tab_columns\nWHERE table_name = UPPER(:table_name) AND owner = UPPER(:schema_name)\nORDER BY column_id\n"
+            sql = (
+                "\nSELECT column_name, data_type, data_length, data_precision, "
+                "data_scale, nullable\n"
+                "FROM all_tab_columns\n"
+                "WHERE table_name = UPPER(:table_name) "
+                "AND owner = UPPER(:schema_name)\n"
+                "ORDER BY column_id\n"
+            )
             params = m.ConfigMap(
                 root={"table_name": table_name, "schema_name": schema_name},
             )
         else:
-            sql = "\nSELECT column_name, data_type, data_length, data_precision, data_scale, nullable\nFROM user_tab_columns\nWHERE table_name = UPPER(:table_name)\nORDER BY column_id\n"
+            sql = (
+                "\nSELECT column_name, data_type, data_length, data_precision, "
+                "data_scale, nullable\n"
+                "FROM user_tab_columns\n"
+                "WHERE table_name = UPPER(:table_name)\n"
+                "ORDER BY column_id\n"
+            )
             params = m.ConfigMap(root={"table_name": table_name})
         return self.execute_rows(sql, params).map(
             lambda rows: [
@@ -113,10 +126,27 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
 
         def _fetch_keys() -> t.StrSequence:
             if schema:
-                sql = "\n                SELECT column_name\n                FROM all_constraints c, all_cons_columns cc\n                WHERE c.constraint_type = 'P'\n                AND c.constraint_name = cc.constraint_name\n                AND c.table_name = UPPER(:table_name)\n                AND c.owner = UPPER(:schema)\n                ORDER BY cc.position\n                "
+                sql = (
+                    "\n                SELECT column_name\n"
+                    "                FROM all_constraints c, all_cons_columns cc\n"
+                    "                WHERE c.constraint_type = 'P'\n"
+                    "                AND c.constraint_name = cc.constraint_name\n"
+                    "                AND c.table_name = UPPER(:table_name)\n"
+                    "                AND c.owner = UPPER(:schema)\n"
+                    "                ORDER BY cc.position\n"
+                    "                "
+                )
                 params = m.ConfigMap(root={"table_name": table_name, "schema": schema})
             else:
-                sql = "\n                SELECT column_name\n                FROM user_constraints c, user_cons_columns cc\n                WHERE c.constraint_type = 'P'\n                AND c.constraint_name = cc.constraint_name\n                AND c.table_name = UPPER(:table_name)\n                ORDER BY cc.position\n                "
+                sql = (
+                    "\n                SELECT column_name\n"
+                    "                FROM user_constraints c, user_cons_columns cc\n"
+                    "                WHERE c.constraint_type = 'P'\n"
+                    "                AND c.constraint_name = cc.constraint_name\n"
+                    "                AND c.table_name = UPPER(:table_name)\n"
+                    "                ORDER BY cc.position\n"
+                    "                "
+                )
                 params = m.ConfigMap(root={"table_name": table_name})
             query_result = self.execute_rows(sql, params)
             if query_result.failure:
@@ -143,7 +173,12 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         Returns:
             The resulting ``p.Result[t.StrSequence]``.
         """
-        sql = "SELECT username as schema_name FROM all_users WHERE username NOT IN ('SYS', 'SYSTEM', 'ANONYMOUS', 'XDB', 'CTXSYS', 'MDSYS', 'WMSYS') ORDER BY username"
+        sql = (
+            "SELECT username as schema_name FROM all_users "
+            "WHERE username NOT IN "
+            "('SYS', 'SYSTEM', 'ANONYMOUS', 'XDB', 'CTXSYS', 'MDSYS', 'WMSYS') "
+            "ORDER BY username"
+        )
         return self.execute_rows(sql).map(
             lambda rows: [
                 str(row.root.get("SCHEMA_NAME") or row.root.get("schema_name", ""))
@@ -251,7 +286,10 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             The resulting ``p.Result[t.StrSequence]``.
         """
         if schema:
-            sql = "SELECT table_name FROM all_tables WHERE owner = UPPER(:schema_name) ORDER BY table_name"
+            sql = (
+                "SELECT table_name FROM all_tables "
+                "WHERE owner = UPPER(:schema_name) ORDER BY table_name"
+            )
             params: m.ConfigMap | None = m.ConfigMap(root={"schema_name": schema})
         else:
             sql = "SELECT table_name FROM user_tables ORDER BY table_name"

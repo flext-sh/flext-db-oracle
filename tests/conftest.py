@@ -105,11 +105,11 @@ def _cleanup_dirty_oracle_container() -> None:
         return
     cleanup_result = docker.cleanup_dirty_containers()
     if cleanup_result.failure:
-        logger.warning(f"Dirty container cleanup failed: {cleanup_result.error}")
+        logger.warning("Dirty container cleanup failed: %s", cleanup_result.error)
         return
     cleaned = cleanup_result.value
     if cleaned:
-        logger.info(f"Recreated dirty containers: {', '.join(cleaned)}")
+        logger.info("Recreated dirty containers: %s", ", ".join(cleaned))
         return
     logger.debug("No dirty containers to clean")
 
@@ -153,7 +153,8 @@ def _mark_dirty_on_oracle_service_failure(
     )
     docker.mark_container_dirty(_ORACLE_CONTAINER_NAME)
     logger.error(
-        "ORACLE SERVICE FAILURE detected in %s, container marked DIRTY for recreation: %s",
+        "ORACLE SERVICE FAILURE detected in %s, "
+        "container marked DIRTY for recreation: %s",
         item.nodeid,
         exc_msg,
     )
@@ -362,7 +363,8 @@ def _ensure_hr_sample_tables(api: FlextDbOracleApi) -> None:
     _ensure_table(
         api,
         "DEPARTMENTS",
-        "CREATE TABLE departments (department_id NUMBER PRIMARY KEY, department_name VARCHAR2(100))",
+        "CREATE TABLE departments (department_id NUMBER PRIMARY KEY, "
+        "department_name VARCHAR2(100))",
     )
     _ensure_table(
         api,
@@ -372,7 +374,9 @@ def _ensure_hr_sample_tables(api: FlextDbOracleApi) -> None:
     _ensure_table(
         api,
         "EMPLOYEES",
-        "CREATE TABLE employees (employee_id NUMBER PRIMARY KEY, first_name VARCHAR2(50), last_name VARCHAR2(50), email VARCHAR2(100), department_id NUMBER, job_id VARCHAR2(20))",
+        "CREATE TABLE employees (employee_id NUMBER PRIMARY KEY, "
+        "first_name VARCHAR2(50), last_name VARCHAR2(50), email VARCHAR2(100), "
+        "department_id NUMBER, job_id VARCHAR2(20))",
     )
     _seed_row(
         api,
@@ -466,7 +470,9 @@ def test_database_setup(connected_oracle_api: FlextDbOracleApi) -> t.StrMapping:
         AssertionError: If Could not create test schema; or if Test setup failed.
     """
     test_schema = {
-        "test_table": "CREATE TABLE test_table (id NUMBER PRIMARY KEY, name VARCHAR2(100))",
+        "test_table": (
+            "CREATE TABLE test_table (id NUMBER PRIMARY KEY, name VARCHAR2(100))"
+        ),
         "test_sequence": "CREATE SEQUENCE test_seq START WITH 1 INCREMENT BY 1",
     }
     cleanup_ddl = ["DROP TABLE test_table PURGE", "DROP SEQUENCE test_seq"]

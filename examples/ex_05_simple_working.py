@@ -24,7 +24,9 @@ def _resolve_settings() -> FlextDbOracleSettings:
     settings = FlextDbOracleSettings.fetch_global()
     if settings.DbOracle.password:
         logger.info(
-            f"✅ Configuration created: {settings.DbOracle.host}:{settings.DbOracle.port}",
+            "✅ Configuration created: %s:%s",
+            settings.DbOracle.host,
+            settings.DbOracle.port,
         )
     else:
         settings = FlextDbOracleSettings.model_validate({
@@ -40,9 +42,9 @@ def _resolve_settings() -> FlextDbOracleSettings:
 
 def _display_configuration(settings: FlextDbOracleSettings) -> None:
     """Display configuration details and validity."""
-    logger.info(f"📋 Host: {settings.DbOracle.host}")
-    logger.info(f"📋 Port: {settings.DbOracle.port}")
-    logger.info(f"📋 Service: {settings.DbOracle.service_name}")
+    logger.info("📋 Host: %s", settings.DbOracle.host)
+    logger.info("📋 Port: %s", settings.DbOracle.port)
+    logger.info("📋 Service: %s", settings.DbOracle.service_name)
     username_display = settings.DbOracle.username[:3]
     logger.info("📋 Username: %s***", username_display)
     if settings.DbOracle.host and settings.DbOracle.port > 0:

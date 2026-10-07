@@ -170,5 +170,5 @@ class TestsFlextDbOracleProtocols:
 
     @staticmethod
     def test_foundation_result_protocol_inherited_from_flext_cli() -> None:
-        """FlextDbOracleProtocols inherits foundation protocols (Result) from flext_cli."""
+        """FlextDbOracleProtocols inherits foundation protocols from flext_cli."""
         assert hasattr(p, "Result")
