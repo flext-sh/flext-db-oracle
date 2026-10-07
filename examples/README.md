@@ -6,18 +6,18 @@ the commands below remain accurate.
 
 ## Available Examples
 
-### `ex_05_simple_working.py`
+### `05_simple_working.py`
 
 Minimal configuration example. It tries to load Oracle settings from the environment and
 falls back to demo values when those variables are not present.
 
-### `ex_06_cli.py`
+### `06_cli.py`
 
 CLI-oriented examples for `flext-oracle`. It can scaffold a local `.env` file with
 sample variables and run a small command demo when the required Oracle environment is
 configured.
 
-### `ex_07_sqlalchemy2.py`
+### `07_sqlalchemy2.py`
 
 Minimal SQLAlchemy-oriented setup example showing how to build Oracle settings for
 integration code.
@@ -27,11 +27,11 @@ integration code.
 ```bash
 cd examples
 
-python ex_05_simple_working.py
-python ex_06_cli.py
-python ex_06_cli.py setup
-python ex_06_cli.py demo
-python ex_07_sqlalchemy2.py
+python 05_simple_working.py
+python 06_cli.py
+python 06_cli.py setup
+python 06_cli.py demo
+python 07_sqlalchemy2.py
 ```
 
 ## Environment Notes
@@ -47,6 +47,6 @@ export FLEXT_TARGET_ORACLE_USERNAME=flext_user
 export FLEXT_TARGET_ORACLE_PASSWORD=flext_password
 ```
 
-`ex_05_simple_working.py` and `ex_07_sqlalchemy2.py` can still be inspected without a live
-Oracle instance because they fall back to demo configuration values. `ex_06_cli.py demo`
+`05_simple_working.py` and `07_sqlalchemy2.py` can still be inspected without a live
+Oracle instance because they fall back to demo configuration values. `06_cli.py demo`
 expects the Oracle connection variables above to be set.
