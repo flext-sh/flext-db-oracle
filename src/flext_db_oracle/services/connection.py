@@ -57,7 +57,8 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             with self._engine_connect(self._engine) as conn:
                 _ = self._connection_execute(conn, text("SELECT 1 FROM dual"))
             self.logger.info(
-                f"Connected to Oracle database: {self.db_config.DbOracle.host}",
+                "Connected to Oracle database: %s",
+                self.db_config.DbOracle.host,
             )
             ok_result: p.Result[Self] = r.ok(self)
         except c.DbOracle.EXC_DB_BROAD as e:
@@ -80,7 +81,8 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                                 text("SELECT 1 FROM dual"),
                             )
                         self.logger.info(
-                            f"Connected to Oracle database: {self.db_config.DbOracle.host}",
+                            "Connected to Oracle database: %s",
+                            self.db_config.DbOracle.host,
                         )
                         nested_ok: p.Result[Self] = r.ok(self)
                     except c.DbOracle.EXC_DB_BROAD:
@@ -214,7 +216,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
 
     def _assemble_connection_url(
         self,
-        password: m.DbOracle.Password | str,
+        password: str,
         port: int | None = None,
     ) -> p.Result[str]:
         """Assemble Oracle connection URL from validated password.
@@ -222,7 +224,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         Returns:
             The resulting ``p.Result[str]``.
         """
-        encoded_password = quote_plus(str(password).encode())
+        encoded_password = quote_plus(password.encode())
         service_name = self.db_config.DbOracle.service_name
         effective_port = port if port is not None else self.db_config.DbOracle.port
         base = f"oracle+oracledb://{self.db_config.DbOracle.username}:{encoded_password}@{self.db_config.DbOracle.host}:{effective_port}"

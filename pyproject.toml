@@ -465,6 +465,7 @@ runtime-evaluated-base-classes = [
   "flext_db_oracle.m.BaseModel",
   "flext_db_oracle.models.DbOracleDomainModel",
   "flext_db_oracle.s",
+  "flext_db_oracle.services.api_runtime.FlextDbOracleApiDataRuntime",
   "flext_db_oracle.services.api_runtime.FlextDbOracleApiRuntime",
   "flext_db_oracle.services.connection.FlextDbOracleServiceConnection",
   "flext_db_oracle.services.plugin.FlextDbOracleServicePlugin",

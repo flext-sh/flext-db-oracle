@@ -22,7 +22,8 @@ class FlextDbOracleClient(s):
     """Oracle Database CLI client with complete FLEXT ecosystem integration.
 
     This client provides command-line interface operations for Oracle Database
-    management using the flext-db-oracle foundation API with full flext-core integration.
+    management using the flext-db-oracle foundation API with full flext-core
+    integration.
     """
 
     debug: bool = u.Field(
@@ -391,7 +392,9 @@ class FlextDbOracleClient(s):
                     else "inactive",
                     "host": self.current_connection.oracle_config.DbOracle.host,
                     "port": self.current_connection.oracle_config.DbOracle.port,
-                    "service_name": self.current_connection.oracle_config.DbOracle.service_name,
+                    "service_name": (
+                        self.current_connection.oracle_config.DbOracle.service_name
+                    ),
                     "timestamp": "now",
                 },
             )
