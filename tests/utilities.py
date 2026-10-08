@@ -8,15 +8,13 @@ from __future__ import annotations
 
 import os
 import time
-from typing import TYPE_CHECKING, ClassVar
+from collections.abc import Mapping, MutableMapping
+from typing import ClassVar
 
 from flext_tests import FlextTestsDocker, FlextTestsModels, FlextTestsUtilities
 
 from flext_db_oracle import FlextDbOracleUtilities, u
 from tests import c, m, t
-
-from collections.abc import Mapping, MutableMapping  # noqa: TC003 -- Mapping used at runtime in the adapter form
-
 
 
 class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
