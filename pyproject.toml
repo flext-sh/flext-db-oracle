@@ -22,8 +22,8 @@ dependencies = [
   "annotated-types>=0.8.0",
   "beartype>=0.22.9",
   "dependency-injector>=4.49.1",
-  "flext-cli",
-  "flext-core",
+  "flext-cli @ git+https://github.com/flext-sh/flext-cli.git@0.12.0-dev",
+  "flext-core @ git+https://github.com/flext-sh/flext-core.git@0.12.0-dev",
   "oracledb>=26.0.1",
   "packaging>=26.3",
   "pydantic>=2.13.5,<3",
@@ -57,13 +57,15 @@ Documentation = "https://github.com/flext-sh/flext/blob/main/README.md"
 Homepage = "https://github.com/flext-sh/flext"
 
 [dependency-groups]
-codegen = ["flext-infra"]
+codegen = [
+  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@0.12.0-dev",
+]
 dev = [
   "actionlint-py>=1.7.12.24",
   "bandit>=1.9.4",
   "deptry",
   "editables>=0.6",
-  "flext-tests",
+  "flext-tests @ git+https://github.com/flext-sh/flext-tests.git@0.12.0-dev",
   "hypothesis",
   "mkdocs",
   "mkdocs-autorefs",
@@ -427,6 +429,7 @@ ignore = [
   "camelcase-imported-as-lowercase",
   "implicit-namespace-package",
   "missing-required-import",
+  "missing-trailing-comma",
   "runtime-import-in-type-checking-block",
   "typing-only-first-party-import",
   "typing-only-standard-library-import",
@@ -465,8 +468,11 @@ runtime-evaluated-base-classes = [
   "flext_db_oracle.m.BaseModel",
   "flext_db_oracle.models.DbOracleDomainModel",
   "flext_db_oracle.s",
-  "flext_db_oracle.services.api_runtime.FlextDbOracleApiDataRuntime",
   "flext_db_oracle.services.api_runtime.FlextDbOracleApiRuntime",
+  "flext_db_oracle.services.api_runtime_execution.FlextDbOracleApiRuntimeExecution",
+  "flext_db_oracle.services.api_runtime_introspection.FlextDbOracleApiRuntimeIntrospection",
+  "flext_db_oracle.services.api_runtime_lifecycle.FlextDbOracleApiRuntimeLifecycle",
+  "flext_db_oracle.services.api_runtime_state.FlextDbOracleApiRuntimeState",
   "flext_db_oracle.services.connection.FlextDbOracleServiceConnection",
   "flext_db_oracle.services.plugin.FlextDbOracleServicePlugin",
   "flext_db_oracle.services.query.FlextDbOracleServiceQuery",
@@ -531,6 +537,11 @@ split-on-trailing-comma = false
 ]
 "**/docx.py" = ["import-outside-top-level"]
 "**/file_test_helpers.py" = ["line-too-long"]
+"**/flext_core/_models/pydantic.py" = [
+  "any-type",
+  "builtin-argument-shadowing",
+  "too-many-arguments",
+]
 "**/flextcliutilitiesfiletesthelpersmixin_part_03.py" = ["line-too-long"]
 "**/framework.py" = ["banned-api", "import-outside-top-level"]
 "**/pptx.py" = ["import-outside-top-level"]
@@ -640,15 +651,3 @@ whitelines = 1
 link-mode = "copy"
 constraint-dependencies = ["mypy<2.4.0"]
 environments = ["sys_platform == 'linux'", "sys_platform == 'darwin'"]
-
-[tool.uv.sources.flext-cli]
-workspace = true
-
-[tool.uv.sources.flext-core]
-workspace = true
-
-[tool.uv.sources.flext-infra]
-workspace = true
-
-[tool.uv.sources.flext-tests]
-workspace = true
