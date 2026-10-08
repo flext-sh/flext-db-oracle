@@ -41,6 +41,16 @@ if TYPE_CHECKING:
     from flext_db_oracle.models import FlextDbOracleModels, m
     from flext_db_oracle.protocols import FlextDbOracleProtocols, p
     from flext_db_oracle.services.api_runtime import FlextDbOracleApiRuntime
+    from flext_db_oracle.services.api_runtime_execution import (
+        FlextDbOracleApiRuntimeExecution,
+    )
+    from flext_db_oracle.services.api_runtime_introspection import (
+        FlextDbOracleApiRuntimeIntrospection,
+    )
+    from flext_db_oracle.services.api_runtime_lifecycle import (
+        FlextDbOracleApiRuntimeLifecycle,
+    )
+    from flext_db_oracle.services.api_runtime_state import FlextDbOracleApiRuntimeState
     from flext_db_oracle.services.connection import FlextDbOracleServiceConnection
     from flext_db_oracle.services.facade import FlextDbOracleServices
     from flext_db_oracle.services.plugin import FlextDbOracleServicePlugin
@@ -56,6 +66,10 @@ __all__: tuple[str, ...] = (
     "DbOracleSettings",
     "FlextDbOracleApi",
     "FlextDbOracleApiRuntime",
+    "FlextDbOracleApiRuntimeExecution",
+    "FlextDbOracleApiRuntimeIntrospection",
+    "FlextDbOracleApiRuntimeLifecycle",
+    "FlextDbOracleApiRuntimeState",
     "FlextDbOracleClient",
     "FlextDbOracleConfig",
     "FlextDbOracleConstants",
@@ -107,6 +121,10 @@ install_lazy_exports(
         "DbOracleSettings": "._settings",
         "FlextDbOracleApi": ".api",
         "FlextDbOracleApiRuntime": ".services.api_runtime",
+        "FlextDbOracleApiRuntimeExecution": ".services.api_runtime_execution",
+        "FlextDbOracleApiRuntimeIntrospection": ".services.api_runtime_introspection",
+        "FlextDbOracleApiRuntimeLifecycle": ".services.api_runtime_lifecycle",
+        "FlextDbOracleApiRuntimeState": ".services.api_runtime_state",
         "FlextDbOracleClient": ".client",
         "FlextDbOracleConfig": "._config",
         "FlextDbOracleConstants": ".constants",

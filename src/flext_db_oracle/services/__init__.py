@@ -14,6 +14,16 @@ from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_db_oracle.services.api_runtime import FlextDbOracleApiRuntime
+    from flext_db_oracle.services.api_runtime_execution import (
+        FlextDbOracleApiRuntimeExecution,
+    )
+    from flext_db_oracle.services.api_runtime_introspection import (
+        FlextDbOracleApiRuntimeIntrospection,
+    )
+    from flext_db_oracle.services.api_runtime_lifecycle import (
+        FlextDbOracleApiRuntimeLifecycle,
+    )
+    from flext_db_oracle.services.api_runtime_state import FlextDbOracleApiRuntimeState
     from flext_db_oracle.services.connection import FlextDbOracleServiceConnection
     from flext_db_oracle.services.facade import FlextDbOracleServices
     from flext_db_oracle.services.plugin import FlextDbOracleServicePlugin
@@ -25,6 +35,10 @@ if TYPE_CHECKING:
 
 __all__: tuple[str, ...] = (
     "FlextDbOracleApiRuntime",
+    "FlextDbOracleApiRuntimeExecution",
+    "FlextDbOracleApiRuntimeIntrospection",
+    "FlextDbOracleApiRuntimeLifecycle",
+    "FlextDbOracleApiRuntimeState",
     "FlextDbOracleServiceConnection",
     "FlextDbOracleServicePlugin",
     "FlextDbOracleServiceQuery",
@@ -39,6 +53,10 @@ install_lazy_exports(
     globals(),
     MappingProxyType({
         "FlextDbOracleApiRuntime": ".api_runtime",
+        "FlextDbOracleApiRuntimeExecution": ".api_runtime_execution",
+        "FlextDbOracleApiRuntimeIntrospection": ".api_runtime_introspection",
+        "FlextDbOracleApiRuntimeLifecycle": ".api_runtime_lifecycle",
+        "FlextDbOracleApiRuntimeState": ".api_runtime_state",
         "FlextDbOracleServiceConnection": ".connection",
         "FlextDbOracleServicePlugin": ".plugin",
         "FlextDbOracleServiceQuery": ".query",
