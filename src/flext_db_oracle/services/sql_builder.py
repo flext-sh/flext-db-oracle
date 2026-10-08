@@ -297,10 +297,13 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         selected_column_clauses: list[ColumnClause[str]] = [
             table_clause.c[column_name] for column_name in selected_columns
         ]
+        # ``literal_column`` leaves its type parameter unbound; the pinned
+        # local keeps the projection type known without changing the runtime.
+        star_column: ColumnClause[str] = literal_column("*")
         statement: Select[tuple[str]] = (
             select(*selected_column_clauses)
             if selected_column_clauses
-            else select(literal_column("*"))
+            else select(star_column)
         ).select_from(table_clause)
         for column_name in condition_columns:
             statement = statement.where(

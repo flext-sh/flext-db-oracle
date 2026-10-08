@@ -15,8 +15,8 @@ from flext_tests import FlextTestsDocker, FlextTestsModels, FlextTestsUtilities
 from flext_db_oracle import FlextDbOracleUtilities, u
 from tests import c, m, t
 
-if TYPE_CHECKING:
-    from collections.abc import MutableMapping
+from collections.abc import Mapping, MutableMapping  # noqa: TC003 -- Mapping used at runtime in the adapter form
+
 
 
 class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
@@ -26,7 +26,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
         """Test-specific utilities."""
 
         _PORT_BINDINGS_ADAPTER: ClassVar[m.TypeAdapter[t.StrMapping]] = u.type_adapter(
-            t.StrMapping,
+            Mapping[str, str],
         )
 
         @classmethod
