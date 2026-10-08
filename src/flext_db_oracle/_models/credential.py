@@ -11,7 +11,7 @@ from typing import override
 from flext_core import m, u
 
 
-class FlextDbOracleCredentialModel(m.RootModel):
+class FlextDbOracleCredentialModel(m.RootModel[str]):
     """Password value object used by Oracle settings."""
 
     root: str = u.Field(

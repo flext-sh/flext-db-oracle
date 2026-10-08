@@ -52,7 +52,10 @@ class FlextDbOracleExceptions(FlextExceptions):
             metadata: p.HasModelDump | t.JsonValue | None = None,
         ) -> None:
             """Initialize connection error with TNS and connection metadata."""
-            super().__init__(message, metadata=metadata)
+            super().__init__(
+                message,
+                metadata=type(self).normalize_metadata(metadata, {}),
+            )
             self.tns_error = tns_error
             self.connection_string = connection_string
 
@@ -68,7 +71,10 @@ class FlextDbOracleExceptions(FlextExceptions):
             metadata: p.HasModelDump | t.JsonValue | None = None,
         ) -> None:
             """Initialize processing error with operation type and stage metadata."""
-            super().__init__(message, metadata=metadata)
+            super().__init__(
+                message,
+                metadata=type(self).normalize_metadata(metadata, {}),
+            )
             self.operation_type = operation_type
             self.processing_stage = processing_stage
 

@@ -16,6 +16,7 @@ from sqlalchemy import (
     Column as sa_Column,
     Index,
     MetaData,
+    Select,
     Table,
     TableClause,
     bindparam,
@@ -31,7 +32,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.oracle import dialect as oracle_dialect
 from sqlalchemy.sql import quoted_name
 from sqlalchemy.sql.ddl import CreateIndex, CreateTable, DropTable
-from sqlalchemy.sql.elements import ColumnElement
+from sqlalchemy.sql.elements import ColumnClause
 from sqlalchemy.types import UserDefinedType
 
 from flext_db_oracle import (
@@ -109,18 +110,22 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         Returns:
             The resulting ``TableClause``.
         """
+        # sqlalchemy's ``column()`` leaves its type parameter unbound; pinning
+        # the clause list to ``ColumnClause[str]`` keeps the element type known
+        # through ``table()``/``select()`` without changing runtime behavior.
+        column_clauses: list[ColumnClause[str]] = [
+            column(
+                column_name
+                if c.DbOracle.IDENTIFIER_RE.fullmatch(column_name)
+                else quoted_name(column_name, quote=True),
+            )
+            for column_name in column_names
+        ]
         return table(
             table_name.upper()
             if c.DbOracle.IDENTIFIER_RE.fullmatch(table_name)
             else quoted_name(table_name, quote=True),
-            *(
-                column(
-                    column_name
-                    if c.DbOracle.IDENTIFIER_RE.fullmatch(column_name)
-                    else quoted_name(column_name, quote=True),
-                )
-                for column_name in column_names
-            ),
+            *column_clauses,
             schema=(
                 schema.upper()
                 if schema and c.DbOracle.IDENTIFIER_RE.fullmatch(schema)
@@ -289,10 +294,10 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             statement_columns,
             schema_name,
         )
-        selected_column_clauses: list[ColumnElement[str]] = [
+        selected_column_clauses: list[ColumnClause[str]] = [
             table_clause.c[column_name] for column_name in selected_columns
         ]
-        statement = (
+        statement: Select[tuple[str]] = (
             select(*selected_column_clauses)
             if selected_column_clauses
             else select(literal_column("*"))
