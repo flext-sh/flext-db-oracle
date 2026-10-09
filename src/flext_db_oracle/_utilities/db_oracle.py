@@ -22,8 +22,7 @@ from sqlalchemy import (
     create_engine,
 )
 
-from flext_db_oracle._settings import settings
-from flext_db_oracle.constants import FlextDbOracleConstants as c
+from flext_db_oracle import c, settings
 
 if TYPE_CHECKING:
     import contextlib

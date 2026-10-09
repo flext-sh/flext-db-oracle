@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 
 import pytest
 from flext_tests import tm
@@ -25,15 +25,19 @@ from tests import c, m, t, u
 class TestsFlextDbOracleUtilitiesUnit:
     """Behavioral contract for u.DbOracle Oracle helper utilities."""
 
+    # Resolved generics, not bare PEP 695 aliases: the adapter form must be a
+    # checker-visible type expression (aliases unwrap to the same adapter).
+    # Concrete generics only: bare PEP 695 aliases in a runtime union collapse
+    # to UnionType/TypeAliasType objects, which the adapter form rejects.
     _JSON_RESULT_ADAPTER: m.TypeAdapter[
-        t.SequenceOf[Mapping[str, int | str | bool]]
-        | t.SequenceOf[t.StrMapping]
-        | t.SequenceOf[t.IntMapping]
+        Sequence[Mapping[str, int | str | bool]]
+        | Sequence[Mapping[str, str]]
+        | Sequence[Mapping[str, int]]
         | None
     ] = u.type_adapter(
-        t.SequenceOf[Mapping[str, int | str | bool]]
-        | t.SequenceOf[t.StrMapping]
-        | t.SequenceOf[t.IntMapping]
+        Sequence[Mapping[str, int | str | bool]]
+        | Sequence[Mapping[str, str]]
+        | Sequence[Mapping[str, int]]
         | None,
     )
 

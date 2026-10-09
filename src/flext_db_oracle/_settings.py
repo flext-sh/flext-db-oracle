@@ -32,62 +32,60 @@ class FlextDbOracleSettings(FlextCliSettings):
 
         host: Annotated[
             str,
-            m.Field(default="localhost", description="Oracle database host address"),
-        ]
+            m.Field(description="Oracle database host address"),
+        ] = "localhost"
         port: Annotated[
             int,
-            m.Field(default=1521, description="Oracle database listener port"),
-        ]
+            m.Field(description="Oracle database listener port"),
+        ] = 1521
         service_name: Annotated[
             str,
-            m.Field(default="XEPDB1", description="Oracle service name for connection"),
-        ]
+            m.Field(description="Oracle service name for connection"),
+        ] = "XEPDB1"
         username: Annotated[
             str,
-            m.Field(default="system", description="Oracle database username"),
-        ]
+            m.Field(description="Oracle database username"),
+        ] = "system"
         password: Annotated[
             str,
-            m.Field(default="", description="Oracle database password"),
-        ]
+            m.Field(description="Oracle database password"),
+        ] = ""
         timeout: Annotated[
             int,
-            m.Field(default=30, description="Connection timeout (s)"),
-        ]
+            m.Field(description="Connection timeout (s)"),
+        ] = 30
         pool_min: Annotated[
             int,
-            m.Field(default=2, description="Minimum connection pool size"),
-        ]
+            m.Field(description="Minimum connection pool size"),
+        ] = 2
         pool_max: Annotated[
             int,
-            m.Field(default=20, description="Maximum connection pool size"),
-        ]
+            m.Field(description="Maximum connection pool size"),
+        ] = 20
         sid: Annotated[
             str | None,
-            m.Field(default=None, description="Oracle SID for legacy connections"),
-        ]
+            m.Field(description="Oracle SID for legacy connections"),
+        ] = None
         name: Annotated[
             str,
-            m.Field(default="XE", description="Oracle database name identifier"),
-        ]
+            m.Field(description="Oracle database name identifier"),
+        ] = "XE"
         ssl_cert_file: Annotated[
             str | None,
-            m.Field(default=None, description="Path to SSL certificate file"),
-        ]
+            m.Field(description="Path to SSL certificate file"),
+        ] = None
         ssl_server_cert_dn: Annotated[
             str | None,
             m.Field(
-                default=None,
                 description="Distinguished name of server SSL certificate",
             ),
-        ]
+        ] = None
         enable_dispatcher: Annotated[
             bool,
             m.Field(
-                default=False,
                 description="Enable dispatcher integration for CQRS patterns",
             ),
-        ]
+        ] = False
 
     DbOracle: DbOracleSettings = m.Field(
         default_factory=DbOracleSettings,
