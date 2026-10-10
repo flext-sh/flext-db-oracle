@@ -8,9 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
-import gc
 import os
-import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -30,6 +28,14 @@ if TYPE_CHECKING:
 logger = u.fetch_logger(__name__)
 
 _ORACLE_CONTAINER_NAME = "flext-oracle-db-test"
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    """Declare services from fixture dependencies, not test directory names."""
+    for item in items:
+        if "shared_oracle_container" in getattr(item, "fixturenames", ()):
+            item.add_marker(pytest.mark.docker)
+            item.add_marker(pytest.mark.oracle)
 
 
 @pytest.fixture
@@ -77,6 +83,8 @@ def pytest_configure(config: pytest.Config) -> None:
 def pytest_sessionstart(session: pytest.Session) -> None:
     """Cleanup dirty containers BEFORE test session starts."""
     _ = session
+    if not u.Tests.has_external_environment((), Path(__file__).parents[1] / ".env"):
+        return
     try:
         _cleanup_dirty_oracle_container()
     except (ConnectionError, TimeoutError, OSError, RuntimeError) as e:
@@ -180,7 +188,7 @@ def shared_oracle_container(docker_control: FlextTestsDocker) -> str:
     Probe budget stays under flext-infra pytest case-timeout (30s). Cold Oracle
     skips cleanly; warm/shared containers that already accept connections pass.
     Long first-boot (SHARED_CONTAINERS startup_timeout=900) is not a per-case wait.
-    DB login readiness is enforced by ``connected_oracle_api`` (skip on failure).
+    DB login failures remain failures after shared transport readiness.
 
     Returns:
         The resulting ``str``.
@@ -194,9 +202,7 @@ def shared_oracle_container(docker_control: FlextTestsDocker) -> str:
         )
     ensure_result = docker_control.execute()
     if ensure_result.failure:
-        pytest.skip(
-            f"Oracle container {container_name} unavailable: {ensure_result.error}",
-        )
+        pytest.fail("Oracle container setup failed after readiness")
     resolved_port = u.Tests.resolve_oracle_test_port(docker_control, container_name)
     os.environ["TEST_ORACLE_PORT"] = str(resolved_port)
     host = target.host if target is not None else c.LOCALHOST
@@ -218,17 +224,7 @@ def shared_oracle_container(docker_control: FlextTestsDocker) -> str:
 
 @pytest.fixture(scope="session")
 def oracle_login_ready(shared_oracle_container: str) -> str:
-    """Skip live Oracle tests when the shared database refuses a real login.
-
-    A TCP-ready listener does not mean the database accepts sessions: Oracle
-    opens the port long before the service is usable. Without this gate the
-    tests that consume ``real_oracle_config`` connect directly and report a
-    failure instead of skipping on an unavailable database.
-
-    The single probe connection runs with ``ResourceWarning`` suppressed and an
-    explicit collection, because a refused ``oracledb.connect`` leaks its socket
-    and ``filterwarnings = error`` would otherwise surface it as an unrelated
-    ``PytestUnraisableExceptionWarning`` during a later test's teardown.
+    """Require an actual login; authentication is not an availability skip.
 
     Returns:
         The resulting ``str``.
@@ -237,24 +233,12 @@ def oracle_login_ready(shared_oracle_container: str) -> str:
     port = int(os.getenv("TEST_ORACLE_PORT", "1522"))
     service = os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB")
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", ResourceWarning)
-        try:
-            probe = oracledb.connect(
-                user=os.getenv("TEST_ORACLE_USER", "flext_test"),
-                password=os.getenv("TEST_ORACLE_PASSWORD", "flext_test_password"),
-                dsn=f"{host}:{port}/{service}",
-            )
-        except (oracledb.Error, OSError) as exc:
-            gc.collect()
-            pytest.skip(
-                f"Oracle {host}:{port}/{service} is not accepting logins: {exc}",
-            )
-        else:
-            with contextlib.suppress(oracledb.Error, OSError):
-                probe.close()
-        finally:
-            gc.collect()
+    with oracledb.connect(
+        user=os.getenv("TEST_ORACLE_USER", "flext_test"),
+        password=os.getenv("TEST_ORACLE_PASSWORD", "flext_test_password"),
+        dsn=f"{host}:{port}/{service}",
+    ):
+        pass
 
     logger.info("Oracle login ready on %s:%s/%s", host, port, service)
     return shared_oracle_container
@@ -437,7 +421,7 @@ def connected_oracle_api(oracle_api: FlextDbOracleApi) -> Generator[FlextDbOracl
     """
     connect_result = oracle_api.connect()
     if connect_result.failure:
-        pytest.skip(f"Failed to connect Oracle API: {connect_result.error}")
+        pytest.fail("Oracle API login failed after readiness")
     connected_api = connect_result.value
     with u.Tests.FileLock(
         Path.home() / ".flext" / f"{_ORACLE_CONTAINER_NAME}.seed.lock",
