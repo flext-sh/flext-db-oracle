@@ -297,12 +297,12 @@ class FlextDbOracleClient(s):
 
     @staticmethod
     def _adapt_schemas(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
-        schemas = t.json_list_adapter().validate_python(raw_value)
+        schemas = u.json_list_adapter().validate_python(raw_value)
         return [m.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
 
     @staticmethod
     def _adapt_tables(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
-        tables = t.json_list_adapter().validate_python(raw_value)
+        tables = u.json_list_adapter().validate_python(raw_value)
         return [m.ConfigMap(root={"table": str(table)}) for table in tables]
 
     @staticmethod
@@ -605,11 +605,11 @@ class FlextDbOracleClient(s):
         if isinstance(raw_params, m.ConfigMap):
             params_map = raw_params
         else:
-            normalized = u.validate_value(t.json_mapping_adapter(), raw_params)
+            normalized = u.validate_value(u.json_mapping_adapter(), raw_params)
             if normalized.failure:
                 return r[m.ConfigMap].from_failure(normalized)
             params_map = m.ConfigMap.model_validate({"root": normalized.value})
-        query_params: t.JsonMapping = t.json_mapping_adapter().validate_python(
+        query_params: t.JsonMapping = u.json_mapping_adapter().validate_python(
             params_map.root,
         )
         return self.current_connection.query(sql, query_params).map(

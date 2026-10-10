@@ -103,7 +103,7 @@ class FlextDbOracleUtilitiesDbOracle:
         """
         if format_type == "json":
             json_payload: t.JsonValue = u.normalize_to_json_value(result)
-            return r[str].ok(t.json_value_adapter().dump_json(json_payload).decode())
+            return r[str].ok(u.json_value_adapter().dump_json(json_payload).decode())
         return r[str].ok(str(result))
 
     @staticmethod
@@ -128,7 +128,7 @@ class FlextDbOracleUtilitiesDbOracle:
             The resulting ``p.Result[str]``.
         """
         sorted_params = dict(sorted((params or {}).items()))
-        serialized = t.json_mapping_adapter().dump_json(sorted_params).decode()
+        serialized = u.json_mapping_adapter().dump_json(sorted_params).decode()
         payload = f"{query}|{serialized}".encode()
         return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
 
@@ -181,7 +181,7 @@ class FlextDbOracleUtilitiesDbOracle:
         """
         if isinstance(value, str):
             return value
-        validated = u.validate_value(t.str_sequence_adapter(), value).unwrap()
+        validated = u.validate_value(u.str_sequence_adapter(), value).unwrap()
         if not validated:
             msg = "Singer type sequence must not be empty"
             raise ValueError(msg)
