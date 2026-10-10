@@ -33,7 +33,7 @@ _ORACLE_CONTAINER_NAME = "flext-oracle-db-test"
 def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
     """Declare services from fixture dependencies, not test directory names."""
     for item in items:
-        if "shared_oracle_container" in item.fixturenames:
+        if "shared_oracle_container" in getattr(item, "fixturenames", ()):
             item.add_marker(pytest.mark.docker)
             item.add_marker(pytest.mark.oracle)
 
@@ -224,7 +224,11 @@ def shared_oracle_container(docker_control: FlextTestsDocker) -> str:
 
 @pytest.fixture(scope="session")
 def oracle_login_ready(shared_oracle_container: str) -> str:
-    """Require an actual login; authentication is not an availability skip."""
+    """Require an actual login; authentication is not an availability skip.
+
+    Returns:
+        The resulting ``str``.
+    """
     host = os.getenv("TEST_ORACLE_HOST", c.LOCALHOST)
     port = int(os.getenv("TEST_ORACLE_PORT", "1522"))
     service = os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB")
