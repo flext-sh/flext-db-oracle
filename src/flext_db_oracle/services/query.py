@@ -68,8 +68,8 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
                     result = self._connection_execute(conn, text(sql), typed_params)
                     total_affected += max(result.rowcount, 0)
                 return r[int].ok(total_affected)
-        except c.DbOracle.EXC_DB_BROAD as e:
-            return r[int].fail_op("Bulk execution", e)
+        except c.DbOracle.EXC_DB_BROAD as exc:
+            return r[int].fail_op("Bulk execution", exc)
 
     # flext-1wjg1.16: not a real override -- QueryExecutor is a structural
     # Protocol (protocols.py), never a base class of this mixin, so pyrefly's
@@ -94,8 +94,8 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
                 result = self._connection_execute(conn, text(sql), params)
                 rows: t.SequenceOf[m.Dict] = self._normalize_query_rows(result)
                 return r[Sequence[m.Dict]].ok(rows)
-        except c.DbOracle.EXC_DB_BROAD as e:
-            return r[Sequence[m.Dict]].fail_op("Query execution", e)
+        except c.DbOracle.EXC_DB_BROAD as exc:
+            return r[Sequence[m.Dict]].fail_op("Query execution", exc)
 
     def execute_statement(
         self,
@@ -117,8 +117,8 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
                 result = self._connection_execute(conn, text(sql), params)
                 rowcount = max(result.rowcount, 0)
                 return r[int].ok(rowcount)
-        except c.DbOracle.EXC_DB_BROAD as e:
-            return r[int].fail_op("Statement execution", e)
+        except c.DbOracle.EXC_DB_BROAD as exc:
+            return r[int].fail_op("Statement execution", exc)
 
     def fetch_one(
         self,

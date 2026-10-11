@@ -17,7 +17,7 @@ from typing import ClassVar, cast
 from flext_cli import FlextCliModels
 
 from flext_db_oracle import c, t, u
-from flext_db_oracle._models.credential import FlextDbOracleCredentialModel
+from flext_db_oracle._models import FlextDbOracleCredentialModel
 
 
 class FlextDbOracleModels(FlextCliModels):

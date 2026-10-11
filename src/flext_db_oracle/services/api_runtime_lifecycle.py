@@ -10,8 +10,10 @@ from typing import TYPE_CHECKING, Self, override
 from urllib.parse import parse_qs, urlparse
 
 from flext_db_oracle import (
+    FlextDbOracleApiRuntimeState,
     FlextDbOracleDispatcher,
     FlextDbOracleServiceBase,
+    FlextDbOracleServices,
     FlextDbOracleSettings,
     c,
     m,
@@ -20,8 +22,6 @@ from flext_db_oracle import (
     t,
     u,
 )
-from flext_db_oracle.services.api_runtime_state import FlextDbOracleApiRuntimeState
-from flext_db_oracle.services.facade import FlextDbOracleServices
 
 if TYPE_CHECKING:
     import types
@@ -204,7 +204,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
         path_service = (parsed.path or "").lstrip("/")
         query_service = parse_qs(parsed.query).get("service_name", [None])[0]
         service_name = (query_service or path_service or "XEPDB1").upper()
-        fields: dict[str, object] = {
+        fields: t.JsonDict = {
             "host": parsed.hostname,
             "port": parsed.port or 1521,
             "username": parsed.username or "",

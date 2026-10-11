@@ -15,9 +15,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from flext_db_oracle import c, m, u
+from flext_db_oracle import m, u
 from flext_db_oracle.client import FlextDbOracleClient
-from tests import tm
+from tests import c, tm
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

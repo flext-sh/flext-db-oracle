@@ -146,8 +146,8 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
                 return r[str].fail("Invalid CREATE INDEX settings payload")
             settings = m.DbOracle.CreateIndexConfig.model_validate(config)
             return self._create_index_sql(settings)
-        except c.ValidationError as e:
-            return r[str].fail(f"Invalid CREATE INDEX settings: {e}", exception=e)
+        except c.ValidationError as exc:
+            return r[str].fail(f"Invalid CREATE INDEX settings: {exc}", exception=exc)
 
     def _create_index_sql(
         self,
@@ -365,8 +365,8 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             table_object = self._create_table_object(table_name, column_models, schema)
             ddl = self._compile_statement(CreateTable(table_object))
             return r[str].ok(ddl)
-        except c.ValidationError as e:
-            return r[str].fail(f"Invalid CREATE TABLE settings: {e}", exception=e)
+        except c.ValidationError as exc:
+            return r[str].fail(f"Invalid CREATE TABLE settings: {exc}", exception=exc)
 
     def _normalize_table_columns(
         self,

@@ -9,8 +9,7 @@ from __future__ import annotations
 from collections.abc import MutableSequence, Sequence
 from typing import override
 
-from flext_db_oracle import m, p, r, t, u
-from flext_db_oracle.services.api_runtime_state import FlextDbOracleApiRuntimeState
+from flext_db_oracle import FlextDbOracleApiRuntimeState, m, p, r, t, u
 
 
 class FlextDbOracleApiRuntimeExecution(FlextDbOracleApiRuntimeState):

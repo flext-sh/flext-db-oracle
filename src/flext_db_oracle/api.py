@@ -10,10 +10,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle._settings import FlextDbOracleSettings
-from flext_db_oracle.services.api_runtime import FlextDbOracleApiRuntime
-from flext_db_oracle.services.api_runtime_lifecycle import (
+from flext_db_oracle import (
+    FlextDbOracleApiRuntime,
     FlextDbOracleApiRuntimeLifecycle,
+    FlextDbOracleSettings,
 )
 
 

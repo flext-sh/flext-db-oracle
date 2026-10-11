@@ -15,8 +15,15 @@ from urllib.parse import quote_plus
 
 from sqlalchemy import Connection as SAConnection, text
 
-from flext_core import r
-from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleSettings, c, m, p, u
+from flext_db_oracle import (
+    FlextDbOracleServiceBase,
+    FlextDbOracleSettings,
+    c,
+    m,
+    p,
+    r,
+    u,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -61,7 +68,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                 self.db_config.DbOracle.host,
             )
             ok_result: p.Result[Self] = r.ok(self)
-        except c.DbOracle.EXC_DB_BROAD as e:
+        except c.DbOracle.EXC_DB_BROAD as exc:
             local_host = self.db_config.DbOracle.host in {
                 "localhost",
                 c.DbOracle.LOOPBACK_IP,
@@ -91,7 +98,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                         return nested_ok
             self._engine = None
             self.logger.exception("Oracle connection failed")
-            return r[Self](error=f"Connection failed: {e}", success=False)
+            return r[Self](error=f"Connection failed: {exc}", success=False)
         else:
             return ok_result
 
@@ -195,8 +202,8 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             with self._engine_connect(engine_result.value) as conn:
                 _ = self._connection_execute(conn, text("SELECT 1 FROM dual"))
             return r[bool].ok(value=True)
-        except c.DbOracle.EXC_DB_BROAD as e:
-            return r[bool].fail_op("Connection test", e)
+        except c.DbOracle.EXC_DB_BROAD as exc:
+            return r[bool].fail_op("Connection test", exc)
 
     def transaction(self) -> Generator[SAConnection]:
         """Get transaction context for database operations.
@@ -242,8 +249,8 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             if not password:
                 return r[str].fail("Password is required for database connection")
             return self._assemble_connection_url(password, port=port)
-        except c.DbOracle.EXC_DB_BROAD as e:
-            return r[str].fail(f"Failed to build connection URL: {e}", exception=e)
+        except c.DbOracle.EXC_DB_BROAD as exc:
+            return r[str].fail(f"Failed to build connection URL: {exc}", exception=exc)
 
 
 __all__: list[str] = ["FlextDbOracleServiceConnection"]
