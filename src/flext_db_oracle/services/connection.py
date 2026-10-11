@@ -3,7 +3,7 @@
 Manages Oracle database connection lifecycle: connect, disconnect,
 test, health check, and connection URL building.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 

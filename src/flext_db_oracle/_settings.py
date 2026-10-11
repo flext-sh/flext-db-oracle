@@ -7,7 +7,7 @@ field lives inside the ``DbOracle`` namespace group with simple scalar types so
 each is settable via ``.env`` / env vars / params
 (``ORACLE_DBORACLE__HOST`` …).
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 

@@ -6,7 +6,7 @@ invariants each helper promises (determinism, order-independence, truncation,
 whitespace normalization). No private attributes, internal collaborators, or
 implementation structures are exercised.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 

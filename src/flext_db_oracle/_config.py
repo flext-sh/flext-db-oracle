@@ -4,7 +4,7 @@ Model-less: business rules live in ``config/*.yaml`` under the ``DbOracle:`` key
 are exposed through the open ``config.DbOracle`` namespace (``extra="allow"``), with
 no per-domain model. Access is ``config.DbOracle.<domain>[<key>...]``.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 

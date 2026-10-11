@@ -5,7 +5,7 @@ object, the Column model, and the composed services facade: return values,
 ``r[T]`` outcomes, raised validation errors, and public model state. No
 private attributes, no internal-collaborator spying, no line-coverage pokes.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 

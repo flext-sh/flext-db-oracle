@@ -5,7 +5,7 @@ Oracle services facade: SQL text produced by the builders, the r[T] outcome
 of fallible operations, and public model state. No database connection, no
 patching of internal collaborators, no private-attribute access.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 

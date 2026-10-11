@@ -1,6 +1,6 @@
 """Behavioral unit tests for flext_db_oracle.models public contract.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 

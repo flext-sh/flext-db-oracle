@@ -5,7 +5,7 @@ These tests exercise the public contract of :class:`FlextDbOracleApi` and
 the shared Oracle container is unavailable within the probe budget. Offline
 error-path cases do not require a ready database.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 

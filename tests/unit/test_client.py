@@ -5,7 +5,7 @@ return values, r[T] success/failure outcomes, error messages, and public
 model state. No private attributes, internal collaborators, or line-coverage
 pokes are exercised.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 

@@ -3,7 +3,7 @@
 Provides Oracle schema introspection: tables, columns,
 primary keys, table metadata, row counts.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
