@@ -12,10 +12,9 @@ import time
 from enum import StrEnum
 
 import pytest
-from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import c, u
+from tests import c, tm, u
 
 
 @pytest.mark.unit

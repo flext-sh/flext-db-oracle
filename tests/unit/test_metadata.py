@@ -19,11 +19,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, TypeVar
 
 import pytest
-from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.services.facade import FlextDbOracleServices
-from tests import m, t
+from tests import m, t, tm
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence

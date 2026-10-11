@@ -18,9 +18,9 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 import pytest
-from flext_tests import tm
 
 from flext_db_oracle import p
+from tests import tm
 
 if TYPE_CHECKING:
     from tests import t

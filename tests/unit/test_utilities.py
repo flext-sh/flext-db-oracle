@@ -15,10 +15,9 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 
 import pytest
-from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleSettings
-from tests import c, m, t, u
+from tests import c, m, t, tm, u
 
 
 @pytest.mark.unit
