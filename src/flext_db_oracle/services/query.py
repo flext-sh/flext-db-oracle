@@ -12,12 +12,12 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from sqlalchemy import text
+from sqlalchemy import Engine as SAEngine, text
 
 from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
 
 if TYPE_CHECKING:
-    from sqlalchemy.engine import CursorResult, Engine as SAEngine
+    from sqlalchemy.engine import CursorResult
 
 
 class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
@@ -146,16 +146,6 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             for row in rows
         ]
         return result
-
-    @staticmethod
-    def _normalize_row(row: t.JsonMapping) -> m.Dict:
-        """Normalize a single SQLAlchemy mapping row into a typed map.
-
-        Returns:
-            The resulting ``m.Dict``.
-        """
-        payload: dict[str, t.JsonPayload] = dict(row)
-        return m.Dict(root=payload)
 
 
 __all__: list[str] = ["FlextDbOracleServiceQuery"]

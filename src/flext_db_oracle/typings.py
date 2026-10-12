@@ -7,10 +7,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import oracledb
 from flext_cli import FlextCliTypes
 
-from flext_db_oracle._settings import FlextDbOracleSettings
+if TYPE_CHECKING:
+    from flext_db_oracle._settings import FlextDbOracleSettings
 
 
 class FlextDbOracleTypes(FlextCliTypes):
@@ -24,7 +27,8 @@ class FlextDbOracleTypes(FlextCliTypes):
 
         type QueryParameters = FlextCliTypes.JsonMapping
         type CliScalar = FlextCliTypes.Scalar | None
-        type Settings = FlextDbOracleSettings
+        if TYPE_CHECKING:
+            type Settings = FlextDbOracleSettings
 
 
 t = FlextDbOracleTypes

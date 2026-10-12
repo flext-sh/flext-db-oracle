@@ -39,7 +39,7 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
 
 
 @pytest.fixture
-def test_settings() -> FlextDbOracleSettings:
+def oracle_unit_settings() -> FlextDbOracleSettings:
     """Return a valid Oracle settings instance for service construction."""
     return FlextDbOracleSettings.model_validate({
         "DbOracle": {
@@ -53,9 +53,11 @@ def test_settings() -> FlextDbOracleSettings:
 
 
 @pytest.fixture
-def test_service(test_settings: FlextDbOracleSettings) -> FlextDbOracleServices:
+def oracle_unit_services(
+    oracle_unit_settings: FlextDbOracleSettings,
+) -> FlextDbOracleServices:
     """Return a services facade bound to the valid settings."""
-    return FlextDbOracleServices(settings=test_settings)
+    return FlextDbOracleServices(settings=oracle_unit_settings)
 
 
 # NOTE (multi-agent): ADR-005 singleton discipline — drop the settings singleton
@@ -100,8 +102,7 @@ def _cleanup_dirty_oracle_container() -> None:
         container_name,
         repository_root=Path(__file__).resolve().parents[2],
     )
-    dirty_containers = docker.dirty_containers
-    if not dirty_containers:
+    if not docker.dirty_containers:
         logger.debug("No dirty containers to clean")
         return
     status_result = docker.fetch_container_status(container_name)
@@ -110,16 +111,16 @@ def _cleanup_dirty_oracle_container() -> None:
     ):
         docker.mark_container_clean(container_name)
         logger.info("Container %s is healthy, cleared dirty state", container_name)
-        return
-    cleanup_result = docker.cleanup_dirty_containers()
-    if cleanup_result.failure:
-        logger.warning("Dirty container cleanup failed: %s", cleanup_result.error)
-        return
-    cleaned = cleanup_result.value
-    if cleaned:
-        logger.info("Recreated dirty containers: %s", ", ".join(cleaned))
-        return
-    logger.debug("No dirty containers to clean")
+    else:
+        cleanup_result = docker.cleanup_dirty_containers()
+        if cleanup_result.success:
+            cleaned = cleanup_result.value
+            if cleaned:
+                logger.info("Recreated dirty containers: %s", ", ".join(cleaned))
+            else:
+                logger.debug("No dirty containers to clean")
+        else:
+            logger.warning("Dirty container cleanup failed: %s", cleanup_result.error)
 
 
 def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[None]) -> None:
@@ -444,7 +445,7 @@ def oracle_available(connected_oracle_api: FlextDbOracleApi) -> bool:
 
 
 @pytest.fixture
-def test_database_setup(connected_oracle_api: FlextDbOracleApi) -> t.StrMapping:
+def oracle_test_database(connected_oracle_api: FlextDbOracleApi) -> t.StrMapping:
     """Set up test database schema and return test table info.
 
     Returns:

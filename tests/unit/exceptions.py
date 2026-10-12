@@ -9,8 +9,5 @@ from __future__ import annotations
 from flext_db_oracle import FlextDbOracleExceptions
 
 
-class FlextDbOracleTestExceptions(FlextDbOracleExceptions):
+class TestsFlextDbOracleExceptions(FlextDbOracleExceptions):
     """Test exceptions namespace for flext-db-oracle."""
-
-
-e = FlextDbOracleTestExceptions

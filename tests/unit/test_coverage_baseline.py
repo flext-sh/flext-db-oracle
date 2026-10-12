@@ -25,20 +25,20 @@ class TestsFlextDbOracleCoverageBaseline:
 
     @staticmethod
     def test_settings_expose_provided_connection_fields(
-        test_settings: FlextDbOracleSettings,
+        oracle_unit_settings: FlextDbOracleSettings,
     ) -> None:
         """Settings return the exact host/port/service/user supplied at build."""
-        tm.that(test_settings.DbOracle.host, eq="localhost")
-        tm.that(test_settings.DbOracle.port, eq=1521)
-        tm.that(test_settings.DbOracle.service_name, eq="TEST")
-        tm.that(test_settings.DbOracle.username, eq="testuser")
+        tm.that(oracle_unit_settings.DbOracle.host, eq="localhost")
+        tm.that(oracle_unit_settings.DbOracle.port, eq=1521)
+        tm.that(oracle_unit_settings.DbOracle.service_name, eq="TEST")
+        tm.that(oracle_unit_settings.DbOracle.username, eq="testuser")
 
     @staticmethod
     def test_settings_password_is_a_plain_string(
-        test_settings: FlextDbOracleSettings,
+        oracle_unit_settings: FlextDbOracleSettings,
     ) -> None:
         """The namespace stores the password as a plain string scalar."""
-        tm.that(test_settings.DbOracle.password, eq="testpass")
+        tm.that(oracle_unit_settings.DbOracle.password, eq="testpass")
 
     @staticmethod
     def test_settings_service_name_round_trips_verbatim() -> None:
@@ -105,94 +105,98 @@ class TestsFlextDbOracleCoverageBaseline:
 
     @staticmethod
     def test_service_exposes_bound_settings(
-        test_service: FlextDbOracleServices,
-        test_settings: FlextDbOracleSettings,
+        oracle_unit_services: FlextDbOracleServices,
+        oracle_unit_settings: FlextDbOracleSettings,
     ) -> None:
         """The facade returns the exact settings it was constructed with."""
-        tm.that(test_service.settings, eq=test_settings)
-        tm.that(test_service.db_config, eq=test_settings)
+        tm.that(oracle_unit_services.settings, eq=oracle_unit_settings)
+        tm.that(oracle_unit_services.db_config, eq=oracle_unit_settings)
 
     @staticmethod
     def test_service_is_not_connected_before_connect(
-        test_service: FlextDbOracleServices,
+        oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """A freshly built facade reports no active engine."""
-        tm.that(test_service.connected(), eq=False)
+        tm.that(oracle_unit_services.connected(), eq=False)
 
     @staticmethod
     def test_service_execute_returns_active_configuration(
-        test_service: FlextDbOracleServices,
-        test_settings: FlextDbOracleSettings,
+        oracle_unit_services: FlextDbOracleServices,
+        oracle_unit_settings: FlextDbOracleSettings,
     ) -> None:
         """execute() yields the active configuration as its default result."""
-        result = test_service.execute()
+        result = oracle_unit_services.execute()
         tm.ok(result)
-        tm.that(result.value, eq=test_settings)
+        tm.that(result.value, eq=oracle_unit_settings)
 
     @staticmethod
     def test_build_select_with_columns(
-        test_service: FlextDbOracleServices,
+        oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """build_select emits a SELECT over the named columns and table."""
-        sql = tm.ok(test_service.build_select("USERS", ["ID", "NAME"]))
+        sql = tm.ok(oracle_unit_services.build_select("USERS", ["ID", "NAME"]))
         tm.that(sql, has=["SELECT", "FROM", "USERS", "ID", "NAME"])
 
     @staticmethod
     def test_build_select_without_columns_selects_star(
-        test_service: FlextDbOracleServices,
+        oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """build_select with no column list projects all columns."""
-        sql = tm.ok(test_service.build_select("USERS"))
+        sql = tm.ok(oracle_unit_services.build_select("USERS"))
         tm.that(sql, has=["SELECT", "*", "USERS"])
 
     @staticmethod
     def test_build_insert_statement_binds_columns(
-        test_service: FlextDbOracleServices,
+        oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """build_insert_statement produces an INSERT with named binds."""
-        sql = tm.ok(test_service.build_insert_statement("USERS", ["ID", "NAME"]))
+        sql = tm.ok(
+            oracle_unit_services.build_insert_statement("USERS", ["ID", "NAME"])
+        )
         tm.that(sql, has=["INSERT INTO", "USERS", ":ID", ":NAME"])
 
     @staticmethod
     def test_build_update_statement_sets_and_filters(
-        test_service: FlextDbOracleServices,
+        oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """build_update_statement produces an UPDATE with SET and WHERE binds."""
-        sql = tm.ok(test_service.build_update_statement("USERS", ["NAME"], ["ID"]))
+        sql = tm.ok(
+            oracle_unit_services.build_update_statement("USERS", ["NAME"], ["ID"])
+        )
         tm.that(sql, has=["UPDATE", "SET", ":NAME", "WHERE", ":ID"])
 
     @staticmethod
     def test_build_delete_statement_filters_by_where(
-        test_service: FlextDbOracleServices,
+        oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """build_delete_statement produces a DELETE constrained by WHERE binds."""
-        sql = tm.ok(test_service.build_delete_statement("USERS", ["ID"]))
+        sql = tm.ok(oracle_unit_services.build_delete_statement("USERS", ["ID"]))
         tm.that(sql, has=["DELETE FROM", "USERS", "WHERE", ":ID"])
 
     @staticmethod
     def test_create_table_ddl_from_column_models(
-        test_service: FlextDbOracleServices,
+        oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """create_table_ddl compiles CREATE TABLE with the column definitions."""
         columns: list[m.DbOracle.Column] = [
             m.DbOracle.Column(name="ID", data_type="NUMBER", nullable=False),
         ]
-        sql = tm.ok(test_service.create_table_ddl("ACCOUNTS", columns))
+        sql = tm.ok(oracle_unit_services.create_table_ddl("ACCOUNTS", columns))
         tm.that(sql, has=["CREATE TABLE", "ACCOUNTS", "ID", "NUMBER"])
 
     @staticmethod
-    def test_drop_table_ddl(test_service: FlextDbOracleServices) -> None:
+    def test_drop_table_ddl(oracle_unit_services: FlextDbOracleServices) -> None:
         """drop_table_ddl compiles a DROP TABLE for the named table."""
-        sql = tm.ok(test_service.drop_table_ddl("ACCOUNTS"))
+        sql = tm.ok(oracle_unit_services.drop_table_ddl("ACCOUNTS"))
         tm.that(sql, has=["DROP TABLE", "ACCOUNTS"])
 
     @staticmethod
     def test_build_create_index_statement_success(
-        test_service: FlextDbOracleServices,
+        oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """A well-formed index config compiles to a CREATE INDEX statement."""
         sql = tm.ok(
-            test_service.build_create_index_statement({
+            oracle_unit_services.build_create_index_statement({
                 "index_name": "IX_USERS_ID",
                 "table_name": "USERS",
                 "columns": ["ID"],
@@ -202,18 +206,20 @@ class TestsFlextDbOracleCoverageBaseline:
 
     @staticmethod
     def test_build_create_index_rejects_invalid_payload(
-        test_service: FlextDbOracleServices,
+        oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """An index config missing required keys fails with a validation error."""
-        result = test_service.build_create_index_statement({"unexpected": "value"})
+        result = oracle_unit_services.build_create_index_statement({
+            "unexpected": "value"
+        })
         tm.fail(result, has="Invalid CREATE INDEX settings")
 
     @staticmethod
     def test_build_create_index_rejects_empty_columns(
-        test_service: FlextDbOracleServices,
+        oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """An index definition with no columns is rejected."""
-        result = test_service.build_create_index_statement({
+        result = oracle_unit_services.build_create_index_statement({
             "index_name": "IX_EMPTY",
             "table_name": "USERS",
             "columns": [],

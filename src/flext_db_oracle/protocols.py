@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, Self, runtime_checkable
 
 from flext_cli import FlextCliProtocols
 
@@ -46,12 +46,11 @@ class FlextDbOracleProtocols(FlextCliProtocols):
         class Connection(Protocol):
             """Protocol for Oracle database connection operations."""
 
-            def connect(self) -> p.Result[bool]:
+            def connect(self) -> p.Result[Self]:
                 """Establish Oracle database connection.
 
                 Returns:
-                r[bool]: Connection success status
-
+                    The connected implementer on success.
                 """
                 ...
 
@@ -59,17 +58,15 @@ class FlextDbOracleProtocols(FlextCliProtocols):
                 """Close Oracle database connection.
 
                 Returns:
-                r[bool]: Disconnection success status
-
+                    Whether the connection was closed.
                 """
                 ...
 
-            def connected(self) -> p.Result[bool]:
+            def connected(self) -> bool:
                 """Check if Oracle connection is active.
 
                 Returns:
-                r[bool]: Connection status
-
+                    Whether an active connection exists.
                 """
                 ...
 
@@ -264,77 +261,79 @@ class FlextDbOracleProtocols(FlextCliProtocols):
 
             def build_delete_statement(
                 self,
-                table: str,
-                where_clause: str,
+                table_name: str,
+                where_columns: t.StrSequence,
+                schema: str | None = None,
             ) -> p.Result[str]:
                 """Build Oracle DELETE statement.
 
                 Args:
-                table: Table name
-                where_clause: WHERE condition
+                    table_name: Table name.
+                    where_columns: Binding columns for the WHERE clause.
+                    schema: Optional schema name.
 
                 Returns:
-                r[str]: SQL DELETE statement or error
-
+                    The compiled DELETE statement or a typed failure.
                 """
                 ...
 
             def build_insert_statement(
                 self,
-                table: str,
-                data: t.JsonMapping,
-            ) -> p.Result[tuple[str, t.JsonMapping]]:
+                table_name: str,
+                columns: t.StrSequence,
+                schema: str | None = None,
+                returning_columns: t.StrSequence | None = None,
+            ) -> p.Result[str]:
                 """Build Oracle INSERT statement.
 
                 Args:
-                table: Table name
-                data: Column data
+                    table_name: Table name.
+                    columns: Columns to insert.
+                    schema: Optional schema name.
+                    returning_columns: Optional RETURNING columns.
 
                 Returns:
-                r[tuple[str, t.JsonMapping]]: SQL and parameters or error
-
+                    The compiled INSERT statement or a typed failure.
                 """
                 ...
 
             def build_select(
                 self,
-                table: str,
+                table_name: str,
                 columns: t.StrSequence | None = None,
-                where_clause: str | None = None,
-                order_by: str | None = None,
-                limit: int | None = None,
+                conditions: m.ConfigMap | t.JsonMapping | None = None,
+                schema_name: str | None = None,
             ) -> p.Result[str]:
                 """Build Oracle SELECT statement.
 
                 Args:
-                table: Table name
-                columns: Column names (optional)
-                where_clause: WHERE condition (optional)
-                order_by: ORDER BY clause (optional)
-                limit: Row limit (optional)
+                    table_name: Table name.
+                    columns: Columns to project.
+                    conditions: Optional equality conditions.
+                    schema_name: Optional schema name.
 
                 Returns:
-                r[str]: SQL SELECT statement or error
-
+                    The compiled SELECT statement or a typed failure.
                 """
                 ...
 
             def build_update_statement(
                 self,
-                table: str,
-                data: t.JsonMapping,
-                where_clause: str,
-            ) -> p.Result[tuple[str, t.JsonMapping]]:
+                table_name: str,
+                set_columns: t.StrSequence,
+                where_columns: t.StrSequence,
+                schema: str | None = None,
+            ) -> p.Result[str]:
                 """Build Oracle UPDATE statement.
 
                 Args:
-                table: Table name
-                data: Column data
-                where_clause: WHERE condition
+                    table_name: Table name.
+                    set_columns: Columns to assign.
+                    where_columns: Binding columns for the WHERE clause.
+                    schema: Optional schema name.
 
                 Returns:
-                r[tuple[str, t.JsonMapping]]: SQL and parameters or error
-
+                    The compiled UPDATE statement or a typed failure.
                 """
                 ...
 

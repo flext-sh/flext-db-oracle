@@ -17,6 +17,7 @@ from typing import ClassVar, cast
 from flext_cli import FlextCliModels, u
 
 from flext_db_oracle import c, t
+from flext_db_oracle._models.base import FlextDbOracleModelsBase
 from flext_db_oracle._models.credential import FlextDbOracleCredentialModel
 
 
@@ -29,7 +30,7 @@ class FlextDbOracleModels(FlextCliModels):
     All types moved to typings.py.
     """
 
-    class DbOracle:
+    class DbOracle(FlextDbOracleModelsBase):
         """DbOracle domain namespace."""
 
         Password: type[FlextDbOracleCredentialModel] = FlextDbOracleCredentialModel

@@ -69,8 +69,6 @@ class TestsFlextDbOracleCli:
         """Constructing twice yields distinct, independent instances."""
         client_a = FlextDbOracleClient()
         client_b = FlextDbOracleClient()
-        tm.that(client_a, is_=FlextDbOracleClient)
-        tm.that(client_b, is_=FlextDbOracleClient)
         tm.that(client_a is not client_b, eq=True)
 
     # ---- preference configuration ----------------------------------------

@@ -14,6 +14,7 @@ from flext_db_oracle import (
     FlextDbOracleServiceBase,
     FlextDbOracleSettings,
     c,
+    e,
     m,
     p,
     r,
@@ -131,10 +132,16 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
             The resulting ``p.Result[Self]``.
         """
         if not settings.DbOracle.username:
-            return r[Self].fail("Oracle username is required but not configured")
+            return r[Self](
+                error="Oracle username is required but not configured",
+                success=False,
+            )
         password = settings.DbOracle.password
         if not password:
-            return r[Self].fail("Oracle password is required but not configured")
+            return r[Self](
+                error="Oracle password is required but not configured",
+                success=False,
+            )
         ok_result: p.Result[Self] = r[Self].ok(cls(settings=settings))
         return ok_result
 
@@ -163,10 +170,13 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
         try:
             env_settings = env_settings_cls()
         except c.ValidationError as exc:
-            return r[Self].fail(f"Invalid settings: {exc}", exception=exc)
+            return e.fail_validation("settings", error=exc, result_type=r[Self])
 
         if not env_settings.DbOracle.password:
-            return r[Self].fail("password is required for database connection")
+            return r[Self](
+                error="password is required for database connection",
+                success=False,
+            )
 
         return cls._build_api_result(env_settings)
 
@@ -179,9 +189,12 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
         """
         parsed = urlparse(url)
         if parsed.scheme not in {"oracle", "oracle+oracledb"}:
-            return r[Self].fail(f"Unsupported Oracle URL scheme: {parsed.scheme}")
+            return r[Self](
+                error=f"Unsupported Oracle URL scheme: {parsed.scheme}",
+                success=False,
+            )
         if not parsed.hostname:
-            return r[Self].fail("Oracle URL must include a host")
+            return r[Self](error="Oracle URL must include a host", success=False)
         path_service = (parsed.path or "").lstrip("/")
         query_service = parse_qs(parsed.query).get("service_name", [None])[0]
         service_name = (query_service or path_service or "XEPDB1").upper()
