@@ -13,16 +13,7 @@ from collections.abc import Sequence
 
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
-from flext_db_oracle import (
-    FlextDbOracleServiceBase,
-    FlextDbOracleSettings,
-    e,
-    m,
-    p,
-    r,
-    t,
-    u,
-)
+from flext_db_oracle import FlextDbOracleServiceBase, e, m, p, r, t, u
 
 
 class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
@@ -38,7 +29,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
     # generated kwargs-only signature (settings_type=/runtime_settings=/...)
     # instead -- a bad-override against FlextDbOracleServices.__init__. Every
     # mixin needs its own explicit wrapper to keep the positional contract.
-    def __init__(self, settings: FlextDbOracleSettings) -> None:
+    def __init__(self, settings: t.DbOracle.Settings) -> None:
         """Initialize shared Oracle service state for this mixin."""
         FlextDbOracleServiceBase.__init__(self, settings)
 

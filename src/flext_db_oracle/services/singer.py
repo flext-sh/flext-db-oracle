@@ -10,15 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, MutableMapping
 
-from flext_db_oracle import (
-    FlextDbOracleServiceBase,
-    FlextDbOracleSettings,
-    c,
-    m,
-    p,
-    r,
-    t,
-)
+from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
 
 
 class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
@@ -29,7 +21,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
 
     # flext-1wjg1.16: see services/plugin.py -- explicit wrapper keeps this
     # mixin's __init__ positional instead of pydantic's synthesized kwargs-only one.
-    def __init__(self, settings: FlextDbOracleSettings) -> None:
+    def __init__(self, settings: t.DbOracle.Settings) -> None:
         """Initialize shared Oracle service state for this mixin."""
         FlextDbOracleServiceBase.__init__(self, settings)
 

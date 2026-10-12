@@ -35,15 +35,7 @@ from sqlalchemy.sql.ddl import CreateIndex, CreateTable, DropTable
 from sqlalchemy.sql.elements import ColumnClause
 from sqlalchemy.types import UserDefinedType
 
-from flext_db_oracle import (
-    FlextDbOracleServiceBase,
-    FlextDbOracleSettings,
-    c,
-    m,
-    p,
-    r,
-    t,
-)
+from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
 
 
 class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
@@ -56,7 +48,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
     # flext-1wjg1.16: see services/plugin.py -- explicit wrapper keeps this
     # mixin's __init__ positional instead of pydantic's synthesized kwargs-only one.
-    def __init__(self, settings: FlextDbOracleSettings) -> None:
+    def __init__(self, settings: t.DbOracle.Settings) -> None:
         """Initialize shared Oracle service state for this mixin."""
         FlextDbOracleServiceBase.__init__(self, settings)
 
@@ -223,11 +215,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             statement = statement.where(
                 table_clause.c[column_name] == bindparam(bind_names[column_name]),
             )
-        sql = c.DbOracle.collapse_whitespace(
-            str(statement.compile(dialect=oracle_dialect())),
-        ).strip()
-        for column_name, bind_name in bind_names.items():
-            sql = sql.replace(f":{bind_name}", f":{column_name}")
+        sql = self._compile_statement_with_binds(statement, bind_names)
         return r[str].ok(sql)
 
     def build_insert_statement(
@@ -256,11 +244,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             statement = statement.returning(
                 *(table_clause.c[column_name] for column_name in returning_columns),
             )
-        sql = c.DbOracle.collapse_whitespace(
-            str(statement.compile(dialect=oracle_dialect())),
-        ).strip()
-        for column_name, bind_name in bind_names.items():
-            sql = sql.replace(f":{bind_name}", f":{column_name}")
+        sql = self._compile_statement_with_binds(statement, bind_names)
         return r[str].ok(sql)
 
     def build_select(
@@ -309,11 +293,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             statement = statement.where(
                 table_clause.c[column_name] == bindparam(bind_names[column_name]),
             )
-        sql = c.DbOracle.collapse_whitespace(
-            str(statement.compile(dialect=oracle_dialect())),
-        ).strip()
-        for column_name, bind_name in bind_names.items():
-            sql = sql.replace(f":{bind_name}", f":{column_name}")
+        sql = self._compile_statement_with_binds(statement, bind_names)
         return r[str].ok(sql)
 
     def build_update_statement(
@@ -342,11 +322,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             statement = statement.where(
                 table_clause.c[column_name] == bindparam(bind_names[column_name]),
             )
-        sql = c.DbOracle.collapse_whitespace(
-            str(statement.compile(dialect=oracle_dialect())),
-        ).strip()
-        for column_name, bind_name in bind_names.items():
-            sql = sql.replace(f":{bind_name}", f":{column_name}")
+        sql = self._compile_statement_with_binds(statement, bind_names)
         return r[str].ok(sql)
 
     def create_table_ddl(

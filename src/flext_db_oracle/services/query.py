@@ -14,18 +14,10 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import text
 
-from flext_db_oracle import (
-    FlextDbOracleServiceBase,
-    FlextDbOracleSettings,
-    c,
-    m,
-    p,
-    r,
-    t,
-)
+from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
 
 if TYPE_CHECKING:
-    from sqlalchemy.engine import CursorResult
+    from sqlalchemy.engine import CursorResult, Engine as SAEngine
 
 
 class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
@@ -37,9 +29,19 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
 
     # flext-1wjg1.16: see services/plugin.py -- explicit wrapper keeps this
     # mixin's __init__ positional instead of pydantic's synthesized kwargs-only one.
-    def __init__(self, settings: FlextDbOracleSettings) -> None:
+    def __init__(self, settings: t.DbOracle.Settings) -> None:
         """Initialize shared Oracle service state for this mixin."""
         FlextDbOracleServiceBase.__init__(self, settings)
+
+    def _connected_engine(self) -> p.Result[SAEngine]:
+        """Return the active engine as a result, failing when disconnected.
+
+        Returns:
+            The resulting ``p.Result[SAEngine]``.
+        """
+        if not self.connected():
+            return r[SAEngine].fail("Not connected to database")
+        return self._get_engine()
 
     def execute_many(
         self,
@@ -51,9 +53,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         Returns:
             The resulting ``p.Result[int]``.
         """
-        if not self.connected():
-            return r[int].fail("Not connected to database")
-        engine_result = self._get_engine()
+        engine_result = self._connected_engine()
         if engine_result.failure:
             return r[int].from_failure(engine_result)
         try:
@@ -84,9 +84,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         Returns:
             The resulting ``p.Result[Sequence[m.Dict]]``.
         """
-        if not self.connected():
-            return r[Sequence[m.Dict]].fail("Not connected to database")
-        engine_result = self._get_engine()
+        engine_result = self._connected_engine()
         if engine_result.failure:
             return r[Sequence[m.Dict]].from_failure(engine_result)
         try:
@@ -107,9 +105,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         Returns:
             The resulting ``p.Result[int]``.
         """
-        if not self.connected():
-            return r[int].fail("Not connected to database")
-        engine_result = self._get_engine()
+        engine_result = self._connected_engine()
         if engine_result.failure:
             return r[int].from_failure(engine_result)
         try:

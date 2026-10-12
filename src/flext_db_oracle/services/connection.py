@@ -13,17 +13,9 @@ from contextlib import contextmanager
 from typing import TYPE_CHECKING, Self, override
 from urllib.parse import quote_plus
 
-from sqlalchemy import Connection as SAConnection, text
+from sqlalchemy import Connection as SAConnection, Engine as SAEngine, text
 
-from flext_db_oracle import (
-    FlextDbOracleServiceBase,
-    FlextDbOracleSettings,
-    c,
-    m,
-    p,
-    r,
-    u,
-)
+from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t, u
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -40,7 +32,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
 
     # flext-1wjg1.16: see services/plugin.py -- explicit wrapper keeps this
     # mixin's __init__ positional instead of pydantic's synthesized kwargs-only one.
-    def __init__(self, settings: FlextDbOracleSettings) -> None:
+    def __init__(self, settings: t.DbOracle.Settings) -> None:
         """Initialize shared Oracle service state for this mixin."""
         FlextDbOracleServiceBase.__init__(self, settings)
 
@@ -127,12 +119,11 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             return r[p.Base].ok(self.db_config)
         return r[p.Base].fail(test_result.error or "Connection test failed")
 
-    @contextmanager
-    def fetch_connection(self) -> Generator[SAConnection]:
-        """Get database connection context manager.
+    def _require_engine(self) -> SAEngine:
+        """Return the active SQLAlchemy engine.
 
-        Yields:
-            Each ``SAConnection``.
+        Returns:
+            The resulting ``SAEngine``.
 
         Raises:
             RuntimeError: If No database connection established.
@@ -141,7 +132,16 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         if engine is None:
             msg = "No database connection established"
             raise RuntimeError(msg)
-        with self._engine_connect(engine) as connection:
+        return engine
+
+    @contextmanager
+    def fetch_connection(self) -> Generator[SAConnection]:
+        """Open a read-only connection context for composed callers.
+
+        Yields:
+            Each ``SAConnection``.
+        """
+        with self._engine_connect(self._require_engine()) as connection:
             yield connection
 
     def fetch_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
@@ -206,19 +206,12 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             return r[bool].fail_op("Connection test", exc)
 
     def transaction(self) -> Generator[SAConnection]:
-        """Get transaction context for database operations.
+        """Open a transactional connection context for composed callers.
 
         Yields:
             Each ``SAConnection``.
-
-        Raises:
-            RuntimeError: If No database connection established.
         """
-        engine = self._engine
-        if engine is None:
-            msg = "No database connection established"
-            raise RuntimeError(msg)
-        with self._engine_begin(engine) as txn:
+        with self._engine_begin(self._require_engine()) as txn:
             yield txn
 
     def _assemble_connection_url(

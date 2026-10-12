@@ -32,7 +32,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
     def __init__(
         self,
-        settings: FlextDbOracleSettings,
+        settings: t.DbOracle.Settings,
         context_name: str | None = None,
     ) -> None:
         """Initialize API with Oracle configuration and flext-core integration."""
@@ -131,16 +131,10 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
             The resulting ``p.Result[Self]``.
         """
         if not settings.DbOracle.username:
-            username_fail: p.Result[Self] = r[Self].fail(
-                "Oracle username is required but not configured",
-            )
-            return username_fail
+            return r[Self].fail("Oracle username is required but not configured")
         password = settings.DbOracle.password
         if not password:
-            password_fail: p.Result[Self] = r[Self].fail(
-                "Oracle password is required but not configured",
-            )
-            return password_fail
+            return r[Self].fail("Oracle password is required but not configured")
         ok_result: p.Result[Self] = r[Self].ok(cls(settings=settings))
         return ok_result
 
@@ -169,17 +163,10 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
         try:
             env_settings = env_settings_cls()
         except c.ValidationError as exc:
-            fail_result: p.Result[Self] = r[Self].fail(
-                f"Invalid settings: {exc}",
-                exception=exc,
-            )
-            return fail_result
+            return r[Self].fail(f"Invalid settings: {exc}", exception=exc)
 
         if not env_settings.DbOracle.password:
-            password_result: p.Result[Self] = r[Self].fail(
-                "password is required for database connection",
-            )
-            return password_result
+            return r[Self].fail("password is required for database connection")
 
         return cls._build_api_result(env_settings)
 
@@ -192,15 +179,9 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
         """
         parsed = urlparse(url)
         if parsed.scheme not in {"oracle", "oracle+oracledb"}:
-            failure: p.Result[Self] = r[Self].fail(
-                f"Unsupported Oracle URL scheme: {parsed.scheme}",
-            )
-            return failure
+            return r[Self].fail(f"Unsupported Oracle URL scheme: {parsed.scheme}")
         if not parsed.hostname:
-            host_failure: p.Result[Self] = r[Self].fail(
-                "Oracle URL must include a host",
-            )
-            return host_failure
+            return r[Self].fail("Oracle URL must include a host")
         path_service = (parsed.path or "").lstrip("/")
         query_service = parse_qs(parsed.query).get("service_name", [None])[0]
         service_name = (query_service or path_service or "XEPDB1").upper()
