@@ -12,10 +12,9 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from flext_cli import FlextCliConfig
+from flext_cli import FlextCliConfig, m
 
 from flext_core import FlextSettings
-from flext_db_oracle import m
 from flext_db_oracle._models._db_oracle_namespace import (
     FlextDbOracleModelsDbOracleNamespace,
 )
