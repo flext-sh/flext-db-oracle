@@ -431,6 +431,7 @@ ignore = [
   "typing-only-first-party-import",
   "typing-only-standard-library-import",
   "typing-only-third-party-import",
+  "unsorted-imports",
 ]
 select = ["ALL"]
 unfixable = [
@@ -458,10 +459,11 @@ runtime-evaluated-base-classes = [
   "flext_cli.m.ArbitraryTypesModel",
   "flext_core.FlextService",
   "flext_core.FlextSettings",
+  "flext_core.m.BaseModel",
   "flext_core.m.RootModel",
   "flext_db_oracle.FlextDbOracleServiceBase",
   "flext_db_oracle.FlextDbOracleSettings",
-  "flext_db_oracle.m.BaseModel",
+  "flext_db_oracle._models.base.FlextDbOracleModelsBase.CredentialRoot",
   "flext_db_oracle.models.DbOracleDomainModel",
   "flext_db_oracle.s",
   "flext_db_oracle.services.api_runtime.FlextDbOracleApiRuntime",
