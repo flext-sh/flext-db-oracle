@@ -6,8 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from oracledb import (
     DatabaseError as _OracleDatabaseError,
     InterfaceError as _OracleInterfaceError,
@@ -18,8 +16,7 @@ from sqlalchemy.exc import (
     SQLAlchemyError as _SQLAlchemyError,
 )
 
-if TYPE_CHECKING:
-    from flext_db_oracle import t
+from flext_core import t
 
 
 class FlextDbOracleConstantsExceptions:

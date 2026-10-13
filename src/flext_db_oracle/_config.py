@@ -14,17 +14,16 @@ from typing import Annotated
 
 from flext_cli import FlextCliConfig, m
 
-from flext_core import FlextSettings
 from flext_db_oracle._models.base import FlextDbOracleModelsBase
 
 
-class FlextDbOracleConfig(FlextSettings, FlextCliConfig):
+class FlextDbOracleConfig(FlextCliConfig):
     """DbOracle config auto-loaded model-less from ``config/*.yaml``.
 
-    MRO carries ``FlextSettings`` FIRST (ENFORCE-042); unlike never-instantiated
-    namespace holders, this class IS instantiated by ``fetch_global``, so the
-    instance-inert holder contract does not apply and pydantic settings
-    construction machinery stays intact.
+    The fleet-converged config inherits only the declared frozen config
+    capability base (``config_bases`` precedence: meltano -> cli -> core); the
+    adjustable runtime settings keep their own independent ``_settings.py``
+    lifecycle.
     """
 
     DbOracle: Annotated[
