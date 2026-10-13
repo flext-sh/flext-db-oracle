@@ -8,9 +8,8 @@ from __future__ import annotations
 
 import pytest
 
-from flext_core import e
 from flext_db_oracle import FlextDbOracleExceptions
-from tests import tm
+from tests import e, tm
 
 
 class TestsFlextDbOracleExceptions:

@@ -11,9 +11,6 @@ from collections.abc import Mapping
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-# mro-6int (claude-ulw): import aliases from upstream (flext_core/flext_cli) and
-# the settings singleton from the concrete _settings leaf, not the own package
-# facade, to break the flext_db_oracle package-init circular import.
 from flext_cli import m, p, r, t, u
 from sqlalchemy import (
     Connection as SAConnection,

@@ -232,19 +232,19 @@ from __future__ import annotations
 from flext_core import r
 
 
-def validate_input(data: dict[str, str]) -> p.Result[dict[str, str]]:
-    return r[dict[str, str]].ok(data)
+def validate_input(data: t.StrDict) -> p.Result[t.StrDict]:
+    return r[t.StrDict].ok(data)
 
 
-def process_data(data: dict[str, str]) -> p.Result[dict[str, str]]:
-    return r[dict[str, str]].ok(data)
+def process_data(data: t.StrDict) -> p.Result[t.StrDict]:
+    return r[t.StrDict].ok(data)
 
 
-def save_to_database(data: dict[str, str]) -> p.Result[dict[str, str]]:
-    return r[dict[str, str]].ok(data)
+def save_to_database(data: t.StrDict) -> p.Result[t.StrDict]:
+    return r[t.StrDict].ok(data)
 
 
-def format_response(data: dict[str, str]) -> p.Result[str]:
+def format_response(data: t.StrDict) -> p.Result[str]:
     return r[str].ok(str(data))
 
 

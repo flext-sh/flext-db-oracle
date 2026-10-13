@@ -14,11 +14,11 @@ from typing import TYPE_CHECKING
 
 import oracledb
 import pytest
-from flext_tests import FlextTestsDocker, tk
+from flext_tests import FlextTestsDocker
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from flext_db_oracle.services.facade import FlextDbOracleServices
-from tests import c, u
+from flext_db_oracle.services import FlextDbOracleServices
+from tests import c, tk, u
 
 if TYPE_CHECKING:
     from collections.abc import Generator

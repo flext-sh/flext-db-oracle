@@ -14,10 +14,10 @@ from datetime import datetime
 from types import MappingProxyType
 from typing import ClassVar, cast
 
-from flext_cli import FlextCliModels, u
+from flext_cli import FlextCliModels
 
-from flext_db_oracle import c, t
-from flext_db_oracle._models.base import FlextDbOracleModelsBase
+from flext_db_oracle import c, t, u
+from flext_db_oracle._models import FlextDbOracleModelsBase
 from flext_db_oracle._models.credential import FlextDbOracleCredentialModel
 
 

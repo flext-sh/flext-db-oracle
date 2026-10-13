@@ -17,8 +17,8 @@ from collections.abc import Callable
 import pytest
 
 from flext_core import FlextExceptions
-from flext_db_oracle.exceptions import FlextDbOracleExceptions, e
-from tests import tm
+from flext_db_oracle import FlextDbOracleExceptions
+from tests import e, tm
 
 
 class TestsFlextDbOracleOracleExceptions:

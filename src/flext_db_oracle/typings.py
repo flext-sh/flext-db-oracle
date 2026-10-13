@@ -13,7 +13,7 @@ import oracledb
 from flext_cli import FlextCliTypes
 
 if TYPE_CHECKING:
-    from flext_db_oracle._settings import FlextDbOracleSettings
+    from flext_db_oracle import FlextDbOracleSettings
 
 
 class FlextDbOracleTypes(FlextCliTypes):

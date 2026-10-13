@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_db_oracle._models.base import FlextDbOracleModelsBase
+from flext_db_oracle._models import FlextDbOracleModelsBase
 
 
 class FlextDbOracleCredentialModel(FlextDbOracleModelsBase.CredentialRoot):

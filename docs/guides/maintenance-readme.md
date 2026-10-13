@@ -404,9 +404,9 @@ from flext_core import t
 class ExtendedDocumentationAuditor:
     """Auditor extension point for project-specific validation rules."""
 
-    def _validate_custom_rule(self, content: str) -> list[dict[str, t.JsonValue]]:
+    def _validate_custom_rule(self, content: str) -> list[t.JsonDict]:
         """Implement custom validation logic."""
-        issues: list[dict[str, t.JsonValue]] = []
+        issues: list[t.JsonDict] = []
 
         # Your custom validation logic here
         if "deprecated_feature" in content:

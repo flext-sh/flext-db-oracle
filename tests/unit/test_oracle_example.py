@@ -16,13 +16,12 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from flext_db_oracle import FlextDbOracleSettings
-from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.services.facade import FlextDbOracleServices
-from tests import tm, u
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from flext_db_oracle.services import FlextDbOracleServices
+from tests import t, tm, u
 
 if TYPE_CHECKING:
-    from tests import m, t
+    from tests import m
 
 # Live Oracle paths pull the session docker fixture via real_oracle_settings.
 pytestmark = pytest.mark.docker

@@ -10,16 +10,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
-from collections.abc import Sequence
-from typing import TYPE_CHECKING
+from collections.abc import MutableMapping, MutableSequence, Sequence
 
 from sqlalchemy import Engine as SAEngine, text
 
 from flext_core import FlextService
 from flext_db_oracle import FlextDbOracleSettings, c, m, p, r, t, u
-
-if TYPE_CHECKING:
-    from collections.abc import MutableMapping, MutableSequence
 
 
 class FlextDbOracleServiceBase(FlextService, u.DbOracle):
@@ -42,7 +38,7 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
         default_factory=dict[str, t.JsonPayload],
     )
     _metrics: t.MutableJsonMapping = u.PrivateAttr(
-        default_factory=dict[str, t.JsonValue],
+        default_factory=t.JsonDict,
     )
 
     def __init__(self, settings: FlextDbOracleSettings) -> None:
