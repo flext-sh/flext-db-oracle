@@ -350,11 +350,41 @@ TOOL_BOOTSTRAP_RESOLVE :=
 _bootstrap_setup_tools:
 	# The lifecycle invokes recursive make through mise, so preserve jobserver FDs.
 	+@set -eu; \
+	bootstrap_stage=host-mise; bootstrap_completed=false; bootstrap_sha=null; bootstrap_git_status=null; \
+	bootstrap_report="$(PROJECT_ROOT)/.reports/setup-operations/tool-bootstrap.json"; \
+	bootstrap_publish_report() { \
+		if mkdir -p "$$(dirname "$$bootstrap_report")"; then :; else return $$?; fi; \
+		if printf '%s\n' '{"root":".","operation":"tool-bootstrap","scope":["."],"candidate_sha":@@SHA@@,"candidate_read_exit_code":@@GIT_EXIT@@,"receipts":[{"root":".","executed":true,"outcome":null,"native_exit_code":@@EXIT@@,"stage":"@@STAGE@@","completed":@@COMPLETE@@,"applicability":"","files":[],"issues":[]}]}' | sed \
+			-e "s/@@SHA@@/$$bootstrap_sha/" \
+			-e "s/@@GIT_EXIT@@/$$bootstrap_git_status/" \
+			-e "s/@@EXIT@@/$$bootstrap_status/" \
+			-e "s/@@STAGE@@/$$bootstrap_stage/" \
+			-e "s/@@COMPLETE@@/$$bootstrap_completed/" > "$$bootstrap_report.pending"; then :; else return $$?; fi; \
+		mv "$$bootstrap_report.pending" "$$bootstrap_report"; \
+	}; \
+	trap 'bootstrap_status=$$?; trap - EXIT; \
+		if bootstrap_publish_report; then :; else \
+			bootstrap_report_status=$$?; \
+			printf "ERROR: bootstrap evidence publication failed (exit %s); original exit %s\n" "$$bootstrap_report_status" "$$bootstrap_status" >&2; \
+			if [ "$$bootstrap_status" -eq 0 ]; then bootstrap_status=$$bootstrap_report_status; fi; \
+		fi; \
+		exit "$$bootstrap_status"' EXIT; \
+	if bootstrap_candidate="$$(git -C "$(PROJECT_ROOT)" rev-parse --verify HEAD)"; then \
+		bootstrap_git_status=0; \
+		case "$$bootstrap_candidate" in \
+			*[!0-9a-f]*) printf 'ERROR: bootstrap candidate is not a Git object ID\n' >&2; exit 2 ;; \
+		esac; \
+		case "$${#bootstrap_candidate}" in \
+			40|64) bootstrap_sha="\"$$bootstrap_candidate\"" ;; \
+			*) printf 'ERROR: bootstrap candidate has an invalid object ID length\n' >&2; exit 2 ;; \
+		esac; \
+	else bootstrap_git_status=$$?; fi; \
 	if ! command -v mise >/dev/null 2>&1; then \
 		printf 'ERROR: mise is not installed; install it (https://mise.run) and retry\n' >&2; \
 		exit 2; \
 	fi; \
 	mise_pin=; mise_resolved=0; \
+	bootstrap_stage=lock-pin; \
 	if [ -f "$(PROJECT_ROOT)/mise.lock" ]; then \
 		mise_pin="$$( awk 'index($$0, "[[tools.\"github:jdx/mise\"]]") == 1 { inside = 1; next } inside && substr($$0, 1, 1) == "[" { exit } inside && $$1 == "version" { gsub(/[",]/, "", $$3); print $$3; exit }' "$(PROJECT_ROOT)/mise.lock" )"; \
 	fi; \
@@ -367,6 +397,7 @@ _bootstrap_setup_tools:
 		printf 'ERROR: mise.lock pins no github:jdx/mise release; run make upg\n' >&2; \
 		exit 2; \
 	fi; \
+	bootstrap_stage=platform; \
 	case "$$(uname -s)/$$(uname -m)" in \
 		Linux/x86_64) mise_platform=linux-x64 ;; \
 		Linux/aarch64) mise_platform=linux-arm64 ;; \
@@ -375,6 +406,7 @@ _bootstrap_setup_tools:
 		Windows/AMD64) mise_platform=windows-x64 ;; \
 		*) printf 'ERROR: no github:jdx/mise lock platform maps to %s/%s; install mise %s (https://mise.run) and retry\n' "$$(uname -s)" "$$(uname -m)" "$$mise_pin" >&2; exit 2 ;; \
 	esac; \
+	bootstrap_stage=release-asset; \
 	mise_key=url; \
 	mise_url="$$( awk -v section="[tools.\"github:jdx/mise\".\"platforms.$${mise_platform}\"]" -v key="$${mise_key}" \
 	'$$0 == section { inside = 1; next } inside && substr($$0, 1, 1) == "[" { exit } inside && $$1 == key { gsub(/"/, "", $$3); print $$3; exit }' "$(PROJECT_ROOT)/mise.lock" )"; \
@@ -407,20 +439,26 @@ _bootstrap_setup_tools:
 		chmod +x "$$mise_bootstrap_bin"; \
 		rm -rf "$$mise_stage"; \
 	fi; \
+	bootstrap_stage=release-verification; \
 	mise_receipt="$$("$$mise_bootstrap_bin" --version | cut -d ' ' -f1)"; \
 	if [ "$$mise_receipt" != "$$mise_pin" ]; then \
 		printf 'ERROR: recovered Mise %s differs from the mise.lock pin %s; delete %s and run make setup\n' "$$mise_receipt" "$$mise_pin" "$$mise_bootstrap_bin" >&2; \
 		exit 2; \
 	fi; \
 	export MISE_SHIMS_DIR="$$mise_bootstrap_root/$$mise_receipt/shims"; \
+	bootstrap_stage=tool-lock; \
 	if [ "$(TOOL_BOOTSTRAP_RESOLVE)" = "1" ] && [ "$$mise_resolved" = "0" ]; then \
 		"$$mise_bootstrap_bin" -C "$(PROJECT_ROOT)" lock --upgrade --bump; \
 	fi; \
+	bootstrap_stage=tool-install; \
 	"$$mise_bootstrap_bin" -C "$(PROJECT_ROOT)" install --locked --yes "python" "github:jdx/mise" "uv" "direnv" "taplo" "aqua:ast-grep/ast-grep" "gitleaks" "aqua:boyter/scc" "node" "github:qltysh/qlty" "github:kucherenko/jscpd" "github:microsoft/waza"; \
+	bootstrap_stage=shims; \
 	"$$mise_bootstrap_bin" reshim; \
 	printf 'setup: mise %s provisioned from mise.lock\n' "$$mise_receipt"; \
 	printf 'setup: entering lifecycle (submodules, environment, hooks) make=%s\n' "$(SELF_MAKE_EXECUTABLE)"; \
-	"$$mise_bootstrap_bin" -C "$(PROJECT_ROOT)" exec -- env "PATH=$$(dirname "$$mise_bootstrap_bin"):$${MISE_SHIMS_DIR}:$${PATH}" "CI=$(CI)" $(SELF_MAKE) $(TOOL_BOOTSTRAP_LIFECYCLE)
+	bootstrap_stage=lifecycle; \
+	"$$mise_bootstrap_bin" -C "$(PROJECT_ROOT)" exec -- env "PATH=$$(dirname "$$mise_bootstrap_bin"):$${MISE_SHIMS_DIR}:$${PATH}" "CI=$(CI)" $(SELF_MAKE) $(TOOL_BOOTSTRAP_LIFECYCLE); \
+	bootstrap_stage=complete; bootstrap_completed=true
 _bootstrap_setup_tools: _builtin_require_network_auth
 
 # UV, not Git attachment or runtime environment selection, owns lock discovery.
@@ -534,9 +572,12 @@ override UV_SYNC_FLAGS := $(UV_SYNC_FLAGS) --no-editable
 endif
 
 ifeq ($(GEN_INIT_ONLY),)
-ifneq ($(strip $(CI)),Y)
+# Why (fleet-automation 2026-10-12): the custom surface loads in every
+# non-bootstrap context, CI included — RUN_PUBLIC_POST fires post-<verb>
+# hooks whenever the declared-targets list names them, so a CI-excluded
+# include made every member with a post hook fail with "no rule for
+# post-<verb>" exactly when the pipeline ran the activation half.
 -include custom.mk
-endif
 endif
 ifeq ($(APPROVAL_CONTEXT),Y)
 override CI := Y
@@ -1489,8 +1530,8 @@ _builtin-help:
 
 # === SECTION: submodule setup (managed) ===
 # Source: template (submodule_setup_recipe.j2)
-# Computed: workspace uses MANAGED_GITLINKS from config; standalone discovers
-#           submodules with flext-managed=true from .gitmodules at runtime.
+# Computed: every checkout discovers governed paths from its own .gitmodules.
+#           An absent management flag participates; an explicit false does not.
 # Rule: setup PROVISIONS an absent or proven unfinished initial clone and
 #       VERIFIES an established checkout. An initial clone has no physical index,
 #       no worktree content, and only its clone reflog entry. Established work
@@ -1519,33 +1560,36 @@ _builtin_setup_submodules:
 	umask 022; \
 	root="$(PROJECT_ROOT)"; \
 	if [ ! -f "$$root/.gitmodules" ]; then exit 0; fi; \
-	profile="$(MAKE_PROFILE)"; \
-	if [ "$$profile" = "workspace" ]; then \
-		managed="$(MANAGED_GITLINKS)"; \
+	managed=""; \
+	keys=""; \
+	if keys=$$(git -C "$$root" config -f .gitmodules --name-only --get-regexp '^submodule\..*\.path$$'); then \
+		keys_status=0; \
 	else \
-		managed=""; \
-		keys=""; \
-		if keys=$$(git -C "$$root" config -f .gitmodules --name-only --get-regexp '^submodule\..*\.flext-managed$$'); then \
-			keys_status=0; \
-		else \
-			keys_status=$$?; \
-		fi; \
-		if [ "$$keys_status" -ne 0 ] && [ "$$keys_status" -ne 1 ]; then \
-			printf 'ERROR: cannot enumerate governed gitlinks\n' >&2; \
-			exit "$$keys_status"; \
-		fi; \
-		for key in $$keys; do \
-			value=$$(git -C "$$root" config -f .gitmodules --get "$$key"); \
-			if [ "$$value" = "true" ]; then \
-				section=$${key%.flext-managed}; \
-				path=$$(git -C "$$root" config -f .gitmodules --get --default "" "$$section.path"); \
-				if [ -n "$$path" ]; then \
-					managed="$$managed $$path"; \
-				fi; \
-			fi; \
-		done; \
+		keys_status=$$?; \
 	fi; \
-	managed=$$(printf '%s' "$$managed" | tr ' ' '\n' | sort -u | tr '\n' ' '); \
+	if [ "$$keys_status" -ne 0 ] && [ "$$keys_status" -ne 1 ]; then \
+		printf 'ERROR: cannot enumerate governed gitlinks\n' >&2; \
+		exit "$$keys_status"; \
+	fi; \
+	for key in $$keys; do \
+		section=$${key%.path}; \
+		value=$$(git -C "$$root" config -f .gitmodules --type=bool --get --default true "$$section.flext-managed"); \
+		case "$$value" in \
+			true) ;; \
+			false) continue ;; \
+			*) printf 'ERROR: Git returned an invalid management boolean for %s\n' "$$section" >&2; exit 2 ;; \
+		esac; \
+		path=$$(git -C "$$root" config -f .gitmodules --get "$$key"); \
+		case "$$path" in \
+			""|/*|..|../*|*/../*|*/..|*[[:space:]]*) \
+				printf 'ERROR: governed gitlink path is not a safe relative Make path: %s\n' "$$path" >&2; \
+				exit 2 ;; \
+		esac; \
+		case " $$managed " in \
+			*" $$path "*) printf 'ERROR: governed gitlink path is duplicated: %s\n' "$$path" >&2; exit 2 ;; \
+		esac; \
+		managed="$$managed $$path"; \
+	done; \
 	if [ -z "$$managed" ]; then exit 0; fi; \
 	if [ "$${GIT_INDEX_FILE+x}" = x ]; then \
 		printf 'ERROR: submodule setup cannot authenticate a relocated Git index\n' >&2; \
@@ -2007,8 +2051,7 @@ profile-mypy-report: _builtin_require_environment
 .PHONY: profile-gen
 profile-gen: _builtin_require_environment
 	@mkdir -p "$(PROFILE_REPORTS_DIR)"
-	@$(RUNTIME_PYTHON) -c \
-		'import cProfile, signal, sys; signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(128 + signum)); profile = cProfile.Profile(); exec("try:\n with profile:\n  from flext_infra.cli import main\n  status = main(sys.argv[2:])\nfinally:\n profile.dump_stats(sys.argv[1])"); raise SystemExit(status)' \
+	@$(PROJECT_INFRA_RUN) -m flext_infra._profile_entry \
 		"$(PROFILE_REPORTS_DIR)/conform.pstats" codegen conform \
 		--root "$(PROJECT_ROOT)" --scope all --mode check
 
@@ -2232,6 +2275,7 @@ endif
 	@$(PROJECT_FLEXT_INFRA) workspace verify-environment --repository-root "$(RUNTIME_ROOT)"
 	@$(PROJECT_FLEXT_INFRA) codegen conform --root "$(PROJECT_ROOT)" --scope self --mode check
 _builtin-status: _builtin_status_diagnostics
+	@$(PROJECT_FLEXT_INFRA) workspace signing-identity --repo-root "$(PROJECT_ROOT)"
 _builtin-verify-clean: _builtin_require_environment
 	@$(PROJECT_FLEXT_INFRA) codegen conform --root "$(PROJECT_ROOT)" --mode check
 	@$(PROJECT_FLEXT_INFRA) docs audit --repository-root "$(PROJECT_ROOT)" --output-dir ".reports/docs" --projects .

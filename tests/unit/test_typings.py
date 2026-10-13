@@ -16,7 +16,7 @@ import oracledb
 import pytest
 
 from flext_db_oracle import FlextDbOracleTypes, typings
-from tests import t, tm
+from tests import tm
 
 
 class TestsFlextDbOracleTypings:
@@ -25,7 +25,7 @@ class TestsFlextDbOracleTypings:
     @staticmethod
     def test_t_alias_points_to_facade_class() -> None:
         """The module-level ``t`` alias resolves to the facade class."""
-        assert t is FlextDbOracleTypes
+        assert typings.t is FlextDbOracleTypes
 
     @staticmethod
     def test_public_exports_are_declared() -> None:

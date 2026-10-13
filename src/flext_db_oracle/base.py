@@ -38,7 +38,7 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
         default_factory=dict[str, t.JsonPayload],
     )
     _metrics: t.MutableJsonMapping = u.PrivateAttr(
-        default_factory=t.JsonDict,
+        default_factory=dict[str, t.JsonValue],
     )
 
     def __init__(self, settings: FlextDbOracleSettings) -> None:
