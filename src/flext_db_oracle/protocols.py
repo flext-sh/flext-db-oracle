@@ -12,7 +12,6 @@ from flext_cli import FlextCliProtocols
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-    from typing import Self
 
     from flext_db_oracle import m, t
 
