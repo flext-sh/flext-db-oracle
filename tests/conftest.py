@@ -14,11 +14,11 @@ from typing import TYPE_CHECKING
 
 import oracledb
 import pytest
-from flext_tests import FlextTestsDocker, tk
+from flext_tests import FlextTestsDocker
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from flext_db_oracle.services.facade import FlextDbOracleServices
-from tests import c, u
+from flext_db_oracle.services import FlextDbOracleServices
+from tests import c, tk, u
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -39,7 +39,7 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
 
 
 @pytest.fixture
-def test_settings() -> FlextDbOracleSettings:
+def oracle_unit_settings() -> FlextDbOracleSettings:
     """Return a valid Oracle settings instance for service construction."""
     return FlextDbOracleSettings.model_validate({
         "DbOracle": {
@@ -53,9 +53,11 @@ def test_settings() -> FlextDbOracleSettings:
 
 
 @pytest.fixture
-def test_service(test_settings: FlextDbOracleSettings) -> FlextDbOracleServices:
+def oracle_unit_services(
+    oracle_unit_settings: FlextDbOracleSettings,
+) -> FlextDbOracleServices:
     """Return a services facade bound to the valid settings."""
-    return FlextDbOracleServices(settings=test_settings)
+    return FlextDbOracleServices(settings=oracle_unit_settings)
 
 
 # NOTE (multi-agent): ADR-005 singleton discipline — drop the settings singleton
@@ -100,8 +102,7 @@ def _cleanup_dirty_oracle_container() -> None:
         container_name,
         repository_root=Path(__file__).resolve().parents[2],
     )
-    dirty_containers = docker.dirty_containers
-    if not dirty_containers:
+    if not docker.dirty_containers:
         logger.debug("No dirty containers to clean")
         return
     status_result = docker.fetch_container_status(container_name)
@@ -110,16 +111,16 @@ def _cleanup_dirty_oracle_container() -> None:
     ):
         docker.mark_container_clean(container_name)
         logger.info("Container %s is healthy, cleared dirty state", container_name)
-        return
-    cleanup_result = docker.cleanup_dirty_containers()
-    if cleanup_result.failure:
-        logger.warning("Dirty container cleanup failed: %s", cleanup_result.error)
-        return
-    cleaned = cleanup_result.value
-    if cleaned:
-        logger.info("Recreated dirty containers: %s", ", ".join(cleaned))
-        return
-    logger.debug("No dirty containers to clean")
+    else:
+        cleanup_result = docker.cleanup_dirty_containers()
+        if cleanup_result.success:
+            cleaned = cleanup_result.value
+            if cleaned:
+                logger.info("Recreated dirty containers: %s", ", ".join(cleaned))
+            else:
+                logger.debug("No dirty containers to clean")
+        else:
+            logger.warning("Dirty container cleanup failed: %s", cleanup_result.error)
 
 
 def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[None]) -> None:
@@ -174,6 +175,7 @@ def docker_control() -> FlextTestsDocker:
 
     Returns:
         The resulting ``tk``.
+
     """
     return tk.shared(
         _ORACLE_CONTAINER_NAME,
@@ -192,6 +194,7 @@ def shared_oracle_container(docker_control: FlextTestsDocker) -> str:
 
     Returns:
         The resulting ``str``.
+
     """
     container_name = _ORACLE_CONTAINER_NAME
     probe_budget = c.Tests.DOCKER_PROBE_MAX_WAIT_SECONDS
@@ -228,6 +231,7 @@ def oracle_login_ready(shared_oracle_container: str) -> str:
 
     Returns:
         The resulting ``str``.
+
     """
     host = os.getenv("TEST_ORACLE_HOST", c.LOCALHOST)
     port = int(os.getenv("TEST_ORACLE_PORT", "1522"))
@@ -250,6 +254,7 @@ def oracle_container(oracle_login_ready: str) -> str:
 
     Returns:
         The resulting ``str``.
+
     """
     return oracle_login_ready
 
@@ -280,6 +285,7 @@ def real_oracle_config(
 
     Returns:
         The resulting ``FlextDbOracleSettings``.
+
     """
     return real_oracle_settings
 
@@ -290,6 +296,7 @@ def oracle_config(real_oracle_config: FlextDbOracleSettings) -> FlextDbOracleSet
 
     Returns:
         The resulting ``FlextDbOracleSettings``.
+
     """
     return real_oracle_config
 
@@ -305,6 +312,7 @@ def _assert_oracle_success[TResult](result: p.Result[TResult], operation: str) -
 
     Raises:
         AssertionError: If ``result.failure``.
+
     """
     if result.failure:
         error = result.error or ""
@@ -418,6 +426,7 @@ def connected_oracle_api(oracle_api: FlextDbOracleApi) -> Generator[FlextDbOracl
 
     Yields:
         Each ``FlextDbOracleApi``.
+
     """
     connect_result = oracle_api.connect()
     if connect_result.failure:
@@ -438,13 +447,14 @@ def oracle_available(connected_oracle_api: FlextDbOracleApi) -> bool:
 
     Returns:
         The resulting ``bool``.
+
     """
     _ = connected_oracle_api
     return True
 
 
 @pytest.fixture
-def test_database_setup(connected_oracle_api: FlextDbOracleApi) -> t.StrMapping:
+def oracle_test_database(connected_oracle_api: FlextDbOracleApi) -> t.StrMapping:
     """Set up test database schema and return test table info.
 
     Returns:
@@ -452,6 +462,7 @@ def test_database_setup(connected_oracle_api: FlextDbOracleApi) -> t.StrMapping:
 
     Raises:
         AssertionError: If Could not create test schema; or if Test setup failed.
+
     """
     test_schema = {
         "test_table": (

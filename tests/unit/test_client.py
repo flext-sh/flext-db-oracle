@@ -5,22 +5,18 @@ return values, r[T] success/failure outcomes, error messages, and public
 model state. No private attributes, internal collaborators, or line-coverage
 pokes are exercised.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Mapping
 
 import pytest
-from flext_tests import tm
 
-from flext_db_oracle import c, m, u
-from flext_db_oracle.client import FlextDbOracleClient
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
+from flext_db_oracle import FlextDbOracleClient
+from tests import c, m, tm, u
 
 
 class TestsFlextDbOracleClient:
@@ -33,6 +29,7 @@ class TestsFlextDbOracleClient:
 
         Returns:
             The resulting ``FlextDbOracleClient``.
+
         """
         return FlextDbOracleClient()
 

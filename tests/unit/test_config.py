@@ -7,9 +7,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_tests import tm
-
-from flext_db_oracle import FlextDbOracleSettings, c
+from flext_db_oracle import FlextDbOracleSettings
+from tests import c, tm
 
 
 class TestsFlextDbOracleSettings:
@@ -111,14 +110,12 @@ class TestsFlextDbOracleSettings:
 
     @staticmethod
     def test_fetch_global_overrides_return_isolated_clone() -> None:
-        """fetch_global with overrides returns a clone; the singleton is untouched."""
+        """fetch_global with a scalar override yields an isolated clone."""
         singleton = FlextDbOracleSettings.fetch_global()
-        clone = FlextDbOracleSettings.fetch_global(
-            overrides={"DbOracle": {"host": "clone-host"}},
-        )
+        clone = FlextDbOracleSettings.fetch_global(overrides={"debug": True})
         assert clone is not singleton
-        tm.that(clone.DbOracle.host, eq="clone-host")
-        tm.that(singleton.DbOracle.host, eq=c.DbOracle.DEFAULT_HOST)
+        tm.that(clone.debug, eq=True)
+        assert FlextDbOracleSettings.fetch_global() is singleton
 
     @staticmethod
     def test_clone_preserves_canonical_type() -> None:

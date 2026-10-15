@@ -1,16 +1,15 @@
 """Behavioral tests for FlextDbOracleExceptions public contract.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
 
 import pytest
-from flext_tests import tm
 
-from flext_core import e
 from flext_db_oracle import FlextDbOracleExceptions
+from tests import e, tm
 
 
 class TestsFlextDbOracleExceptions:
@@ -29,6 +28,7 @@ class TestsFlextDbOracleExceptions:
 
         Raises:
             Error: If explode now.
+
         """
         message = "explode now"
         with pytest.raises(e.BaseError, match="explode"):

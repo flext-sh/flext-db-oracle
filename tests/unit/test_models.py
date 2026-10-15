@@ -1,16 +1,15 @@
 """Behavioral unit tests for flext_db_oracle.models public contract.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
 
 import pytest
-from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleSettings
-from tests import c, m, u
+from tests import c, m, t, tm, u
 
 
 @pytest.mark.unit
@@ -48,10 +47,24 @@ class TestsFlextDbOracleModels:
     @pytest.mark.parametrize(
         ("connection_time", "rating"),
         [
-            (0.05, "Excellent"),
-            (0.3, "Good"),
-            (1.5, "Acceptable"),
-            (3.0, "Slow"),
+            (c.DbOracle.CONNECTION_EXCELLENT_THRESHOLD_SECONDS / 2, "Excellent"),
+            (
+                (
+                    c.DbOracle.CONNECTION_EXCELLENT_THRESHOLD_SECONDS
+                    + c.DbOracle.CONNECTION_GOOD_THRESHOLD_SECONDS
+                )
+                / 2,
+                "Good",
+            ),
+            (
+                (
+                    c.DbOracle.CONNECTION_GOOD_THRESHOLD_SECONDS
+                    + c.DbOracle.CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS
+                )
+                / 2,
+                "Acceptable",
+            ),
+            (c.DbOracle.CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS, "Slow"),
             (0.0, "No performance data"),
         ],
     )
@@ -150,7 +163,26 @@ class TestsFlextDbOracleModels:
     @staticmethod
     @pytest.mark.parametrize(
         ("execution_time_ms", "rating"),
-        [(50, "Excellent"), (300, "Good"), (1500, "Acceptable"), (2500, "Slow")],
+        [
+            (c.DbOracle.QUERY_EXCELLENT_THRESHOLD_MS // 2, "Excellent"),
+            (
+                (
+                    c.DbOracle.QUERY_EXCELLENT_THRESHOLD_MS
+                    + c.DbOracle.QUERY_GOOD_THRESHOLD_MS
+                )
+                // 2,
+                "Good",
+            ),
+            (
+                (
+                    c.DbOracle.QUERY_GOOD_THRESHOLD_MS
+                    + c.DbOracle.QUERY_ACCEPTABLE_THRESHOLD_MS
+                )
+                // 2,
+                "Acceptable",
+            ),
+            (c.DbOracle.QUERY_ACCEPTABLE_THRESHOLD_MS, "Slow"),
+        ],
     )
     def test_performance_rating_without_results_uses_time_thresholds(
         execution_time_ms: int,
@@ -171,7 +203,7 @@ class TestsFlextDbOracleModels:
             query="SELECT 1",
             columns=["col1"],
             rows=[m.DbOracle.RowData(values=[1])],
-            execution_time_ms=2500,
+            execution_time_ms=c.DbOracle.QUERY_ACCEPTABLE_THRESHOLD_MS,
         )
         tm.that(result.has_results, eq=True)
         tm.that(result.performance_rating, eq="Acceptable")
@@ -301,12 +333,7 @@ class TestsFlextDbOracleModels:
     @staticmethod
     def test_create_index_config_requires_columns() -> None:
         """A CreateIndexConfig without columns is rejected."""
-        # flext-1wjg1.16: unpack a variable typed as a generic str-mapping
-        # (not an inline dict literal, whose literal keys pyrefly still
-        # narrows against __init__) so it does not statically flag the
-        # deliberately-omitted required `columns` -- the runtime
-        # ValidationError is exactly what this test asserts.
-        payload: dict[str, str] = {
+        payload: t.StrMapping = {
             "table_name": "users",
             "index_name": "idx_users_email",
         }

@@ -3,7 +3,7 @@
 Provides DDL/DML statement generation: INSERT, UPDATE, DELETE,
 SELECT, CREATE TABLE, DROP TABLE, CREATE INDEX.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
@@ -35,15 +35,7 @@ from sqlalchemy.sql.ddl import CreateIndex, CreateTable, DropTable
 from sqlalchemy.sql.elements import ColumnClause
 from sqlalchemy.types import UserDefinedType
 
-from flext_db_oracle import (
-    FlextDbOracleServiceBase,
-    FlextDbOracleSettings,
-    c,
-    m,
-    p,
-    r,
-    t,
-)
+from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
 
 
 class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
@@ -56,7 +48,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
     # flext-1wjg1.16: see services/plugin.py -- explicit wrapper keeps this
     # mixin's __init__ positional instead of pydantic's synthesized kwargs-only one.
-    def __init__(self, settings: FlextDbOracleSettings) -> None:
+    def __init__(self, settings: t.DbOracle.Settings) -> None:
         """Initialize shared Oracle service state for this mixin."""
         FlextDbOracleServiceBase.__init__(self, settings)
 
@@ -109,6 +101,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``TableClause``.
+
         """
         # sqlalchemy's ``column()`` leaves its type parameter unbound; pinning
         # the clause list to ``ColumnClause[str]`` keeps the element type known
@@ -140,14 +133,15 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         try:
             if not config:
                 return r[str].fail("Invalid CREATE INDEX settings payload")
             settings = m.DbOracle.CreateIndexConfig.model_validate(config)
             return self._create_index_sql(settings)
-        except c.ValidationError as e:
-            return r[str].fail(f"Invalid CREATE INDEX settings: {e}", exception=e)
+        except c.ValidationError as exc:
+            return r[str].fail(f"Invalid CREATE INDEX settings: {exc}", exception=exc)
 
     def _create_index_sql(
         self,
@@ -157,6 +151,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         if not settings.columns:
             return r[str].fail("Index definition requires at least one column")
@@ -181,6 +176,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``Table``.
+
         """
         table_name = self._normalize_identifier(settings.table_name)
         schema_name = (
@@ -212,6 +208,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         bind_names = {
             column_name: f"bind_{index:04d}"
@@ -223,11 +220,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             statement = statement.where(
                 table_clause.c[column_name] == bindparam(bind_names[column_name]),
             )
-        sql = c.DbOracle.collapse_whitespace(
-            str(statement.compile(dialect=oracle_dialect())),
-        ).strip()
-        for column_name, bind_name in bind_names.items():
-            sql = sql.replace(f":{bind_name}", f":{column_name}")
+        sql = self._compile_statement_with_binds(statement, bind_names)
         return r[str].ok(sql)
 
     def build_insert_statement(
@@ -241,6 +234,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         statement_columns = tuple(dict.fromkeys([*columns, *(returning_columns or ())]))
         bind_names = {
@@ -256,11 +250,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             statement = statement.returning(
                 *(table_clause.c[column_name] for column_name in returning_columns),
             )
-        sql = c.DbOracle.collapse_whitespace(
-            str(statement.compile(dialect=oracle_dialect())),
-        ).strip()
-        for column_name, bind_name in bind_names.items():
-            sql = sql.replace(f":{bind_name}", f":{column_name}")
+        sql = self._compile_statement_with_binds(statement, bind_names)
         return r[str].ok(sql)
 
     def build_select(
@@ -274,6 +264,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         typed_conditions = (
             conditions
@@ -309,11 +300,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             statement = statement.where(
                 table_clause.c[column_name] == bindparam(bind_names[column_name]),
             )
-        sql = c.DbOracle.collapse_whitespace(
-            str(statement.compile(dialect=oracle_dialect())),
-        ).strip()
-        for column_name, bind_name in bind_names.items():
-            sql = sql.replace(f":{bind_name}", f":{column_name}")
+        sql = self._compile_statement_with_binds(statement, bind_names)
         return r[str].ok(sql)
 
     def build_update_statement(
@@ -327,6 +314,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         statement_columns = tuple(dict.fromkeys([*set_columns, *where_columns]))
         bind_names = {
@@ -342,11 +330,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             statement = statement.where(
                 table_clause.c[column_name] == bindparam(bind_names[column_name]),
             )
-        sql = c.DbOracle.collapse_whitespace(
-            str(statement.compile(dialect=oracle_dialect())),
-        ).strip()
-        for column_name, bind_name in bind_names.items():
-            sql = sql.replace(f":{bind_name}", f":{column_name}")
+        sql = self._compile_statement_with_binds(statement, bind_names)
         return r[str].ok(sql)
 
     def create_table_ddl(
@@ -359,14 +343,15 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         try:
             column_models = self._normalize_table_columns(columns)
             table_object = self._create_table_object(table_name, column_models, schema)
             ddl = self._compile_statement(CreateTable(table_object))
             return r[str].ok(ddl)
-        except c.ValidationError as e:
-            return r[str].fail(f"Invalid CREATE TABLE settings: {e}", exception=e)
+        except c.ValidationError as exc:
+            return r[str].fail(f"Invalid CREATE TABLE settings: {exc}", exception=exc)
 
     def _normalize_table_columns(
         self,
@@ -376,6 +361,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``t.SequenceOf[m.DbOracle.Column]``.
+
         """
         return tuple(self._normalize_table_column(column) for column in columns)
 
@@ -387,6 +373,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``m.DbOracle.Column``.
+
         """
         if isinstance(column, m.DbOracle.Column):
             copied: m.DbOracle.Column = column.model_copy(
@@ -417,6 +404,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``Table``.
+
         """
         normalized_table_name = self._normalize_identifier(table_name)
         normalized_schema_name = self._normalize_identifier(schema) if schema else None
@@ -450,6 +438,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         normalized_table_name = self._normalize_identifier(table_name)
         normalized_schema_name = self._normalize_identifier(schema) if schema else None

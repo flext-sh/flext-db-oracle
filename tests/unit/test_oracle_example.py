@@ -5,7 +5,7 @@ These tests exercise the public contract of :class:`FlextDbOracleApi` and
 the shared Oracle container is unavailable within the probe budget. Offline
 error-path cases do not require a ready database.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
@@ -15,15 +15,13 @@ import contextlib
 from typing import TYPE_CHECKING
 
 import pytest
-from flext_tests import tm
 
-from flext_db_oracle import FlextDbOracleSettings
-from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.services.facade import FlextDbOracleServices
-from tests import u
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from flext_db_oracle.services import FlextDbOracleServices
+from tests import t, tm, u
 
 if TYPE_CHECKING:
-    from tests import m, t
+    from tests import m
 
 # Live Oracle paths pull the session docker fixture via real_oracle_settings.
 pytestmark = pytest.mark.docker
@@ -56,6 +54,7 @@ class TestsFlextDbOracleOracleExample:
 
         Returns:
             The resulting ``t.JsonValue``.
+
         """
         with FlextDbOracleApi(real_oracle_config) as api:
             connection_result = api.test_connection()
@@ -72,6 +71,7 @@ class TestsFlextDbOracleOracleExample:
 
         Returns:
             The resulting ``FlextDbOracleServices``.
+
         """
         connection = FlextDbOracleServices(settings=real_oracle_config)
         connect_result = connection.connect()
@@ -119,6 +119,7 @@ class TestsFlextDbOracleOracleExample:
 
         Raises:
             AssertionError: If fetch_one returned success with no row.
+
         """
         connection = self._connect_services(real_oracle_config)
         try:

@@ -18,16 +18,14 @@
   Development :: Libraries :: Python Modules, Typing :: Typed
 - Project class: `domain`
 - Keywords: `database`, `enterprise`, `flext`, `oracle`, `sql`, `typed`
-- Main facades: `FlextDbOracleApi`, `FlextDbOracleApiRuntime`,
-  `FlextDbOracleApiRuntimeExecution`, `FlextDbOracleApiRuntimeIntrospection`,
-  `FlextDbOracleApiRuntimeLifecycle`, `FlextDbOracleApiRuntimeState`,
-  `FlextDbOracleClient`, `FlextDbOracleConfig` (+16 more)
+- Main facades: `FlextDbOracleApi`, `FlextDbOracleClient`, `FlextDbOracleConfig`,
+  `FlextDbOracleConstants`, `FlextDbOracleDispatcher`, `FlextDbOracleExceptions`,
+  `FlextDbOracleModels`, `FlextDbOracleProtocols` (+5 more)
 - Alias exports: `c`, `d`, `e`, `h`, `m`, `p`, `r`, `s`, `t`, `u`, `x`
-- Public symbol exports: `DbOracleSettings`, `FlextDbOracleApi`,
-  `FlextDbOracleApiRuntime`, `FlextDbOracleApiRuntimeExecution`,
-  `FlextDbOracleApiRuntimeIntrospection`, `FlextDbOracleApiRuntimeLifecycle`,
-  `FlextDbOracleApiRuntimeState`, `FlextDbOracleClient`, `FlextDbOracleConfig`,
-  `FlextDbOracleConstants` (+19 more)
+- Public symbol exports: `DbOracleSettings`, `FlextDbOracleApi`, `FlextDbOracleClient`,
+  `FlextDbOracleConfig`, `FlextDbOracleConstants`, `FlextDbOracleDispatcher`,
+  `FlextDbOracleExceptions`, `FlextDbOracleModels`, `FlextDbOracleProtocols`,
+  `FlextDbOracleServiceBase` (+8 more)
 - Exported module shortcuts: `services`
 - Generated module pages: `11`
 

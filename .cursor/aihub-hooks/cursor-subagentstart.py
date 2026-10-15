@@ -1,4 +1,13 @@
 #!/usr/bin/env python3
+"""Cursor Subagent Start Hook.
+
+This hook handles the start event for the cursor subagent.
+It validates the input payload and returns an appropriate response.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
+
 import json
 import sys
 

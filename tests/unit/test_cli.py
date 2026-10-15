@@ -13,11 +13,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
-from flext_tests import r, tm
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from flext_db_oracle.client import FlextDbOracleClient
-from tests import t, u
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleClient, FlextDbOracleSettings
+from tests import r, t, tm, u
 
 _NO_CONNECTION_ERROR = "No active Oracle connection"
 _CONNECTION_FAILURE_SNIPPETS = (
@@ -69,8 +67,6 @@ class TestsFlextDbOracleCli:
         """Constructing twice yields distinct, independent instances."""
         client_a = FlextDbOracleClient()
         client_b = FlextDbOracleClient()
-        tm.that(client_a, is_=FlextDbOracleClient)
-        tm.that(client_b, is_=FlextDbOracleClient)
         tm.that(client_a is not client_b, eq=True)
 
     # ---- preference configuration ----------------------------------------
@@ -347,6 +343,7 @@ class TestsFlextDbOracleCli:
 
         Returns:
             The resulting ``FlextDbOracleApi``.
+
         """
         return FlextDbOracleApi(
             FlextDbOracleSettings.model_validate({

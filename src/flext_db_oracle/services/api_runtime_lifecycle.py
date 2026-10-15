@@ -14,14 +14,14 @@ from flext_db_oracle import (
     FlextDbOracleServiceBase,
     FlextDbOracleSettings,
     c,
+    e,
     m,
     p,
     r,
     t,
     u,
 )
-from flext_db_oracle.services.api_runtime_state import FlextDbOracleApiRuntimeState
-from flext_db_oracle.services.facade import FlextDbOracleServices
+from flext_db_oracle.services import FlextDbOracleApiRuntimeState, FlextDbOracleServices
 
 if TYPE_CHECKING:
     import types
@@ -32,7 +32,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
     def __init__(
         self,
-        settings: FlextDbOracleSettings,
+        settings: t.DbOracle.Settings,
         context_name: str | None = None,
     ) -> None:
         """Initialize API with Oracle configuration and flext-core integration."""
@@ -59,6 +59,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Raises:
             RuntimeError: If ``connect_result.failure``.
+
         """
         connect_result = self.connect()
         if connect_result.failure:
@@ -101,6 +102,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``bool``.
+
         """
         return self._services.connected()
 
@@ -120,6 +122,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``Self``.
+
         """
         return cls(settings=settings)
 
@@ -129,18 +132,19 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[Self]``.
+
         """
         if not settings.DbOracle.username:
-            username_fail: p.Result[Self] = r[Self].fail(
-                "Oracle username is required but not configured",
+            return r[Self](
+                error="Oracle username is required but not configured",
+                success=False,
             )
-            return username_fail
         password = settings.DbOracle.password
         if not password:
-            password_fail: p.Result[Self] = r[Self].fail(
-                "Oracle password is required but not configured",
+            return r[Self](
+                error="Oracle password is required but not configured",
+                success=False,
             )
-            return password_fail
         ok_result: p.Result[Self] = r[Self].ok(cls(settings=settings))
         return ok_result
 
@@ -154,6 +158,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[Self]``.
+
         """
         env_settings_cls = type(
             "_FlextDbOracleEnvSettings",
@@ -169,17 +174,13 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
         try:
             env_settings = env_settings_cls()
         except c.ValidationError as exc:
-            fail_result: p.Result[Self] = r[Self].fail(
-                f"Invalid settings: {exc}",
-                exception=exc,
-            )
-            return fail_result
+            return e.fail_validation("settings", error=exc, result_type=r[Self])
 
         if not env_settings.DbOracle.password:
-            password_result: p.Result[Self] = r[Self].fail(
-                "password is required for database connection",
+            return r[Self](
+                error="password is required for database connection",
+                success=False,
             )
-            return password_result
 
         return cls._build_api_result(env_settings)
 
@@ -189,22 +190,20 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[Self]``.
+
         """
         parsed = urlparse(url)
         if parsed.scheme not in {"oracle", "oracle+oracledb"}:
-            failure: p.Result[Self] = r[Self].fail(
-                f"Unsupported Oracle URL scheme: {parsed.scheme}",
+            return r[Self](
+                error=f"Unsupported Oracle URL scheme: {parsed.scheme}",
+                success=False,
             )
-            return failure
         if not parsed.hostname:
-            host_failure: p.Result[Self] = r[Self].fail(
-                "Oracle URL must include a host",
-            )
-            return host_failure
+            return r[Self](error="Oracle URL must include a host", success=False)
         path_service = (parsed.path or "").lstrip("/")
         query_service = parse_qs(parsed.query).get("service_name", [None])[0]
         service_name = (query_service or path_service or "XEPDB1").upper()
-        fields: dict[str, object] = {
+        fields: t.JsonDict = {
             "host": parsed.hostname,
             "port": parsed.port or 1521,
             "username": parsed.username or "",
@@ -221,6 +220,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[Self]``.
+
         """
         self.logger.info(
             "Connecting to Oracle database: %s",
@@ -233,6 +233,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[bool]``.
+
         """
         self.logger.info("Disconnecting from Oracle database")
         return self._services.disconnect()
@@ -242,6 +243,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[bool]``.
+
         """
         return self._services.test_connection()
 
@@ -250,6 +252,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``m.ConfigMap``.
+
         """
         if obj is not None:
             return m.ConfigMap.model_validate(obj)
@@ -271,6 +274,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[t.JsonMapping]``.
+
         """
         return r[t.JsonMapping].ok({
             "connected": self._services.connected(),
@@ -282,6 +286,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``bool``.
+
         """
         return self._oracle_config.DbOracle.port >= c.DbOracle.MIN_PORT and bool(
             self._oracle_config.DbOracle.service_name,

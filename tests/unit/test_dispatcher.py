@@ -1,17 +1,16 @@
 """Behavioral tests for FlextDbOracleDispatcher.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
 
 import pytest
-from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleDispatcher, FlextDbOracleSettings
-from flext_db_oracle.services.facade import FlextDbOracleServices
-from tests import m
+from flext_db_oracle.services import FlextDbOracleServices
+from tests import m, tm
 
 
 class TestsFlextDbOracleDispatcher:
@@ -24,6 +23,7 @@ class TestsFlextDbOracleDispatcher:
 
         Returns:
             The resulting ``FlextDbOracleServices``.
+
         """
         settings = FlextDbOracleSettings.model_validate({
             "DbOracle": {

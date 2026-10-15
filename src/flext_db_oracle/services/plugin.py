@@ -3,7 +3,7 @@
 Provides plugin registration, observability metrics recording,
 health status, and operation tracking.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
@@ -13,16 +13,7 @@ from collections.abc import Sequence
 
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
-from flext_db_oracle import (
-    FlextDbOracleServiceBase,
-    FlextDbOracleSettings,
-    e,
-    m,
-    p,
-    r,
-    t,
-    u,
-)
+from flext_db_oracle import FlextDbOracleServiceBase, e, m, p, r, t, u
 
 
 class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
@@ -38,7 +29,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
     # generated kwargs-only signature (settings_type=/runtime_settings=/...)
     # instead -- a bad-override against FlextDbOracleServices.__init__. Every
     # mixin needs its own explicit wrapper to keep the positional contract.
-    def __init__(self, settings: FlextDbOracleSettings) -> None:
+    def __init__(self, settings: t.DbOracle.Settings) -> None:
         """Initialize shared Oracle service state for this mixin."""
         FlextDbOracleServiceBase.__init__(self, settings)
 
@@ -47,6 +38,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[m.DbOracle.HealthStatus]``.
+
         """
         status = "connected" if self.connected() else "disconnected"
         metrics_payload: t.StrMapping = {
@@ -68,6 +60,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[Sequence[m.DbOracle.OperationRecord]]``.
+
         """
         return r[Sequence[m.DbOracle.OperationRecord]].ok(list(self._operations))
 
@@ -76,6 +69,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[t.JsonPayload]``.
+
         """
         if not name:
             return r[t.JsonPayload].fail("Plugin name is required")
@@ -88,6 +82,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[m.ConfigMap]``.
+
         """
         plugin_names = list(self._plugins.keys())
         return r[m.ConfigMap].ok(m.ConfigMap(root=dict.fromkeys(plugin_names, True)))
@@ -102,6 +97,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[bool]``.
+
         """
         if not name:
             return r[bool].fail("Metric name is required")
@@ -120,6 +116,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[bool]``.
+
         """
         if not name:
             return r[bool].fail("Plugin name is required")
@@ -138,6 +135,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[bool]``.
+
         """
 
         def _track() -> bool:
@@ -172,6 +170,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[bool]``.
+
         """
         if not name:
             return r[bool].fail("Plugin name is required")

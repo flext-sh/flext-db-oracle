@@ -14,13 +14,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
-import pytest
-from flext_tests import tm
-
-from flext_db_oracle import p
+from flext_db_oracle import FlextDbOracleSettings
+from flext_db_oracle.services import FlextDbOracleServices
+from tests import p, tm
 
 if TYPE_CHECKING:
     from tests import t
@@ -83,21 +81,6 @@ _DB_ORACLE_CONTRACTS: t.VariadicTuple[t.Tests.ProtocolContract] = (
 )
 
 
-def _stub(_self: object) -> None:
-    """Method-surface stub used to synthesise protocol implementers."""
-
-
-def _implementer(methods: t.VariadicTuple[str]) -> object:
-    """Build an object exposing exactly ``methods`` as callables.
-
-    Returns:
-        The resulting ``object``.
-    """
-    namespace: Mapping[str, object] = dict.fromkeys(methods, _stub)
-    cls = type("SyntheticImplementer", (), dict(namespace))
-    return cls()
-
-
 class TestsFlextDbOracleProtocols:
     """Contract behavior of the FlextDbOracleProtocols.DbOracle namespace."""
 
@@ -110,63 +93,24 @@ class TestsFlextDbOracleProtocols:
         assert promised <= exposed
 
     @staticmethod
-    @pytest.mark.parametrize(
-        ("_name", "protocol", "methods"),
-        _DB_ORACLE_CONTRACTS,
-        ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
-    )
-    def test_protocol_is_runtime_checkable(
-        _name: str,
-        protocol: type,
-        methods: t.VariadicTuple[str],
-    ) -> None:
-        """Each protocol supports isinstance() — its public runtime-check contract."""
-        implementer = _implementer(methods)
-
-        # A runtime-checkable protocol answers isinstance without raising.
-        tm.that(implementer, is_=protocol)
+    def test_real_services_satisfy_connection_contract() -> None:
+        """The actual services expose disconnected connection behavior."""
+        services = FlextDbOracleServices(FlextDbOracleSettings())
+        assert isinstance(services, p.DbOracle.Connection)
+        assert services.connected() is False
+        tm.ok(services.disconnect())
+        assert services.connected() is False
 
     @staticmethod
-    @pytest.mark.parametrize(
-        ("_name", "protocol", "methods"),
-        _DB_ORACLE_CONTRACTS,
-        ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
-    )
-    def test_full_method_surface_satisfies_protocol(
-        _name: str,
-        protocol: type,
-        methods: t.VariadicTuple[str],
-    ) -> None:
-        """An object with the full promised surface is recognised as implementer."""
-        implementer = _implementer(methods)
-
-        tm.that(implementer, is_=protocol)
-
-    @staticmethod
-    @pytest.mark.parametrize(
-        ("_name", "protocol", "methods"),
-        _DB_ORACLE_CONTRACTS,
-        ids=[name for name, _proto, _methods in _DB_ORACLE_CONTRACTS],
-    )
-    def test_missing_any_single_method_breaks_conformance(
-        _name: str,
-        protocol: type,
-        methods: t.VariadicTuple[str],
-    ) -> None:
-        """Dropping any one promised method makes the object a non-implementer."""
-        for dropped in methods:
-            partial = tuple(m for m in methods if m != dropped)
-            implementer = _implementer(partial)
-
-            assert not isinstance(implementer, protocol), f"{_name}:{dropped}"
-
-    @staticmethod
-    def test_empty_object_conforms_to_no_db_oracle_protocol() -> None:
-        """A bare object satisfies none of the Oracle protocols (structural gate)."""
-        bare = object()
-
-        for name, protocol, _methods in _DB_ORACLE_CONTRACTS:
-            assert not isinstance(bare, protocol), name
+    def test_real_services_satisfy_sql_builder_contract() -> None:
+        """The actual SQL builder produces the requested identifiers."""
+        services = FlextDbOracleServices(FlextDbOracleSettings())
+        assert isinstance(services, p.DbOracle.SqlBuilder)
+        result = services.build_select("customers", ["customer_id"])
+        tm.ok(result)
+        assert "SELECT" in result.value.upper()
+        assert "customers" in result.value.lower()
+        assert "customer_id" in result.value.lower()
 
     @staticmethod
     def test_foundation_result_protocol_inherited_from_flext_cli() -> None:

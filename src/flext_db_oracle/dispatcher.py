@@ -1,20 +1,20 @@
 """Dispatcher integration helpers for flext-db-oracle services.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
 
+from collections.abc import Callable, MutableMapping
 from typing import TYPE_CHECKING, ClassVar, override
 
 from flext_core import FlextContainer, FlextService
+
 from flext_db_oracle import m, p, r, t
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, MutableMapping
-
-    from flext_db_oracle.services.facade import FlextDbOracleServices
+    from flext_db_oracle.services import FlextDbOracleServices
 
 
 class FlextDbOracleDispatcher(FlextService[bool]):
@@ -39,6 +39,7 @@ class FlextDbOracleDispatcher(FlextService[bool]):
         Returns:
             The resulting ``t.MappingKV[type, t.Pair[Callable[[p.Routable],
                 t.JsonPayload], t.JsonMapping | None]]``.
+
         """
 
         def connect_handler(_cmd: p.Routable) -> t.JsonPayload:
@@ -55,6 +56,7 @@ class FlextDbOracleDispatcher(FlextService[bool]):
 
             Returns:
                 The resulting ``t.JsonPayload``.
+
             """
             return services.test_connection().map_or(default=False)
 
@@ -75,6 +77,7 @@ class FlextDbOracleDispatcher(FlextService[bool]):
 
         Returns:
             The resulting ``p.Dispatcher``.
+
         """
         dispatcher = cls._container_type.shared().dispatcher().unwrap()
         function_map: MutableMapping[
@@ -110,6 +113,7 @@ class FlextDbOracleDispatcher(FlextService[bool]):
         Returns:
             The resulting ``t.MappingKV[type, t.Pair[Callable[[p.Routable],
                 t.JsonPayload], t.JsonMapping | None]]``.
+
         """
 
         def execute_query_handler(command: p.Routable) -> t.JsonPayload:
@@ -177,6 +181,7 @@ class FlextDbOracleDispatcher(FlextService[bool]):
         Returns:
             The resulting ``t.MappingKV[type, t.Pair[Callable[[p.Routable],
                 t.JsonPayload], t.JsonMapping | None]]``.
+
         """
 
         def get_schemas_handler(_cmd: p.Routable) -> t.JsonPayload:
