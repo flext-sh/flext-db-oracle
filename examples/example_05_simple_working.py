@@ -10,7 +10,8 @@ from __future__ import annotations
 
 import os
 
-from flext_db_oracle import FlextDbOracleSettings, u
+from examples import u
+from flext_db_oracle import FlextDbOracleSettings
 
 logger = u.fetch_logger(__name__)
 

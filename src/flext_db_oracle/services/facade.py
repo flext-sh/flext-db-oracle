@@ -8,17 +8,14 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_db_oracle import (
-    FlextDbOracleServiceBase,
+from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleSettings, p, r
+from flext_db_oracle.services import (
     FlextDbOracleServiceConnection,
     FlextDbOracleServicePlugin,
     FlextDbOracleServiceQuery,
     FlextDbOracleServiceSchema,
     FlextDbOracleServiceSinger,
     FlextDbOracleServiceSqlBuilder,
-    FlextDbOracleSettings,
-    p,
-    r,
 )
 
 

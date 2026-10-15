@@ -21,13 +21,13 @@ from typing import TYPE_CHECKING, TypeVar
 import pytest
 
 from flext_db_oracle import FlextDbOracleSettings
-from flext_db_oracle.services.facade import FlextDbOracleServices
+from flext_db_oracle.services import FlextDbOracleServices
 from tests import m, t, tm
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
-    from flext_db_oracle import p
+    from tests import p
 
 _T = TypeVar("_T")
 

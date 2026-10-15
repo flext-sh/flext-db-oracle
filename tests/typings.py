@@ -14,7 +14,7 @@ from flext_tests import FlextTestsTypes
 from flext_db_oracle import FlextDbOracleTypes
 
 if TYPE_CHECKING:
-    from flext_db_oracle import m, p
+    from tests import m, p
 
 
 class TestsFlextDbOracleTypes(FlextTestsTypes, FlextDbOracleTypes):

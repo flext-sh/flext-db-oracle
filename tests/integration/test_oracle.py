@@ -20,8 +20,7 @@ from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import tm
 
 if TYPE_CHECKING:
-    from flext_db_oracle import m
-    from tests import t
+    from tests import m, t
 
 
 @pytest.fixture

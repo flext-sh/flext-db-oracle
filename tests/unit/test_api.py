@@ -17,9 +17,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, p
-from flext_db_oracle.services.facade import FlextDbOracleServices
-from tests import tm
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from flext_db_oracle.services import FlextDbOracleServices
+from tests import p, tm
 
 if TYPE_CHECKING:
     from tests import t

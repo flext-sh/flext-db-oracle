@@ -45,3 +45,6 @@ class FlextDbOracleConstantsExceptions:
             _OracleInterfaceError,
         )
         """Broad Oracle DB boundary catch including SQLAlchemy errors."""
+
+
+__all__: tuple[str, ...] = ("FlextDbOracleConstantsExceptions",)

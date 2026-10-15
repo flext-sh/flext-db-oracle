@@ -12,6 +12,7 @@ from flext_cli import FlextCliProtocols
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from typing import Self
 
     from flext_db_oracle import m, t
 
@@ -46,11 +47,11 @@ class FlextDbOracleProtocols(FlextCliProtocols):
         class Connection(Protocol):
             """Protocol for Oracle database connection operations."""
 
-            def connect(self) -> p.Result[bool]:
+            def connect(self) -> p.Result[Self]:
                 """Establish Oracle database connection.
 
                 Returns:
-                r[bool]: Connection success status
+                r[Self]: Connected service or error
 
                 """
                 ...
@@ -64,11 +65,11 @@ class FlextDbOracleProtocols(FlextCliProtocols):
                 """
                 ...
 
-            def connected(self) -> p.Result[bool]:
+            def connected(self) -> bool:
                 """Check if Oracle connection is active.
 
                 Returns:
-                r[bool]: Connection status
+                bool: Connection status
 
                 """
                 ...
@@ -264,14 +265,16 @@ class FlextDbOracleProtocols(FlextCliProtocols):
 
             def build_delete_statement(
                 self,
-                table: str,
-                where_clause: str,
+                table_name: str,
+                where_columns: t.StrSequence,
+                schema: str | None = None,
             ) -> p.Result[str]:
                 """Build Oracle DELETE statement.
 
                 Args:
-                table: Table name
-                where_clause: WHERE condition
+                table_name: Table name
+                where_columns: Columns used by bound WHERE conditions
+                schema: Optional schema name
 
                 Returns:
                 r[str]: SQL DELETE statement or error
@@ -281,37 +284,39 @@ class FlextDbOracleProtocols(FlextCliProtocols):
 
             def build_insert_statement(
                 self,
-                table: str,
-                data: t.JsonMapping,
-            ) -> p.Result[tuple[str, t.JsonMapping]]:
+                table_name: str,
+                columns: t.StrSequence,
+                schema: str | None = None,
+                returning_columns: t.StrSequence | None = None,
+            ) -> p.Result[str]:
                 """Build Oracle INSERT statement.
 
                 Args:
-                table: Table name
-                data: Column data
+                table_name: Table name
+                columns: Columns receiving bound values
+                schema: Optional schema name
+                returning_columns: Optional returned column names
 
                 Returns:
-                r[tuple[str, t.JsonMapping]]: SQL and parameters or error
+                r[str]: SQL INSERT statement or error
 
                 """
                 ...
 
             def build_select(
                 self,
-                table: str,
+                table_name: str,
                 columns: t.StrSequence | None = None,
-                where_clause: str | None = None,
-                order_by: str | None = None,
-                limit: int | None = None,
+                conditions: m.ConfigMap | t.JsonMapping | None = None,
+                schema_name: str | None = None,
             ) -> p.Result[str]:
                 """Build Oracle SELECT statement.
 
                 Args:
-                table: Table name
+                table_name: Table name
                 columns: Column names (optional)
-                where_clause: WHERE condition (optional)
-                order_by: ORDER BY clause (optional)
-                limit: Row limit (optional)
+                conditions: Bound equality conditions (optional)
+                schema_name: Schema name (optional)
 
                 Returns:
                 r[str]: SQL SELECT statement or error
@@ -321,19 +326,21 @@ class FlextDbOracleProtocols(FlextCliProtocols):
 
             def build_update_statement(
                 self,
-                table: str,
-                data: t.JsonMapping,
-                where_clause: str,
-            ) -> p.Result[tuple[str, t.JsonMapping]]:
+                table_name: str,
+                set_columns: t.StrSequence,
+                where_columns: t.StrSequence,
+                schema: str | None = None,
+            ) -> p.Result[str]:
                 """Build Oracle UPDATE statement.
 
                 Args:
-                table: Table name
-                data: Column data
-                where_clause: WHERE condition
+                table_name: Table name
+                set_columns: Columns receiving bound values
+                where_columns: Columns used by bound WHERE conditions
+                schema: Optional schema name
 
                 Returns:
-                r[tuple[str, t.JsonMapping]]: SQL and parameters or error
+                r[str]: SQL UPDATE statement or error
 
                 """
                 ...

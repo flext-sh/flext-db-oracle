@@ -14,7 +14,7 @@ from flext_db_oracle import m, p, r, t
 if TYPE_CHECKING:
     from collections.abc import Callable, MutableMapping
 
-    from flext_db_oracle import FlextDbOracleServices
+    from flext_db_oracle.services import FlextDbOracleServices
 
 
 class FlextDbOracleDispatcher(FlextService[bool]):

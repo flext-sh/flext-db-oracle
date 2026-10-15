@@ -341,3 +341,6 @@ class FlextDbOracleConstantsValues:
             "FLEXT_TARGET_ORACLE_DATABASE_NAME": "name",
             ENV_DATABASE_NAME: "name",
         })
+
+
+__all__: tuple[str, ...] = ("FlextDbOracleConstantsValues",)

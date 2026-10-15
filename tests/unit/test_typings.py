@@ -15,8 +15,8 @@ import flext_cli
 import oracledb
 import pytest
 
-from flext_db_oracle import FlextDbOracleTypes, t, typings
-from tests import tm
+from flext_db_oracle import FlextDbOracleTypes, typings
+from tests import t, tm
 
 
 class TestsFlextDbOracleTypings:

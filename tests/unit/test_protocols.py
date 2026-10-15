@@ -16,8 +16,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_db_oracle import FlextDbOracleServices, FlextDbOracleSettings, p
-from tests import tm
+from flext_db_oracle import FlextDbOracleSettings
+from flext_db_oracle.services import FlextDbOracleServices
+from tests import p, tm
 
 if TYPE_CHECKING:
     from tests import t

@@ -13,21 +13,14 @@ from typing import TYPE_CHECKING
 from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_db_oracle._utilities.base import FlextDbOracleUtilitiesBase
     from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
 
 
-__all__: tuple[str, ...] = (
-    "FlextDbOracleUtilitiesBase",
-    "FlextDbOracleUtilitiesDbOracle",
-)
+__all__: tuple[str, ...] = ("FlextDbOracleUtilitiesDbOracle",)
 
 install_lazy_exports(
     __name__,
     globals(),
-    MappingProxyType({
-        "FlextDbOracleUtilitiesBase": ".base",
-        "FlextDbOracleUtilitiesDbOracle": ".db_oracle",
-    }),
+    MappingProxyType({"FlextDbOracleUtilitiesDbOracle": ".db_oracle"}),
     public_exports=__all__,
 )

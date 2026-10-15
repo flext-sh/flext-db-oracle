@@ -17,7 +17,7 @@ from flext_db_oracle import FlextDbOracleSettings
 from tests import m, tm
 
 if TYPE_CHECKING:
-    from flext_db_oracle.services.facade import FlextDbOracleServices
+    from flext_db_oracle.services import FlextDbOracleServices
 
 
 class TestsFlextDbOracleCoverageBaseline:

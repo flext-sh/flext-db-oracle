@@ -10,10 +10,8 @@ from typing import TYPE_CHECKING, Self, override
 from urllib.parse import parse_qs, urlparse
 
 from flext_db_oracle import (
-    FlextDbOracleApiRuntimeState,
     FlextDbOracleDispatcher,
     FlextDbOracleServiceBase,
-    FlextDbOracleServices,
     FlextDbOracleSettings,
     c,
     m,
@@ -22,6 +20,7 @@ from flext_db_oracle import (
     t,
     u,
 )
+from flext_db_oracle.services import FlextDbOracleApiRuntimeState, FlextDbOracleServices
 
 if TYPE_CHECKING:
     import types
