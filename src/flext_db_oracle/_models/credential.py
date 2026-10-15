@@ -26,3 +26,6 @@ class FlextDbOracleCredentialModel(FlextDbOracleModelsBase.CredentialRoot):
     def __hash__(self) -> int:
         """Return hash based on wrapped password value."""
         return hash(self.root)
+
+
+__all__: tuple[str, ...] = ("FlextDbOracleCredentialModel",)

@@ -264,3 +264,6 @@ class FlextDbOracleUtilitiesDbOracle:
         """
         normalized_params = cls.normalize_params(parameters)
         return connection.execute(statement, normalized_params.root)
+
+
+__all__: tuple[str, ...] = ("FlextDbOracleUtilitiesDbOracle",)

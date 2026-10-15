@@ -9,3 +9,6 @@ from __future__ import annotations
 
 class FlextDbOracleConstantsBase:
     """Base constants for flext-db-oracle."""
+
+
+__all__: list[str] = ["FlextDbOracleConstantsBase"]
