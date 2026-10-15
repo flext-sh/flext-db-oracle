@@ -54,6 +54,7 @@ class TestsFlextDbOracleOracleExample:
 
         Returns:
             The resulting ``t.JsonValue``.
+
         """
         with FlextDbOracleApi(real_oracle_config) as api:
             connection_result = api.test_connection()
@@ -70,6 +71,7 @@ class TestsFlextDbOracleOracleExample:
 
         Returns:
             The resulting ``FlextDbOracleServices``.
+
         """
         connection = FlextDbOracleServices(settings=real_oracle_config)
         connect_result = connection.connect()
@@ -117,6 +119,7 @@ class TestsFlextDbOracleOracleExample:
 
         Raises:
             AssertionError: If fetch_one returned success with no row.
+
         """
         connection = self._connect_services(real_oracle_config)
         try:

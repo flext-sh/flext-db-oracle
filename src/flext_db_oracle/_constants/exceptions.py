@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import t
 from oracledb import (
     DatabaseError as _OracleDatabaseError,
     InterfaceError as _OracleInterfaceError,
@@ -15,8 +16,6 @@ from sqlalchemy.exc import (
     OperationalError as _SQLAlchemyOperationalError,
     SQLAlchemyError as _SQLAlchemyError,
 )
-
-from flext_core import t
 
 
 class FlextDbOracleConstantsExceptions:

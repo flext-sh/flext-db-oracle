@@ -59,6 +59,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Raises:
             RuntimeError: If ``connect_result.failure``.
+
         """
         connect_result = self.connect()
         if connect_result.failure:
@@ -101,6 +102,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``bool``.
+
         """
         return self._services.connected()
 
@@ -120,6 +122,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``Self``.
+
         """
         return cls(settings=settings)
 
@@ -129,6 +132,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[Self]``.
+
         """
         if not settings.DbOracle.username:
             return r[Self](
@@ -154,6 +158,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[Self]``.
+
         """
         env_settings_cls = type(
             "_FlextDbOracleEnvSettings",
@@ -185,6 +190,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[Self]``.
+
         """
         parsed = urlparse(url)
         if parsed.scheme not in {"oracle", "oracle+oracledb"}:
@@ -214,6 +220,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[Self]``.
+
         """
         self.logger.info(
             "Connecting to Oracle database: %s",
@@ -226,6 +233,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[bool]``.
+
         """
         self.logger.info("Disconnecting from Oracle database")
         return self._services.disconnect()
@@ -235,6 +243,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[bool]``.
+
         """
         return self._services.test_connection()
 
@@ -243,6 +252,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``m.ConfigMap``.
+
         """
         if obj is not None:
             return m.ConfigMap.model_validate(obj)
@@ -264,6 +274,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[t.JsonMapping]``.
+
         """
         return r[t.JsonMapping].ok({
             "connected": self._services.connected(),
@@ -275,6 +286,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``bool``.
+
         """
         return self._oracle_config.DbOracle.port >= c.DbOracle.MIN_PORT and bool(
             self._oracle_config.DbOracle.service_name,

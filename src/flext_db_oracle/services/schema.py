@@ -48,6 +48,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[Sequence[m.DbOracle.Column]]``.
+
         """
         if schema_name:
             sql = (
@@ -102,6 +103,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[t.StrSequence]``.
+
         """
         return self.fetch_primary_keys(table_name, schema_name)
 
@@ -114,6 +116,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[t.StrSequence]``.
+
         """
 
         def _fetch_keys() -> t.StrSequence:
@@ -164,6 +167,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[t.StrSequence]``.
+
         """
         sql = (
             "SELECT username as schema_name FROM all_users "
@@ -187,6 +191,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[m.DbOracle.TableMetadata]``.
+
         """
 
         def _fetch_metadata() -> m.DbOracle.TableMetadata:
@@ -233,6 +238,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[int]``.
+
         """
 
         def _fetch_count() -> int:
@@ -276,6 +282,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[t.StrSequence]``.
+
         """
         if schema:
             sql = (

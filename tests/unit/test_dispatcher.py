@@ -23,6 +23,7 @@ class TestsFlextDbOracleDispatcher:
 
         Returns:
             The resulting ``FlextDbOracleServices``.
+
         """
         settings = FlextDbOracleSettings.model_validate({
             "DbOracle": {

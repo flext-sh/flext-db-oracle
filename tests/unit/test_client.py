@@ -29,6 +29,7 @@ class TestsFlextDbOracleClient:
 
         Returns:
             The resulting ``FlextDbOracleClient``.
+
         """
         return FlextDbOracleClient()
 

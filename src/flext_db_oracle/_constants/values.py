@@ -122,6 +122,7 @@ class FlextDbOracleConstantsValues:
 
             Returns:
                 The resulting ``str``.
+
             """
             collapsed: str = FlextDbOracleConstantsValues.DbOracle.WHITESPACE_RE.sub(
                 " ",

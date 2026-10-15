@@ -64,6 +64,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
         Returns:
             The resulting ``p.Result[bool]``.
+
         """
         if not identifier:
             return r[bool].fail("Empty Oracle identifier")
@@ -79,6 +80,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         if not identifier.strip():
             return r[str].fail("Empty Oracle identifier")
@@ -97,6 +99,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         if format_type == "json":
             json_payload: t.JsonValue = u.normalize_to_json_value(result)
@@ -109,6 +112,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         normalized = " ".join(sql.split())
         return r[str].ok(normalized)
@@ -123,6 +127,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         sorted_params = dict(sorted((params or {}).items()))
         serialized = u.json_mapping_adapter().dump_json(sorted_params).decode()
@@ -138,6 +143,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
         Raises:
             TypeError: ``value`` is not a mapping.
+
         """
         # Why: no-hidden-errors — propagate the raw failure instead of
         # masking a malformed mapping as an empty/None sentinel.
@@ -152,6 +158,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
         Returns:
             The resulting ``m.ConfigMap``.
+
         """
         if params is not None:
             return params
@@ -163,6 +170,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
         Returns:
             The resulting ``int``.
+
         """
         return int(value)
 
@@ -175,6 +183,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
         Raises:
             ValueError: If Singer type sequence must not be empty.
+
         """
         if isinstance(value, str):
             return value
@@ -193,6 +202,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
         Returns:
             The resulting ``SAEngine``.
+
         """
         connect_args: t.MutableMappingKV[str, int] = {}
         if connect_timeout is not None:
@@ -211,6 +221,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
         Returns:
             The resulting ``SAConnection``.
+
         """
         return engine.connect()
 
@@ -222,6 +233,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
         Returns:
             The resulting ``contextlib.AbstractContextManager[SAConnection]``.
+
         """
         return engine.begin()
 
@@ -248,6 +260,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
         Returns:
             The resulting ``CursorResult[t.VariadicTuple[t.JsonValue]]``.
+
         """
         normalized_params = cls.normalize_params(parameters)
         return connection.execute(statement, normalized_params.root)

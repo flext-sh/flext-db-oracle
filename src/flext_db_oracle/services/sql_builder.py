@@ -101,6 +101,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``TableClause``.
+
         """
         # sqlalchemy's ``column()`` leaves its type parameter unbound; pinning
         # the clause list to ``ColumnClause[str]`` keeps the element type known
@@ -132,6 +133,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         try:
             if not config:
@@ -149,6 +151,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         if not settings.columns:
             return r[str].fail("Index definition requires at least one column")
@@ -173,6 +176,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``Table``.
+
         """
         table_name = self._normalize_identifier(settings.table_name)
         schema_name = (
@@ -204,6 +208,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         bind_names = {
             column_name: f"bind_{index:04d}"
@@ -229,6 +234,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         statement_columns = tuple(dict.fromkeys([*columns, *(returning_columns or ())]))
         bind_names = {
@@ -258,6 +264,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         typed_conditions = (
             conditions
@@ -307,6 +314,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         statement_columns = tuple(dict.fromkeys([*set_columns, *where_columns]))
         bind_names = {
@@ -335,6 +343,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         try:
             column_models = self._normalize_table_columns(columns)
@@ -352,6 +361,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``t.SequenceOf[m.DbOracle.Column]``.
+
         """
         return tuple(self._normalize_table_column(column) for column in columns)
 
@@ -363,6 +373,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``m.DbOracle.Column``.
+
         """
         if isinstance(column, m.DbOracle.Column):
             copied: m.DbOracle.Column = column.model_copy(
@@ -393,6 +404,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``Table``.
+
         """
         normalized_table_name = self._normalize_identifier(table_name)
         normalized_schema_name = self._normalize_identifier(schema) if schema else None
@@ -426,6 +438,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         normalized_table_name = self._normalize_identifier(table_name)
         normalized_schema_name = self._normalize_identifier(schema) if schema else None

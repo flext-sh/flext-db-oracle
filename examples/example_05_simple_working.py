@@ -21,6 +21,7 @@ def _resolve_settings() -> FlextDbOracleSettings:
 
     Returns:
         The resulting ``FlextDbOracleSettings``.
+
     """
     settings = FlextDbOracleSettings.fetch_global()
     if settings.DbOracle.password:

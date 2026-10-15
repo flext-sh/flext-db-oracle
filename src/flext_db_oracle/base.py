@@ -12,9 +12,9 @@ from __future__ import annotations
 import time
 from collections.abc import MutableMapping, MutableSequence, Sequence
 
+from flext_core import FlextService
 from sqlalchemy import Engine as SAEngine, text
 
-from flext_core import FlextService
 from flext_db_oracle import FlextDbOracleSettings, c, m, p, r, t, u
 
 
@@ -52,6 +52,7 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
 
         Raises:
             RuntimeError: If Database configuration not initialized.
+
         """
         settings = self._db_config
         if settings is None:
@@ -64,6 +65,7 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
 
         Returns:
             The resulting ``bool``.
+
         """
         return self._engine is not None
 
@@ -72,6 +74,7 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
 
         Returns:
             The resulting ``int``.
+
         """
         if not rows:
             return 0
@@ -86,6 +89,7 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
 
         Returns:
             The resulting ``str``.
+
         """
         return str(int(time.time()))
 
@@ -94,6 +98,7 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
 
         Returns:
             The resulting ``p.Result[SAEngine]``.
+
         """
         engine = self._engine
         if engine is None or not self.connected():
@@ -109,6 +114,7 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
 
         Returns:
             The resulting ``p.Result[Sequence[m.Dict]]``.
+
         """
         if not self.connected():
             return r[Sequence[m.Dict]].fail("Not connected to database")

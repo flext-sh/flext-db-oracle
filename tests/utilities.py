@@ -31,6 +31,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
 
             Returns:
                 The resulting ``t.StrMapping``.
+
             """
             # Why: no-hidden-errors — propagate a malformed Docker port
             # payload instead of masking it as "no bindings".
@@ -48,6 +49,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
 
             Returns:
                 The resulting ``t.StrMapping``.
+
             """
             return cls.normalize_port_bindings(status_value.ports)
 
@@ -61,6 +63,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
 
             Returns:
                 The resulting ``bool``.
+
             """
             return any(
                 container_port.startswith("1521")
@@ -75,6 +78,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
 
             Returns:
                 The resulting ``int | None``.
+
             """
             for container_port, host_port in ports.items():
                 if container_port.startswith("1521") and host_port.isdigit():
@@ -87,6 +91,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
 
             Returns:
                 The resulting ``int``.
+
             """
             fallback_port = 1522
             container_settings = c.Tests.SHARED_CONTAINERS.get(container_name)
@@ -106,6 +111,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
 
             Returns:
                 The resulting ``int``.
+
             """
             env_port = os.getenv("TEST_ORACLE_PORT")
             if env_port is not None and env_port.isdigit():

@@ -51,6 +51,7 @@ class FlextDbOracleProtocols(FlextCliProtocols):
 
                 Returns:
                     The connected implementer on success.
+
                 """
                 ...
 
@@ -59,6 +60,7 @@ class FlextDbOracleProtocols(FlextCliProtocols):
 
                 Returns:
                     Whether the connection was closed.
+
                 """
                 ...
 
@@ -67,6 +69,7 @@ class FlextDbOracleProtocols(FlextCliProtocols):
 
                 Returns:
                     Whether an active connection exists.
+
                 """
                 ...
 
@@ -274,6 +277,7 @@ class FlextDbOracleProtocols(FlextCliProtocols):
 
                 Returns:
                     The compiled DELETE statement or a typed failure.
+
                 """
                 ...
 
@@ -294,6 +298,7 @@ class FlextDbOracleProtocols(FlextCliProtocols):
 
                 Returns:
                     The compiled INSERT statement or a typed failure.
+
                 """
                 ...
 
@@ -314,6 +319,7 @@ class FlextDbOracleProtocols(FlextCliProtocols):
 
                 Returns:
                     The compiled SELECT statement or a typed failure.
+
                 """
                 ...
 
@@ -334,6 +340,7 @@ class FlextDbOracleProtocols(FlextCliProtocols):
 
                 Returns:
                     The compiled UPDATE statement or a typed failure.
+
                 """
                 ...
 

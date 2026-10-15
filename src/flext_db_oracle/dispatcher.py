@@ -10,6 +10,7 @@ from collections.abc import Callable, MutableMapping
 from typing import TYPE_CHECKING, ClassVar, override
 
 from flext_core import FlextContainer, FlextService
+
 from flext_db_oracle import m, p, r, t
 
 if TYPE_CHECKING:
@@ -38,6 +39,7 @@ class FlextDbOracleDispatcher(FlextService[bool]):
         Returns:
             The resulting ``t.MappingKV[type, t.Pair[Callable[[p.Routable],
                 t.JsonPayload], t.JsonMapping | None]]``.
+
         """
 
         def connect_handler(_cmd: p.Routable) -> t.JsonPayload:
@@ -54,6 +56,7 @@ class FlextDbOracleDispatcher(FlextService[bool]):
 
             Returns:
                 The resulting ``t.JsonPayload``.
+
             """
             return services.test_connection().map_or(default=False)
 
@@ -74,6 +77,7 @@ class FlextDbOracleDispatcher(FlextService[bool]):
 
         Returns:
             The resulting ``p.Dispatcher``.
+
         """
         dispatcher = cls._container_type.shared().dispatcher().unwrap()
         function_map: MutableMapping[
@@ -109,6 +113,7 @@ class FlextDbOracleDispatcher(FlextService[bool]):
         Returns:
             The resulting ``t.MappingKV[type, t.Pair[Callable[[p.Routable],
                 t.JsonPayload], t.JsonMapping | None]]``.
+
         """
 
         def execute_query_handler(command: p.Routable) -> t.JsonPayload:
@@ -176,6 +181,7 @@ class FlextDbOracleDispatcher(FlextService[bool]):
         Returns:
             The resulting ``t.MappingKV[type, t.Pair[Callable[[p.Routable],
                 t.JsonPayload], t.JsonMapping | None]]``.
+
         """
 
         def get_schemas_handler(_cmd: p.Routable) -> t.JsonPayload:

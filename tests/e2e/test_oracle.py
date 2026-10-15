@@ -51,6 +51,7 @@ class TestsFlextDbOracleOracle:
 
         Returns:
             The resulting ``FlextDbOracleApi``.
+
         """
         return FlextDbOracleApi(offline_settings)
 
@@ -147,6 +148,7 @@ class TestsFlextDbOracleOracle:
 
         Returns:
             The resulting ``Mapping[str, t.JsonPayload]``.
+
         """
         return {key.upper(): value for key, value in row.root.items()}
 

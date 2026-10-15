@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_core import FlextConstants
+
 from flext_db_oracle._constants.exceptions import FlextDbOracleConstantsExceptions
 from flext_db_oracle._constants.values import FlextDbOracleConstantsValues
 

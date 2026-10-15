@@ -15,8 +15,8 @@ from types import MappingProxyType
 from typing import ClassVar, cast
 
 from flext_cli import FlextCliModels
-
 from flext_core import u as core_u
+
 from flext_db_oracle import c, t
 from flext_db_oracle._models.base import FlextDbOracleModelsBase
 from flext_db_oracle._models.credential import FlextDbOracleCredentialModel
@@ -212,6 +212,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``str``.
+
                 """
                 return f"{value:.3f}s"
 
@@ -222,6 +223,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``str``.
+
                 """
                 return value.isoformat()
 
@@ -232,6 +234,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``str``.
+
                 """
                 max_error_length = c.DbOracle.MAX_ERROR_MESSAGE_LENGTH
                 if len(value) > max_error_length:
@@ -250,6 +253,7 @@ class FlextDbOracleModels(FlextCliModels):
                 Raises:
                     ValueError: If Connected status requires host information; or if
                         Invalid port number; or if Connection time cannot be negative.
+
                 """
                 if self.connected and not self.host:
                     msg = "Connected status requires host information"
@@ -375,6 +379,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``str``.
+
                 """
                 threshold = c.DbOracle.MILLISECONDS_TO_SECONDS_THRESHOLD
                 return (
@@ -392,6 +397,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Raises:
                     ValueError: If Execution time cannot be negative; or if Row length.
+
                 """
                 if len(self.rows) != self.row_count:
                     self.row_count = len(self.rows)
@@ -446,6 +452,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``t.JsonValue``.
+
                 """
                 if key in self.metrics:
                     return self.metrics[key]
@@ -458,6 +465,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``bool``.
+
                 """
                 if key in self.metrics:
                     return True
@@ -488,6 +496,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``t.JsonValue``.
+
                 """
                 dump = self.model_dump()
                 value = dump.get(key, "")
@@ -498,6 +507,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``bool``.
+
                 """
                 return key in self.model_dump()
 
@@ -514,6 +524,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``str``.
+
                 """
                 value: str = self.mapping[key]
                 return value
@@ -523,6 +534,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``int``.
+
                 """
                 return len(self.mapping)
 
@@ -531,6 +543,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``bool``.
+
                 """
                 return key in self.mapping
 
@@ -595,6 +608,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``t.JsonValue``.
+
                 """
                 key_map: t.JsonMapping = {
                     "column_name": self.name,
@@ -613,6 +627,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``bool``.
+
                 """
                 return key in {
                     "name",

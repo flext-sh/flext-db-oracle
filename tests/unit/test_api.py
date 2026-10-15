@@ -33,6 +33,7 @@ class TestsFlextDbOracleApi:
 
         Returns:
             The resulting ``FlextDbOracleSettings``.
+
         """
         return FlextDbOracleSettings.model_validate({
             "DbOracle": {
@@ -51,6 +52,7 @@ class TestsFlextDbOracleApi:
 
         Returns:
             The resulting ``FlextDbOracleSettings``.
+
         """
         return self._settings()
 
@@ -100,6 +102,7 @@ class TestsFlextDbOracleApi:
 
         Returns:
             The resulting ``bool``.
+
         """
         return isinstance(candidate, p.DbOracle.Runtime)
 

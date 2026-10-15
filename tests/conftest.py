@@ -175,6 +175,7 @@ def docker_control() -> FlextTestsDocker:
 
     Returns:
         The resulting ``tk``.
+
     """
     return tk.shared(
         _ORACLE_CONTAINER_NAME,
@@ -193,6 +194,7 @@ def shared_oracle_container(docker_control: FlextTestsDocker) -> str:
 
     Returns:
         The resulting ``str``.
+
     """
     container_name = _ORACLE_CONTAINER_NAME
     probe_budget = c.Tests.DOCKER_PROBE_MAX_WAIT_SECONDS
@@ -229,6 +231,7 @@ def oracle_login_ready(shared_oracle_container: str) -> str:
 
     Returns:
         The resulting ``str``.
+
     """
     host = os.getenv("TEST_ORACLE_HOST", c.LOCALHOST)
     port = int(os.getenv("TEST_ORACLE_PORT", "1522"))
@@ -251,6 +254,7 @@ def oracle_container(oracle_login_ready: str) -> str:
 
     Returns:
         The resulting ``str``.
+
     """
     return oracle_login_ready
 
@@ -281,6 +285,7 @@ def real_oracle_config(
 
     Returns:
         The resulting ``FlextDbOracleSettings``.
+
     """
     return real_oracle_settings
 
@@ -291,6 +296,7 @@ def oracle_config(real_oracle_config: FlextDbOracleSettings) -> FlextDbOracleSet
 
     Returns:
         The resulting ``FlextDbOracleSettings``.
+
     """
     return real_oracle_config
 
@@ -306,6 +312,7 @@ def _assert_oracle_success[TResult](result: p.Result[TResult], operation: str) -
 
     Raises:
         AssertionError: If ``result.failure``.
+
     """
     if result.failure:
         error = result.error or ""
@@ -419,6 +426,7 @@ def connected_oracle_api(oracle_api: FlextDbOracleApi) -> Generator[FlextDbOracl
 
     Yields:
         Each ``FlextDbOracleApi``.
+
     """
     connect_result = oracle_api.connect()
     if connect_result.failure:
@@ -439,6 +447,7 @@ def oracle_available(connected_oracle_api: FlextDbOracleApi) -> bool:
 
     Returns:
         The resulting ``bool``.
+
     """
     _ = connected_oracle_api
     return True
@@ -453,6 +462,7 @@ def oracle_test_database(connected_oracle_api: FlextDbOracleApi) -> t.StrMapping
 
     Raises:
         AssertionError: If Could not create test schema; or if Test setup failed.
+
     """
     test_schema = {
         "test_table": (

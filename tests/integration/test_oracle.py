@@ -52,6 +52,7 @@ class TestsFlextDbOracleOracle:
 
         Returns:
             The resulting ``str``.
+
         """
         dumped = row.model_dump()
         for key in keys:
@@ -66,6 +67,7 @@ class TestsFlextDbOracleOracle:
 
         Returns:
             The resulting ``FlextDbOracleApi``.
+
         """
         api = FlextDbOracleApi(settings=settings)
         connect_result = api.connect()

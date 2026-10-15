@@ -22,6 +22,7 @@ class FlextDbOracleApiRuntimeExecution(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[p.Base]``.
+
         """
         return r[p.Base].ok(self._oracle_config)
 
@@ -34,6 +35,7 @@ class FlextDbOracleApiRuntimeExecution(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[int]``.
+
         """
         self.logger.debug("Executing bulk statement", batch_size=len(params_list))
         return self._normalize_parameters_list(params_list).flat_map(
@@ -52,6 +54,7 @@ class FlextDbOracleApiRuntimeExecution(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[int]``.
+
         """
         return self.execute_statement(sql, parameters)
 
@@ -64,6 +67,7 @@ class FlextDbOracleApiRuntimeExecution(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[int]``.
+
         """
         sql_text = str(sql)
         self.logger.debug("Executing SQL statement", statement_length=len(sql_text))
@@ -80,6 +84,7 @@ class FlextDbOracleApiRuntimeExecution(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         return u.try_(
             lambda: " ".join(sql.split()),
@@ -95,6 +100,7 @@ class FlextDbOracleApiRuntimeExecution(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[Sequence[m.Dict]]``.
+
         """
         self.logger.debug("Executing query", query_length=len(sql))
         return self._normalize_parameters(parameters).flat_map(
@@ -113,6 +119,7 @@ class FlextDbOracleApiRuntimeExecution(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[m.Dict | None]``.
+
         """
         return self._normalize_parameters(parameters).flat_map(
             lambda normalized_parameters: self._services.fetch_one(
@@ -129,6 +136,7 @@ class FlextDbOracleApiRuntimeExecution(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[m.ConfigMap]``.
+
         """
         if parameters is None:
             return r[m.ConfigMap].ok(m.ConfigMap(root={}))
@@ -150,6 +158,7 @@ class FlextDbOracleApiRuntimeExecution(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[Sequence[m.ConfigMap]]``.
+
         """
         normalized: MutableSequence[m.ConfigMap] = []
         for parameters in parameters_list:
@@ -168,6 +177,7 @@ class FlextDbOracleApiRuntimeExecution(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``m.DbOracle.QueryResult``.
+
         """
         if not data:
             return m.DbOracle.QueryResult(
@@ -202,6 +212,7 @@ class FlextDbOracleApiRuntimeExecution(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[m.DbOracle.QueryResult]``.
+
         """
         return self._services.execute_query(sql).map(
             lambda data: self._convert_to_query_result(sql, data),

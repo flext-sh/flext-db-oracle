@@ -34,6 +34,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         singer_type = self._normalize_singer_type(singer_type)
         if _format_hint == "date-time":
@@ -49,6 +50,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[m.DbOracle.TypeMapping]``.
+
         """
         raw_properties: t.JsonDict = {}
         if isinstance(singer_schema, m.DbOracle.SingerSchema):

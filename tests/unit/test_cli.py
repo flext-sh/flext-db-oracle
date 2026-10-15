@@ -343,6 +343,7 @@ class TestsFlextDbOracleCli:
 
         Returns:
             The resulting ``FlextDbOracleApi``.
+
         """
         return FlextDbOracleApi(
             FlextDbOracleSettings.model_validate({

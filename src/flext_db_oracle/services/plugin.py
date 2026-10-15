@@ -38,6 +38,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[m.DbOracle.HealthStatus]``.
+
         """
         status = "connected" if self.connected() else "disconnected"
         metrics_payload: t.StrMapping = {
@@ -59,6 +60,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[Sequence[m.DbOracle.OperationRecord]]``.
+
         """
         return r[Sequence[m.DbOracle.OperationRecord]].ok(list(self._operations))
 
@@ -67,6 +69,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[t.JsonPayload]``.
+
         """
         if not name:
             return r[t.JsonPayload].fail("Plugin name is required")
@@ -79,6 +82,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[m.ConfigMap]``.
+
         """
         plugin_names = list(self._plugins.keys())
         return r[m.ConfigMap].ok(m.ConfigMap(root=dict.fromkeys(plugin_names, True)))
@@ -93,6 +97,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[bool]``.
+
         """
         if not name:
             return r[bool].fail("Metric name is required")
@@ -111,6 +116,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[bool]``.
+
         """
         if not name:
             return r[bool].fail("Plugin name is required")
@@ -129,6 +135,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[bool]``.
+
         """
 
         def _track() -> bool:
@@ -163,6 +170,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[bool]``.
+
         """
         if not name:
             return r[bool].fail("Plugin name is required")

@@ -41,6 +41,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[Self]``.
+
         """
         url_result = self._build_connection_url()
         if url_result.failure:
@@ -99,6 +100,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[bool]``.
+
         """
         engine = self._engine
         if engine is not None:
@@ -113,6 +115,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[p.Base]``.
+
         """
         test_result = self.test_connection()
         if test_result.success:
@@ -127,6 +130,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
 
         Raises:
             RuntimeError: If No database connection established.
+
         """
         engine = self._engine
         if engine is None:
@@ -140,6 +144,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
 
         Yields:
             Each ``SAConnection``.
+
         """
         with self._engine_connect(self._require_engine()) as connection:
             yield connection
@@ -149,6 +154,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[m.DbOracle.ConnectionStatus]``.
+
         """
         now = u.now()
         return r[m.DbOracle.ConnectionStatus].ok(
@@ -172,6 +178,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[m.DbOracle.HealthStatus]``.
+
         """
         return r[m.DbOracle.HealthStatus].ok(
             m.DbOracle.HealthStatus(
@@ -194,6 +201,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[bool]``.
+
         """
         engine_result = self._get_engine()
         if engine_result.failure:
@@ -210,6 +218,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
 
         Yields:
             Each ``SAConnection``.
+
         """
         with self._engine_begin(self._require_engine()) as txn:
             yield txn
@@ -223,6 +232,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         encoded_password = quote_plus(password.encode())
         service_name = self.db_config.DbOracle.service_name
@@ -236,6 +246,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         try:
             password = self.db_config.DbOracle.password

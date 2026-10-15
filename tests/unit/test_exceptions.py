@@ -28,6 +28,7 @@ class TestsFlextDbOracleExceptions:
 
         Raises:
             Error: If explode now.
+
         """
         message = "explode now"
         with pytest.raises(e.BaseError, match="explode"):

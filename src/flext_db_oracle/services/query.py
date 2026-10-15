@@ -38,6 +38,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[SAEngine]``.
+
         """
         if not self.connected():
             return r[SAEngine].fail("Not connected to database")
@@ -52,6 +53,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[int]``.
+
         """
         engine_result = self._connected_engine()
         if engine_result.failure:
@@ -83,6 +85,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[Sequence[m.Dict]]``.
+
         """
         engine_result = self._connected_engine()
         if engine_result.failure:
@@ -104,6 +107,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[int]``.
+
         """
         engine_result = self._connected_engine()
         if engine_result.failure:
@@ -125,6 +129,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[m.Dict | None]``.
+
         """
         return self.execute_query(sql, params).map(
             lambda rows: rows[0] if rows else None,
@@ -138,6 +143,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``t.SequenceOf[m.Dict]``.
+
         """
         mapping_result = query_result.mappings()
         rows = mapping_result.all()
