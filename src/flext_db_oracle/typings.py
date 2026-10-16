@@ -7,13 +7,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-import oracledb
 from flext_cli import FlextCliTypes
 
-if TYPE_CHECKING:
-    from flext_db_oracle import FlextDbOracleSettings
+from flext_db_oracle._typings import db_oracle as _db_oracle_types
 
 
 class FlextDbOracleTypes(FlextCliTypes):
@@ -22,13 +18,12 @@ class FlextDbOracleTypes(FlextCliTypes):
     class DbOracle:
         """Oracle domain namespace (flat members per AGENTS.md §149)."""
 
-        OracleDatabaseError: type[Exception] = oracledb.DatabaseError
-        OracleInterfaceError: type[Exception] = oracledb.InterfaceError
+        OracleDatabaseError = _db_oracle_types.OracleDatabaseError
+        OracleInterfaceError = _db_oracle_types.OracleInterfaceError
 
-        type QueryParameters = FlextCliTypes.JsonMapping
-        type CliScalar = FlextCliTypes.Scalar | None
-        if TYPE_CHECKING:
-            type Settings = FlextDbOracleSettings
+        QueryParameters = _db_oracle_types.QueryParameters
+        CliScalar = _db_oracle_types.CliScalar
+        Settings = _db_oracle_types.Settings
 
 
 t = FlextDbOracleTypes
