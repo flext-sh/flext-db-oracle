@@ -15,8 +15,10 @@ from types import MappingProxyType
 from typing import ClassVar, cast
 
 from flext_cli import FlextCliModels
+from flext_core import u as core_u
 
-from flext_db_oracle import c, t, u
+from flext_db_oracle import c, t
+from flext_db_oracle._models.base import FlextDbOracleModelsBase
 from flext_db_oracle._models.credential import FlextDbOracleCredentialModel
 
 
@@ -29,7 +31,7 @@ class FlextDbOracleModels(FlextCliModels):
     All types moved to typings.py.
     """
 
-    class DbOracle:
+    class DbOracle(FlextDbOracleModelsBase):
         """DbOracle domain namespace."""
 
         Password: type[FlextDbOracleCredentialModel] = FlextDbOracleCredentialModel
@@ -49,7 +51,7 @@ class FlextDbOracleModels(FlextCliModels):
         class RowData(DbOracleDomainModel):
             """Typed row payload for query results."""
 
-            values: t.JsonList = u.Field(
+            values: t.JsonList = core_u.Field(
                 default_factory=tuple[t.JsonValue, ...],
                 description="Row column values",
             )
@@ -68,53 +70,57 @@ class FlextDbOracleModels(FlextCliModels):
                 FlextCliModels.ConfigDict(frozen=False)
             )
 
-            connected: bool = u.Field(
+            connected: bool = core_u.Field(
                 default=False,
                 description="Whether connection is active",
                 validate_default=True,
             )
-            last_check: datetime = u.Field(
-                default_factory=u.now,
+            last_check: datetime = core_u.Field(
+                default_factory=core_u.now,
                 description="Timestamp of last connection check",
             )
-            error_message: str = u.Field(
+            error_message: str = core_u.Field(
                 "",
                 description="Error message when disconnected",
                 validate_default=True,
             )
 
             # Additional Oracle-specific connection details
-            connection_time: t.NonNegativeFloat = u.Field(
+            connection_time: t.NonNegativeFloat = core_u.Field(
                 0.0,
                 description="Connection establishment time in seconds",
                 validate_default=True,
             )
-            last_activity: datetime = u.Field(
-                default_factory=u.now,
+            last_activity: datetime = core_u.Field(
+                default_factory=core_u.now,
                 description="Timestamp of last database activity",
             )
-            session_id: str = u.Field(
+            session_id: str = core_u.Field(
                 "",
                 description="Oracle session identifier",
                 validate_default=True,
             )
-            host: str = u.Field("", description="Database host", validate_default=True)
-            port: t.PortNumber = u.Field(
+            host: str = core_u.Field(
+                "",
+                description="Database host",
+                validate_default=True,
+            )
+            port: t.PortNumber = core_u.Field(
                 c.DbOracle.DEFAULT_PORT,
                 description="Database port",
                 validate_default=True,
             )
-            service_name: str = u.Field(
+            service_name: str = core_u.Field(
                 "",
                 description="Oracle service name",
                 validate_default=True,
             )
-            username: str = u.Field(
+            username: str = core_u.Field(
                 "",
                 description="Database username",
                 validate_default=True,
             )
-            db_version: str = u.Field(
+            db_version: str = core_u.Field(
                 "",
                 description="Oracle database version",
                 validate_default=True,
@@ -124,19 +130,19 @@ class FlextDbOracleModels(FlextCliModels):
             # overload, which flext-core's `staticmethod(computed_field)` wrap
             # does not expose to pyrefly (flext-1wjg1.16 fleet defect); the
             # bare form already infers the type from the property annotation.
-            @u.computed_field
+            @core_u.computed_field
             @property
             def connection_age_seconds(self) -> float:
                 """Connection age in seconds."""
                 if self.connected:
-                    current_time: datetime = u.now()
+                    current_time: datetime = core_u.now()
                     age_seconds: float = (
                         current_time - self.last_activity
                     ).total_seconds()
                     return age_seconds
                 return 0.0
 
-            @u.computed_field
+            @core_u.computed_field
             @property
             def connection_info(self) -> str:
                 """Connection information summary."""
@@ -154,7 +160,7 @@ class FlextDbOracleModels(FlextCliModels):
                 ]
                 return ", ".join(parts) or "Connected"
 
-            @u.computed_field
+            @core_u.computed_field
             @property
             def healthy(self) -> bool:
                 """Connection health status."""
@@ -167,7 +173,7 @@ class FlextDbOracleModels(FlextCliModels):
                 is_healthy: bool = age_seconds <= idle_timeout_seconds
                 return is_healthy
 
-            @u.computed_field
+            @core_u.computed_field
             @property
             def performance_info(self) -> str:
                 """Connection performance information."""
@@ -187,7 +193,7 @@ class FlextDbOracleModels(FlextCliModels):
                     return f"Acceptable ({self.connection_time:.3f}s)"
                 return f"Slow ({self.connection_time:.3f}s)"
 
-            @u.computed_field
+            @core_u.computed_field
             @property
             def status_description(self) -> str:
                 """Human-readable status description."""
@@ -199,40 +205,43 @@ class FlextDbOracleModels(FlextCliModels):
                     else "Disconnected"
                 )
 
-            @u.field_serializer("connection_time", when_used="json")
+            @core_u.field_serializer("connection_time", when_used="json")
             @staticmethod
             def serialize_connection_time(value: float) -> str:
                 """Format connection time with units.
 
                 Returns:
                     The resulting ``str``.
+
                 """
                 return f"{value:.3f}s"
 
-            @u.field_serializer("last_check", "last_activity", when_used="json")
+            @core_u.field_serializer("last_check", "last_activity", when_used="json")
             @staticmethod
             def serialize_datetime(value: datetime) -> str:
                 """Format datetime as ISO string.
 
                 Returns:
                     The resulting ``str``.
+
                 """
                 return value.isoformat()
 
-            @u.field_serializer("error_message")
+            @core_u.field_serializer("error_message")
             @staticmethod
             def serialize_error_message(value: str) -> str:
                 """Truncate long error messages.
 
                 Returns:
                     The resulting ``str``.
+
                 """
                 max_error_length = c.DbOracle.MAX_ERROR_MESSAGE_LENGTH
                 if len(value) > max_error_length:
                     return f"{value[:max_error_length]}... (truncated)"
                 return value
 
-            @u.model_validator(mode="after")
+            @core_u.model_validator(mode="after")
             def validate_connection_status_consistency(
                 self,
             ) -> FlextDbOracleModels.DbOracle.ConnectionStatus:
@@ -244,6 +253,7 @@ class FlextDbOracleModels(FlextCliModels):
                 Raises:
                     ValueError: If Connected status requires host information; or if
                         Invalid port number; or if Connection time cannot be negative.
+
                 """
                 if self.connected and not self.host:
                     msg = "Connected status requires host information"
@@ -265,37 +275,37 @@ class FlextDbOracleModels(FlextCliModels):
                 FlextCliModels.ConfigDict(frozen=False)
             )
 
-            query: str = u.Field(description="SQL query that produced the result")
-            result_data: t.JsonList = u.Field(
+            query: str = core_u.Field(description="SQL query that produced the result")
+            result_data: t.JsonList = core_u.Field(
                 default_factory=tuple[t.JsonValue, ...],
                 description="Raw result data from query execution",
             )
-            row_count: t.NonNegativeInt = u.Field(
+            row_count: t.NonNegativeInt = core_u.Field(
                 0,
                 description="Number of rows returned",
                 validate_default=True,
             )
-            execution_time_ms: t.NonNegativeInt = u.Field(
+            execution_time_ms: t.NonNegativeInt = core_u.Field(
                 0,
                 description="Query execution time in milliseconds",
                 validate_default=True,
             )
 
             # Additional Oracle-specific query result details
-            columns: t.StrSequence = u.Field(
+            columns: t.StrSequence = core_u.Field(
                 default_factory=tuple[str, ...],
                 description="Column names in result set",
             )
-            rows: t.SequenceOf[FlextDbOracleModels.DbOracle.RowData] = u.Field(
+            rows: t.SequenceOf[FlextDbOracleModels.DbOracle.RowData] = core_u.Field(
                 default_factory=lambda: (),
                 description="Typed row data from query result",
             )
-            query_hash: str = u.Field(
+            query_hash: str = core_u.Field(
                 "",
                 description="Query hash for caching",
                 validate_default=True,
             )
-            explain_plan: str = u.Field(
+            explain_plan: str = core_u.Field(
                 "",
                 description="Query execution plan",
                 validate_default=True,
@@ -362,20 +372,21 @@ class FlextDbOracleModels(FlextCliModels):
                     else "Slow"
                 )
 
-            @u.field_serializer("execution_time_ms", when_used="json")
+            @core_u.field_serializer("execution_time_ms", when_used="json")
             @staticmethod
             def serialize_execution_time(value: int) -> str:
                 """Format execution time with appropriate units.
 
                 Returns:
                     The resulting ``str``.
+
                 """
                 threshold = c.DbOracle.MILLISECONDS_TO_SECONDS_THRESHOLD
                 return (
                     f"{value}ms" if value < threshold else f"{value / threshold:.2f}s"
                 )
 
-            @u.model_validator(mode="after")
+            @core_u.model_validator(mode="after")
             def validate_query_result_consistency(
                 self,
             ) -> FlextDbOracleModels.DbOracle.QueryResult:
@@ -386,6 +397,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Raises:
                     ValueError: If Execution time cannot be negative; or if Row length.
+
                 """
                 if len(self.rows) != self.row_count:
                     self.row_count = len(self.rows)
@@ -405,32 +417,32 @@ class FlextDbOracleModels(FlextCliModels):
         class OperationRecord(FlextCliModels.Entity):
             """Operation tracking record for observability workflows."""
 
-            operation_type: str = u.Field(description="Type of database operation")
-            duration: float = u.Field(description="Operation duration in seconds")
-            success: bool = u.Field(description="Whether the operation succeeded")
-            metadata_info: str = u.Field(
+            operation_type: str = core_u.Field(description="Type of database operation")
+            duration: float = core_u.Field(description="Operation duration in seconds")
+            success: bool = core_u.Field(description="Whether the operation succeeded")
+            metadata_info: str = core_u.Field(
                 "",
                 description="Operation metadata",
                 validate_default=True,
             )
-            timestamp: str = u.Field(description="ISO timestamp of operation")
+            timestamp: str = core_u.Field(description="ISO timestamp of operation")
 
         class HealthStatus(FlextCliModels.Entity):
             """Service health status record."""
 
-            status: str = u.Field(description="Health status indicator")
-            timestamp: str = u.Field(description="ISO timestamp of health check")
-            service: str = u.Field(
+            status: str = core_u.Field(description="Health status indicator")
+            timestamp: str = core_u.Field(description="ISO timestamp of health check")
+            service: str = core_u.Field(
                 "oracle",
                 description="Service name being checked",
                 validate_default=True,
             )
-            database: str = u.Field(
+            database: str = core_u.Field(
                 "oracle",
                 description="Database engine identifier",
                 validate_default=True,
             )
-            metrics: t.JsonMapping = u.Field(
+            metrics: t.JsonMapping = core_u.Field(
                 default_factory=lambda: MappingProxyType[str, t.JsonValue]({}),
                 description="Health check metric values",
             )
@@ -440,6 +452,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``t.JsonValue``.
+
                 """
                 if key in self.metrics:
                     return self.metrics[key]
@@ -452,6 +465,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``bool``.
+
                 """
                 if key in self.metrics:
                     return True
@@ -460,19 +474,19 @@ class FlextDbOracleModels(FlextCliModels):
         class TableMetadata(FlextCliModels.Entity):
             """Complete table metadata for Oracle introspection."""
 
-            table_name: str = u.Field(description="Oracle table name")
-            schema_name: str = u.Field(
+            table_name: str = core_u.Field(description="Oracle table name")
+            schema_name: str = core_u.Field(
                 "",
                 description="Oracle schema name",
                 validate_default=True,
             )
             columns: t.SequenceOf[FlextDbOracleModels.DbOracle.ColumnMetadata] = (
-                u.Field(
+                core_u.Field(
                     default_factory=lambda: (),
                     description="Column metadata for the table",
                 )
             )
-            primary_keys: t.StrSequence = u.Field(
+            primary_keys: t.StrSequence = core_u.Field(
                 default_factory=tuple[str, ...],
                 description="Primary key column names",
             )
@@ -482,6 +496,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``t.JsonValue``.
+
                 """
                 dump = self.model_dump()
                 value = dump.get(key, "")
@@ -492,13 +507,14 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``bool``.
+
                 """
                 return key in self.model_dump()
 
         class TypeMapping(FlextCliModels.Entity):
             """Singer-to-Oracle type mapping."""
 
-            mapping: t.StrMapping = u.Field(
+            mapping: t.StrMapping = core_u.Field(
                 default_factory=lambda: MappingProxyType[str, str]({}),
                 description="Singer-to-Oracle type conversion map",
             )
@@ -508,6 +524,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``str``.
+
                 """
                 value: str = self.mapping[key]
                 return value
@@ -517,6 +534,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``int``.
+
                 """
                 return len(self.mapping)
 
@@ -525,13 +543,14 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``bool``.
+
                 """
                 return key in self.mapping
 
         class SingerField(FlextCliModels.Entity):
             """Singer field definition."""
 
-            type: str | t.StrSequence = u.Field(
+            type: str | t.StrSequence = core_u.Field(
                 "string",
                 description="Singer JSON Schema type or type array",
                 validate_default=True,
@@ -541,7 +560,7 @@ class FlextDbOracleModels(FlextCliModels):
             """Singer schema container with typed properties."""
 
             properties: t.MappingKV[str, FlextDbOracleModels.DbOracle.SingerField] = (
-                u.Field(
+                core_u.Field(
                     default_factory=lambda: MappingProxyType(
                         cast("dict[str, FlextDbOracleModels.DbOracle.SingerField]", {}),
                     ),
@@ -552,13 +571,13 @@ class FlextDbOracleModels(FlextCliModels):
         class Table(FlextCliModels.Entity):
             """Table metadata using flext-core Entity."""
 
-            name: str = u.Field(description="Table name")
-            owner: str = u.Field(
+            name: str = core_u.Field(description="Table name")
+            owner: str = core_u.Field(
                 "",
                 description="Table owner or schema",
                 validate_default=True,
             )
-            columns: t.SequenceOf[FlextDbOracleModels.DbOracle.Column] = u.Field(
+            columns: t.SequenceOf[FlextDbOracleModels.DbOracle.Column] = core_u.Field(
                 default_factory=lambda: (),
                 description="Column definitions for the table",
             )
@@ -566,19 +585,19 @@ class FlextDbOracleModels(FlextCliModels):
         class Column(FlextCliModels.Entity):
             """Column metadata using flext-core Entity."""
 
-            name: str = u.Field(description="Column name")
-            data_type: str = u.Field(description="Oracle data type")
-            nullable: bool = u.Field(
+            name: str = core_u.Field(description="Column name")
+            data_type: str = core_u.Field(description="Oracle data type")
+            nullable: bool = core_u.Field(
                 default=True,
                 description="Whether the column allows NULL values",
                 validate_default=True,
             )
-            primary_key: bool = u.Field(
+            primary_key: bool = core_u.Field(
                 default=False,
                 description="Whether this column is a primary key",
                 validate_default=True,
             )
-            default_value: str = u.Field(
+            default_value: str = core_u.Field(
                 "",
                 description="Default value for the column",
                 validate_default=True,
@@ -589,6 +608,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``t.JsonValue``.
+
                 """
                 key_map: t.JsonMapping = {
                     "column_name": self.name,
@@ -607,6 +627,7 @@ class FlextDbOracleModels(FlextCliModels):
 
                 Returns:
                     The resulting ``bool``.
+
                 """
                 return key in {
                     "name",
@@ -620,8 +641,8 @@ class FlextDbOracleModels(FlextCliModels):
         class Schema(FlextCliModels.Entity):
             """Schema metadata using flext-core Entity."""
 
-            name: str = u.Field(description="Schema name")
-            tables: t.SequenceOf[FlextDbOracleModels.DbOracle.Table] = u.Field(
+            name: str = core_u.Field(description="Schema name")
+            tables: t.SequenceOf[FlextDbOracleModels.DbOracle.Table] = core_u.Field(
                 default_factory=lambda: (),
                 description="Tables within this schema",
             )
@@ -629,27 +650,27 @@ class FlextDbOracleModels(FlextCliModels):
         class CreateIndexConfig(FlextCliModels.Entity):
             """Create index settings using flext-core Entity."""
 
-            table_name: str = u.Field(description="Target table for the index")
-            index_name: str = u.Field(description="Name of the index to create")
-            columns: t.StrSequence = u.Field(
+            table_name: str = core_u.Field(description="Target table for the index")
+            index_name: str = core_u.Field(description="Name of the index to create")
+            columns: t.StrSequence = core_u.Field(
                 description="Columns to include in the index",
             )
-            unique: bool = u.Field(
+            unique: bool = core_u.Field(
                 default=False,
                 description="Whether the index enforces uniqueness",
                 validate_default=True,
             )
-            schema_name: str = u.Field(
+            schema_name: str = core_u.Field(
                 "",
                 description="Schema name",
                 validate_default=True,
             )
-            tablespace: str = u.Field(
+            tablespace: str = core_u.Field(
                 "",
                 description="Tablespace name",
                 validate_default=True,
             )
-            parallel: t.PositiveInt = u.Field(
+            parallel: t.PositiveInt = core_u.Field(
                 1,
                 description="Parallel degree for index creation",
                 validate_default=True,
@@ -668,8 +689,8 @@ class FlextDbOracleModels(FlextCliModels):
         class ExecuteQueryCommand(FlextCliModels.Entity):
             """Command to execute SELECT query."""
 
-            sql: str = u.Field(description="SQL SELECT query to execute")
-            parameters: t.JsonMapping | None = u.Field(
+            sql: str = core_u.Field(description="SQL SELECT query to execute")
+            parameters: t.JsonMapping | None = core_u.Field(
                 None,
                 description="Query bind parameters",
                 validate_default=True,
@@ -678,8 +699,8 @@ class FlextDbOracleModels(FlextCliModels):
         class FetchOneCommand(FlextCliModels.Entity):
             """Command to fetch single row."""
 
-            sql: str = u.Field(description="SQL query to fetch a single row")
-            parameters: t.JsonMapping | None = u.Field(
+            sql: str = core_u.Field(description="SQL query to fetch a single row")
+            parameters: t.JsonMapping | None = core_u.Field(
                 None,
                 description="Query bind parameters",
                 validate_default=True,
@@ -688,8 +709,8 @@ class FlextDbOracleModels(FlextCliModels):
         class ExecuteStatementCommand(FlextCliModels.Entity):
             """Command to execute INSERT/UPDATE/DELETE."""
 
-            sql: str = u.Field(description="SQL DML statement to execute")
-            parameters: t.JsonMapping | None = u.Field(
+            sql: str = core_u.Field(description="SQL DML statement to execute")
+            parameters: t.JsonMapping | None = core_u.Field(
                 None,
                 description="Statement bind parameters",
                 validate_default=True,
@@ -698,8 +719,8 @@ class FlextDbOracleModels(FlextCliModels):
         class ExecuteManyCommand(FlextCliModels.Entity):
             """Command to execute batch statements."""
 
-            sql: str = u.Field(description="SQL statement for batch execution")
-            parameters_list: t.SequenceOf[t.JsonMapping] = u.Field(
+            sql: str = core_u.Field(description="SQL statement for batch execution")
+            parameters_list: t.SequenceOf[t.JsonMapping] = core_u.Field(
                 default_factory=tuple[t.JsonMapping, ...],
                 description="List of parameter sets for batch execution",
             )
@@ -710,7 +731,7 @@ class FlextDbOracleModels(FlextCliModels):
         class GetTablesCommand(FlextCliModels.Entity):
             """Command to retrieve tables in schema."""
 
-            schema_name: str | None = u.Field(
+            schema_name: str | None = core_u.Field(
                 None,
                 description="Schema to list tables from",
                 validate_default=True,
@@ -719,8 +740,8 @@ class FlextDbOracleModels(FlextCliModels):
         class GetColumnsCommand(FlextCliModels.Entity):
             """Command to retrieve columns in table."""
 
-            table: str = u.Field(description="Table to retrieve columns from")
-            schema_name: str | None = u.Field(
+            table: str = core_u.Field(description="Table to retrieve columns from")
+            schema_name: str | None = core_u.Field(
                 None,
                 description="Schema containing the table",
                 validate_default=True,

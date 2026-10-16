@@ -1,13 +1,12 @@
 """Oracle database exception constants.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
+from flext_core import t
 from oracledb import (
     DatabaseError as _OracleDatabaseError,
     InterfaceError as _OracleInterfaceError,
@@ -17,9 +16,6 @@ from sqlalchemy.exc import (
     OperationalError as _SQLAlchemyOperationalError,
     SQLAlchemyError as _SQLAlchemyError,
 )
-
-if TYPE_CHECKING:
-    from flext_db_oracle import t
 
 
 class FlextDbOracleConstantsExceptions:
@@ -45,3 +41,6 @@ class FlextDbOracleConstantsExceptions:
             _OracleInterfaceError,
         )
         """Broad Oracle DB boundary catch including SQLAlchemy errors."""
+
+
+__all__: tuple[str, ...] = ("FlextDbOracleConstantsExceptions",)

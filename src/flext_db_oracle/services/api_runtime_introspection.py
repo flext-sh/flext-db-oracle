@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from flext_db_oracle import m, p, r, t
-from flext_db_oracle.services.api_runtime_state import FlextDbOracleApiRuntimeState
+from flext_db_oracle.services import FlextDbOracleApiRuntimeState
 
 
 class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
@@ -24,6 +24,7 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         return self._services.convert_singer_type(singer_type, _format_hint)
 
@@ -36,6 +37,7 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[Sequence[m.DbOracle.Column]]``.
+
         """
         return self._services.fetch_columns(table_name, schema_name)
 
@@ -44,6 +46,7 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[m.DbOracle.ConnectionStatus]``.
+
         """
         return self._services.fetch_connection_status()
 
@@ -52,6 +55,7 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[t.JsonMapping]``.
+
         """
         return self._services.fetch_metrics().map(lambda metrics: metrics.model_dump())
 
@@ -60,6 +64,7 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[t.JsonPayload]``.
+
         """
         return self._services.fetch_plugin(name)
 
@@ -72,6 +77,7 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[t.StrSequence]``.
+
         """
         return self._services.fetch_primary_keys(table_name, schema)
 
@@ -80,6 +86,7 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[t.StrSequence]``.
+
         """
         return self._services.fetch_schemas()
 
@@ -92,6 +99,7 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[m.DbOracle.TableMetadata]``.
+
         """
         return self._services.fetch_table_metadata(table_name, schema)
 
@@ -100,6 +108,7 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[t.StrSequence]``.
+
         """
         return self._services.fetch_tables(schema)
 
@@ -108,6 +117,7 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[t.StrSequence]``.
+
         """
         return self._services.list_plugins().map(
             lambda plugin_map: list(plugin_map.root.keys()),
@@ -121,6 +131,7 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[t.StrMapping]``.
+
         """
         if not singer_schema:
             return r[t.StrMapping].fail("Schema must be a mapping")
@@ -133,6 +144,7 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[bool]``.
+
         """
         return self._services.register_plugin(name, plugin)
 
@@ -141,6 +153,7 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
 
         Returns:
             The resulting ``p.Result[bool]``.
+
         """
         return self._services.unregister_plugin(name)
 

@@ -14,12 +14,9 @@ from __future__ import annotations
 import re
 from enum import StrEnum, unique
 from types import MappingProxyType
-from typing import TYPE_CHECKING, ClassVar, Final
+from typing import ClassVar, Final
 
-from flext_core import FlextConstants as c
-
-if TYPE_CHECKING:
-    from flext_db_oracle import t
+from flext_core import FlextConstants as c, t
 
 
 class FlextDbOracleConstantsValues:
@@ -125,6 +122,7 @@ class FlextDbOracleConstantsValues:
 
             Returns:
                 The resulting ``str``.
+
             """
             collapsed: str = FlextDbOracleConstantsValues.DbOracle.WHITESPACE_RE.sub(
                 " ",
@@ -341,3 +339,6 @@ class FlextDbOracleConstantsValues:
             "FLEXT_TARGET_ORACLE_DATABASE_NAME": "name",
             ENV_DATABASE_NAME: "name",
         })
+
+
+__all__: tuple[str, ...] = ("FlextDbOracleConstantsValues",)

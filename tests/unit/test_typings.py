@@ -11,12 +11,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import flext_cli
 import oracledb
 import pytest
-from flext_cli import t as cli_types
-from flext_tests import tm
 
-from flext_db_oracle import FlextDbOracleTypes, t, typings as typings_module
+from flext_db_oracle import FlextDbOracleTypes, typings
+from tests import tm
 
 
 class TestsFlextDbOracleTypings:
@@ -25,12 +25,12 @@ class TestsFlextDbOracleTypings:
     @staticmethod
     def test_t_alias_points_to_facade_class() -> None:
         """The module-level ``t`` alias resolves to the facade class."""
-        assert t is FlextDbOracleTypes
+        assert typings.t is FlextDbOracleTypes
 
     @staticmethod
     def test_public_exports_are_declared() -> None:
         """The module publishes exactly its facade class and alias."""
-        tm.that(typings_module.__all__, eq=["FlextDbOracleTypes", "t"])
+        tm.that(typings.__all__, eq=["FlextDbOracleTypes", "t"])
 
     @staticmethod
     def test_facade_composes_cli_types_via_mro() -> None:
@@ -38,7 +38,7 @@ class TestsFlextDbOracleTypings:
 
         Inherited members stay reachable.
         """
-        assert issubclass(FlextDbOracleTypes, cli_types)
+        assert issubclass(FlextDbOracleTypes, flext_cli.t)
         assert hasattr(FlextDbOracleTypes, "Scalar")
 
     @staticmethod
@@ -67,10 +67,10 @@ class TestsFlextDbOracleTypings:
     def test_query_parameters_alias_resolves_to_json_mapping() -> None:
         """``QueryParameters`` is a named alias for the cli JSON mapping type."""
         alias = FlextDbOracleTypes.DbOracle.QueryParameters
-        assert alias.__value__ is cli_types.JsonMapping
+        assert alias.__value__ is flext_cli.t.JsonMapping
 
     @staticmethod
     def test_cli_scalar_alias_is_optional_scalar() -> None:
         """``CliScalar`` is a named alias admitting the scalar type or ``None``."""
         alias = FlextDbOracleTypes.DbOracle.CliScalar
-        tm.that(alias.__value__.__args__, has=type(None))
+        assert type(None) in alias.__value__.__args__

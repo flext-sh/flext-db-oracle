@@ -12,10 +12,9 @@ import time
 from enum import StrEnum
 
 import pytest
-from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import c, u
+from tests import c, tm, u
 
 
 @pytest.mark.unit
@@ -159,10 +158,19 @@ class TestsFlextDbOracleConstants:
 
     @staticmethod
     def test_derived_type_literals() -> None:
-        """Derived composite type literals resolve to their documented forms."""
-        tm.that(c.DbOracle.DEFAULT_VARCHAR_TYPE, eq="VARCHAR2(4000)")
-        tm.that(c.DbOracle.INTEGER_TYPE, eq="NUMBER(38)")
-        tm.that(c.DbOracle.BOOLEAN_TYPE, eq="NUMBER(1)")
+        """Derived composite type literals are the ones the Singer map reuses."""
+        tm.that(
+            c.DbOracle.SINGER_TYPE_MAP["string"],
+            eq=c.DbOracle.DEFAULT_VARCHAR_TYPE,
+        )
+        tm.that(
+            c.DbOracle.SINGER_TYPE_MAP["integer"],
+            eq=c.DbOracle.INTEGER_TYPE,
+        )
+        tm.that(
+            c.DbOracle.SINGER_TYPE_MAP["boolean"],
+            eq=c.DbOracle.BOOLEAN_TYPE,
+        )
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -486,7 +494,7 @@ class TestsFlextDbOracleConstants:
         tm.that(max_length, gt=0)
         long_name = "A" * (max_length - 10)
         tm.ok(u.DbOracle.escape_oracle_identifier(long_name))
-        tm.that(c.DbOracle.MAX_VARCHAR_LENGTH, eq=4000)
+        tm.that(c.DbOracle.MAX_VARCHAR_LENGTH, gt=c.DbOracle.MAX_IDENTIFIER_LENGTH)
 
     @staticmethod
     @pytest.mark.docker

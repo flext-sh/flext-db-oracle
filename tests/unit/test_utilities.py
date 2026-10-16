@@ -6,7 +6,7 @@ invariants each helper promises (determinism, order-independence, truncation,
 whitespace normalization). No private attributes, internal collaborators, or
 implementation structures are exercised.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
@@ -15,10 +15,9 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 
 import pytest
-from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleSettings
-from tests import c, m, t, u
+from tests import c, m, t, tm, u
 
 
 @pytest.mark.unit

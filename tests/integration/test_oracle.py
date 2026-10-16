@@ -15,17 +15,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from tests import tm
 
 if TYPE_CHECKING:
-    from flext_db_oracle import m
-    from tests import t
+    from tests import m, t
 
 
 @pytest.fixture
-def mock_oracle_config() -> FlextDbOracleSettings:
+def offline_oracle_settings() -> FlextDbOracleSettings:
     """Return a well-formed offline Oracle settings value."""
     return FlextDbOracleSettings.model_validate({
         "DbOracle": {
@@ -53,6 +52,7 @@ class TestsFlextDbOracleOracle:
 
         Returns:
             The resulting ``str``.
+
         """
         dumped = row.model_dump()
         for key in keys:
@@ -67,6 +67,7 @@ class TestsFlextDbOracleOracle:
 
         Returns:
             The resulting ``FlextDbOracleApi``.
+
         """
         api = FlextDbOracleApi(settings=settings)
         connect_result = api.connect()
@@ -77,13 +78,13 @@ class TestsFlextDbOracleOracle:
     # -------------------------------------------- container-free: settings API
     @staticmethod
     def test_settings_expose_supplied_connection_values(
-        mock_oracle_config: FlextDbOracleSettings,
+        offline_oracle_settings: FlextDbOracleSettings,
     ) -> None:
         """Valid settings expose the supplied connection fields verbatim."""
-        tm.that(mock_oracle_config.DbOracle.host, eq="mock-host")
-        tm.that(mock_oracle_config.DbOracle.port, eq=1521)
-        tm.that(mock_oracle_config.DbOracle.service_name, eq="mock-service")
-        tm.that(mock_oracle_config.DbOracle.username, eq="mock-user")
+        tm.that(offline_oracle_settings.DbOracle.host, eq="mock-host")
+        tm.that(offline_oracle_settings.DbOracle.port, eq=1521)
+        tm.that(offline_oracle_settings.DbOracle.service_name, eq="mock-service")
+        tm.that(offline_oracle_settings.DbOracle.username, eq="mock-user")
 
     @staticmethod
     def test_namespace_overrides_are_stored_verbatim() -> None:
@@ -115,38 +116,38 @@ class TestsFlextDbOracleOracle:
     # ------------------------------------------------- container-free: API API
     @staticmethod
     def test_api_starts_disconnected(
-        mock_oracle_config: FlextDbOracleSettings,
+        offline_oracle_settings: FlextDbOracleSettings,
     ) -> None:
         """A freshly built API reports a disconnected connection state."""
-        api = FlextDbOracleApi(settings=mock_oracle_config)
+        api = FlextDbOracleApi(settings=offline_oracle_settings)
         tm.that(api.connected(), eq=False)
         tm.that(api.connection, none=True)
 
     @staticmethod
     def test_api_exposes_supplied_settings(
-        mock_oracle_config: FlextDbOracleSettings,
+        offline_oracle_settings: FlextDbOracleSettings,
     ) -> None:
         """The API surfaces the same settings value it was constructed with."""
-        api = FlextDbOracleApi(settings=mock_oracle_config)
-        assert api.settings is mock_oracle_config
-        assert api.oracle_config is mock_oracle_config
+        api = FlextDbOracleApi(settings=offline_oracle_settings)
+        assert api.settings is offline_oracle_settings
+        assert api.oracle_config is offline_oracle_settings
 
     @staticmethod
     def test_from_config_builds_equivalent_api(
-        mock_oracle_config: FlextDbOracleSettings,
+        offline_oracle_settings: FlextDbOracleSettings,
     ) -> None:
         """``from_config`` yields an API bound to the given settings."""
-        api = FlextDbOracleApi.from_config(mock_oracle_config)
+        api = FlextDbOracleApi.from_config(offline_oracle_settings)
         tm.that(api, is_=FlextDbOracleApi)
-        assert api.settings is mock_oracle_config
+        assert api.settings is offline_oracle_settings
         tm.that(api.connected(), eq=False)
 
     @staticmethod
     def test_repr_reflects_host_and_disconnected_state(
-        mock_oracle_config: FlextDbOracleSettings,
+        offline_oracle_settings: FlextDbOracleSettings,
     ) -> None:
         """``repr`` advertises the host and the disconnected status."""
-        api = FlextDbOracleApi(settings=mock_oracle_config)
+        api = FlextDbOracleApi(settings=offline_oracle_settings)
         rendered = repr(api)
         tm.that(rendered, has="mock-host")
         tm.that(rendered, has="disconnected")
@@ -224,10 +225,10 @@ class TestsFlextDbOracleOracle:
     def test_insert_update_delete_roundtrip_is_observable_via_queries(
         self,
         connected_oracle_api: FlextDbOracleApi,
-        test_database_setup: t.StrMapping,
+        oracle_test_database: t.StrMapping,
     ) -> None:
         """DML mutations are observable through subsequent SELECT results."""
-        tm.that(test_database_setup, has="test_table")
+        tm.that(oracle_test_database, has="test_table")
 
         insert = connected_oracle_api.execute_statement(
             "INSERT INTO test_table (id, name) VALUES (1, 'Test User')",
@@ -261,7 +262,7 @@ class TestsFlextDbOracleOracle:
         )
         tm.that(self._cell(remaining.unwrap()[0], "count", "count(*)"), eq="0")
 
-    @pytest.mark.usefixtures("test_database_setup")
+    @pytest.mark.usefixtures("oracle_test_database")
     def test_committed_row_is_visible_after_commit(
         self,
         connected_oracle_api: FlextDbOracleApi,

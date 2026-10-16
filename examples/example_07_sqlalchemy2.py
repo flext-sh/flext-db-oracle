@@ -2,7 +2,7 @@
 
 This example demonstrates Oracle configuration setup for SQLAlchemy 2.0.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
@@ -10,7 +10,8 @@ from __future__ import annotations
 
 import os
 
-from flext_db_oracle import FlextDbOracleSettings, u
+from examples import u
+from flext_db_oracle import FlextDbOracleSettings
 
 logger = u.fetch_logger(__name__)
 

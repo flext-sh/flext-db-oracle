@@ -15,10 +15,10 @@ from __future__ import annotations
 from collections.abc import Callable
 
 import pytest
-from flext_tests import tm
+from flext_core import FlextExceptions
 
-from flext_core import e
-from flext_db_oracle.exceptions import FlextDbOracleExceptions, e as oracle_e
+from flext_db_oracle import FlextDbOracleExceptions
+from tests import e, tm
 
 
 class TestsFlextDbOracleOracleExceptions:
@@ -27,7 +27,7 @@ class TestsFlextDbOracleOracleExceptions:
     @staticmethod
     def test_family_alias_exposes_facade() -> None:
         """The `e` alias exported by the module is the facade class itself."""
-        assert oracle_e is FlextDbOracleExceptions
+        assert e is FlextDbOracleExceptions
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -53,15 +53,18 @@ class TestsFlextDbOracleOracleExceptions:
     @pytest.mark.parametrize(
         ("factory", "expected_base"),
         [
-            (lambda: FlextDbOracleExceptions.Error("m"), e.BaseError),
+            (lambda: FlextDbOracleExceptions.Error("m"), FlextExceptions.BaseError),
             (
                 lambda: FlextDbOracleExceptions.OracleConnectionError("m"),
-                e.FlextConnectionError,
+                FlextExceptions.FlextConnectionError,
             ),
-            (lambda: FlextDbOracleExceptions.ProcessingError("m"), e.OperationError),
+            (
+                lambda: FlextDbOracleExceptions.ProcessingError("m"),
+                FlextExceptions.OperationError,
+            ),
             (
                 lambda: FlextDbOracleExceptions.OracleTimeoutError("m"),
-                e.FlextTimeoutError,
+                FlextExceptions.FlextTimeoutError,
             ),
         ],
         ids=["error", "connection", "processing", "timeout"],
@@ -74,7 +77,7 @@ class TestsFlextDbOracleOracleExceptions:
         exc = factory()
 
         tm.that(exc, is_=expected_base)
-        tm.that(exc, is_=e.BaseError)
+        tm.that(exc, is_=FlextExceptions.BaseError)
         tm.that(exc, is_=Exception)
 
     @staticmethod
@@ -168,7 +171,7 @@ class TestsFlextDbOracleOracleExceptions:
         def _raise() -> None:
             raise exc
 
-        with pytest.raises(e.FlextConnectionError) as caught:
+        with pytest.raises(FlextExceptions.FlextConnectionError) as caught:
             _raise()
 
         assert caught.value is exc

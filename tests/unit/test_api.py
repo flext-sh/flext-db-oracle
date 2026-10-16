@@ -13,16 +13,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from typing import TYPE_CHECKING
 
 import pytest
-from flext_tests import tm
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, p
-from flext_db_oracle.services.facade import FlextDbOracleServices
-
-if TYPE_CHECKING:
-    from tests import t
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from flext_db_oracle.services import FlextDbOracleServices
+from tests import p, t, tm
 
 
 class TestsFlextDbOracleApi:
@@ -37,6 +33,7 @@ class TestsFlextDbOracleApi:
 
         Returns:
             The resulting ``FlextDbOracleSettings``.
+
         """
         return FlextDbOracleSettings.model_validate({
             "DbOracle": {
@@ -55,6 +52,7 @@ class TestsFlextDbOracleApi:
 
         Returns:
             The resulting ``FlextDbOracleSettings``.
+
         """
         return self._settings()
 
@@ -104,6 +102,7 @@ class TestsFlextDbOracleApi:
 
         Returns:
             The resulting ``bool``.
+
         """
         return isinstance(candidate, p.DbOracle.Runtime)
 

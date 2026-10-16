@@ -15,17 +15,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-from flext_tests import tm
 
-from flext_db_oracle import FlextDbOracleSettings
-from flext_db_oracle.api import FlextDbOracleApi
-from tests import c, u
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from tests import c, t, tm, u
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from flext_db_oracle import m
-    from tests import t
+    from tests import m
 _NOT_CONNECTED = "not connected to database"
 
 
@@ -54,6 +51,7 @@ class TestsFlextDbOracleOracle:
 
         Returns:
             The resulting ``FlextDbOracleApi``.
+
         """
         return FlextDbOracleApi(offline_settings)
 
@@ -150,6 +148,7 @@ class TestsFlextDbOracleOracle:
 
         Returns:
             The resulting ``Mapping[str, t.JsonPayload]``.
+
         """
         return {key.upper(): value for key, value in row.root.items()}
 

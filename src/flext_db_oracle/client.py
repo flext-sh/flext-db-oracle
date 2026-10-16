@@ -83,6 +83,7 @@ class FlextDbOracleClient(s):
 
         Returns:
             The resulting ``p.Result[str]``.
+
         """
         client = cls()
         if operation == "health":
@@ -164,6 +165,7 @@ class FlextDbOracleClient(s):
 
         Returns:
             The resulting ``p.Result[FlextDbOracleSettings]``.
+
         """
         actual_host = host or self.oracle_config.DbOracle.host
         actual_port = port or self.oracle_config.DbOracle.port
@@ -202,6 +204,7 @@ class FlextDbOracleClient(s):
 
         Returns:
             The resulting ``p.Result[FlextDbOracleApi]``.
+
         """
         connect_result = api.connect()
         if connect_result.success:
@@ -341,6 +344,7 @@ class FlextDbOracleClient(s):
 
         Returns:
             The resulting ``t.SequenceOf[m.ConfigMap]``.
+
         """
         strategies: t.SequenceOf[
             t.Pair[str, Callable[[t.JsonValue], t.SequenceOf[m.ConfigMap]]]
@@ -363,6 +367,7 @@ class FlextDbOracleClient(s):
 
         Returns:
             The resulting ``str``.
+
         """
         headers: t.StrSequence = list(adapted_data[0].keys())
         rows: t.SequenceOf[t.StrSequence] = [
@@ -429,6 +434,7 @@ class FlextDbOracleClient(s):
 
         Returns:
             The resulting ``p.Result[m.ConfigMap]``.
+
         """
         match operation:
             case "list_schemas":
@@ -548,6 +554,7 @@ class FlextDbOracleClient(s):
 
         Returns:
             The resulting ``p.Result[m.ConfigMap]``.
+
         """
         if self.current_connection is None:
             return r[m.ConfigMap].fail("No active database connection")
@@ -560,6 +567,7 @@ class FlextDbOracleClient(s):
 
         Returns:
             The resulting ``p.Result[m.ConfigMap]``.
+
         """
         if self.current_connection is None:
             return r[m.ConfigMap].fail("No active database connection")
@@ -577,6 +585,7 @@ class FlextDbOracleClient(s):
 
         Returns:
             The resulting ``p.Result[m.ConfigMap]``.
+
         """
         if self.current_connection is None:
             return r[m.ConfigMap].fail("No active database connection")
@@ -595,6 +604,7 @@ class FlextDbOracleClient(s):
 
         Returns:
             The resulting ``p.Result[m.ConfigMap]``.
+
         """
         if self.current_connection is None:
             return r[m.ConfigMap].fail("No active database connection")

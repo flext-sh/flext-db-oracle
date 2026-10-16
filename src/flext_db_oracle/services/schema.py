@@ -3,7 +3,7 @@
 Provides Oracle schema introspection: tables, columns,
 primary keys, table metadata, row counts.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
@@ -20,15 +20,7 @@ from sqlalchemy.exc import (
 )
 from sqlalchemy.sql import quoted_name
 
-from flext_db_oracle import (
-    FlextDbOracleServiceBase,
-    FlextDbOracleSettings,
-    c,
-    m,
-    p,
-    t,
-    u,
-)
+from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, t, u
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -43,7 +35,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
 
     # flext-1wjg1.16: see plugin.py -- explicit wrapper keeps this mixin's
     # __init__ positional instead of pydantic's synthesized kwargs-only one.
-    def __init__(self, settings: FlextDbOracleSettings) -> None:
+    def __init__(self, settings: t.DbOracle.Settings) -> None:
         """Initialize shared Oracle service state for this mixin."""
         FlextDbOracleServiceBase.__init__(self, settings)
 
@@ -56,6 +48,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[Sequence[m.DbOracle.Column]]``.
+
         """
         if schema_name:
             sql = (
@@ -110,6 +103,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[t.StrSequence]``.
+
         """
         return self.fetch_primary_keys(table_name, schema_name)
 
@@ -122,6 +116,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[t.StrSequence]``.
+
         """
 
         def _fetch_keys() -> t.StrSequence:
@@ -172,6 +167,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[t.StrSequence]``.
+
         """
         sql = (
             "SELECT username as schema_name FROM all_users "
@@ -195,6 +191,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[m.DbOracle.TableMetadata]``.
+
         """
 
         def _fetch_metadata() -> m.DbOracle.TableMetadata:
@@ -241,6 +238,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[int]``.
+
         """
 
         def _fetch_count() -> int:
@@ -284,6 +282,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
 
         Returns:
             The resulting ``p.Result[t.StrSequence]``.
+
         """
         if schema:
             sql = (
