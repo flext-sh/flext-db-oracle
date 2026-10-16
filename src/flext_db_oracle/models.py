@@ -1,3 +1,4 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
 """Oracle Database models using FLEXT ecosystem patterns.
 
 This module provides Oracle-specific models extending flext-core patterns
@@ -18,8 +19,10 @@ from flext_cli import FlextCliModels
 from flext_core import u as core_u
 
 from flext_db_oracle import c, t
-from flext_db_oracle._models.base import FlextDbOracleModelsBase
-from flext_db_oracle._models.credential import FlextDbOracleCredentialModel
+from flext_db_oracle._models import (
+    FlextDbOracleCredentialModel,
+    FlextDbOracleModelsBase,
+)
 
 
 class FlextDbOracleModels(FlextCliModels):
@@ -31,7 +34,7 @@ class FlextDbOracleModels(FlextCliModels):
     All types moved to typings.py.
     """
 
-    class DbOracle(FlextDbOracleModelsBase):
+    class DbOracle(FlextDbOracleModelsBase, FlextDbOracleCredentialModel):
         """DbOracle domain namespace."""
 
         Password: type[FlextDbOracleCredentialModel] = FlextDbOracleCredentialModel
