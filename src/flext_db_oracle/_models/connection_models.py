@@ -137,7 +137,10 @@ class FlextDbOracleModelsConnection:
                 return f"Excellent ({self.connection_time:.3f}s)"
             if self.connection_time < c.DbOracle.CONNECTION_GOOD_THRESHOLD_SECONDS:
                 return f"Good ({self.connection_time:.3f}s)"
-            if self.connection_time < c.DbOracle.CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS:
+            if (
+                self.connection_time
+                < c.DbOracle.CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS
+            ):
                 return f"Acceptable ({self.connection_time:.3f}s)"
             return f"Slow ({self.connection_time:.3f}s)"
 
@@ -190,7 +193,9 @@ class FlextDbOracleModelsConnection:
             return value
 
         @core_u.model_validator(mode="after")
-        def validate_connection_status_consistency(self) -> FlextDbOracleModelsConnection.ConnectionStatus:
+        def validate_connection_status_consistency(
+            self,
+        ) -> FlextDbOracleModelsConnection.ConnectionStatus:
             """Validate connection status consistency.
 
             Returns:

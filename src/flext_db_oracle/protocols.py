@@ -10,10 +10,10 @@ from typing import Protocol, runtime_checkable
 
 from flext_cli import FlextCliProtocols
 
-from flext_db_oracle._protocols import (
-    connection_protocols as _connection_protocols,
-    query_protocols as _query_protocols,
+from flext_db_oracle._protocols.connection_protocols import (
+    FlextDbOracleProtocolsConnection,
 )
+from flext_db_oracle._protocols.query_protocols import FlextDbOracleProtocolsQuery
 
 
 class FlextDbOracleProtocols(FlextCliProtocols):
@@ -42,16 +42,16 @@ class FlextDbOracleProtocols(FlextCliProtocols):
     class DbOracle(Protocol):
         """Oracle database domain-specific protocols."""
 
-        Connection = _connection_protocols.Connection
-        OraclePlugin = _connection_protocols.OraclePlugin
-        QueryExecutor = _query_protocols.QueryExecutor
-        SchemaIntrospector = _query_protocols.SchemaIntrospector
-        SqlBuilder = _query_protocols.SqlBuilder
-        DdlGenerator = _query_protocols.DdlGenerator
-        MetricsCollector = _query_protocols.MetricsCollector
-        PluginRegistry = _connection_protocols.PluginRegistry
-        HealthCheck = _connection_protocols.HealthCheck
-        Runtime = _connection_protocols.Runtime
+        Connection = FlextDbOracleProtocolsConnection.Connection
+        OraclePlugin = FlextDbOracleProtocolsConnection.OraclePlugin
+        QueryExecutor = FlextDbOracleProtocolsQuery.QueryExecutor
+        SchemaIntrospector = FlextDbOracleProtocolsQuery.SchemaIntrospector
+        SqlBuilder = FlextDbOracleProtocolsQuery.SqlBuilder
+        DdlGenerator = FlextDbOracleProtocolsQuery.DdlGenerator
+        MetricsCollector = FlextDbOracleProtocolsQuery.MetricsCollector
+        PluginRegistry = FlextDbOracleProtocolsConnection.PluginRegistry
+        HealthCheck = FlextDbOracleProtocolsConnection.HealthCheck
+        Runtime = FlextDbOracleProtocolsConnection.Runtime
 
 
 p = FlextDbOracleProtocols

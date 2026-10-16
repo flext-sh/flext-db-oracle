@@ -94,7 +94,9 @@ class FlextDbOracleModelsQuery:
         def data_size_bytes(self) -> int:
             """Estimated data size in bytes."""
             return (
-                len(self.rows) * len(self.columns) * c.DbOracle.DATA_SIZE_ESTIMATION_FACTOR
+                len(self.rows)
+                * len(self.columns)
+                * c.DbOracle.DATA_SIZE_ESTIMATION_FACTOR
                 if self.rows
                 else 0
             )
@@ -115,7 +117,9 @@ class FlextDbOracleModelsQuery:
         def memory_usage_mb(self) -> float:
             """Estimated memory usage in MB."""
             data_size = (
-                len(self.rows) * len(self.columns) * c.DbOracle.DATA_SIZE_ESTIMATION_FACTOR
+                len(self.rows)
+                * len(self.columns)
+                * c.DbOracle.DATA_SIZE_ESTIMATION_FACTOR
                 if self.rows
                 else 0
             )
@@ -124,7 +128,9 @@ class FlextDbOracleModelsQuery:
         @property
         def performance_rating(self) -> str:
             """Query performance rating."""
-            result_acceptance_threshold_ms = c.DbOracle.QUERY_ACCEPTABLE_THRESHOLD_MS + 500
+            result_acceptance_threshold_ms = (
+                c.DbOracle.QUERY_ACCEPTABLE_THRESHOLD_MS + 500
+            )
             if (
                 self.has_results
                 and self.execution_time_ms <= result_acceptance_threshold_ms
@@ -153,7 +159,9 @@ class FlextDbOracleModelsQuery:
             return f"{value}ms" if value < threshold else f"{value / threshold:.2f}s"
 
         @core_u.model_validator(mode="after")
-        def validate_query_result_consistency(self) -> FlextDbOracleModelsQuery.QueryResult:
+        def validate_query_result_consistency(
+            self,
+        ) -> FlextDbOracleModelsQuery.QueryResult:
             """Validate query result consistency.
 
             Returns:

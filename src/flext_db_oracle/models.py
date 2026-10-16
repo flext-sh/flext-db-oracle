@@ -12,14 +12,12 @@ from __future__ import annotations
 
 from flext_cli import FlextCliModels
 
-from flext_db_oracle._models import (
-    command_models as _command_models,
-    connection_models as _connection_models,
-    query_models as _query_models,
-    schema_models as _schema_models,
-)
 from flext_db_oracle._models.base import FlextDbOracleModelsBase
+from flext_db_oracle._models.command_models import FlextDbOracleModelsCommand
+from flext_db_oracle._models.connection_models import FlextDbOracleModelsConnection
 from flext_db_oracle._models.credential import FlextDbOracleCredentialModel
+from flext_db_oracle._models.query_models import FlextDbOracleModelsQuery
+from flext_db_oracle._models.schema_models import FlextDbOracleModelsSchema
 
 
 class FlextDbOracleModels(FlextCliModels):
@@ -36,33 +34,33 @@ class FlextDbOracleModels(FlextCliModels):
 
         Password = FlextDbOracleCredentialModel
 
-        DbOracleDomainModel = _query_models.DbOracleDomainModel
-        RowData = _query_models.RowData
-        ColumnMetadata = _query_models.ColumnMetadata
-        ConnectionStatus = _connection_models.ConnectionStatus
-        QueryResult = _query_models.QueryResult
-        OperationRecord = _connection_models.OperationRecord
-        HealthStatus = _connection_models.HealthStatus
-        TableMetadata = _schema_models.TableMetadata
-        TypeMapping = _schema_models.TypeMapping
-        SingerField = _schema_models.SingerField
-        SingerSchema = _schema_models.SingerSchema
-        Table = _schema_models.Table
-        Column = _schema_models.Column
-        Schema = _schema_models.Schema
-        CreateIndexConfig = _schema_models.CreateIndexConfig
+        DbOracleDomainModel = FlextDbOracleModelsQuery.DbOracleDomainModel
+        RowData = FlextDbOracleModelsQuery.RowData
+        ColumnMetadata = FlextDbOracleModelsQuery.ColumnMetadata
+        ConnectionStatus = FlextDbOracleModelsConnection.ConnectionStatus
+        QueryResult = FlextDbOracleModelsQuery.QueryResult
+        OperationRecord = FlextDbOracleModelsConnection.OperationRecord
+        HealthStatus = FlextDbOracleModelsConnection.HealthStatus
+        TableMetadata = FlextDbOracleModelsSchema.TableMetadata
+        TypeMapping = FlextDbOracleModelsSchema.TypeMapping
+        SingerField = FlextDbOracleModelsSchema.SingerField
+        SingerSchema = FlextDbOracleModelsSchema.SingerSchema
+        Table = FlextDbOracleModelsSchema.Table
+        Column = FlextDbOracleModelsSchema.Column
+        Schema = FlextDbOracleModelsSchema.Schema
+        CreateIndexConfig = FlextDbOracleModelsSchema.CreateIndexConfig
 
         # Command classes for dispatcher integration
-        ConnectCommand = _command_models.ConnectCommand
-        DisconnectCommand = _command_models.DisconnectCommand
-        TestConnectionCommand = _command_models.TestConnectionCommand
-        ExecuteQueryCommand = _command_models.ExecuteQueryCommand
-        FetchOneCommand = _command_models.FetchOneCommand
-        ExecuteStatementCommand = _command_models.ExecuteStatementCommand
-        ExecuteManyCommand = _command_models.ExecuteManyCommand
-        GetSchemasCommand = _command_models.GetSchemasCommand
-        GetTablesCommand = _command_models.GetTablesCommand
-        GetColumnsCommand = _command_models.GetColumnsCommand
+        ConnectCommand = FlextDbOracleModelsCommand.ConnectCommand
+        DisconnectCommand = FlextDbOracleModelsCommand.DisconnectCommand
+        TestConnectionCommand = FlextDbOracleModelsCommand.TestConnectionCommand
+        ExecuteQueryCommand = FlextDbOracleModelsCommand.ExecuteQueryCommand
+        FetchOneCommand = FlextDbOracleModelsCommand.FetchOneCommand
+        ExecuteStatementCommand = FlextDbOracleModelsCommand.ExecuteStatementCommand
+        ExecuteManyCommand = FlextDbOracleModelsCommand.ExecuteManyCommand
+        GetSchemasCommand = FlextDbOracleModelsCommand.GetSchemasCommand
+        GetTablesCommand = FlextDbOracleModelsCommand.GetTablesCommand
+        GetColumnsCommand = FlextDbOracleModelsCommand.GetColumnsCommand
 
 
 m = FlextDbOracleModels

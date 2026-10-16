@@ -105,11 +105,16 @@ class FlextDbOracleModelsSchema:
     class SingerSchema(FlextCliModels.Entity):
         """Singer schema container with typed properties."""
 
-        properties: t.MappingKV[str, FlextDbOracleModelsSchema.SingerField] = core_u.Field(
-            default_factory=lambda: MappingProxyType(
-                cast("dict[str, SingerField]", {}),
-            ),
-            description="Singer schema property definitions",
+        properties: t.MappingKV[str, FlextDbOracleModelsSchema.SingerField] = (
+            core_u.Field(
+                default_factory=lambda: MappingProxyType(
+                    cast(
+                        "dict[str, FlextDbOracleModelsSchema.SingerField]",
+                        {},
+                    ),
+                ),
+                description="Singer schema property definitions",
+            )
         )
 
     class Table(FlextCliModels.Entity):
