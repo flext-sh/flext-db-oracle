@@ -810,7 +810,7 @@ _bootstrap_setup_tools: _builtin_require_workspace
 .PHONY: _builtin_require_upg_lock_owner
 _builtin_require_upg_lock_owner:
 	@set -eu; \
-	for resolution in "$(UV_LOCAL_PROJECT)" "$(UV_STANDALONE_PROJECT)"; do \
+	for resolution in "$(PROJECT_ROOT)/.flext/uv/local" "$(PROJECT_ROOT)/.flext/uv/standalone"; do \
 		owner="$$($(UV) workspace dir --project "$$resolution")"; \
 		if [ "$${owner}" != "$$resolution" ]; then \
 			printf 'ERROR[upg] UV lock owner is %s, not %s; regenerate the native resolution inputs before upgrading.\n' "$${owner}" "$$resolution" >&2; \
@@ -2390,9 +2390,9 @@ _upg_install_runtime:
 # consumer whose lock still pins an older producer (one without the routes
 # this template calls), or that has no view lock yet, upgrades in one run.
 # The corrective projection is then re-locked by _upg_reconcile_locks.
-# Only this elected runtime owner resolves both native UV views. Attached
-# members delegate before bootstrap; this owner also refreshes their declared
-# native tool locks for independent setup without installing member runtimes.
+# Only this elected runtime owner installs the resolved environment. Attached
+# members delegate before bootstrap; this owner also refreshes their own native
+# UV and tool locks for independent setup without installing member runtimes.
 # Reparse a changed dispatcher once; a second change fails the fixed point.
 .PHONY: _upg_lifecycle _upg_converge
 
@@ -2427,19 +2427,14 @@ _upg_lifecycle: _builtin_setup_submodules
 	case " $(CUSTOM_DECLARED_TARGETS) " in \
 		*" pre-upg "*) $(SELF_MAKE) pre-upg ;; \
 	esac
-	@$(SELF_MAKE) _builtin_require_upg_lock_owner
-	@set -eu; \
-	desired_python="$$(mise -C "$(RUNTIME_ROOT)" which python)"; \
-	for resolution in "$(UV_LOCAL_PROJECT)" "$(UV_STANDALONE_PROJECT)"; do \
-		$(UV) lock --project "$$resolution" --python "$$desired_python" --upgrade --refresh; \
-	done
+	+@$(SELF_MAKE) _upg_resolve_locks
 	@$(SELF_MAKE) _upg_install_runtime
 	@$(PROJECT_FLEXT_INFRA) codegen generate --root "$(PROJECT_ROOT)" --what pyproject --scope all
 	@$(SELF_MAKE) _upg_reconcile_locks
 	@$(SELF_MAKE) _upg_install_runtime
 	@$(PROJECT_FLEXT_INFRA) workspace verify-environment --repository-root "$(RUNTIME_ROOT)"
 	@$(PROJECT_FLEXT_INFRA) codegen generate --root "$(PROJECT_ROOT)" --what mise-config --scope all
-	@$(PROJECT_FLEXT_INFRA) codegen generate --root "$(PROJECT_ROOT)" --what makefile --scope self
+	@$(PROJECT_FLEXT_INFRA) codegen generate --root "$(PROJECT_ROOT)" --what makefile --scope all
 	+@$(SELF_MAKE) _upg_provision_tools
 	@$(PROJECT_FLEXT_INFRA) deps modernize --repository-root "$(PROJECT_ROOT)" \
 		--apply --rewrite-constraints --projects .
@@ -2460,16 +2455,27 @@ _upg_provision_tools:
 # repeating generation and installation.
 _upg_converge:
 	@$(SELF_MAKE) _upg_reconcile_locks
+
 	@$(SELF_MAKE) _builtin_setup_environment
 	@$(SELF_MAKE) _builtin_require_mise
 	@$(PROJECT_FLEXT_INFRA) deps verify-locks --repository-root "$(PROJECT_ROOT)"
 	+@$(if $(filter Y,$(CI)),$(SELF_MAKE) _upg_activated,direnv exec "$(PROJECT_ROOT)" $(SELF_MAKE) _upg_activated)
 
-.PHONY: _upg_reconcile_locks
+.PHONY: _upg_resolve_locks _upg_reconcile_locks
+_upg_resolve_locks: _builtin_require_upg_lock_owner
+	@set -eu; \
+	desired_python="$$(mise -C "$(RUNTIME_ROOT)" which python)"; \
+	for resolution in "$(PROJECT_ROOT)/.flext/uv/local" "$(PROJECT_ROOT)/.flext/uv/standalone"; do \
+		printf 'upg: upgrading UV lock for %s\n' "$$resolution"; \
+		$(UV) lock --project "$$resolution" --python "$$desired_python" --upgrade --refresh; \
+		$(UV) lock --check --project "$$resolution" --python "$$desired_python"; \
+	done
+
 _upg_reconcile_locks: _builtin_require_upg_lock_owner
 	@set -eu; \
 	desired_python="$$(mise -C "$(RUNTIME_ROOT)" which python)"; \
-	for resolution in "$(UV_LOCAL_PROJECT)" "$(UV_STANDALONE_PROJECT)"; do \
+	for resolution in "$(PROJECT_ROOT)/.flext/uv/local" "$(PROJECT_ROOT)/.flext/uv/standalone"; do \
+		printf 'upg: reconciling UV lock for %s\n' "$$resolution"; \
 		$(UV) lock --project "$$resolution" --python "$$desired_python"; \
 		$(UV) lock --check --project "$$resolution" --python "$$desired_python"; \
 	done
