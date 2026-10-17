@@ -2576,7 +2576,7 @@ _builtin_test_file_all: _builtin_require_environment
 	scratch_tmp="$$(cd "$$scratch/tmp" && pwd -P)"; \
 	TMPDIR="$$scratch_tmp"; TMP="$$scratch_tmp"; TEMP="$$scratch_tmp"; \
 	export TMPDIR TMP TEMP; \
-	TESTMON_DATAFILE="$$database" $(PYTEST_BOUNDED) $(PROJECT_INFRA_RUN) -m flext_infra._pytest_entry file
+	TESTMON_DATAFILE="$$database" $(PROJECT_INFRA_RUN) -m flext_infra._pytest_entry file
 
 # Literal-file selection and verdicts belong to the existing canonical checker.
 # Export the raw Make value instead of interpolating operator input into shell code.
