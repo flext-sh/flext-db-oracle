@@ -60,6 +60,7 @@ Homepage = "https://github.com/flext-sh/flext"
 
 [dependency-groups]
 dev = [
+  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@0.12.0-dev",
   "mkdocstrings-python>=2.0.9",
   "actionlint-py>=1.7.12.24",
   "bandit>=1.9.4",
@@ -467,7 +468,7 @@ runtime-evaluated-base-classes = [
   "flext_db_oracle.FlextDbOracleSettings",
   "flext_db_oracle._models.FlextDbOracleCredentialModel",
   "flext_db_oracle._models.FlextDbOracleModelsBase.CredentialRoot",
-  "flext_db_oracle.models.DbOracleDomainModel",
+  "flext_db_oracle._models.query_models.DbOracleDomainModel",
   "flext_db_oracle.s",
   "flext_db_oracle.services.FlextDbOracleApiRuntime",
   "flext_db_oracle.services.FlextDbOracleApiRuntimeExecution",
@@ -480,6 +481,7 @@ runtime-evaluated-base-classes = [
   "flext_db_oracle.services.FlextDbOracleServiceSchema",
   "flext_db_oracle.services.FlextDbOracleServiceSinger",
   "flext_db_oracle.services.FlextDbOracleServiceSqlBuilder",
+  "flext_tests.FlextTestsModels.Tests",
   "flext_tests.FlextTestsServiceBase",
   "flext_tests.FlextTestsSettings",
   "flext_tests.FlextTestsUtilities.Tests",

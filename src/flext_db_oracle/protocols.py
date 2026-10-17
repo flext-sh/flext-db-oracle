@@ -1,3 +1,4 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
 """Oracle Database protocols for FLEXT ecosystem.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
@@ -10,10 +11,10 @@ from typing import Protocol, runtime_checkable
 
 from flext_cli import FlextCliProtocols
 
-from flext_db_oracle._protocols.connection_protocols import (
+from flext_db_oracle._protocols import (
     FlextDbOracleProtocolsConnection,
+    FlextDbOracleProtocolsQuery,
 )
-from flext_db_oracle._protocols.query_protocols import FlextDbOracleProtocolsQuery
 
 
 class FlextDbOracleProtocols(FlextCliProtocols):

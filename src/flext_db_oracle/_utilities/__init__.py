@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from flext_db_oracle._utilities.base import FlextDbOracleUtilitiesBase
     from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
 
+
 __all__: tuple[str, ...] = (
     "FlextDbOracleUtilitiesBase",
     "FlextDbOracleUtilitiesDbOracle",
