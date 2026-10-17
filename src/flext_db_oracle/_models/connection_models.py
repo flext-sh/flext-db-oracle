@@ -277,9 +277,4 @@ class FlextDbOracleModelsConnection:
             return key in self.model_dump()
 
 
-__all__: list[str] = [
-    "ConnectionStatus",
-    "FlextDbOracleModelsConnection",
-    "HealthStatus",
-    "OperationRecord",
-]
+__all__: list[str] = ["FlextDbOracleModelsConnection"]

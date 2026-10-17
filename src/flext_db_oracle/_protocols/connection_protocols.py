@@ -178,11 +178,4 @@ class FlextDbOracleProtocolsConnection:
             ...
 
 
-__all__: list[str] = [
-    "Connection",
-    "FlextDbOracleProtocolsConnection",
-    "HealthCheck",
-    "OraclePlugin",
-    "PluginRegistry",
-    "Runtime",
-]
+__all__: list[str] = ["FlextDbOracleProtocolsConnection"]
