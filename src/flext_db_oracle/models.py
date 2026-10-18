@@ -11,6 +11,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from flext_cli import FlextCliModels
 
 from flext_db_oracle._models import (
@@ -42,35 +44,87 @@ class FlextDbOracleModels(FlextCliModels):
     ):
         """DbOracle domain namespace."""
 
-        Password = FlextDbOracleCredentialModel
+        Password: ClassVar[type[FlextDbOracleCredentialModel]] = (
+            FlextDbOracleCredentialModel
+        )
 
-        DbOracleDomainModel = FlextDbOracleModelsQuery.DbOracleDomainModel
-        RowData = FlextDbOracleModelsQuery.RowData
-        ColumnMetadata = FlextDbOracleModelsQuery.ColumnMetadata
-        ConnectionStatus = FlextDbOracleModelsConnection.ConnectionStatus
-        QueryResult = FlextDbOracleModelsQuery.QueryResult
-        OperationRecord = FlextDbOracleModelsConnection.OperationRecord
-        HealthStatus = FlextDbOracleModelsConnection.HealthStatus
-        TableMetadata = FlextDbOracleModelsSchema.TableMetadata
-        TypeMapping = FlextDbOracleModelsSchema.TypeMapping
-        SingerField = FlextDbOracleModelsSchema.SingerField
-        SingerSchema = FlextDbOracleModelsSchema.SingerSchema
-        Table = FlextDbOracleModelsSchema.Table
-        Column = FlextDbOracleModelsSchema.Column
-        Schema = FlextDbOracleModelsSchema.Schema
-        CreateIndexConfig = FlextDbOracleModelsSchema.CreateIndexConfig
+        DbOracleDomainModel: ClassVar[
+            type[FlextDbOracleModelsQuery.DbOracleDomainModel]
+        ] = FlextDbOracleModelsQuery.DbOracleDomainModel
+        RowData: ClassVar[type[FlextDbOracleModelsQuery.RowData]] = (
+            FlextDbOracleModelsQuery.RowData
+        )
+        ColumnMetadata: ClassVar[type[FlextDbOracleModelsQuery.ColumnMetadata]] = (
+            FlextDbOracleModelsQuery.ColumnMetadata
+        )
+        ConnectionStatus: ClassVar[
+            type[FlextDbOracleModelsConnection.ConnectionStatus]
+        ] = FlextDbOracleModelsConnection.ConnectionStatus
+        QueryResult: ClassVar[type[FlextDbOracleModelsQuery.QueryResult]] = (
+            FlextDbOracleModelsQuery.QueryResult
+        )
+        OperationRecord: ClassVar[
+            type[FlextDbOracleModelsConnection.OperationRecord]
+        ] = FlextDbOracleModelsConnection.OperationRecord
+        HealthStatus: ClassVar[type[FlextDbOracleModelsConnection.HealthStatus]] = (
+            FlextDbOracleModelsConnection.HealthStatus
+        )
+        TableMetadata: ClassVar[type[FlextDbOracleModelsSchema.TableMetadata]] = (
+            FlextDbOracleModelsSchema.TableMetadata
+        )
+        TypeMapping: ClassVar[type[FlextDbOracleModelsSchema.TypeMapping]] = (
+            FlextDbOracleModelsSchema.TypeMapping
+        )
+        SingerField: ClassVar[type[FlextDbOracleModelsSchema.SingerField]] = (
+            FlextDbOracleModelsSchema.SingerField
+        )
+        SingerSchema: ClassVar[type[FlextDbOracleModelsSchema.SingerSchema]] = (
+            FlextDbOracleModelsSchema.SingerSchema
+        )
+        Table: ClassVar[type[FlextDbOracleModelsSchema.Table]] = (
+            FlextDbOracleModelsSchema.Table
+        )
+        Column: ClassVar[type[FlextDbOracleModelsSchema.Column]] = (
+            FlextDbOracleModelsSchema.Column
+        )
+        Schema: ClassVar[type[FlextDbOracleModelsSchema.Schema]] = (
+            FlextDbOracleModelsSchema.Schema
+        )
+        CreateIndexConfig: ClassVar[
+            type[FlextDbOracleModelsSchema.CreateIndexConfig]
+        ] = FlextDbOracleModelsSchema.CreateIndexConfig
 
         # Command classes for dispatcher integration
-        ConnectCommand = FlextDbOracleModelsCommand.ConnectCommand
-        DisconnectCommand = FlextDbOracleModelsCommand.DisconnectCommand
-        TestConnectionCommand = FlextDbOracleModelsCommand.TestConnectionCommand
-        ExecuteQueryCommand = FlextDbOracleModelsCommand.ExecuteQueryCommand
-        FetchOneCommand = FlextDbOracleModelsCommand.FetchOneCommand
-        ExecuteStatementCommand = FlextDbOracleModelsCommand.ExecuteStatementCommand
-        ExecuteManyCommand = FlextDbOracleModelsCommand.ExecuteManyCommand
-        GetSchemasCommand = FlextDbOracleModelsCommand.GetSchemasCommand
-        GetTablesCommand = FlextDbOracleModelsCommand.GetTablesCommand
-        GetColumnsCommand = FlextDbOracleModelsCommand.GetColumnsCommand
+        ConnectCommand: ClassVar[type[FlextDbOracleModelsCommand.ConnectCommand]] = (
+            FlextDbOracleModelsCommand.ConnectCommand
+        )
+        DisconnectCommand: ClassVar[
+            type[FlextDbOracleModelsCommand.DisconnectCommand]
+        ] = FlextDbOracleModelsCommand.DisconnectCommand
+        TestConnectionCommand: ClassVar[
+            type[FlextDbOracleModelsCommand.TestConnectionCommand]
+        ] = FlextDbOracleModelsCommand.TestConnectionCommand
+        ExecuteQueryCommand: ClassVar[
+            type[FlextDbOracleModelsCommand.ExecuteQueryCommand]
+        ] = FlextDbOracleModelsCommand.ExecuteQueryCommand
+        FetchOneCommand: ClassVar[type[FlextDbOracleModelsCommand.FetchOneCommand]] = (
+            FlextDbOracleModelsCommand.FetchOneCommand
+        )
+        ExecuteStatementCommand: ClassVar[
+            type[FlextDbOracleModelsCommand.ExecuteStatementCommand]
+        ] = FlextDbOracleModelsCommand.ExecuteStatementCommand
+        ExecuteManyCommand: ClassVar[
+            type[FlextDbOracleModelsCommand.ExecuteManyCommand]
+        ] = FlextDbOracleModelsCommand.ExecuteManyCommand
+        GetSchemasCommand: ClassVar[
+            type[FlextDbOracleModelsCommand.GetSchemasCommand]
+        ] = FlextDbOracleModelsCommand.GetSchemasCommand
+        GetTablesCommand: ClassVar[
+            type[FlextDbOracleModelsCommand.GetTablesCommand]
+        ] = FlextDbOracleModelsCommand.GetTablesCommand
+        GetColumnsCommand: ClassVar[
+            type[FlextDbOracleModelsCommand.GetColumnsCommand]
+        ] = FlextDbOracleModelsCommand.GetColumnsCommand
 
 
 m = FlextDbOracleModels
