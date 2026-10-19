@@ -13,10 +13,10 @@ from flext_db_oracle.services import FlextDbOracleServices
 class FlextDbOracleApiRuntimeState(FlextDbOracleServiceBase):
     """Shared API facade state consumed by the focused runtime mixins."""
 
-    _oracle_config: FlextDbOracleSettings = u.PrivateAttr()
-    _services: FlextDbOracleServices = u.PrivateAttr()
-    _context_name: str = u.PrivateAttr(default_factory=lambda: "oracle-api")
-    _dispatcher: p.Dispatcher = u.PrivateAttr()
+    _oracle_config: FlextDbOracleSettings = m.PrivateAttr()
+    _services: FlextDbOracleServices = m.PrivateAttr()
+    _context_name: str = m.PrivateAttr(default_factory=lambda: "oracle-api")
+    _dispatcher: p.Dispatcher = m.PrivateAttr()
 
 
 __all__: list[str] = ["FlextDbOracleApiRuntimeState"]

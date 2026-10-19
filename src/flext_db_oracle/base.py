@@ -29,15 +29,15 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
     - Count parsing utilities
     """
 
-    _db_config: FlextDbOracleSettings | None = u.PrivateAttr()
-    _engine: SAEngine | None = u.PrivateAttr(default_factory=lambda: None)
-    _operations: MutableSequence[m.DbOracle.OperationRecord] = u.PrivateAttr(
+    _db_config: FlextDbOracleSettings | None = m.PrivateAttr()
+    _engine: SAEngine | None = m.PrivateAttr(default_factory=lambda: None)
+    _operations: MutableSequence[m.DbOracle.OperationRecord] = m.PrivateAttr(
         default_factory=list[m.DbOracle.OperationRecord],
     )
-    _plugins: MutableMapping[str, t.JsonPayload] = u.PrivateAttr(
+    _plugins: MutableMapping[str, t.JsonPayload] = m.PrivateAttr(
         default_factory=dict[str, t.JsonPayload],
     )
-    _metrics: t.MutableJsonMapping = u.PrivateAttr(
+    _metrics: t.MutableJsonMapping = m.PrivateAttr(
         default_factory=dict[str, t.JsonValue],
     )
 
