@@ -26,17 +26,17 @@ class FlextDbOracleClient(s):
     integration.
     """
 
-    debug: bool = u.Field(
+    debug: bool = m.Field(
         default=False,
         description="Enable debug output",
         validate_default=True,
     )
-    current_connection: FlextDbOracleApi | None = u.Field(
+    current_connection: FlextDbOracleApi | None = m.Field(
         None,
         description="Active Oracle API connection instance",
         validate_default=True,
     )
-    user_preferences: m.ConfigMap = u.Field(
+    user_preferences: m.ConfigMap = m.Field(
         default_factory=lambda: m.ConfigMap(
             root={
                 "default_output_format": "table",

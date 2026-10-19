@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import m, u
+from flext_core import m
 
 
 class FlextDbOracleModelsBase:
@@ -15,7 +15,7 @@ class FlextDbOracleModelsBase:
     class CredentialRoot(m.RootModel[str]):
         """Project-owned root-model preset wrapping an Oracle password."""
 
-        root: str = u.Field(
+        root: str = m.Field(
             default="",
             description="Oracle database password",
             validate_default=True,

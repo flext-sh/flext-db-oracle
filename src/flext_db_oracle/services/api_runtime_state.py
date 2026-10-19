@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleSettings, p, u
+from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleSettings, m, p
 from flext_db_oracle.services import FlextDbOracleServices
 
 
