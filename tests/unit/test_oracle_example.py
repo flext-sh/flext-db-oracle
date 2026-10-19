@@ -40,9 +40,9 @@ class TestsFlextDbOracleOracleExample:
         if val is None:
             return None
         if isinstance(val, tuple):
-            return [u.normalize_to_metadata(item) for item in val]
+            return [u.normalize_to_json_value(item) for item in val]
         if isinstance(val, (str, int, float, bool, dict, list)):
-            return u.normalize_to_metadata(val)
+            return u.normalize_to_json_value(val)
         return None
 
     @classmethod
