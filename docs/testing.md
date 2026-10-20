@@ -146,7 +146,7 @@ def test_flext_result_success_path(flext_db_oracle_api):
     result = flext_db_oracle_api.connect(valid_config)
     tm.ok(result.success)
     connection = result.unwrap()
-    assert connection is not None
+    tm.not_none(connection)
 
 
 def test_flext_result_error_path(flext_db_oracle_api):

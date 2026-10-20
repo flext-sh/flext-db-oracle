@@ -266,7 +266,7 @@ def test_data_pipeline_workflow():
 
         # Step 2: Generate and execute DDL
         customers_table = schema.get_table("CUSTOMERS")
-        assert customers_table is not None
+        tm.not_none(customers_table)
 
         # Step 3: Perform bulk operations
         bulk_data = [

@@ -285,7 +285,7 @@ Following FLEXT Core patterns for consistent testing:
 # r pattern testing
 result = api.connect()
 tm.ok(result.success)
-assert result.value is not None
+tm.not_none(result.value)
 
 # Error testing
 result = api.connect_with_invalid_config()
