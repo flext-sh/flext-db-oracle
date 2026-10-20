@@ -9,30 +9,29 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import cast
 
-from flext_cli import FlextCliModels
-from flext_core import u as core_u
+from flext_cli import m
 
 from flext_db_oracle import t
-from flext_db_oracle._models.query_models import FlextDbOracleModelsQuery
+from flext_db_oracle._models import FlextDbOracleModelsQuery
 
 
 class FlextDbOracleModelsSchema:
     """Oracle Database schema models composed into ``m.DbOracle``."""
 
-    class TableMetadata(FlextCliModels.Entity):
+    class TableMetadata(m.Entity):
         """Complete table metadata for Oracle introspection."""
 
-        table_name: str = core_u.Field(description="Oracle table name")
-        schema_name: str = core_u.Field(
+        table_name: str = m.Field(description="Oracle table name")
+        schema_name: str = m.Field(
             "",
             description="Oracle schema name",
             validate_default=True,
         )
-        columns: t.SequenceOf[FlextDbOracleModelsQuery.ColumnMetadata] = core_u.Field(
+        columns: t.SequenceOf[FlextDbOracleModelsQuery.ColumnMetadata] = m.Field(
             default_factory=lambda: (),
             description="Column metadata for the table",
         )
-        primary_keys: t.StrSequence = core_u.Field(
+        primary_keys: t.StrSequence = m.Field(
             default_factory=tuple[str, ...],
             description="Primary key column names",
         )
@@ -57,10 +56,10 @@ class FlextDbOracleModelsSchema:
             """
             return key in self.model_dump()
 
-    class TypeMapping(FlextCliModels.Entity):
+    class TypeMapping(m.Entity):
         """Singer-to-Oracle type mapping."""
 
-        mapping: t.StrMapping = core_u.Field(
+        mapping: t.StrMapping = m.Field(
             default_factory=lambda: MappingProxyType[str, str]({}),
             description="Singer-to-Oracle type conversion map",
         )
@@ -93,60 +92,58 @@ class FlextDbOracleModelsSchema:
             """
             return key in self.mapping
 
-    class SingerField(FlextCliModels.Entity):
+    class SingerField(m.Entity):
         """Singer field definition."""
 
-        type: str | t.StrSequence = core_u.Field(
+        type: str | t.StrSequence = m.Field(
             "string",
             description="Singer JSON Schema type or type array",
             validate_default=True,
         )
 
-    class SingerSchema(FlextCliModels.Entity):
+    class SingerSchema(m.Entity):
         """Singer schema container with typed properties."""
 
-        properties: t.MappingKV[str, FlextDbOracleModelsSchema.SingerField] = (
-            core_u.Field(
-                default_factory=lambda: MappingProxyType(
-                    cast(
-                        "dict[str, FlextDbOracleModelsSchema.SingerField]",
-                        {},
-                    ),
+        properties: t.MappingKV[str, FlextDbOracleModelsSchema.SingerField] = m.Field(
+            default_factory=lambda: MappingProxyType(
+                cast(
+                    "dict[str, FlextDbOracleModelsSchema.SingerField]",
+                    {},
                 ),
-                description="Singer schema property definitions",
-            )
+            ),
+            description="Singer schema property definitions",
         )
 
-    class Table(FlextCliModels.Entity):
+    class Table(m.Entity):
         """Table metadata using flext-core Entity."""
 
-        name: str = core_u.Field(description="Table name")
-        owner: str = core_u.Field(
+        name: str = m.Field(description="Table name")
+        owner: str = m.Field(
             "",
             description="Table owner or schema",
             validate_default=True,
         )
-        columns: t.SequenceOf[FlextDbOracleModelsSchema.Column] = core_u.Field(
+        columns: t.SequenceOf[FlextDbOracleModelsSchema.Column] = m.Field(
             default_factory=lambda: (),
             description="Column definitions for the table",
         )
 
-    class Column(FlextCliModels.Entity):
+    class Column(m.Entity):
         """Column metadata using flext-core Entity."""
 
-        name: str = core_u.Field(description="Column name")
-        data_type: str = core_u.Field(description="Oracle data type")
-        nullable: bool = core_u.Field(
+        name: str = m.Field(description="Column name")
+        data_type: str = m.Field(description="Oracle data type")
+        nullable: bool = m.Field(
             default=True,
             description="Whether the column allows NULL values",
             validate_default=True,
         )
-        primary_key: bool = core_u.Field(
+        primary_key: bool = m.Field(
             default=False,
             description="Whether this column is a primary key",
             validate_default=True,
         )
-        default_value: str = core_u.Field(
+        default_value: str = m.Field(
             "",
             description="Default value for the column",
             validate_default=True,
@@ -187,39 +184,39 @@ class FlextDbOracleModelsSchema:
                 "default_value",
             }
 
-    class Schema(FlextCliModels.Entity):
+    class Schema(m.Entity):
         """Schema metadata using flext-core Entity."""
 
-        name: str = core_u.Field(description="Schema name")
-        tables: t.SequenceOf[FlextDbOracleModelsSchema.Table] = core_u.Field(
+        name: str = m.Field(description="Schema name")
+        tables: t.SequenceOf[FlextDbOracleModelsSchema.Table] = m.Field(
             default_factory=lambda: (),
             description="Tables within this schema",
         )
 
-    class CreateIndexConfig(FlextCliModels.Entity):
+    class CreateIndexConfig(m.Entity):
         """Create index settings using flext-core Entity."""
 
-        table_name: str = core_u.Field(description="Target table for the index")
-        index_name: str = core_u.Field(description="Name of the index to create")
-        columns: t.StrSequence = core_u.Field(
+        table_name: str = m.Field(description="Target table for the index")
+        index_name: str = m.Field(description="Name of the index to create")
+        columns: t.StrSequence = m.Field(
             description="Columns to include in the index",
         )
-        unique: bool = core_u.Field(
+        unique: bool = m.Field(
             default=False,
             description="Whether the index enforces uniqueness",
             validate_default=True,
         )
-        schema_name: str = core_u.Field(
+        schema_name: str = m.Field(
             "",
             description="Schema name",
             validate_default=True,
         )
-        tablespace: str = core_u.Field(
+        tablespace: str = m.Field(
             "",
             description="Tablespace name",
             validate_default=True,
         )
-        parallel: t.PositiveInt = core_u.Field(
+        parallel: t.PositiveInt = m.Field(
             1,
             description="Parallel degree for index creation",
             validate_default=True,

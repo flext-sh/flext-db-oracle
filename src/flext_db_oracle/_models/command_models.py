@@ -6,8 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import FlextCliModels
-from flext_core import u as core_u
+from flext_cli import m
 
 from flext_db_oracle import t
 
@@ -15,71 +14,71 @@ from flext_db_oracle import t
 class FlextDbOracleModelsCommand:
     """Oracle Database command models composed into ``m.DbOracle``."""
 
-    class ConnectCommand(FlextCliModels.Entity):
+    class ConnectCommand(m.Entity):
         """Command to establish Oracle connection."""
 
-    class DisconnectCommand(FlextCliModels.Entity):
+    class DisconnectCommand(m.Entity):
         """Command to close Oracle connection."""
 
-    class TestConnectionCommand(FlextCliModels.Entity):
+    class TestConnectionCommand(m.Entity):
         """Command to test Oracle connection."""
 
-    class ExecuteQueryCommand(FlextCliModels.Entity):
+    class ExecuteQueryCommand(m.Entity):
         """Command to execute SELECT query."""
 
-        sql: str = core_u.Field(description="SQL SELECT query to execute")
-        parameters: t.JsonMapping | None = core_u.Field(
+        sql: str = m.Field(description="SQL SELECT query to execute")
+        parameters: t.JsonMapping | None = m.Field(
             None,
             description="Query bind parameters",
             validate_default=True,
         )
 
-    class FetchOneCommand(FlextCliModels.Entity):
+    class FetchOneCommand(m.Entity):
         """Command to fetch single row."""
 
-        sql: str = core_u.Field(description="SQL query to fetch a single row")
-        parameters: t.JsonMapping | None = core_u.Field(
+        sql: str = m.Field(description="SQL query to fetch a single row")
+        parameters: t.JsonMapping | None = m.Field(
             None,
             description="Query bind parameters",
             validate_default=True,
         )
 
-    class ExecuteStatementCommand(FlextCliModels.Entity):
+    class ExecuteStatementCommand(m.Entity):
         """Command to execute INSERT/UPDATE/DELETE."""
 
-        sql: str = core_u.Field(description="SQL DML statement to execute")
-        parameters: t.JsonMapping | None = core_u.Field(
+        sql: str = m.Field(description="SQL DML statement to execute")
+        parameters: t.JsonMapping | None = m.Field(
             None,
             description="Statement bind parameters",
             validate_default=True,
         )
 
-    class ExecuteManyCommand(FlextCliModels.Entity):
+    class ExecuteManyCommand(m.Entity):
         """Command to execute batch statements."""
 
-        sql: str = core_u.Field(description="SQL statement for batch execution")
-        parameters_list: t.SequenceOf[t.JsonMapping] = core_u.Field(
+        sql: str = m.Field(description="SQL statement for batch execution")
+        parameters_list: t.SequenceOf[t.JsonMapping] = m.Field(
             default_factory=tuple[t.JsonMapping, ...],
             description="List of parameter sets for batch execution",
         )
 
-    class GetSchemasCommand(FlextCliModels.Entity):
+    class GetSchemasCommand(m.Entity):
         """Command to retrieve all schemas."""
 
-    class GetTablesCommand(FlextCliModels.Entity):
+    class GetTablesCommand(m.Entity):
         """Command to retrieve tables in schema."""
 
-        schema_name: str | None = core_u.Field(
+        schema_name: str | None = m.Field(
             None,
             description="Schema to list tables from",
             validate_default=True,
         )
 
-    class GetColumnsCommand(FlextCliModels.Entity):
+    class GetColumnsCommand(m.Entity):
         """Command to retrieve columns in table."""
 
-        table: str = core_u.Field(description="Table to retrieve columns from")
-        schema_name: str | None = core_u.Field(
+        table: str = m.Field(description="Table to retrieve columns from")
+        schema_name: str | None = m.Field(
             None,
             description="Schema containing the table",
             validate_default=True,

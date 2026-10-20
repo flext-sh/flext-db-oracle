@@ -10,8 +10,7 @@ from datetime import datetime
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_cli import FlextCliModels
-from flext_core import u as core_u
+from flext_cli import m, u
 
 from flext_db_oracle import c, t
 
@@ -19,64 +18,62 @@ from flext_db_oracle import c, t
 class FlextDbOracleModelsConnection:
     """Oracle Database connection models composed into ``m.DbOracle``."""
 
-    class ConnectionStatus(FlextCliModels.Entity, FlextCliModels.FlexibleModel):
+    class ConnectionStatus(m.Entity, m.FlexibleModel):
         """Connection status using flext-core Entity."""
 
-        model_config: ClassVar[FlextCliModels.ConfigDict] = FlextCliModels.ConfigDict(
-            frozen=False
-        )
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=False)
 
-        connected: bool = core_u.Field(
+        connected: bool = m.Field(
             default=False,
             description="Whether connection is active",
             validate_default=True,
         )
-        last_check: datetime = core_u.Field(
-            default_factory=core_u.now,
+        last_check: datetime = m.Field(
+            default_factory=u.now,
             description="Timestamp of last connection check",
         )
-        error_message: str = core_u.Field(
+        error_message: str = m.Field(
             "",
             description="Error message when disconnected",
             validate_default=True,
         )
 
         # Additional Oracle-specific connection details
-        connection_time: t.NonNegativeFloat = core_u.Field(
+        connection_time: t.NonNegativeFloat = m.Field(
             0.0,
             description="Connection establishment time in seconds",
             validate_default=True,
         )
-        last_activity: datetime = core_u.Field(
-            default_factory=core_u.now,
+        last_activity: datetime = m.Field(
+            default_factory=u.now,
             description="Timestamp of last database activity",
         )
-        session_id: str = core_u.Field(
+        session_id: str = m.Field(
             "",
             description="Oracle session identifier",
             validate_default=True,
         )
-        host: str = core_u.Field(
+        host: str = m.Field(
             "",
             description="Database host",
             validate_default=True,
         )
-        port: t.PortNumber = core_u.Field(
+        port: t.PortNumber = m.Field(
             c.DbOracle.DEFAULT_PORT,
             description="Database port",
             validate_default=True,
         )
-        service_name: str = core_u.Field(
+        service_name: str = m.Field(
             "",
             description="Oracle service name",
             validate_default=True,
         )
-        username: str = core_u.Field(
+        username: str = m.Field(
             "",
             description="Database username",
             validate_default=True,
         )
-        db_version: str = core_u.Field(
+        db_version: str = m.Field(
             "",
             description="Oracle database version",
             validate_default=True,
@@ -86,17 +83,17 @@ class FlextDbOracleModelsConnection:
         # overload, which flext-core's `staticmethod(computed_field)` wrap
         # does not expose to pyrefly (flext-1wjg1.16 fleet defect); the
         # bare form already infers the type from the property annotation.
-        @core_u.computed_field
+        @m.computed_field
         @property
         def connection_age_seconds(self) -> float:
             """Connection age in seconds."""
             if self.connected:
-                current_time: datetime = core_u.now()
+                current_time: datetime = u.now()
                 age_seconds: float = (current_time - self.last_activity).total_seconds()
                 return age_seconds
             return 0.0
 
-        @core_u.computed_field
+        @m.computed_field
         @property
         def connection_info(self) -> str:
             """Connection information summary."""
@@ -114,7 +111,7 @@ class FlextDbOracleModelsConnection:
             ]
             return ", ".join(parts) or "Connected"
 
-        @core_u.computed_field
+        @m.computed_field
         @property
         def healthy(self) -> bool:
             """Connection health status."""
@@ -127,7 +124,7 @@ class FlextDbOracleModelsConnection:
             is_healthy: bool = age_seconds <= idle_timeout_seconds
             return is_healthy
 
-        @core_u.computed_field
+        @m.computed_field
         @property
         def performance_info(self) -> str:
             """Connection performance information."""
@@ -144,7 +141,7 @@ class FlextDbOracleModelsConnection:
                 return f"Acceptable ({self.connection_time:.3f}s)"
             return f"Slow ({self.connection_time:.3f}s)"
 
-        @core_u.computed_field
+        @m.computed_field
         @property
         def status_description(self) -> str:
             """Human-readable status description."""
@@ -156,7 +153,7 @@ class FlextDbOracleModelsConnection:
                 else "Disconnected"
             )
 
-        @core_u.field_serializer("connection_time", when_used="json")
+        @m.field_serializer("connection_time", when_used="json")
         @staticmethod
         def serialize_connection_time(value: float) -> str:
             """Format connection time with units.
@@ -167,7 +164,7 @@ class FlextDbOracleModelsConnection:
             """
             return f"{value:.3f}s"
 
-        @core_u.field_serializer("last_check", "last_activity", when_used="json")
+        @m.field_serializer("last_check", "last_activity", when_used="json")
         @staticmethod
         def serialize_datetime(value: datetime) -> str:
             """Format datetime as ISO string.
@@ -178,7 +175,7 @@ class FlextDbOracleModelsConnection:
             """
             return value.isoformat()
 
-        @core_u.field_serializer("error_message")
+        @m.field_serializer("error_message")
         @staticmethod
         def serialize_error_message(value: str) -> str:
             """Truncate long error messages.
@@ -192,7 +189,7 @@ class FlextDbOracleModelsConnection:
                 return f"{value[:max_error_length]}... (truncated)"
             return value
 
-        @core_u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def validate_connection_status_consistency(
             self,
         ) -> FlextDbOracleModelsConnection.ConnectionStatus:
@@ -219,35 +216,35 @@ class FlextDbOracleModelsConnection:
                 raise ValueError(msg)
             return self
 
-    class OperationRecord(FlextCliModels.Entity):
+    class OperationRecord(m.Entity):
         """Operation tracking record for observability workflows."""
 
-        operation_type: str = core_u.Field(description="Type of database operation")
-        duration: float = core_u.Field(description="Operation duration in seconds")
-        success: bool = core_u.Field(description="Whether the operation succeeded")
-        metadata_info: str = core_u.Field(
+        operation_type: str = m.Field(description="Type of database operation")
+        duration: float = m.Field(description="Operation duration in seconds")
+        success: bool = m.Field(description="Whether the operation succeeded")
+        metadata_info: str = m.Field(
             "",
             description="Operation metadata",
             validate_default=True,
         )
-        timestamp: str = core_u.Field(description="ISO timestamp of operation")
+        timestamp: str = m.Field(description="ISO timestamp of operation")
 
-    class HealthStatus(FlextCliModels.Entity):
+    class HealthStatus(m.Entity):
         """Service health status record."""
 
-        status: str = core_u.Field(description="Health status indicator")
-        timestamp: str = core_u.Field(description="ISO timestamp of health check")
-        service: str = core_u.Field(
+        status: str = m.Field(description="Health status indicator")
+        timestamp: str = m.Field(description="ISO timestamp of health check")
+        service: str = m.Field(
             "oracle",
             description="Service name being checked",
             validate_default=True,
         )
-        database: str = core_u.Field(
+        database: str = m.Field(
             "oracle",
             description="Database engine identifier",
             validate_default=True,
         )
-        metrics: t.JsonMapping = core_u.Field(
+        metrics: t.JsonMapping = m.Field(
             default_factory=lambda: MappingProxyType[str, t.JsonValue]({}),
             description="Health check metric values",
         )

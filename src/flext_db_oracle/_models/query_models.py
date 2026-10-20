@@ -8,8 +8,7 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from flext_cli import FlextCliModels
-from flext_core import u as core_u
+from flext_cli import m
 
 from flext_db_oracle import c, t
 
@@ -17,10 +16,10 @@ from flext_db_oracle import c, t
 class FlextDbOracleModelsQuery:
     """Oracle Database query models composed into ``m.DbOracle``."""
 
-    class DbOracleDomainModel(FlextCliModels.BaseModel):
+    class DbOracleDomainModel(m.BaseModel):
         """Base model for FlextDbOracle with standard Pydantic v2 configuration."""
 
-        model_config: ClassVar[FlextCliModels.ConfigDict] = FlextCliModels.ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             use_enum_values=True,
             validate_default=True,
             str_strip_whitespace=True,
@@ -30,7 +29,7 @@ class FlextDbOracleModelsQuery:
     class RowData(DbOracleDomainModel):
         """Typed row payload for query results."""
 
-        values: t.JsonList = core_u.Field(
+        values: t.JsonList = m.Field(
             default_factory=tuple[t.JsonValue, ...],
             description="Row column values",
         )
@@ -42,44 +41,42 @@ class FlextDbOracleModelsQuery:
         data_type: str
         nullable: bool = True
 
-    class QueryResult(FlextCliModels.Entity, FlextCliModels.FlexibleModel):
+    class QueryResult(m.Entity, m.FlexibleModel):
         """Query result using flext-core Entity."""
 
-        model_config: ClassVar[FlextCliModels.ConfigDict] = FlextCliModels.ConfigDict(
-            frozen=False
-        )
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=False)
 
-        query: str = core_u.Field(description="SQL query that produced the result")
-        result_data: t.JsonList = core_u.Field(
+        query: str = m.Field(description="SQL query that produced the result")
+        result_data: t.JsonList = m.Field(
             default_factory=tuple[t.JsonValue, ...],
             description="Raw result data from query execution",
         )
-        row_count: t.NonNegativeInt = core_u.Field(
+        row_count: t.NonNegativeInt = m.Field(
             0,
             description="Number of rows returned",
             validate_default=True,
         )
-        execution_time_ms: t.NonNegativeInt = core_u.Field(
+        execution_time_ms: t.NonNegativeInt = m.Field(
             0,
             description="Query execution time in milliseconds",
             validate_default=True,
         )
 
         # Additional Oracle-specific query result details
-        columns: t.StrSequence = core_u.Field(
+        columns: t.StrSequence = m.Field(
             default_factory=tuple[str, ...],
             description="Column names in result set",
         )
-        rows: t.SequenceOf[FlextDbOracleModelsQuery.RowData] = core_u.Field(
+        rows: t.SequenceOf[FlextDbOracleModelsQuery.RowData] = m.Field(
             default_factory=lambda: (),
             description="Typed row data from query result",
         )
-        query_hash: str = core_u.Field(
+        query_hash: str = m.Field(
             "",
             description="Query hash for caching",
             validate_default=True,
         )
-        explain_plan: str = core_u.Field(
+        explain_plan: str = m.Field(
             "",
             description="Query execution plan",
             validate_default=True,
@@ -146,7 +143,7 @@ class FlextDbOracleModelsQuery:
                 else "Slow"
             )
 
-        @core_u.field_serializer("execution_time_ms", when_used="json")
+        @m.field_serializer("execution_time_ms", when_used="json")
         @staticmethod
         def serialize_execution_time(value: int) -> str:
             """Format execution time with appropriate units.
@@ -158,7 +155,7 @@ class FlextDbOracleModelsQuery:
             threshold = c.DbOracle.MILLISECONDS_TO_SECONDS_THRESHOLD
             return f"{value}ms" if value < threshold else f"{value / threshold:.2f}s"
 
-        @core_u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def validate_query_result_consistency(
             self,
         ) -> FlextDbOracleModelsQuery.QueryResult:
