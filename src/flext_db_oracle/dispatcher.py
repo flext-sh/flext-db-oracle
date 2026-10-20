@@ -70,8 +70,6 @@ class FlextDbOracleDispatcher(FlextService[bool]):
     def build_dispatcher(
         cls,
         services: FlextDbOracleServices,
-        *,
-        _bus: t.JsonValue | None = None,
     ) -> p.Dispatcher:
         """Create a dispatcher instance wired to Oracle services.
 
