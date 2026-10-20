@@ -284,7 +284,7 @@ Following FLEXT Core patterns for consistent testing:
 ```text
 # r pattern testing
 result = api.connect()
-assert result.success
+tm.ok(result.success)
 assert result.value is not None
 
 # Error testing

@@ -74,7 +74,7 @@ deprecated Pydantic v1 style configuration
 
 #### 3. **Constants Test Failures**
 
-**Issue**: `AssertionError: assert 1 == 1024` in network constants test **Impact**:
+**Issue**: `AssertionError: tm.that(1, eq=1024` in network constants test **Impact**:)
 Basic functionality tests failing **Files Affected**: `tests/unit/test_constants.py`
 **Root Cause**: Incorrect constant values or test expectations
 
@@ -144,7 +144,7 @@ from __future__ import annotations
 def test_flext_result_success_path(flext_db_oracle_api):
     """Test successful operation returns r.ok()."""
     result = flext_db_oracle_api.connect(valid_config)
-    assert result.success
+    tm.ok(result.success)
     connection = result.unwrap()
     assert connection is not None
 
@@ -207,7 +207,7 @@ import pytest
 def test_sql_query_validation(flext_db_oracle_api, sql_query, expected_result):
     """Test SQL query validation with multiple scenarios."""
     result = flext_db_oracle_api.validate_query(sql_query)
-    assert result.success == expected_result
+    tm.that(result.success, eq=expected_result)
     ```
 ### 4. Mock Strategy
 
@@ -223,7 +223,7 @@ import pytest
 def test_real_connection_pool():
     """Test with actual connection pool (preferred)."""
     pool = create_real_connection_pool()
-    assert pool.max_connections == 20
+    tm.that(pool.max_connections, eq=20)
 
 
 # Use mocks only when necessary

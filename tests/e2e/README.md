@@ -182,7 +182,7 @@ def test_complete_cli_workflow():
 
     # Step 1: Test database connection
     connection_result = runner.invoke(oracle_cli, ["connect-env"])
-    assert connection_result.exit_code == 0
+    tm.that(connection_result.exit_code, eq=0)
     assert "Connection Successful" in connection_result.output
 
     # Step 2: Execute data query
@@ -190,15 +190,15 @@ def test_complete_cli_workflow():
         oracle_cli,
         ["query", "--sql", "SELECT COUNT(*) as customer_count FROM customers"],
     )
-    assert query_result.exit_code == 0
+    tm.that(query_result.exit_code, eq=0)
     assert "customer_count" in query_result.output
 
     # Step 3: List schemas and tables
     schema_result = runner.invoke(oracle_cli, ["schemas"])
-    assert schema_result.exit_code == 0
+    tm.that(schema_result.exit_code, eq=0)
 
     table_result = runner.invoke(oracle_cli, ["tables", "--schema", "FLEXT_E2E"])
-    assert table_result.exit_code == 0
+    tm.that(table_result.exit_code, eq=0)
     assert "customers" in table_result.output
     assert "orders" in table_result.output
 ```
@@ -282,14 +282,14 @@ def test_data_pipeline_workflow():
             values=bulk_data
         )
         assert bulk_result.success
-        assert bulk_result.value == len(bulk_data)
+        tm.that(bulk_result.value, eq=len(bulk_data))
 
         # Step 4: Verify data integrity
         verify_result = api.execute_query(
             "SELECT COUNT(*) FROM customers WHERE name LIKE 'Test Customer%'"
         )
         assert verify_result.success:
-        assert verify_result.value.rows[0][0] == len(bulk_data)
+        tm.that(verify_result.value.rows[0][0], eq=len(bulk_data))
 ```
 
 ## 📊 Performance and Load Testing
@@ -325,14 +325,14 @@ def test_high_volume_operations():
 
             for future in concurrent.futures.as_completed(future_to_query):
                 result = future.result()
-                assert result.success
+                tm.ok(result.success)
                 results.append(result)
 
         execution_time = time.time() - start_time
 
         # Performance assertions
         assert execution_time < 30.0  # Should complete within 30 seconds
-        assert len(results) == len(concurrent_queries)
+        tm.that(len(results), eq=len(concurrent_queries))
         assert all(r.success for r in results)
 ```
 
