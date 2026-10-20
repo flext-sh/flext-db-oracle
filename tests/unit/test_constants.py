@@ -223,7 +223,7 @@ class TestsFlextDbOracleConstants:
         """Port bounds are ordered and contain the default listener port."""
         tm.that(c.DbOracle.MIN_PORT, lt=c.DbOracle.MAX_PORT)
         in_range = c.DbOracle.MIN_PORT <= c.DbOracle.DEFAULT_PORT <= c.DbOracle.MAX_PORT
-        tm.that(in_range, eq=True)
+        tm.ok(in_range)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -441,7 +441,7 @@ class TestsFlextDbOracleConstants:
         oracle_available: bool,
     ) -> None:
         """TEST_QUERY and DUAL_TABLE drive a real Oracle round-trip."""
-        tm.that(oracle_available, eq=True)
+        tm.ok(oracle_available)
         result = connected_oracle_api.query(c.DbOracle.TEST_QUERY)
         tm.ok(result)
         tm.that(len(result.value), eq=1)
@@ -456,11 +456,11 @@ class TestsFlextDbOracleConstants:
     def test_oracle_constants_default_values() -> None:
         """Default connection constants expose valid service and port values."""
         tm.that(c.DbOracle.DEFAULT_SERVICE_NAME, is_=str)
-        tm.that(bool(c.DbOracle.DEFAULT_SERVICE_NAME), eq=True)
+        tm.ok(bool(c.DbOracle.DEFAULT_SERVICE_NAME))
         default_port = c.DbOracle.DEFAULT_PORT
         tm.that(default_port, is_=int)
         in_range = c.DbOracle.MIN_PORT <= default_port <= c.DbOracle.MAX_PORT
-        tm.that(in_range, eq=True)
+        tm.ok(in_range)
 
     @staticmethod
     @pytest.mark.docker
@@ -470,7 +470,7 @@ class TestsFlextDbOracleConstants:
         oracle_available: bool,
     ) -> None:
         """Data-type constants form a DDL statement a real Oracle accepts."""
-        tm.that(oracle_available, eq=True)
+        tm.ok(oracle_available)
         create_sql = (
             "\n        CREATE TABLE test_data_types (\n"
             f"            id {c.DbOracle.DataType.NUMBER} PRIMARY KEY,\n"
@@ -484,7 +484,7 @@ class TestsFlextDbOracleConstants:
         with contextlib.suppress(Exception):
             connected_oracle_api.execute_statement("DROP TABLE test_data_types")
         accepted = result.success or ("already exists" in str(result.error).lower())
-        tm.that(accepted, eq=True)
+        tm.ok(accepted)
 
     @staticmethod
     def test_oracle_validation_constants_local_usage() -> None:
@@ -504,7 +504,7 @@ class TestsFlextDbOracleConstants:
         oracle_available: bool,
     ) -> None:
         """Query timing is classified by the documented ms thresholds."""
-        tm.that(oracle_available, eq=True)
+        tm.ok(oracle_available)
         start_time = time.time()
         result = connected_oracle_api.query("SELECT 1 FROM DUAL")
         execution_ms = (time.time() - start_time) * 1000

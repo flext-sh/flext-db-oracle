@@ -152,7 +152,7 @@ def test_flext_result_success_path(flext_db_oracle_api):
 def test_flext_result_error_path(flext_db_oracle_api):
     """Test failed operation returns r.fail()."""
     result = flext_db_oracle_api.connect(invalid_config)
-    assert result.failure
+    tm.fail(result)
     assert "connection failed" in result.error.lower()
     ```
 ### 2. Fixture-Based Testing

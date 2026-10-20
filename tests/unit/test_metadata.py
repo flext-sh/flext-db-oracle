@@ -133,7 +133,7 @@ class TestsFlextDbOracleMetadata:
         services: FlextDbOracleServices,
     ) -> None:
         """A freshly built facade is not connected until connect succeeds."""
-        tm.that(services.connected(), eq=False)
+        tm.fail(services.connected())
 
     @staticmethod
     def test_execute_returns_active_settings_as_success(
@@ -169,7 +169,7 @@ class TestsFlextDbOracleMetadata:
         _ = label
         result = call(services)
         error = tm.fail(result, has="Not connected")
-        tm.that(bool(error), eq=True)
+        tm.ok(bool(error))
 
     @staticmethod
     def test_failed_op_recovers_via_unwrap_or_default(
@@ -212,7 +212,7 @@ class TestsFlextDbOracleMetadata:
         tm.that(column.name, eq="ID")
         tm.that(column.data_type, eq=data_type)
         tm.that(column.nullable, eq=nullable)
-        tm.that(column.primary_key, eq=False)
+        tm.fail(column.primary_key)
         tm.that(column.default_value, eq="")
 
     @staticmethod
@@ -222,8 +222,8 @@ class TestsFlextDbOracleMetadata:
         tm.that(column["name"], eq="CODE")
         tm.that(column["column_name"], eq="CODE")
         tm.that(column["data_type"], eq="VARCHAR2")
-        tm.that("data_type" in column, eq=True)
-        tm.that("missing_key" in column, eq=False)
+        tm.ok("data_type" in column)
+        tm.fail("missing_key" in column)
         tm.that(column["missing_key"], eq="")
 
     @staticmethod
@@ -238,8 +238,8 @@ class TestsFlextDbOracleMetadata:
         dumped = column.model_dump()
         tm.that(dumped["name"], eq="AMOUNT")
         tm.that(dumped["data_type"], eq="NUMBER")
-        tm.that(dumped["nullable"], eq=True)
-        tm.that(dumped["primary_key"], eq=True)
+        tm.ok(dumped["nullable"])
+        tm.ok(dumped["primary_key"])
 
     @staticmethod
     def test_table_aggregates_its_columns() -> None:

@@ -56,7 +56,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         )
         tm.that(hash_value, is_=str)
         tm.that(len(hash_value), eq=16)
-        tm.that(hash_value.isalnum(), eq=True)
+        tm.ok(hash_value.isalnum())
 
     @staticmethod
     def test_generate_query_hash_is_deterministic_for_same_inputs() -> None:
@@ -142,8 +142,8 @@ class TestsFlextDbOracleUtilitiesUnit:
         """Newlines and runs of whitespace collapse to single spaces."""
         sql = "\nSELECT   id,\n  name\nFROM users\nWHERE active = 1\n"
         formatted: str = tm.ok(u.DbOracle.format_sql_for_oracle(sql))
-        tm.that("\n" not in formatted, eq=True)
-        tm.that("  " not in formatted, eq=True)
+        tm.ok("\n" not in formatted)
+        tm.ok("  " not in formatted)
 
     @staticmethod
     def test_format_sql_preserves_all_clause_keywords() -> None:
@@ -241,7 +241,7 @@ class TestsFlextDbOracleUtilitiesUnit:
     @staticmethod
     def test_validate_identifier_accepts_valid_name() -> None:
         """A valid identifier validates successfully returning True."""
-        tm.that(tm.ok(u.DbOracle.validate_identifier("VALID_TABLE")), eq=True)
+        tm.ok(tm.ok(u.DbOracle.validate_identifier("VALID_TABLE")))
 
     @staticmethod
     @pytest.mark.parametrize(

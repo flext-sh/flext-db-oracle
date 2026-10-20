@@ -67,7 +67,7 @@ class TestsFlextDbOracleCli:
         """Constructing twice yields distinct, independent instances."""
         client_a = FlextDbOracleClient()
         client_b = FlextDbOracleClient()
-        tm.that(client_a is not client_b, eq=True)
+        tm.ok(client_a is not client_b)
 
     # ---- preference configuration ----------------------------------------
 
@@ -84,7 +84,7 @@ class TestsFlextDbOracleCli:
         )
         tm.that(client.user_preferences["default_output_format"], eq="json")
         tm.that(client.user_preferences["query_limit"], eq=2000)
-        tm.that(client.user_preferences["show_execution_time"], eq=False)
+        tm.fail(client.user_preferences["show_execution_time"])
 
     @staticmethod
     def test_configure_preferences_preserves_untouched_defaults() -> None:
@@ -155,7 +155,7 @@ class TestsFlextDbOracleCli:
             username="invalid_user",
             password="invalid" + "_" + "password",
         )
-        tm.that(result.failure, eq=True)
+        tm.ok(result.failure)
         error_text = result.error or ""
         tm.that(
             any(snippet in error_text for snippet in _CONNECTION_FAILURE_SNIPPETS),
@@ -183,7 +183,7 @@ class TestsFlextDbOracleCli:
             settings.DbOracle.username,
             settings.DbOracle.password,
         )
-        tm.that(result.failure, eq=True)
+        tm.ok(result.failure)
         tm.that(result.error, is_=str)
 
     # ---- class-level CLI command dispatch --------------------------------
@@ -262,7 +262,7 @@ class TestsFlextDbOracleCli:
         """A fully-specified API validates its own configuration."""
         api = self._sample_api()
         api.test_connection()
-        tm.that(api.valid(), eq=True)
+        tm.ok(api.valid())
 
     def test_api_optimize_query_succeeds(self) -> None:
         """Query optimization is a pure, connection-independent success."""
@@ -284,15 +284,15 @@ class TestsFlextDbOracleCli:
             }),
         )
         query_result = api.query("SELECT 1 FROM DUAL")
-        tm.that(query_result.failure, eq=True)
+        tm.ok(query_result.failure)
         error_lower = (query_result.error or "").lower()
-        tm.that("not connected" in error_lower or "connection" in error_lower, eq=True)
+        tm.ok("not connected" in error_lower or "connection" in error_lower)
 
     def test_api_schema_and_table_fetches_fail_without_connection(self) -> None:
         """Schema/table listing fails without an established connection."""
         api = self._sample_api()
-        tm.that(api.fetch_schemas().failure, eq=True)
-        tm.that(api.fetch_tables().failure, eq=True)
+        tm.ok(api.fetch_schemas().failure)
+        tm.ok(api.fetch_tables().failure)
 
     # ---- output formatting -----------------------------------------------
 
@@ -309,7 +309,7 @@ class TestsFlextDbOracleCli:
         tm.ok(formatted)
         unwrapped = formatted.unwrap()
         tm.that(unwrapped, is_=str)
-        tm.that(bool(unwrapped), eq=True)
+        tm.ok(bool(unwrapped))
 
     @staticmethod
     def test_yaml_dump_serializes_mapping_to_string() -> None:
@@ -328,7 +328,7 @@ class TestsFlextDbOracleCli:
         tm.that(tm.ok(api.list_plugins()), has="test_plugin")
         tm.that(api.fetch_plugin("test_plugin").unwrap(), eq=plugin_payload)
         tm.ok(api.unregister_plugin("test_plugin"))
-        tm.that("test_plugin" not in api.list_plugins().unwrap(), eq=True)
+        tm.ok("test_plugin" not in api.list_plugins().unwrap())
 
     def test_list_plugins_starts_empty(self) -> None:
         """A fresh API exposes an empty plugin registry."""

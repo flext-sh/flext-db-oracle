@@ -69,7 +69,7 @@ class TestsFlextDbOracleApi:
         """A new API returns its settings unchanged and reports disconnected."""
         api = FlextDbOracleApi(settings)
         tm.that(api.settings, eq=settings)
-        tm.that(api.connected(), eq=False)
+        tm.fail(api.connected())
         tm.that(api.connection, none=True)
 
     @staticmethod
@@ -94,7 +94,7 @@ class TestsFlextDbOracleApi:
     @staticmethod
     def test_valid_true_for_well_formed_settings(api: FlextDbOracleApi) -> None:
         """valid() is True when port and service name satisfy the contract."""
-        tm.that(api.valid(), eq=True)
+        tm.ok(api.valid())
 
     @staticmethod
     def _is_runtime(candidate: p.Base) -> bool:
@@ -111,8 +111,8 @@ class TestsFlextDbOracleApi:
         api: FlextDbOracleApi,
     ) -> None:
         """The real facade structurally satisfies its own declared Runtime protocol."""
-        tm.that(self._is_runtime(api), eq=True)
-        tm.that(api.valid(), eq=True)
+        tm.ok(self._is_runtime(api))
+        tm.ok(api.valid())
 
     @staticmethod
     def test_url_derived_service_name_is_uppercased() -> None:
@@ -138,7 +138,7 @@ class TestsFlextDbOracleApi:
         """from_env fails clearly when no password is configured in the env."""
         result = FlextDbOracleApi.from_env("NONEXISTENT_PREFIX_")
         error = tm.fail(result)
-        tm.that("password is required" in error, eq=True)
+        tm.ok("password is required" in error)
 
     @staticmethod
     def test_to_dict_exposes_state_and_hides_password(
@@ -146,16 +146,16 @@ class TestsFlextDbOracleApi:
     ) -> None:
         """to_dict reports settings/connected/plugin_count and never the password."""
         result = api.to_dict()
-        tm.that("settings" in result, eq=True)
-        tm.that("connected" in result, eq=True)
-        tm.that("plugin_count" in result, eq=True)
+        tm.ok("settings" in result)
+        tm.ok("connected" in result)
+        tm.ok("plugin_count" in result)
         settings_dump = result["settings"]
         assert isinstance(settings_dump, dict)
         db_dump = settings_dump["DbOracle"]
         assert isinstance(db_dump, dict)
-        tm.that("password" not in db_dump, eq=True)
+        tm.ok("password" not in db_dump)
         tm.that(db_dump["host"], eq="127.0.0.1")
-        tm.that(result["connected"], eq=False)
+        tm.fail(result["connected"])
         tm.that(result["plugin_count"], eq=0)
 
     @staticmethod
@@ -209,7 +209,7 @@ class TestsFlextDbOracleApi:
         }
         result = calls[operation]()
         error = tm.fail(result)
-        tm.that("connect" in error.lower(), eq=True)
+        tm.ok("connect" in error.lower())
 
     @staticmethod
     def test_disconnect_is_idempotent_when_never_connected(
@@ -226,8 +226,8 @@ class TestsFlextDbOracleApi:
         """transaction() succeeds and reports the disconnected transaction state."""
         result = api.transaction()
         tm.ok(result)
-        tm.that(result.value["connected"], eq=False)
-        tm.that(result.value["transaction_available"], eq=True)
+        tm.fail(result.value["connected"])
+        tm.ok(result.value["transaction_available"])
 
     @staticmethod
     def test_context_manager_raises_when_connection_fails(
@@ -241,7 +241,7 @@ class TestsFlextDbOracleApi:
     def test_exit_without_enter_does_not_raise(api: FlextDbOracleApi) -> None:
         """__exit__ cleans up gracefully even if the connection was never opened."""
         api.__exit__(None, None, None)
-        tm.that(api.connected(), eq=False)
+        tm.fail(api.connected())
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -286,7 +286,7 @@ class TestsFlextDbOracleApi:
         result = api.convert_singer_type(singer_type)
         tm.ok(result)
         tm.that(result.value, is_=str)
-        tm.that(len(result.value) > 0, eq=True)
+        tm.ok(len(result.value) > 0)
 
     @staticmethod
     def test_map_singer_schema_returns_mapping_for_valid_schema(
@@ -324,7 +324,7 @@ class TestsFlextDbOracleApi:
         tm.that(fetched.value, eq=plugin)
         listed = api.list_plugins()
         tm.ok(listed)
-        tm.that("perf" in listed.value, eq=True)
+        tm.ok("perf" in listed.value)
         tm.ok(api.unregister_plugin("perf"))
         tm.fail(api.fetch_plugin("perf"))
 
@@ -333,7 +333,7 @@ class TestsFlextDbOracleApi:
         """register_plugin fails when the plugin name is blank."""
         result = api.register_plugin("", {"x": 1})
         error = tm.fail(result)
-        tm.that("name is required" in error.lower(), eq=True)
+        tm.ok("name is required" in error.lower())
 
     @staticmethod
     def test_fetch_missing_plugin_reports_not_found(
@@ -342,7 +342,7 @@ class TestsFlextDbOracleApi:
         """fetch_plugin fails with a not-found error for an unknown plugin."""
         result = api.fetch_plugin("nonexistent_plugin")
         error = tm.fail(result)
-        tm.that("not found" in error.lower(), eq=True)
+        tm.ok("not found" in error.lower())
 
     @staticmethod
     def test_unregister_missing_plugin_reports_not_found(
@@ -351,7 +351,7 @@ class TestsFlextDbOracleApi:
         """unregister_plugin fails with a not-found error for an unknown plugin."""
         result = api.unregister_plugin("nonexistent_plugin")
         error = tm.fail(result)
-        tm.that("not found" in error.lower(), eq=True)
+        tm.ok("not found" in error.lower())
 
     def test_instances_have_isolated_plugin_registries(self) -> None:
         """Plugins registered on one API instance never leak into another."""
@@ -362,7 +362,7 @@ class TestsFlextDbOracleApi:
         listed_b = api_b.list_plugins()
         tm.ok(listed_a)
         tm.ok(listed_b)
-        tm.that("only_a" in listed_a.value, eq=True)
+        tm.ok("only_a" in listed_a.value)
         tm.that(listed_b.value, empty=True)
 
     @staticmethod
@@ -384,10 +384,10 @@ class TestsFlextDbOracleApi:
         result = services.build_select(table_name, columns)
         tm.ok(result)
         sql_upper = result.value.upper()
-        tm.that("SELECT" in sql_upper, eq=True)
-        tm.that(table_name.upper() in sql_upper, eq=True)
+        tm.ok("SELECT" in sql_upper)
+        tm.ok(table_name.upper() in sql_upper)
         for column_name in columns:
-            tm.that(column_name.lower() in result.value.lower(), eq=True)
+            tm.ok(column_name.lower() in result.value.lower())
 
     @staticmethod
     def test_build_select_qualifies_with_schema_when_provided(
@@ -402,5 +402,5 @@ class TestsFlextDbOracleApi:
         )
         tm.ok(result)
         sql_upper = result.value.upper()
-        tm.that("TEST_SCHEMA" in sql_upper, eq=True)
-        tm.that("TEST_TABLE" in sql_upper, eq=True)
+        tm.ok("TEST_SCHEMA" in sql_upper)
+        tm.ok("TEST_TABLE" in sql_upper)

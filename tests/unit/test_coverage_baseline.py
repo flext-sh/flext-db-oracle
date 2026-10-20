@@ -90,7 +90,7 @@ class TestsFlextDbOracleCoverageBaseline:
         )
         tm.that(column.name, eq="ID")
         tm.that(column.data_type, eq="NUMBER")
-        tm.that(column.nullable, eq=False)
+        tm.fail(column.nullable)
         tm.that(column.default_value, eq="1")
 
     @staticmethod
@@ -99,8 +99,8 @@ class TestsFlextDbOracleCoverageBaseline:
         column = m.DbOracle.Column(name="ID", data_type="NUMBER")
         tm.that(column["column_name"], eq="ID")
         tm.that(column["data_type"], eq="NUMBER")
-        tm.that("nullable" in column, eq=True)
-        tm.that("unknown_key" in column, eq=False)
+        tm.ok("nullable" in column)
+        tm.fail("unknown_key" in column)
         tm.that(column["unknown_key"], eq="")
 
     @staticmethod
@@ -117,7 +117,7 @@ class TestsFlextDbOracleCoverageBaseline:
         oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """A freshly built facade reports no active engine."""
-        tm.that(oracle_unit_services.connected(), eq=False)
+        tm.fail(oracle_unit_services.connected())
 
     @staticmethod
     def test_service_execute_returns_active_configuration(

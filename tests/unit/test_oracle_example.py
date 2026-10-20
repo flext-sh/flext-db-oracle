@@ -76,7 +76,7 @@ class TestsFlextDbOracleOracleExample:
         connection = FlextDbOracleServices(settings=real_oracle_config)
         connect_result = connection.connect()
         tm.ok(connect_result)
-        tm.that(connection.connected(), eq=True)
+        tm.ok(connection.connected())
         return connection
 
     # ------------------------------------------------------------------
@@ -90,11 +90,11 @@ class TestsFlextDbOracleOracleExample:
         """After connect ``connected()`` is True, after disconnect False."""
         connection = self._connect_services(real_oracle_config)
 
-        tm.that(connection.connected(), eq=True)
+        tm.ok(connection.connected())
 
         disconnect_result = connection.disconnect()
         tm.ok(disconnect_result)
-        tm.that(connection.connected(), eq=False)
+        tm.fail(connection.connected())
 
     def test_execute_query_returns_single_row_result(
         self,
@@ -183,7 +183,7 @@ class TestsFlextDbOracleOracleExample:
         schemas_result = connected_oracle_api.fetch_schemas()
         tm.ok(schemas_result)
         schemas = schemas_result.value
-        tm.that(len(schemas) > 0, eq=True)
+        tm.ok(len(schemas) > 0)
         system_schemas = ("SYS", "SYSTEM", "FLEXT", "FLEXTTEST", "XDB")
         tm.that(
             any(
@@ -203,7 +203,7 @@ class TestsFlextDbOracleOracleExample:
         tm.ok(tables_result)
         tables_upper = [name.upper() for name in tables_result.value]
         for expected in ("EMPLOYEES", "DEPARTMENTS", "JOBS"):
-            tm.that(any(expected in name for name in tables_upper), eq=True)
+            tm.ok(any(expected in name for name in tables_upper))
 
     @staticmethod
     def test_fetch_columns_exposes_named_columns(
@@ -213,7 +213,7 @@ class TestsFlextDbOracleOracleExample:
         result = connected_oracle_api.fetch_columns("EMPLOYEES")
         tm.ok(result)
         columns = result.value
-        tm.that(len(columns) > 0, eq=True)
+        tm.ok(len(columns) > 0)
         column_names = [col.name.upper() for col in columns]
         for expected in ("EMPLOYEE_ID", "FIRST_NAME", "LAST_NAME", "EMAIL"):
             tm.that(column_names, has=expected)
@@ -225,7 +225,7 @@ class TestsFlextDbOracleOracleExample:
         """``query`` succeeds and returns at least one row for a COUNT aggregate."""
         result = connected_oracle_api.query("SELECT COUNT(*) FROM EMPLOYEES")
         tm.ok(result)
-        tm.that(len(result.value) > 0, eq=True)
+        tm.ok(len(result.value) > 0)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -315,7 +315,7 @@ class TestsFlextDbOracleOracleExample:
             "connection test failed",
             "not connected to database",
         )
-        tm.that(any(reason in error_msg for reason in reasons), eq=True)
+        tm.ok(any(reason in error_msg for reason in reasons))
 
     def test_invalid_sql_returns_failure(
         self,
@@ -329,7 +329,7 @@ class TestsFlextDbOracleOracleExample:
             )
             tm.fail(result)
             error_msg = (result.error or "").lower()
-            tm.that("table" in error_msg or "not exist" in error_msg, eq=True)
+            tm.ok("table" in error_msg or "not exist" in error_msg)
         finally:
             connection.disconnect()
 

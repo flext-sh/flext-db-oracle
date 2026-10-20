@@ -105,8 +105,8 @@ class TestsFlextDbOracleOracle:
         result = offline_api.transaction()
         tm.ok(result)
         status = result.value
-        tm.that(status["connected"], eq=False)
-        tm.that(status["transaction_available"], eq=True)
+        tm.fail(status["connected"])
+        tm.ok(status["transaction_available"])
 
     @staticmethod
     @pytest.mark.parametrize(

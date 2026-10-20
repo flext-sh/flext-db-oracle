@@ -72,7 +72,7 @@ class TestsFlextDbOracleOracle:
         api = FlextDbOracleApi(settings=settings)
         connect_result = api.connect()
         tm.ok(connect_result)
-        tm.that(api.connected(), eq=True)
+        tm.ok(api.connected())
         return api
 
     # -------------------------------------------- container-free: settings API
@@ -120,7 +120,7 @@ class TestsFlextDbOracleOracle:
     ) -> None:
         """A freshly built API reports a disconnected connection state."""
         api = FlextDbOracleApi(settings=offline_oracle_settings)
-        tm.that(api.connected(), eq=False)
+        tm.fail(api.connected())
         tm.that(api.connection, none=True)
 
     @staticmethod
@@ -140,7 +140,7 @@ class TestsFlextDbOracleOracle:
         api = FlextDbOracleApi.from_config(offline_oracle_settings)
         tm.that(api, is_=FlextDbOracleApi)
         assert api.settings is offline_oracle_settings
-        tm.that(api.connected(), eq=False)
+        tm.fail(api.connected())
 
     @staticmethod
     def test_repr_reflects_host_and_disconnected_state(
@@ -159,14 +159,14 @@ class TestsFlextDbOracleOracle:
     ) -> None:
         """Connecting and querying DUAL returns exactly one row on success."""
         connected_api = self._connect(oracle_config)
-        tm.that(connected_api.test_connection().unwrap(), eq=True)
+        tm.ok(connected_api.test_connection().unwrap())
 
         query_result = connected_api.query("SELECT SYSDATE FROM DUAL")
         tm.ok(query_result)
         tm.that(len(query_result.unwrap()), eq=1)
 
-        tm.that(connected_api.disconnect().unwrap(), eq=True)
-        tm.that(connected_api.connected(), eq=False)
+        tm.ok(connected_api.disconnect().unwrap())
+        tm.fail(connected_api.connected())
 
     def test_metadata_queries_return_string_sequences(
         self,
@@ -218,9 +218,9 @@ class TestsFlextDbOracleOracle:
         """``with api`` yields a connected session and disconnects on exit."""
         api = FlextDbOracleApi(settings=oracle_config)
         with api as session:
-            tm.that(session.connected(), eq=True)
+            tm.ok(session.connected())
             tm.ok(session.query("SELECT 1 FROM DUAL"))
-        tm.that(api.connected(), eq=False)
+        tm.fail(api.connected())
 
     def test_insert_update_delete_roundtrip_is_observable_via_queries(
         self,
@@ -305,8 +305,8 @@ class TestsFlextDbOracleOracle:
         health_result = connected_api.fetch_health_status()
         tm.ok(health_result)
         status = health_result.unwrap()
-        tm.that(status.connected, eq=True)
-        tm.that(status.healthy, eq=True)
+        tm.ok(status.connected)
+        tm.ok(status.healthy)
         tm.that(status.status_description, eq="Connected")
         assert status.connection_age_seconds >= 0
 

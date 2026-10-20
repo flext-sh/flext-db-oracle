@@ -27,7 +27,7 @@ class TestsFlextDbOracleSettings:
         tm.that(settings.DbOracle.pool_max, eq=c.DbOracle.DEFAULT_POOL_MAX)
         tm.that(settings.DbOracle.name, eq=c.DbOracle.DEFAULT_DATABASE_NAME)
         tm.that(settings.DbOracle.sid, none=True)
-        tm.that(settings.DbOracle.enable_dispatcher, eq=False)
+        tm.fail(settings.DbOracle.enable_dispatcher)
 
     @staticmethod
     def test_model_dump_exposes_every_public_field() -> None:
@@ -114,7 +114,7 @@ class TestsFlextDbOracleSettings:
         singleton = FlextDbOracleSettings.fetch_global()
         clone = FlextDbOracleSettings.fetch_global(overrides={"debug": True})
         assert clone is not singleton
-        tm.that(clone.debug, eq=True)
+        tm.ok(clone.debug)
         assert FlextDbOracleSettings.fetch_global() is singleton
 
     @staticmethod

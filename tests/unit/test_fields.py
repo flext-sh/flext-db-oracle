@@ -70,14 +70,14 @@ class TestsFlextDbOracleFields:
         )
         tm.that(result.row_count, eq=2)
         tm.that(result.column_count, eq=2)
-        tm.that(result.has_results, eq=True)
+        tm.ok(result.has_results)
 
     @staticmethod
     def test_empty_query_result_has_no_results() -> None:
         """An empty result reports zero rows and no results."""
         result = m.DbOracle.QueryResult(query="SELECT 1 FROM dual")
         tm.that(result.row_count, eq=0)
-        tm.that(result.has_results, eq=False)
+        tm.fail(result.has_results)
         tm.that(result.column_count, eq=0)
 
     @staticmethod
@@ -102,7 +102,7 @@ class TestsFlextDbOracleFields:
         column = m.DbOracle.ColumnMetadata(name="ID", data_type="NUMBER")
         tm.that(column.name, eq="ID")
         tm.that(column.data_type, eq="NUMBER")
-        tm.that(column.nullable, eq=True)
+        tm.ok(column.nullable)
 
     @staticmethod
     def test_column_metadata_respects_non_nullable_flag() -> None:
@@ -112,4 +112,4 @@ class TestsFlextDbOracleFields:
             data_type="NUMBER",
             nullable=False,
         )
-        tm.that(column.nullable, eq=False)
+        tm.fail(column.nullable)

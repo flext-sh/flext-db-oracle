@@ -30,7 +30,7 @@ class TestsFlextDbOracleModels:
             username="system",
         )
         tm.that(status.status_description, eq="Connected")
-        tm.that(status.healthy, eq=True)
+        tm.ok(status.healthy)
         tm.that(status.connection_info, has="localhost")
         tm.that(status.connection_info, has="XEPDB1")
         tm.that(status.connection_info, has="system")
@@ -40,7 +40,7 @@ class TestsFlextDbOracleModels:
         """A disconnected status embeds its error message in the description."""
         status = m.DbOracle.ConnectionStatus(connected=False)
         tm.that(status.status_description, eq="Disconnected")
-        tm.that(status.healthy, eq=False)
+        tm.fail(status.healthy)
         tm.that(status.connection_info, eq="Not connected")
 
     @staticmethod
@@ -118,7 +118,7 @@ class TestsFlextDbOracleModels:
         tm.that(result.execution_time_ms, eq=0)
         tm.that(result.columns, empty=True)
         tm.that(result.rows, empty=True)
-        tm.that(result.has_results, eq=False)
+        tm.fail(result.has_results)
         tm.that(result.column_count, eq=0)
 
     @staticmethod
@@ -134,7 +134,7 @@ class TestsFlextDbOracleModels:
             execution_time_ms=150,
         )
         tm.that(result.row_count, eq=2)
-        tm.that(result.has_results, eq=True)
+        tm.ok(result.has_results)
         tm.that(result.column_count, eq=2)
         tm.that(result.columns, eq=["id", "name"])
 
@@ -193,7 +193,7 @@ class TestsFlextDbOracleModels:
             query="SELECT 1",
             execution_time_ms=execution_time_ms,
         )
-        tm.that(result.has_results, eq=False)
+        tm.fail(result.has_results)
         tm.that(result.performance_rating, eq=rating)
 
     @staticmethod
@@ -205,7 +205,7 @@ class TestsFlextDbOracleModels:
             rows=[m.DbOracle.RowData(values=[1])],
             execution_time_ms=c.DbOracle.QUERY_ACCEPTABLE_THRESHOLD_MS,
         )
-        tm.that(result.has_results, eq=True)
+        tm.ok(result.has_results)
         tm.that(result.performance_rating, eq="Acceptable")
 
     @staticmethod
@@ -262,9 +262,9 @@ class TestsFlextDbOracleModels:
         )
         tm.that(len(table.columns), eq=2)
         tm.that(table.columns[0].name, eq="id")
-        tm.that(table.columns[0].nullable, eq=False)
+        tm.fail(table.columns[0].nullable)
         tm.that(table.columns[1].name, eq="name")
-        tm.that(table.columns[1].nullable, eq=True)
+        tm.ok(table.columns[1].nullable)
 
     @staticmethod
     def test_column_defaults_and_explicit_values() -> None:
@@ -277,17 +277,17 @@ class TestsFlextDbOracleModels:
         )
         tm.that(column.name, eq="user_id")
         tm.that(column.data_type, eq="NUMBER(38)")
-        tm.that(column.nullable, eq=False)
+        tm.fail(column.nullable)
         tm.that(column.default_value, eq="NULL")
 
     @staticmethod
     def test_column_mapping_access_exposes_aliases() -> None:
         """Column supports mapping-style access over its public attributes."""
         column = m.DbOracle.Column(name="user_id", data_type="NUMBER")
-        tm.that("column_name" in column, eq=True)
+        tm.ok("column_name" in column)
         tm.that(column["column_name"], eq="user_id")
         tm.that(column["data_type"], eq="NUMBER")
-        tm.that("unknown" in column, eq=False)
+        tm.fail("unknown" in column)
 
     @staticmethod
     def test_schema_defaults_to_no_tables() -> None:
@@ -325,7 +325,7 @@ class TestsFlextDbOracleModels:
         tm.that(config.table_name, eq="users")
         tm.that(config.index_name, eq="idx_users_email")
         tm.that(config.columns, eq=["email"])
-        tm.that(config.unique, eq=True)
+        tm.ok(config.unique)
         tm.that(config.schema_name, eq="hr")
         tm.that(config.tablespace, eq="users_idx")
         tm.that(config.parallel, eq=4)
@@ -474,7 +474,7 @@ class TestsFlextDbOracleModels:
             columns=("ID", "NAME"),
             rows=(row,),
         )
-        tm.that(query_result.has_results, eq=True)
+        tm.ok(query_result.has_results)
         tm.that(query_result.row_count, eq=1)
         tm.that(query_result.rows[0].values, eq=(1, "test"))
 

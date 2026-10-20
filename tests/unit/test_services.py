@@ -35,7 +35,7 @@ class TestsFlextDbOracleServices:
         oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """A freshly created service reports a disconnected state."""
-        tm.that(oracle_unit_services.connected(), eq=False)
+        tm.fail(oracle_unit_services.connected())
 
     @staticmethod
     def test_connected_returns_boolean(
@@ -53,7 +53,7 @@ class TestsFlextDbOracleServices:
         second = oracle_unit_services.disconnect()
         tm.ok(first)
         tm.ok(second)
-        tm.that(first.value, eq=True)
+        tm.ok(first.value)
 
     @staticmethod
     def test_connect_fails_for_unreachable_host() -> None:
@@ -71,8 +71,8 @@ class TestsFlextDbOracleServices:
             }),
         )
         result = svc.connect()
-        tm.that(result.failure, eq=True)
-        tm.that(svc.connected(), eq=False)
+        tm.ok(result.failure)
+        tm.fail(svc.connected())
 
     @staticmethod
     def test_test_connection_fails_when_not_connected(
@@ -80,7 +80,7 @@ class TestsFlextDbOracleServices:
     ) -> None:
         """test_connection reports failure with a not-connected message."""
         result = oracle_unit_services.test_connection()
-        tm.that(result.failure, eq=True)
+        tm.ok(result.failure)
         tm.that((result.error or "").lower(), has="not connected")
 
     @staticmethod
@@ -180,7 +180,7 @@ class TestsFlextDbOracleServices:
         tm.ok(result)
         tm.that(result.value, has='"_SDC_LOADED_AT"')
         tm.that(result.value, has=":_SDC_LOADED_AT")
-        tm.that('(":_SDC_LOADED_AT"' not in result.value, eq=True)
+        tm.ok('(":_SDC_LOADED_AT"' not in result.value)
 
     @staticmethod
     def test_build_update_statement_emits_set_and_where(
@@ -262,7 +262,7 @@ class TestsFlextDbOracleServices:
             "index_name": "IDX_USERS_EMPTY",
             "columns": [],
         })
-        tm.that(result.failure, eq=True)
+        tm.ok(result.failure)
         tm.that(result.error or "", has="at least one column")
 
     @staticmethod
@@ -333,7 +333,7 @@ class TestsFlextDbOracleServices:
     ) -> None:
         """Non-mapping ``properties`` are rejected as a failure result."""
         result = oracle_unit_services.map_singer_schema({"properties": "not_a_dict"})
-        tm.that(result.failure, eq=True)
+        tm.ok(result.failure)
 
     @staticmethod
     def test_map_singer_schema_without_properties_yields_empty_mapping(
@@ -341,7 +341,7 @@ class TestsFlextDbOracleServices:
     ) -> None:
         """A schema lacking properties produces an empty successful mapping."""
         result = oracle_unit_services.map_singer_schema({})
-        tm.that(result.failure or not result.value, eq=True)
+        tm.ok(result.failure or not result.value)
 
     @staticmethod
     def test_record_metric_succeeds(
@@ -369,7 +369,7 @@ class TestsFlextDbOracleServices:
     ) -> None:
         """An empty metric name is rejected with a required-name error."""
         result = oracle_unit_services.record_metric("", 12.5)
-        tm.that(result.failure, eq=True)
+        tm.ok(result.failure)
         tm.that(result.error or "", has="Metric name is required")
 
     @staticmethod
@@ -379,7 +379,7 @@ class TestsFlextDbOracleServices:
         """fetch_metrics returns a health status tagged with observability."""
         result = oracle_unit_services.fetch_metrics()
         tm.ok(result)
-        tm.that(result.value.status.endswith("_with_observability"), eq=True)
+        tm.ok(result.value.status.endswith("_with_observability"))
 
     @staticmethod
     def test_track_operation_appends_to_operations(
@@ -397,7 +397,7 @@ class TestsFlextDbOracleServices:
         tm.ok(track)
         after = oracle_unit_services.fetch_operations()
         tm.ok(after)
-        tm.that(len(after.value) > len(before.value), eq=True)
+        tm.ok(len(after.value) > len(before.value))
 
     @staticmethod
     def test_plugin_register_fetch_list_unregister_lifecycle(
@@ -415,24 +415,24 @@ class TestsFlextDbOracleServices:
         tm.that(fetched.value, eq=plugin)
         unregister = oracle_unit_services.unregister_plugin("sample")
         tm.ok(unregister)
-        tm.that(oracle_unit_services.fetch_plugin("sample").failure, eq=True)
+        tm.ok(oracle_unit_services.fetch_plugin("sample").failure)
 
     @staticmethod
     def test_plugin_operations_fail_for_missing_name(
         oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """Fetching or unregistering an unknown plugin fails."""
-        tm.that(oracle_unit_services.fetch_plugin("missing").failure, eq=True)
-        tm.that(oracle_unit_services.unregister_plugin("missing").failure, eq=True)
+        tm.ok(oracle_unit_services.fetch_plugin("missing").failure)
+        tm.ok(oracle_unit_services.unregister_plugin("missing").failure)
 
     @staticmethod
     def test_plugin_operations_reject_empty_name(
         oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """All plugin operations reject an empty plugin name."""
-        tm.that(oracle_unit_services.register_plugin("", {"v": "1"}).failure, eq=True)
-        tm.that(oracle_unit_services.fetch_plugin("").failure, eq=True)
-        tm.that(oracle_unit_services.unregister_plugin("").failure, eq=True)
+        tm.ok(oracle_unit_services.register_plugin("", {"v": "1"}).failure)
+        tm.ok(oracle_unit_services.fetch_plugin("").failure)
+        tm.ok(oracle_unit_services.unregister_plugin("").failure)
 
     @staticmethod
     def test_generate_query_hash_is_deterministic(
@@ -445,7 +445,7 @@ class TestsFlextDbOracleServices:
         second = oracle_unit_services.generate_query_hash(sql, params)
         tm.ok(first)
         tm.that(first.value, is_=str)
-        tm.that(bool(first.value), eq=True)
+        tm.ok(bool(first.value))
         tm.that(first.value, eq=second.value)
 
     @staticmethod
@@ -454,10 +454,10 @@ class TestsFlextDbOracleServices:
     ) -> None:
         """fetch_schemas surfaces a connection-related failure when offline."""
         result = oracle_unit_services.fetch_schemas()
-        tm.that(result.failure, eq=True)
+        tm.ok(result.failure)
         tm.that(result.error, none=False)
         error_lower = (result.error or "").lower()
-        tm.that("connect" in error_lower or "connection" in error_lower, eq=True)
+        tm.ok("connect" in error_lower or "connection" in error_lower)
 
     @staticmethod
     @pytest.mark.parametrize("schema", [None, "TEST_SCHEMA", ""])
@@ -467,7 +467,7 @@ class TestsFlextDbOracleServices:
     ) -> None:
         """fetch_tables fails for any schema argument while disconnected."""
         result = oracle_unit_services.fetch_tables(schema)
-        tm.that(result.failure, eq=True)
+        tm.ok(result.failure)
 
     @staticmethod
     def test_fetch_table_row_count_fails_when_not_connected(
@@ -475,7 +475,7 @@ class TestsFlextDbOracleServices:
     ) -> None:
         """Row counting fails while the service is not connected."""
         result = oracle_unit_services.fetch_table_row_count("test_table", "test_schema")
-        tm.that(result.failure, eq=True)
+        tm.ok(result.failure)
         tm.that(result.error or "", has="row count")
 
     @staticmethod
@@ -489,7 +489,7 @@ class TestsFlextDbOracleServices:
         )
         tm.that(column.name, eq="ID")
         tm.that(column.data_type, eq="NUMBER")
-        tm.that(column.nullable, eq=False)
+        tm.fail(column.nullable)
         tm.that(column.default_value, eq="0")
 
     @staticmethod
@@ -539,7 +539,7 @@ class TestsFlextDbOracleServices:
                 },
             }),
         )
-        tm.that(api.test_connection().failure, eq=True)
-        tm.that(api.fetch_schemas().failure, eq=True)
-        tm.that(api.fetch_tables().failure, eq=True)
-        tm.that(api.query("SELECT 1 FROM DUAL").failure, eq=True)
+        tm.ok(api.test_connection().failure)
+        tm.ok(api.fetch_schemas().failure)
+        tm.ok(api.fetch_tables().failure)
+        tm.ok(api.query("SELECT 1 FROM DUAL").failure)

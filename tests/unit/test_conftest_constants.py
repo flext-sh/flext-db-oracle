@@ -28,13 +28,13 @@ class TestsFlextDbOracleConftestConstants:
         """Test shared containers registry is stable across access."""
         first = c.Tests.SHARED_CONTAINERS
         second = c.Tests.SHARED_CONTAINERS
-        tm.that(dict(first) == dict(second), eq=True)
+        tm.ok(dict(first) == dict(second))
 
     @staticmethod
     def test_oracle_container_is_registered() -> None:
         # Act / Assert: the oracle DB test container is part of the contract.
         """Test oracle container is registered."""
-        tm.that(c.Tests.ORACLE_CONTAINER in c.Tests.SHARED_CONTAINERS, eq=True)
+        tm.ok(c.Tests.ORACLE_CONTAINER in c.Tests.SHARED_CONTAINERS)
 
     @staticmethod
     def test_oracle_container_config_is_a_mapping() -> None:

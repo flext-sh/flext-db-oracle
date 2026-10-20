@@ -39,18 +39,18 @@ class TestsFlextDbOracleClient:
     def test_default_client_reports_debug_disabled() -> None:
         """A client built without arguments exposes debug=False."""
         client = FlextDbOracleClient()
-        tm.that(client.debug, eq=False)
+        tm.fail(client.debug)
 
     @staticmethod
     def test_client_honors_debug_flag() -> None:
         """The debug flag passed at construction is reflected publicly."""
         client = FlextDbOracleClient(debug=True)
-        tm.that(client.debug, eq=True)
+        tm.ok(client.debug)
 
     @staticmethod
     def test_new_client_is_not_connected(client: FlextDbOracleClient) -> None:
         """A freshly built client has no active engine."""
-        tm.that(client.connected(), eq=False)
+        tm.fail(client.connected())
 
     @staticmethod
     def test_default_preferences_are_populated(
@@ -72,7 +72,7 @@ class TestsFlextDbOracleClient:
     ) -> None:
         """Valid identifiers are returned unchanged in a success result."""
         result = u.DbOracle.escape_oracle_identifier(identifier)
-        tm.that(result.success, eq=True)
+        tm.ok(result.success)
         tm.that(result.unwrap(), eq=expected)
 
     @staticmethod
@@ -92,7 +92,7 @@ class TestsFlextDbOracleClient:
     ) -> None:
         """Blank or non-alphanumeric identifiers fail with a specific error."""
         result = u.DbOracle.escape_oracle_identifier(identifier)
-        tm.that(result.success, eq=False)
+        tm.fail(result.success)
         tm.that(result.error, eq=error)
 
     @staticmethod
@@ -100,7 +100,7 @@ class TestsFlextDbOracleClient:
         """Over-long identifiers are truncated to the Oracle maximum length."""
         long_identifier = "a" * (c.DbOracle.MAX_IDENTIFIER_LENGTH + 50)
         result = u.DbOracle.escape_oracle_identifier(long_identifier)
-        tm.that(result.success, eq=True)
+        tm.ok(result.success)
         tm.that(len(result.unwrap()), eq=c.DbOracle.MAX_IDENTIFIER_LENGTH)
 
     # -- validate_identifier ----------------------------------------------
@@ -110,8 +110,8 @@ class TestsFlextDbOracleClient:
     def test_validate_identifier_accepts_normal_names(identifier: str) -> None:
         """Ordinary identifiers validate successfully to True."""
         result = u.DbOracle.validate_identifier(identifier)
-        tm.that(result.success, eq=True)
-        tm.that(result.unwrap(), eq=True)
+        tm.ok(result.success)
+        tm.ok(result.unwrap())
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -128,7 +128,7 @@ class TestsFlextDbOracleClient:
     ) -> None:
         """Empty or reserved-word identifiers fail with the matching error."""
         result = u.DbOracle.validate_identifier(identifier)
-        tm.that(result.success, eq=False)
+        tm.fail(result.success)
         tm.that(result.error, eq=error)
 
     @staticmethod
@@ -136,7 +136,7 @@ class TestsFlextDbOracleClient:
         """Identifiers exceeding the maximum length are rejected."""
         too_long = "x" * (c.DbOracle.MAX_IDENTIFIER_LENGTH + 1)
         result = u.DbOracle.validate_identifier(too_long)
-        tm.that(result.success, eq=False)
+        tm.fail(result.success)
         tm.that(result.error, eq="Oracle identifier too long")
 
     # -- format_sql_for_oracle --------------------------------------------
@@ -153,7 +153,7 @@ class TestsFlextDbOracleClient:
     def test_format_sql_collapses_whitespace(raw: str, expected: str) -> None:
         """SQL formatting normalizes all runs of whitespace to single spaces."""
         result = u.DbOracle.format_sql_for_oracle(raw)
-        tm.that(result.success, eq=True)
+        tm.ok(result.success)
         tm.that(result.unwrap(), eq=expected)
 
     # -- generate_query_hash ----------------------------------------------
@@ -163,7 +163,7 @@ class TestsFlextDbOracleClient:
         """A generated hash is a 16-character hexadecimal string."""
         result = u.DbOracle.generate_query_hash("SELECT 1", None)
         digest = result.unwrap()
-        tm.that(result.success, eq=True)
+        tm.ok(result.success)
         tm.that(len(digest), eq=16)
         assert int(digest, 16) >= 0
 
@@ -194,7 +194,7 @@ class TestsFlextDbOracleClient:
     def test_format_result_json_emits_json_text() -> None:
         """JSON formatting yields parseable JSON for the payload."""
         result = u.DbOracle.format_query_result({"a": 1}, "json")
-        tm.that(result.success, eq=True)
+        tm.ok(result.success)
         tm.that(result.unwrap(), eq='{"a":1}')
 
     @staticmethod
@@ -202,7 +202,7 @@ class TestsFlextDbOracleClient:
         """Default (table) formatting yields the string form of the payload."""
         payload: Mapping[str, int] = {"a": 1}
         result = u.DbOracle.format_query_result(payload)
-        tm.that(result.success, eq=True)
+        tm.ok(result.success)
         tm.that(result.unwrap(), eq=str(payload))
 
     # -- normalize_params -------------------------------------------------
@@ -228,8 +228,8 @@ class TestsFlextDbOracleClient:
     ) -> None:
         """Configuring preferences succeeds and updates public state."""
         result = client.configure_preferences(theme="dark", page_size=50)
-        tm.that(result.success, eq=True)
-        tm.that(result.unwrap(), eq=True)
+        tm.ok(result.success)
+        tm.ok(result.unwrap())
         tm.that(client.user_preferences.root["theme"], eq="dark")
         tm.that(client.user_preferences.root["page_size"], eq=50)
 
@@ -249,5 +249,5 @@ class TestsFlextDbOracleClient:
     ) -> None:
         """An unknown CLI operation fails with a descriptive error."""
         result = client.run_cli_command("bogus")
-        tm.that(result.success, eq=False)
+        tm.fail(result.success)
         tm.that(result.error, eq="Unknown CLI operation: bogus")
