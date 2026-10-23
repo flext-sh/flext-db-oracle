@@ -41,10 +41,12 @@ class FlextDbOracleModelsQuery:
         data_type: str
         nullable: bool = True
 
-    class QueryResult(m.Entity, m.FlexibleModel):
+    class QueryResult(m.Entity):
         """Query result using flext-core Entity."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=False)
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            frozen=False, extra="ignore", strict=False
+        )
 
         query: str = m.Field(description="SQL query that produced the result")
         result_data: t.JsonList = m.Field(

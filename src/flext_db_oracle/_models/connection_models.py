@@ -18,10 +18,12 @@ from flext_db_oracle import c, t
 class FlextDbOracleModelsConnection:
     """Oracle Database connection models composed into ``m.DbOracle``."""
 
-    class ConnectionStatus(m.Entity, m.FlexibleModel):
+    class ConnectionStatus(m.Entity):
         """Connection status using flext-core Entity."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=False)
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            frozen=False, extra="ignore", strict=False
+        )
 
         connected: bool = m.Field(
             default=False,

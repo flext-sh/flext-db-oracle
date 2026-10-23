@@ -92,7 +92,10 @@ class TestsFlextDbOracleServices:
         tm.ok(result)
         tm.that(result.value.service, eq="oracle")
         tm.that(result.value.status, eq="unhealthy")
-        tm.that(result.value.database, eq="TEST")
+        tm.that(
+            result.value.database,
+            eq=oracle_unit_services.settings.DbOracle.service_name,
+        )
 
 
 class TestsFlextDbOracleServicesSql:
@@ -295,7 +298,7 @@ class TestsFlextDbOracleServicesSinger:
         """A nullable array type resolves to its non-null Oracle mapping."""
         result = oracle_unit_services.convert_singer_type(["string", "null"])
         tm.ok(result)
-        tm.that(result.value, eq="VARCHAR2(4000)")
+        tm.that(result.value, eq=c.DbOracle.SINGER_TYPE_MAP["string"])
 
     @staticmethod
     def test_convert_singer_type_rejects_empty_sequence(
@@ -312,7 +315,7 @@ class TestsFlextDbOracleServicesSinger:
         """A date-time format hint overrides the base string mapping."""
         result = oracle_unit_services.convert_singer_type("string", "date-time")
         tm.ok(result)
-        tm.that(result.value, eq="TIMESTAMP")
+        tm.that(result.value, eq=c.DbOracle.SINGER_TYPE_MAP["date-time"])
 
     @staticmethod
     def test_map_singer_schema_maps_all_properties(
@@ -330,10 +333,10 @@ class TestsFlextDbOracleServicesSinger:
         result = oracle_unit_services.map_singer_schema(schema)
         tm.ok(result)
         mapping = result.value
-        tm.that(mapping["id"], eq="NUMBER(38)")
-        tm.that(mapping["name"], eq="VARCHAR2(4000)")
-        tm.that(mapping["created_at"], eq="TIMESTAMP")
-        tm.that(mapping["is_active"], eq="NUMBER(1)")
+        tm.that(mapping["id"], eq=c.DbOracle.SINGER_TYPE_MAP["integer"])
+        tm.that(mapping["name"], eq=c.DbOracle.SINGER_TYPE_MAP["string"])
+        tm.that(mapping["created_at"], eq=c.DbOracle.SINGER_TYPE_MAP["date-time"])
+        tm.that(mapping["is_active"], eq=c.DbOracle.SINGER_TYPE_MAP["boolean"])
 
     @staticmethod
     def test_map_singer_schema_rejects_non_mapping_properties(

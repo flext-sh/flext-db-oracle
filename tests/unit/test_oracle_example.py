@@ -23,9 +23,6 @@ from tests import t, tm, u
 if TYPE_CHECKING:
     from tests import m
 
-# Live Oracle paths pull the session docker fixture via real_oracle_settings.
-pytestmark = pytest.mark.docker
-
 
 class TestsFlextDbOracleOracleExample:
     """Public-contract behavior for the Oracle API and services facade."""
@@ -39,8 +36,6 @@ class TestsFlextDbOracleOracleExample:
         val = next(iter(root.values()))
         if val is None:
             return None
-        if isinstance(val, tuple):
-            return [u.normalize_to_json_value(item) for item in val]
         if isinstance(val, (str, int, float, bool, dict, list)):
             return u.normalize_to_json_value(val)
         return None
@@ -288,6 +283,7 @@ class TestsFlextDbOracleOracleExample:
     # ------------------------------------------------------------------
 
     @staticmethod
+    @pytest.mark.docker
     def test_connect_with_invalid_credentials_fails_with_reason() -> None:
         """Connecting with bad credentials yields a failing result.
 
@@ -335,10 +331,10 @@ class TestsFlextDbOracleOracleExample:
 
     @staticmethod
     def test_api_operations_fail_when_not_connected(
-        real_oracle_config: FlextDbOracleSettings,
+        oracle_unit_settings: FlextDbOracleSettings,
     ) -> None:
         """API queries and metadata fetches fail cleanly before ``connect``."""
-        api = FlextDbOracleApi(real_oracle_config)
+        api = FlextDbOracleApi(oracle_unit_settings)
 
         query_result = api.query("SELECT 1 FROM DUAL")
         tm.fail(query_result)
