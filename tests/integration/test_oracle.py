@@ -1,7 +1,8 @@
 """Behavioral tests for the flext-db-oracle public API contract.
 
 Container-gated tests exercise REAL Oracle connectivity when prerequisites are
-available, skipping before fixtures otherwise. Container-free tests assert the contract of
+available, skipping before fixtures otherwise. Container-free tests assert the
+contract of
 ``FlextDbOracleSettings`` and ``FlextDbOracleApi`` (validation, factories,
 representation, connection state) without any external dependency.
 
@@ -17,10 +18,10 @@ from typing import TYPE_CHECKING
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import tm
+from tests import m, tm
 
 if TYPE_CHECKING:
-    from tests import m, t
+    from tests import t
 
 
 @pytest.fixture
@@ -171,13 +172,14 @@ class TestsFlextDbOracleOracle:
         self,
         oracle_config: FlextDbOracleSettings,
     ) -> None:
-        """Schema/table/column lookups return string sequences on success."""
+        """Schema/table names are strings; columns expose typed metadata."""
         connected_api = self._connect(oracle_config)
 
         schemas_result = connected_api.fetch_schemas()
         tm.ok(schemas_result)
         schemas = schemas_result.unwrap()
-        tm.that(all(isinstance(name, str) for name in schemas))
+        for name in schemas:
+            tm.instance(name, str)
         tm.that(
             schemas,
             where=bool,
@@ -187,12 +189,14 @@ class TestsFlextDbOracleOracle:
         tables_result = connected_api.fetch_tables(schemas[0])
         tm.ok(tables_result)
         tables = tables_result.unwrap()
-        tm.that(all(isinstance(name, str) for name in tables))
+        for name in tables:
+            tm.instance(name, str)
 
         if tables:
             columns_result = connected_api.fetch_columns(tables[0])
             tm.ok(columns_result)
-            tm.that(all(isinstance(col, str) for col in columns_result.unwrap()))
+            for column in columns_result.unwrap():
+                tm.instance(column, m.DbOracle.Column)
 
         connected_api.disconnect()
 
@@ -296,7 +300,8 @@ class TestsFlextDbOracleOracle:
         tm.ok(result)
         schemas = result.unwrap()
         tm.that(schemas, where=bool)
-        tm.that(all(isinstance(name, str) for name in schemas))
+        for name in schemas:
+            tm.instance(name, str)
 
     def test_health_status_reports_connected_and_healthy(
         self,
@@ -307,7 +312,7 @@ class TestsFlextDbOracleOracle:
 
         health_result = connected_api.fetch_health_status()
         tm.ok(health_result)
-        status = health_result.unwrap()
+        status = tm.instance(health_result.unwrap(), m.DbOracle.ConnectionStatus)
         tm.ok(status.connected)
         tm.ok(status.healthy)
         tm.that(status.status_description, eq="Connected")
