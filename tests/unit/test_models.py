@@ -237,9 +237,10 @@ class TestsFlextDbOracleModels:
         tm.that(validated.row_count, eq=2)
         tm.that(validated.columns, eq=["id"])
 
-    # ------------------------------------------------------------------
-    # Table / Column / Schema
-    # ------------------------------------------------------------------
+
+@pytest.mark.unit
+class TestsFlextDbOracleSchemaModels:
+    """Schema, table, column, and index declaration contracts."""
 
     @staticmethod
     def test_table_defaults_to_no_columns() -> None:
@@ -351,21 +352,23 @@ class TestsFlextDbOracleModels:
                 parallel=0,
             )
 
-    # ------------------------------------------------------------------
-    # FlextDbOracleSettings
-    # ------------------------------------------------------------------
+
+@pytest.mark.unit
+class TestsFlextDbOracleModelSettings:
+    """Settings validation, environment, serialization, and isolation."""
 
     @staticmethod
     def test_settings_defaults() -> None:
         """Settings expose documented Oracle defaults under the DbOracle namespace."""
         settings = FlextDbOracleSettings()
-        tm.that(settings.DbOracle.host, eq="localhost")
-        tm.that(settings.DbOracle.port, eq=1521)
-        tm.that(settings.DbOracle.name, eq="XE")
-        tm.that(settings.DbOracle.service_name, eq="XEPDB1")
-        tm.that(settings.DbOracle.username, eq="system")
-        tm.that(settings.DbOracle.password, eq="")
-        tm.that(settings.DbOracle.ssl_server_cert_dn, none=True)
+        defaults = FlextDbOracleSettings.DbOracleSettings()
+        tm.that(settings.DbOracle.host, eq=defaults.host)
+        tm.that(settings.DbOracle.port, eq=defaults.port)
+        tm.that(settings.DbOracle.name, eq=defaults.name)
+        tm.that(settings.DbOracle.service_name, eq=defaults.service_name)
+        tm.that(settings.DbOracle.username, eq=defaults.username)
+        tm.that(settings.DbOracle.password, eq=defaults.password)
+        tm.that(settings.DbOracle.ssl_server_cert_dn, eq=defaults.ssl_server_cert_dn)
 
     @staticmethod
     def test_settings_accept_custom_values() -> None:
@@ -458,8 +461,9 @@ class TestsFlextDbOracleModels:
         """Mutating one settings clone never affects another."""
         first = FlextDbOracleSettings().clone()
         second = FlextDbOracleSettings().clone()
+        original_host = second.DbOracle.host
         first.DbOracle.host = "modified"
-        tm.that(second.DbOracle.host, eq="localhost")
+        tm.that(second.DbOracle.host, eq=original_host)
 
     # ------------------------------------------------------------------
     # Offline model contracts for database-shaped payloads

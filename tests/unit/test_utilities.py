@@ -311,9 +311,10 @@ class TestsFlextDbOracleUtilitiesUnit:
         data: list[t.JsonValue] = [{"id": 7}]
         tm.that(tm.ok(u.DbOracle.format_query_result(data)), eq=str(data))
 
-    # ------------------------------------------------------------------ #
-    # Settings from environment                                          #
-    # ------------------------------------------------------------------ #
+
+@pytest.mark.unit
+class TestsFlextDbOracleUtilitiesEnvironmentAndSql:
+    """Environment loading and composed offline Oracle SQL contracts."""
 
     @staticmethod
     def test_settings_from_env_reads_public_fields() -> None:

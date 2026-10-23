@@ -25,7 +25,7 @@ class TestsFlextDbOracleTypings:
     @staticmethod
     def test_t_alias_points_to_facade_class() -> None:
         """The module-level ``t`` alias resolves to the facade class."""
-        assert typings.t is FlextDbOracleTypes
+        tm.ok(typings.t is FlextDbOracleTypes)
 
     @staticmethod
     def test_public_exports_are_declared() -> None:
@@ -38,8 +38,8 @@ class TestsFlextDbOracleTypings:
 
         Inherited members stay reachable.
         """
-        assert issubclass(FlextDbOracleTypes, flext_cli.t)
-        assert hasattr(FlextDbOracleTypes, "Scalar")
+        tm.that(FlextDbOracleTypes.__mro__, has=flext_cli.t)
+        tm.ok(hasattr(FlextDbOracleTypes, "Scalar"))
 
     @staticmethod
     def test_oracle_namespace_is_exposed() -> None:
@@ -60,17 +60,17 @@ class TestsFlextDbOracleTypings:
     ) -> None:
         """Oracle exception aliases bind to the driver's exception classes."""
         bound = getattr(FlextDbOracleTypes.DbOracle, attribute)
-        assert bound is expected
-        assert issubclass(bound, Exception)
+        tm.ok(bound is expected)
+        tm.ok(issubclass(bound, Exception))
 
     @staticmethod
     def test_query_parameters_alias_resolves_to_json_mapping() -> None:
         """``QueryParameters`` is a named alias for the cli JSON mapping type."""
         alias = FlextDbOracleTypes.DbOracle.QueryParameters
-        assert alias.__value__ is flext_cli.t.JsonMapping
+        tm.ok(alias.__value__ is flext_cli.t.JsonMapping)
 
     @staticmethod
     def test_cli_scalar_alias_is_optional_scalar() -> None:
         """``CliScalar`` is a named alias admitting the scalar type or ``None``."""
         alias = FlextDbOracleTypes.DbOracle.CliScalar
-        assert type(None) in alias.__value__.__args__
+        tm.ok(type(None) in alias.__value__.__args__)

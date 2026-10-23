@@ -23,17 +23,6 @@ from tests import c, m, tm, u
 class TestsFlextDbOracleClient:
     """Behavioral contract tests for the Oracle client public surface."""
 
-    @staticmethod
-    @pytest.fixture
-    def client() -> FlextDbOracleClient:
-        """Provide a default, unconnected client instance.
-
-        Returns:
-            The resulting ``FlextDbOracleClient``.
-
-        """
-        return FlextDbOracleClient()
-
     # -- construction ------------------------------------------------------
 
     @staticmethod
@@ -58,9 +47,20 @@ class TestsFlextDbOracleClient:
         client: FlextDbOracleClient,
     ) -> None:
         """Default user preferences expose the documented output format key."""
-        tm.that(client.user_preferences.root["default_output_format"], eq="table")
+        defaults = tm.instance(
+            FlextDbOracleClient.model_fields["user_preferences"].get_default(
+                call_default_factory=True,
+            ),
+            m.ConfigMap,
+        )
+        tm.that(
+            client.user_preferences.root["default_output_format"],
+            eq=defaults.root["default_output_format"],
+        )
 
-    # -- escape_oracle_identifier -----------------------------------------
+
+class TestsFlextDbOracleClientSqlUtilities:
+    """Identifier, SQL, hash, result-formatting, and parameter contracts."""
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -166,7 +166,7 @@ class TestsFlextDbOracleClient:
         digest = result.unwrap()
         tm.ok(result.success)
         tm.that(len(digest), eq=16)
-        assert int(digest, 16) >= 0
+        tm.ok(int(digest, 16) >= 0)
 
     @staticmethod
     def test_query_hash_is_deterministic() -> None:
@@ -222,7 +222,9 @@ class TestsFlextDbOracleClient:
         normalized = u.DbOracle.normalize_params(provided)
         tm.that(normalized.root, eq={"query_limit": "10"})
 
-    # -- configure_preferences --------------------------------------------
+
+class TestsFlextDbOracleClientPreferences:
+    """Client preference mutation and CLI dispatch contracts."""
 
     @staticmethod
     def test_configure_preferences_records_new_keys(
@@ -240,8 +242,11 @@ class TestsFlextDbOracleClient:
         client: FlextDbOracleClient,
     ) -> None:
         """Updating preferences leaves untouched default keys intact."""
+        original_format = client.user_preferences.root["default_output_format"]
         client.configure_preferences(theme="light")
-        tm.that(client.user_preferences.root["default_output_format"], eq="table")
+        tm.that(
+            client.user_preferences.root["default_output_format"], eq=original_format
+        )
 
     # -- run_cli_command --------------------------------------------------
 

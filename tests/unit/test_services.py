@@ -94,6 +94,10 @@ class TestsFlextDbOracleServices:
         tm.that(result.value.status, eq="unhealthy")
         tm.that(result.value.database, eq="TEST")
 
+
+class TestsFlextDbOracleServicesSql:
+    """SQL select, DML, and DDL building contracts."""
+
     @staticmethod
     def test_build_select_emits_columns_and_table(
         oracle_unit_services: FlextDbOracleServices,
@@ -265,6 +269,10 @@ class TestsFlextDbOracleServices:
         tm.ok(result.failure)
         tm.that(result.error or "", has="at least one column")
 
+
+class TestsFlextDbOracleServicesSinger:
+    """Singer schema and type conversion contracts."""
+
     @staticmethod
     @pytest.mark.parametrize(
         ("singer_type", "oracle_type"),
@@ -342,6 +350,10 @@ class TestsFlextDbOracleServices:
         """A schema lacking properties produces an empty successful mapping."""
         result = oracle_unit_services.map_singer_schema({})
         tm.ok(result.failure or not result.value)
+
+
+class TestsFlextDbOracleServicesObservability:
+    """Metrics, operation tracking, and plugin lifecycle contracts."""
 
     @staticmethod
     def test_record_metric_succeeds(
@@ -433,6 +445,10 @@ class TestsFlextDbOracleServices:
         tm.ok(oracle_unit_services.register_plugin("", {"v": "1"}).failure)
         tm.ok(oracle_unit_services.fetch_plugin("").failure)
         tm.ok(oracle_unit_services.unregister_plugin("").failure)
+
+
+class TestsFlextDbOracleServicesOfflineData:
+    """Offline query, introspection, and typed data contracts."""
 
     @staticmethod
     def test_generate_query_hash_is_deterministic(

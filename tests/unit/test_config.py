@@ -48,7 +48,7 @@ class TestsFlextDbOracleSettings:
             "ssl_server_cert_dn",
             "enable_dispatcher",
         }
-        assert expected_fields <= set(dumped["DbOracle"])
+        tm.ok(expected_fields <= set(dumped["DbOracle"]))
 
     @staticmethod
     def test_namespace_overrides_round_trip() -> None:
@@ -106,16 +106,16 @@ class TestsFlextDbOracleSettings:
         """fetch_global without overrides yields the shared singleton instance."""
         first = FlextDbOracleSettings.fetch_global()
         second = FlextDbOracleSettings.fetch_global()
-        assert first is second
+        tm.ok(first is second)
 
     @staticmethod
     def test_fetch_global_overrides_return_isolated_clone() -> None:
         """fetch_global with a scalar override yields an isolated clone."""
         singleton = FlextDbOracleSettings.fetch_global()
         clone = FlextDbOracleSettings.fetch_global(overrides={"debug": True})
-        assert clone is not singleton
+        tm.ok(clone is not singleton)
         tm.ok(clone.debug)
-        assert FlextDbOracleSettings.fetch_global() is singleton
+        tm.ok(FlextDbOracleSettings.fetch_global() is singleton)
 
     @staticmethod
     def test_clone_preserves_canonical_type() -> None:

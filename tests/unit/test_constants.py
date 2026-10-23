@@ -192,7 +192,10 @@ class TestsFlextDbOracleConstants:
             base_type = oracle_type.split("(", 1)[0]
             tm.that(valid_types, has=base_type)
 
-    # ---- validation limits, patterns, and messages ----------------------
+
+@pytest.mark.unit
+class TestsFlextDbOracleConstantsValidation:
+    """Validation boundaries, messages, keywords, and environment contracts."""
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -383,7 +386,7 @@ class TestsFlextDbOracleConstants:
         """Each exposed Oracle enum is a StrEnum subclass."""
         enum_cls = getattr(c.DbOracle, enum_name)
         tm.that(enum_cls, is_=type)
-        assert issubclass(enum_cls, StrEnum)
+        tm.ok(issubclass(enum_cls, StrEnum))
 
     @staticmethod
     def test_valid_data_types_match_data_type_enum_members() -> None:
@@ -391,7 +394,10 @@ class TestsFlextDbOracleConstants:
         enum_values = frozenset(member.value for member in c.DbOracle.DataType)
         tm.that(enum_values, eq=c.DbOracle.VALID_DATA_TYPES)
 
-    # ---- public behavior: collapse_whitespace ---------------------------
+
+@pytest.mark.unit
+class TestsFlextDbOracleConstantsRuntime:
+    """Public whitespace, settings, and live Oracle consumer contracts."""
 
     @staticmethod
     @pytest.mark.parametrize(

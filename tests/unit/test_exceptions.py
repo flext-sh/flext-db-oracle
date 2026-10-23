@@ -106,13 +106,13 @@ class TestsFlextDbOracleExceptions:
         base: type[e.BaseError],
     ) -> None:
         """Every Oracle error is a subclass of its flext-core base contract."""
-        assert issubclass(factory, base)
+        tm.ok(issubclass(factory, base))
         tm.that(factory("msg"), is_=base)
 
     @staticmethod
     def test_family_extends_flext_core_exceptions() -> None:
         """FlextDbOracleExceptions composes the flext-core exceptions facade."""
-        assert issubclass(FlextDbOracleExceptions, e)
+        tm.that(FlextDbOracleExceptions.__mro__, has=e)
 
     @staticmethod
     @pytest.mark.parametrize(

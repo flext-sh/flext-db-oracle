@@ -16,7 +16,7 @@ from enum import StrEnum, unique
 from types import MappingProxyType
 from typing import ClassVar, Final
 
-from flext_core import FlextConstants as c, t
+from flext_core import c, t
 
 
 class FlextDbOracleConstantsValues:

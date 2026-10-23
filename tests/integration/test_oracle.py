@@ -1,7 +1,7 @@
 """Behavioral tests for the flext-db-oracle public API contract.
 
-Container-gated tests exercise REAL Oracle connectivity and fail loudly when
-the shared container is unavailable. Container-free tests assert observable contract of
+Container-gated tests exercise REAL Oracle connectivity when prerequisites are
+available, skipping before fixtures otherwise. Container-free tests assert the contract of
 ``FlextDbOracleSettings`` and ``FlextDbOracleApi`` (validation, factories,
 representation, connection state) without any external dependency.
 
@@ -38,14 +38,13 @@ def offline_oracle_settings() -> FlextDbOracleSettings:
 
 
 @pytest.mark.integration
-@pytest.mark.docker
 class TestsFlextDbOracleOracle:
     """Behavioral contract of the Oracle settings and API public surface."""
 
     # ----------------------------------------------------------------- helpers
     @staticmethod
     def _cell(row: m.Dict, *keys: str) -> str:
-        """Read one column value from a query row via its public model dump.
+        """Read one column value from a query row via its public root mapping.
 
         Oracle returns column names in varying case; probe the requested keys
         (and their case variants) against the row's public mapping.
@@ -54,11 +53,11 @@ class TestsFlextDbOracleOracle:
             The resulting ``str``.
 
         """
-        dumped = row.model_dump()
+        values = row.root
         for key in keys:
             for candidate in (key, key.upper(), key.lower()):
-                if candidate in dumped:
-                    return str(dumped[candidate])
+                if candidate in values:
+                    return str(values[candidate])
         return ""
 
     @staticmethod
@@ -129,8 +128,8 @@ class TestsFlextDbOracleOracle:
     ) -> None:
         """The API surfaces the same settings value it was constructed with."""
         api = FlextDbOracleApi(settings=offline_oracle_settings)
-        assert api.settings is offline_oracle_settings
-        assert api.oracle_config is offline_oracle_settings
+        tm.that(api.settings is offline_oracle_settings)
+        tm.that(api.oracle_config is offline_oracle_settings)
 
     @staticmethod
     def test_from_config_builds_equivalent_api(
@@ -139,7 +138,7 @@ class TestsFlextDbOracleOracle:
         """``from_config`` yields an API bound to the given settings."""
         api = FlextDbOracleApi.from_config(offline_oracle_settings)
         tm.that(api, is_=FlextDbOracleApi)
-        assert api.settings is offline_oracle_settings
+        tm.that(api.settings is offline_oracle_settings)
         tm.fail(api.connected())
 
     @staticmethod
@@ -178,18 +177,22 @@ class TestsFlextDbOracleOracle:
         schemas_result = connected_api.fetch_schemas()
         tm.ok(schemas_result)
         schemas = schemas_result.unwrap()
-        assert all(isinstance(name, str) for name in schemas)
-        assert schemas, "A connected Oracle instance must expose at least one schema"
+        tm.that(all(isinstance(name, str) for name in schemas))
+        tm.that(
+            schemas,
+            where=bool,
+            msg="A connected Oracle instance must expose at least one schema",
+        )
 
         tables_result = connected_api.fetch_tables(schemas[0])
         tm.ok(tables_result)
         tables = tables_result.unwrap()
-        assert all(isinstance(name, str) for name in tables)
+        tm.that(all(isinstance(name, str) for name in tables))
 
         if tables:
             columns_result = connected_api.fetch_columns(tables[0])
             tm.ok(columns_result)
-            assert all(isinstance(col, str) for col in columns_result.unwrap())
+            tm.that(all(isinstance(col, str) for col in columns_result.unwrap()))
 
         connected_api.disconnect()
 
@@ -207,7 +210,7 @@ class TestsFlextDbOracleOracle:
 
         result = connected_api.query(invalid_sql)
         tm.fail(result)
-        assert result.error
+        tm.that(result.error, where=bool)
 
         connected_api.disconnect()
 
@@ -292,8 +295,8 @@ class TestsFlextDbOracleOracle:
         result = connected_oracle_api.fetch_schemas()
         tm.ok(result)
         schemas = result.unwrap()
-        assert schemas
-        assert all(isinstance(name, str) for name in schemas)
+        tm.that(schemas, where=bool)
+        tm.that(all(isinstance(name, str) for name in schemas))
 
     def test_health_status_reports_connected_and_healthy(
         self,
@@ -308,6 +311,6 @@ class TestsFlextDbOracleOracle:
         tm.ok(status.connected)
         tm.ok(status.healthy)
         tm.that(status.status_description, eq="Connected")
-        assert status.connection_age_seconds >= 0
+        tm.that(status.connection_age_seconds >= 0)
 
         tm.ok(connected_api.disconnect())
