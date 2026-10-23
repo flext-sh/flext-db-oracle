@@ -33,14 +33,14 @@ class FlextDbOracleModelsConnection:
             description="Timestamp of last connection check",
         )
         error_message: str = m.Field(
-            "",
+            default="",
             description="Error message when disconnected",
             validate_default=True,
         )
 
         # Additional Oracle-specific connection details
         connection_time: t.NonNegativeFloat = m.Field(
-            0.0,
+            default=0.0,
             description="Connection establishment time in seconds",
             validate_default=True,
         )
@@ -49,32 +49,32 @@ class FlextDbOracleModelsConnection:
             description="Timestamp of last database activity",
         )
         session_id: str = m.Field(
-            "",
+            default="",
             description="Oracle session identifier",
             validate_default=True,
         )
         host: str = m.Field(
-            "",
+            default="",
             description="Database host",
             validate_default=True,
         )
         port: t.PortNumber = m.Field(
-            c.DbOracle.DEFAULT_PORT,
+            default=c.DbOracle.DEFAULT_PORT,
             description="Database port",
             validate_default=True,
         )
         service_name: str = m.Field(
-            "",
+            default="",
             description="Oracle service name",
             validate_default=True,
         )
         username: str = m.Field(
-            "",
+            default="",
             description="Database username",
             validate_default=True,
         )
         db_version: str = m.Field(
-            "",
+            default="",
             description="Oracle database version",
             validate_default=True,
         )
@@ -223,7 +223,7 @@ class FlextDbOracleModelsConnection:
         duration: float = m.Field(description="Operation duration in seconds")
         success: bool = m.Field(description="Whether the operation succeeded")
         metadata_info: str = m.Field(
-            "",
+            default="",
             description="Operation metadata",
             validate_default=True,
         )
@@ -235,12 +235,12 @@ class FlextDbOracleModelsConnection:
         status: str = m.Field(description="Health status indicator")
         timestamp: str = m.Field(description="ISO timestamp of health check")
         service: str = m.Field(
-            "oracle",
+            default="oracle",
             description="Service name being checked",
             validate_default=True,
         )
         database: str = m.Field(
-            "oracle",
+            default="oracle",
             description="Database engine identifier",
             validate_default=True,
         )

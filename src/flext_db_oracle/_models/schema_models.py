@@ -23,7 +23,7 @@ class FlextDbOracleModelsSchema:
 
         table_name: str = m.Field(description="Oracle table name")
         schema_name: str = m.Field(
-            "",
+            default="",
             description="Oracle schema name",
             validate_default=True,
         )
@@ -96,7 +96,7 @@ class FlextDbOracleModelsSchema:
         """Singer field definition."""
 
         type: str | t.StrSequence = m.Field(
-            "string",
+            default="string",
             description="Singer JSON Schema type or type array",
             validate_default=True,
         )
@@ -119,7 +119,7 @@ class FlextDbOracleModelsSchema:
 
         name: str = m.Field(description="Table name")
         owner: str = m.Field(
-            "",
+            default="",
             description="Table owner or schema",
             validate_default=True,
         )
@@ -144,7 +144,7 @@ class FlextDbOracleModelsSchema:
             validate_default=True,
         )
         default_value: str = m.Field(
-            "",
+            default="",
             description="Default value for the column",
             validate_default=True,
         )
@@ -207,17 +207,17 @@ class FlextDbOracleModelsSchema:
             validate_default=True,
         )
         schema_name: str = m.Field(
-            "",
+            default="",
             description="Schema name",
             validate_default=True,
         )
         tablespace: str = m.Field(
-            "",
+            default="",
             description="Tablespace name",
             validate_default=True,
         )
         parallel: t.PositiveInt = m.Field(
-            1,
+            default=1,
             description="Parallel degree for index creation",
             validate_default=True,
         )

@@ -28,7 +28,7 @@ class FlextDbOracleModelsCommand:
 
         sql: str = m.Field(description="SQL SELECT query to execute")
         parameters: t.JsonMapping | None = m.Field(
-            None,
+            default=None,
             description="Query bind parameters",
             validate_default=True,
         )
@@ -38,7 +38,7 @@ class FlextDbOracleModelsCommand:
 
         sql: str = m.Field(description="SQL query to fetch a single row")
         parameters: t.JsonMapping | None = m.Field(
-            None,
+            default=None,
             description="Query bind parameters",
             validate_default=True,
         )
@@ -48,7 +48,7 @@ class FlextDbOracleModelsCommand:
 
         sql: str = m.Field(description="SQL DML statement to execute")
         parameters: t.JsonMapping | None = m.Field(
-            None,
+            default=None,
             description="Statement bind parameters",
             validate_default=True,
         )
@@ -69,7 +69,7 @@ class FlextDbOracleModelsCommand:
         """Command to retrieve tables in schema."""
 
         schema_name: str | None = m.Field(
-            None,
+            default=None,
             description="Schema to list tables from",
             validate_default=True,
         )
@@ -79,7 +79,7 @@ class FlextDbOracleModelsCommand:
 
         table: str = m.Field(description="Table to retrieve columns from")
         schema_name: str | None = m.Field(
-            None,
+            default=None,
             description="Schema containing the table",
             validate_default=True,
         )

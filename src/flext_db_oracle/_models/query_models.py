@@ -52,12 +52,12 @@ class FlextDbOracleModelsQuery:
             description="Raw result data from query execution",
         )
         row_count: t.NonNegativeInt = m.Field(
-            0,
+            default=0,
             description="Number of rows returned",
             validate_default=True,
         )
         execution_time_ms: t.NonNegativeInt = m.Field(
-            0,
+            default=0,
             description="Query execution time in milliseconds",
             validate_default=True,
         )
@@ -72,12 +72,12 @@ class FlextDbOracleModelsQuery:
             description="Typed row data from query result",
         )
         query_hash: str = m.Field(
-            "",
+            default="",
             description="Query hash for caching",
             validate_default=True,
         )
         explain_plan: str = m.Field(
-            "",
+            default="",
             description="Query execution plan",
             validate_default=True,
         )
