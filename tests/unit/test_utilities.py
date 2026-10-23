@@ -272,12 +272,22 @@ class TestsFlextDbOracleUtilitiesUnit:
             [{"key": "non-serializable-test"}],
             [{"id": 1, "name": "John"}],
             [{"id": 1}],
+            ({"id": 1, "name": "John"},),
+            (),
         ],
-        ids=["full", "empty", "non-serializable", "table", "single"],
+        ids=[
+            "full",
+            "empty",
+            "non-serializable",
+            "table",
+            "single",
+            "tuple",
+            "empty-tuple",
+        ],
     )
     def test_format_query_result_json_is_reparseable(
         self,
-        data: t.SequenceOf[t.JsonValue],
+        data: t.ListOf[t.JsonValue] | t.VariadicTuple[t.JsonValue],
     ) -> None:
         """JSON formatting yields a string that re-parses to the same shape."""
         formatted: str = tm.ok(u.DbOracle.format_query_result(data, "json"))
@@ -292,6 +302,8 @@ class TestsFlextDbOracleUtilitiesUnit:
         data: list[t.JsonValue] = [{"id": 1, "name": "John"}]
         formatted: str = tm.ok(u.DbOracle.format_query_result(data, "table"))
         tm.that(formatted, eq=str(data))
+        with pytest.raises(c.PydanticSerializationError, match="range"):
+            u.normalize_to_json_value(range(3))
 
     @staticmethod
     def test_format_query_result_defaults_to_table() -> None:

@@ -260,7 +260,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
             root={
                 "settings": self.oracle_config.model_dump(
                     exclude={"DbOracle": {"password"}},
-                    mode="python",
+                    mode="json",
                 ),
                 "connected": self.connected(),
                 "plugin_count": len(

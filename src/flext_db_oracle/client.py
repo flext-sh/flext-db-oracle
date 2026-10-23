@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
+from datetime import datetime
 from typing import override
 
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
@@ -99,7 +100,10 @@ class FlextDbOracleClient(s):
             )
         return r[str].fail(f"Unknown CLI operation: {operation}")
 
-    def configure_preferences(self, **preferences: t.Scalar) -> p.Result[bool]:
+    def configure_preferences(
+        self,
+        **preferences: t.Primitives | datetime,
+    ) -> p.Result[bool]:
         """Configure client preferences.
 
         Returns:
@@ -188,14 +192,14 @@ class FlextDbOracleClient(s):
         )
         # NOTE (multi-agent): ADR-005 — password is a plain str in the DbOracle
         # namespace and is guaranteed non-empty by the validations above.
-        db_oracle_payload: t.MappingKV[str, t.JsonPayloadLeaf] = {
+        db_oracle_payload: t.JsonDict = {
             "host": actual_host,
             "port": actual_port,
             "service_name": actual_service_name,
             "username": actual_username,
             "password": actual_password_raw,
         }
-        payload: t.MappingKV[str, t.JsonPayload] = {"DbOracle": db_oracle_payload}
+        payload: t.JsonDict = {"DbOracle": db_oracle_payload}
         settings = FlextDbOracleSettings.model_validate(payload)
         return r[FlextDbOracleSettings].ok(settings)
 

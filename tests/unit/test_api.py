@@ -149,13 +149,11 @@ class TestsFlextDbOracleApi:
         tm.ok("settings" in result)
         tm.ok("connected" in result)
         tm.ok("plugin_count" in result)
-        settings_dump = result["settings"]
-        assert isinstance(settings_dump, dict)
-        db_dump = settings_dump["DbOracle"]
-        assert isinstance(db_dump, dict)
+        settings_dump = tm.instance(result["settings"], dict)
+        db_dump = tm.instance(settings_dump["DbOracle"], dict)
         tm.ok("password" not in db_dump)
         tm.that(db_dump["host"], eq="127.0.0.1")
-        tm.fail(result["connected"])
+        tm.that(result["connected"], eq=api.connected())
         tm.that(result["plugin_count"], eq=0)
 
     @staticmethod
@@ -226,8 +224,8 @@ class TestsFlextDbOracleApi:
         """transaction() succeeds and reports the disconnected transaction state."""
         result = api.transaction()
         tm.ok(result)
-        tm.fail(result.value["connected"])
-        tm.ok(result.value["transaction_available"])
+        tm.that(result.value["connected"], eq=api.connected())
+        tm.that(result.value["transaction_available"], eq=True)
 
     @staticmethod
     def test_context_manager_raises_when_connection_fails(
@@ -264,143 +262,148 @@ class TestsFlextDbOracleApi:
         tm.ok(result)
         tm.that(result.value, eq=expected)
 
-    @staticmethod
-    def test_observability_metrics_available_offline(
-        api: FlextDbOracleApi,
-    ) -> None:
-        """fetch_observability_metrics returns metrics without a connection."""
-        result = api.fetch_observability_metrics()
-        tm.ok(result)
-        tm.that(result.value, none=False)
+    class TestsIntrospection:
+        """Offline metrics, schema, plugin, and SQL contracts."""
 
-    @staticmethod
-    @pytest.mark.parametrize(
-        "singer_type",
-        ["string", "integer", "number", "boolean", "date-time"],
-    )
-    def test_convert_singer_type_yields_oracle_type(
-        api: FlextDbOracleApi,
-        singer_type: str,
-    ) -> None:
-        """convert_singer_type maps each Singer type to a non-empty Oracle type."""
-        result = api.convert_singer_type(singer_type)
-        tm.ok(result)
-        tm.that(result.value, is_=str)
-        tm.ok(len(result.value) > 0)
+        @staticmethod
+        def test_observability_metrics_available_offline(
+            api: FlextDbOracleApi,
+        ) -> None:
+            """fetch_observability_metrics returns metrics without a connection."""
+            result = api.fetch_observability_metrics()
+            tm.ok(result)
+            tm.that(result.value, none=False)
 
-    @staticmethod
-    def test_map_singer_schema_returns_mapping_for_valid_schema(
-        api: FlextDbOracleApi,
-    ) -> None:
-        """map_singer_schema returns an Oracle column mapping for a valid schema."""
-        schema: t.JsonMapping = {
-            "type": "object",
-            "properties": {
-                "id": {"type": "integer"},
-                "name": {"type": "string", "maxLength": 100},
-            },
-            "required": ["id", "name"],
-        }
-        result = api.map_singer_schema(schema)
-        tm.ok(result)
-        tm.that(result.value, is_=dict)
-
-    @staticmethod
-    def test_list_plugins_empty_by_default(api: FlextDbOracleApi) -> None:
-        """A fresh API lists no plugins."""
-        result = api.list_plugins()
-        tm.ok(result)
-        tm.that(result.value, empty=True)
-
-    @staticmethod
-    def test_plugin_register_fetch_list_unregister_roundtrip(
-        api: FlextDbOracleApi,
-    ) -> None:
-        """Registering a plugin makes it fetchable and listed until unregistered."""
-        plugin = {"name": "perf", "version": "1.0.0"}
-        tm.ok(api.register_plugin("perf", plugin))
-        fetched = api.fetch_plugin("perf")
-        tm.ok(fetched)
-        tm.that(fetched.value, eq=plugin)
-        listed = api.list_plugins()
-        tm.ok(listed)
-        tm.ok("perf" in listed.value)
-        tm.ok(api.unregister_plugin("perf"))
-        tm.fail(api.fetch_plugin("perf"))
-
-    @staticmethod
-    def test_register_plugin_rejects_empty_name(api: FlextDbOracleApi) -> None:
-        """register_plugin fails when the plugin name is blank."""
-        result = api.register_plugin("", {"x": 1})
-        error = tm.fail(result)
-        tm.ok("name is required" in error.lower())
-
-    @staticmethod
-    def test_fetch_missing_plugin_reports_not_found(
-        api: FlextDbOracleApi,
-    ) -> None:
-        """fetch_plugin fails with a not-found error for an unknown plugin."""
-        result = api.fetch_plugin("nonexistent_plugin")
-        error = tm.fail(result)
-        tm.ok("not found" in error.lower())
-
-    @staticmethod
-    def test_unregister_missing_plugin_reports_not_found(
-        api: FlextDbOracleApi,
-    ) -> None:
-        """unregister_plugin fails with a not-found error for an unknown plugin."""
-        result = api.unregister_plugin("nonexistent_plugin")
-        error = tm.fail(result)
-        tm.ok("not found" in error.lower())
-
-    def test_instances_have_isolated_plugin_registries(self) -> None:
-        """Plugins registered on one API instance never leak into another."""
-        api_a = FlextDbOracleApi(self._settings("a", "A"))
-        api_b = FlextDbOracleApi(self._settings("b", "B"))
-        api_a.register_plugin("only_a", {"name": "only_a"})
-        listed_a = api_a.list_plugins()
-        listed_b = api_b.list_plugins()
-        tm.ok(listed_a)
-        tm.ok(listed_b)
-        tm.ok("only_a" in listed_a.value)
-        tm.that(listed_b.value, empty=True)
-
-    @staticmethod
-    @pytest.mark.parametrize(
-        ("table_name", "columns"),
-        [
-            ("valid_table", ["col1"]),
-            ("VALID_TABLE", ["col1", "col2"]),
-            ("table123", ["a", "b", "c"]),
-        ],
-    )
-    def test_build_select_emits_select_over_named_table_and_columns(
-        settings: FlextDbOracleSettings,
-        table_name: str,
-        columns: t.SequenceOf[str],
-    ) -> None:
-        """build_select produces a SELECT that references the table and columns."""
-        services = FlextDbOracleServices(settings=settings)
-        result = services.build_select(table_name, columns)
-        tm.ok(result)
-        sql_upper = result.value.upper()
-        tm.ok("SELECT" in sql_upper)
-        tm.ok(table_name.upper() in sql_upper)
-        for column_name in columns:
-            tm.ok(column_name.lower() in result.value.lower())
-
-    @staticmethod
-    def test_build_select_qualifies_with_schema_when_provided(
-        settings: FlextDbOracleSettings,
-    ) -> None:
-        """A schema-qualified build_select references both schema and table."""
-        services = FlextDbOracleServices(settings=settings)
-        result = services.build_select(
-            "test_table",
-            ["col1"],
-            schema_name="test_schema",
+        @staticmethod
+        @pytest.mark.parametrize(
+            "singer_type",
+            ["string", "integer", "number", "boolean", "date-time"],
         )
-        tm.ok(result)
-        sql_upper = result.value.upper()
-        tm.ok("TEST_SCHEMA" in sql_upper)
-        tm.ok("TEST_TABLE" in sql_upper)
+        def test_convert_singer_type_yields_oracle_type(
+            api: FlextDbOracleApi,
+            singer_type: str,
+        ) -> None:
+            """convert_singer_type maps each Singer type to a non-empty Oracle type."""
+            result = api.convert_singer_type(singer_type)
+            tm.ok(result)
+            tm.that(result.value, is_=str)
+            tm.ok(len(result.value) > 0)
+
+        @staticmethod
+        def test_map_singer_schema_returns_mapping_for_valid_schema(
+            api: FlextDbOracleApi,
+        ) -> None:
+            """map_singer_schema returns an Oracle column mapping for a valid schema."""
+            schema: t.JsonMapping = {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "integer"},
+                    "name": {"type": "string", "maxLength": 100},
+                },
+                "required": ["id", "name"],
+            }
+            result = api.map_singer_schema(schema)
+            tm.ok(result)
+            tm.that(result.value, is_=dict)
+
+        @staticmethod
+        def test_list_plugins_empty_by_default(api: FlextDbOracleApi) -> None:
+            """A fresh API lists no plugins."""
+            result = api.list_plugins()
+            tm.ok(result)
+            tm.that(result.value, empty=True)
+
+        @staticmethod
+        def test_plugin_register_fetch_list_unregister_roundtrip(
+            api: FlextDbOracleApi,
+        ) -> None:
+            """Registering a plugin makes it fetchable and listed until unregistered."""
+            plugin = {"name": "perf", "version": "1.0.0"}
+            tm.ok(api.register_plugin("perf", plugin))
+            fetched = api.fetch_plugin("perf")
+            tm.ok(fetched)
+            tm.ok(fetched.value is plugin)
+            tm.that(fetched.value, eq=plugin)
+            listed = api.list_plugins()
+            tm.ok(listed)
+            tm.ok("perf" in listed.value)
+            tm.ok(api.unregister_plugin("perf"))
+            tm.fail(api.fetch_plugin("perf"))
+
+        @staticmethod
+        def test_register_plugin_rejects_empty_name(api: FlextDbOracleApi) -> None:
+            """register_plugin fails when the plugin name is blank."""
+            result = api.register_plugin("", {"x": 1})
+            error = tm.fail(result)
+            tm.ok("name is required" in error.lower())
+
+        @staticmethod
+        def test_fetch_missing_plugin_reports_not_found(
+            api: FlextDbOracleApi,
+        ) -> None:
+            """fetch_plugin fails with a not-found error for an unknown plugin."""
+            result = api.fetch_plugin("nonexistent_plugin")
+            error = tm.fail(result)
+            tm.ok("not found" in error.lower())
+
+        @staticmethod
+        def test_unregister_missing_plugin_reports_not_found(
+            api: FlextDbOracleApi,
+        ) -> None:
+            """unregister_plugin fails with a not-found error for an unknown plugin."""
+            result = api.unregister_plugin("nonexistent_plugin")
+            error = tm.fail(result)
+            tm.ok("not found" in error.lower())
+
+        @staticmethod
+        def test_instances_have_isolated_plugin_registries() -> None:
+            """Plugins registered on one API instance never leak into another."""
+            api_a = FlextDbOracleApi(TestsFlextDbOracleApi._settings("a", "A"))
+            api_b = FlextDbOracleApi(TestsFlextDbOracleApi._settings("b", "B"))
+            api_a.register_plugin("only_a", {"name": "only_a"})
+            listed_a = api_a.list_plugins()
+            listed_b = api_b.list_plugins()
+            tm.ok(listed_a)
+            tm.ok(listed_b)
+            tm.ok("only_a" in listed_a.value)
+            tm.that(listed_b.value, empty=True)
+
+        @staticmethod
+        @pytest.mark.parametrize(
+            ("table_name", "columns"),
+            [
+                ("valid_table", ["col1"]),
+                ("VALID_TABLE", ["col1", "col2"]),
+                ("table123", ["a", "b", "c"]),
+            ],
+        )
+        def test_build_select_emits_select_over_named_table_and_columns(
+            settings: FlextDbOracleSettings,
+            table_name: str,
+            columns: t.SequenceOf[str],
+        ) -> None:
+            """build_select produces a SELECT that references the table and columns."""
+            services = FlextDbOracleServices(settings=settings)
+            result = services.build_select(table_name, columns)
+            tm.ok(result)
+            sql_upper = result.value.upper()
+            tm.ok("SELECT" in sql_upper)
+            tm.ok(table_name.upper() in sql_upper)
+            for column_name in columns:
+                tm.ok(column_name.lower() in result.value.lower())
+
+        @staticmethod
+        def test_build_select_qualifies_with_schema_when_provided(
+            settings: FlextDbOracleSettings,
+        ) -> None:
+            """A schema-qualified build_select references both schema and table."""
+            services = FlextDbOracleServices(settings=settings)
+            result = services.build_select(
+                "test_table",
+                ["col1"],
+                schema_name="test_schema",
+            )
+            tm.ok(result)
+            sql_upper = result.value.upper()
+            tm.ok("TEST_SCHEMA" in sql_upper)
+            tm.ok("TEST_TABLE" in sql_upper)

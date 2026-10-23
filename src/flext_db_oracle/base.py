@@ -34,8 +34,8 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
     _operations: MutableSequence[m.DbOracle.OperationRecord] = m.PrivateAttr(
         default_factory=list[m.DbOracle.OperationRecord],
     )
-    _plugins: MutableMapping[str, t.JsonPayload] = m.PrivateAttr(
-        default_factory=dict[str, t.JsonPayload],
+    _plugins: MutableMapping[str, t.JsonPayload | t.FlatContainer] = m.PrivateAttr(
+        default_factory=dict[str, t.JsonPayload | t.FlatContainer],
     )
     _metrics: t.MutableJsonMapping = m.PrivateAttr(
         default_factory=dict[str, t.JsonValue],

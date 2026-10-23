@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
+from types import MappingProxyType
 
 import pytest
 
@@ -191,9 +192,10 @@ class TestsFlextDbOracleClient:
     # -- format_query_result ----------------------------------------------
 
     @staticmethod
-    def test_format_result_json_emits_json_text() -> None:
+    @pytest.mark.parametrize("payload", [{"a": 1}, MappingProxyType({"a": 1})])
+    def test_format_result_json_emits_json_text(payload: Mapping[str, int]) -> None:
         """JSON formatting yields parseable JSON for the payload."""
-        result = u.DbOracle.format_query_result({"a": 1}, "json")
+        result = u.DbOracle.format_query_result(payload, "json")
         tm.ok(result.success)
         tm.that(result.unwrap(), eq='{"a":1}')
 

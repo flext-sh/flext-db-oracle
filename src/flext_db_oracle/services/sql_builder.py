@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import override
 
 from sqlalchemy import (
@@ -375,7 +376,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             The resulting ``m.DbOracle.Column``.
 
         """
-        if isinstance(column, m.DbOracle.Column):
+        if not isinstance(column, Mapping):
             copied: m.DbOracle.Column = column.model_copy(
                 update={
                     "name": column.name or c.IDENTIFIER_UNKNOWN,

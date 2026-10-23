@@ -86,7 +86,7 @@ class FlextDbOracleProtocolsConnection:
     class PluginRegistry(Protocol):
         """Protocol for Oracle database plugin registry operations."""
 
-        def fetch_plugin(self, name: str) -> p.Result[t.JsonPayload]:
+        def fetch_plugin(self, name: str) -> p.Result[t.JsonPayload | t.FlatContainer]:
             """Get Oracle database plugin by name.
 
             Args:
@@ -110,7 +110,7 @@ class FlextDbOracleProtocolsConnection:
         def register_plugin(
             self,
             name: str,
-            plugin: t.JsonPayload,
+            plugin: t.JsonPayload | t.FlatContainer,
         ) -> p.Result[bool]:
             """Register Oracle database plugin.
 

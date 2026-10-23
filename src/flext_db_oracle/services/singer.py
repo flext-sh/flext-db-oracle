@@ -53,7 +53,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
 
         """
         raw_properties: t.JsonDict = {}
-        if isinstance(singer_schema, m.DbOracle.SingerSchema):
+        if not isinstance(singer_schema, Mapping):
             schema_model = singer_schema
         else:
             raw_props_value = singer_schema.get("properties", {})

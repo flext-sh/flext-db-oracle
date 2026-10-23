@@ -105,8 +105,8 @@ class TestsFlextDbOracleOracle:
         result = offline_api.transaction()
         tm.ok(result)
         status = result.value
-        tm.fail(status["connected"])
-        tm.ok(status["transaction_available"])
+        tm.that(status["connected"], eq=offline_api.connected())
+        tm.that(status["transaction_available"], eq=True)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -179,7 +179,7 @@ class TestsFlextDbOracleOracle:
             tm.ok(api.test_connection())
             schemas = api.fetch_schemas()
             tm.ok(schemas)
-            assert schemas.value
+            tm.that(schemas.value, empty=False)
             create = api.execute_sql(
                 f"CREATE TABLE {table} ( ID NUMBER(10) NOT NULL PRIMARY KEY, "
                 "NAME VARCHAR2(100) NOT NULL, EMAIL VARCHAR2(255))",
@@ -210,7 +210,10 @@ class TestsFlextDbOracleOracle:
                 tm.that(metadata.value.table_name, eq=table)
                 columns = api.fetch_columns(table)
                 tm.ok(columns)
-                assert len(columns.value) >= 3
+                tm.that(
+                    {column.name for column in columns.value},
+                    has=["ID", "NAME", "EMAIL"],
+                )
                 primary_keys = api.fetch_primary_keys(table)
                 tm.ok(primary_keys)
                 tm.that(primary_keys.value, has="ID")

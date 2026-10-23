@@ -64,18 +64,22 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         """
         return r[Sequence[m.DbOracle.OperationRecord]].ok(list(self._operations))
 
-    def fetch_plugin(self, name: str) -> p.Result[t.JsonPayload]:
+    def fetch_plugin(self, name: str) -> p.Result[t.JsonPayload | t.FlatContainer]:
         """Get plugin data from local service registry.
 
         Returns:
-            The resulting ``p.Result[t.JsonPayload]``.
+            The resulting ``p.Result[t.JsonPayload | t.FlatContainer]``.
 
         """
         if not name:
-            return r[t.JsonPayload].fail("Plugin name is required")
+            return r[t.JsonPayload | t.FlatContainer].fail("Plugin name is required")
         if name not in self._plugins:
-            return e.fail_not_found("Plugin", name, result_type=r[t.JsonPayload])
-        return r[t.JsonPayload].ok(self._plugins[name])
+            return e.fail_not_found(
+                "Plugin",
+                name,
+                result_type=r[t.JsonPayload | t.FlatContainer],
+            )
+        return r[t.JsonPayload | t.FlatContainer].ok(self._plugins[name])
 
     def list_plugins(self) -> p.Result[m.ConfigMap]:
         """List plugin names from local service registry.
@@ -111,7 +115,11 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         self._metrics[name] = metric_payload
         return r[bool].ok(value=True)
 
-    def register_plugin(self, name: str, plugin: t.JsonPayload) -> p.Result[bool]:
+    def register_plugin(
+        self,
+        name: str,
+        plugin: t.JsonPayload | t.FlatContainer,
+    ) -> p.Result[bool]:
         """Register plugin in local service registry.
 
         Returns:
