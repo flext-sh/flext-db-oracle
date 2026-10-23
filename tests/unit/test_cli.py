@@ -175,7 +175,7 @@ class TestsFlextDbOracleCli:
                 "host": "localhost",
                 "port": 1521,
                 "name": "XE",
-                "service_name": "XE",
+                c.ContextKey.SERVICE_NAME: "XE",
                 "username": "test",
                 "password": "test",
             },
@@ -245,7 +245,7 @@ class TestsFlextDbOracleCli:
                 "DbOracle": {
                     "host": "param_test_host",
                     "port": 1521,
-                    "service_name": "PARAM_TEST",
+                    c.ContextKey.SERVICE_NAME: "PARAM_TEST",
                     "username": "param_user",
                     "password": "p" + "0" * 10,
                 },
@@ -282,7 +282,7 @@ class TestsFlextDbOracleCli:
                 "DbOracle": {
                     "host": "invalid.host",
                     "port": 9999,
-                    "service_name": "INVALID_SERVICE",
+                    c.ContextKey.SERVICE_NAME: "INVALID_SERVICE",
                     "username": "invalid_user",
                     "password": "p" + "1" * 10,
                 },
@@ -355,7 +355,7 @@ class TestsFlextDbOracleCli:
                 "DbOracle": {
                     "host": "localhost",
                     "port": 1521,
-                    "service_name": "TESTDB",
+                    c.ContextKey.SERVICE_NAME: "TESTDB",
                     "username": "test",
                     "password": "test",
                 },

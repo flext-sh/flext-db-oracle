@@ -36,7 +36,7 @@ class TestsFlextDbOracleSettings:
         expected_fields = {
             "host",
             "port",
-            "service_name",
+            c.ContextKey.SERVICE_NAME,
             "username",
             "password",
             "timeout",
@@ -58,7 +58,7 @@ class TestsFlextDbOracleSettings:
                 "host": "db.internal",
                 "port": 1522,
                 "username": "appuser",
-                "service_name": "PRODSVC",
+                c.ContextKey.SERVICE_NAME: "PRODSVC",
                 "password": "apppass",
             },
         })
@@ -72,7 +72,7 @@ class TestsFlextDbOracleSettings:
     def test_sid_only_configuration_is_accepted_without_service_name() -> None:
         """A legacy SID connection is valid even with a blank service_name."""
         settings = FlextDbOracleSettings.model_validate({
-            "DbOracle": {"service_name": "", "sid": "legacy"},
+            "DbOracle": {c.ContextKey.SERVICE_NAME: "", "sid": "legacy"},
         })
         tm.that(settings.DbOracle.sid, eq="legacy")
         tm.that(settings.DbOracle.service_name, eq="")

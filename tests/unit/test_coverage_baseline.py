@@ -14,7 +14,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_db_oracle import FlextDbOracleSettings
-from tests import m, tm
+from tests import c, m, tm
 
 if TYPE_CHECKING:
     from flext_db_oracle.services import FlextDbOracleServices
@@ -47,7 +47,7 @@ class TestsFlextDbOracleCoverageBaseline:
             "DbOracle": {
                 "host": "localhost",
                 "port": 1521,
-                "service_name": "lower_svc",
+                c.ContextKey.SERVICE_NAME: "lower_svc",
                 "username": "testuser",
                 "password": "testpass",
             },
@@ -61,7 +61,7 @@ class TestsFlextDbOracleCoverageBaseline:
             "DbOracle": {
                 "host": "secure.example.com",
                 "port": 2484,
-                "service_name": "SECURE_DB",
+                c.ContextKey.SERVICE_NAME: "SECURE_DB",
                 "username": "secure_user",
                 "password": "p" + "1" * 12,
                 "ssl_cert_file": "/path/to/cert.pem",
@@ -126,8 +126,7 @@ class TestsFlextDbOracleCoverageBaseline:
     ) -> None:
         """execute() yields the active configuration as its default result."""
         result = oracle_unit_services.execute()
-        tm.ok(result)
-        tm.that(result.value, eq=oracle_unit_settings)
+        tm.ok(result, eq=oracle_unit_settings)
 
     @staticmethod
     def test_build_select_with_columns(

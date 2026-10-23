@@ -22,12 +22,12 @@ import pytest
 
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.services import FlextDbOracleServices
-from tests import m, t, tm
+from tests import c, m, t, tm
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
-    from tests import p
+from tests import p
 
 _T = TypeVar("_T")
 
@@ -103,7 +103,7 @@ class TestsFlextDbOracleMetadata:
             "DbOracle": {
                 "host": "test",
                 "port": 1521,
-                "service_name": "TEST",
+                c.ContextKey.SERVICE_NAME: "TEST",
                 "username": "test",
                 "password": "test",
             },

@@ -107,7 +107,7 @@ class FlextDbOracleModelsConnection:
                     ("host", self.host),
                     ("port", self.port),
                     ("service", self.service_name),
-                    ("user", self.username),
+                    (c.ContextScope.USER, self.username),
                 ]
                 if v  # Empty strings are falsy, so this works
             ]

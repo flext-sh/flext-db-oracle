@@ -13,15 +13,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import m, tm
-
-if TYPE_CHECKING:
-    from tests import t
+from tests import c, m, t, tm
 
 
 @pytest.fixture
@@ -31,7 +26,7 @@ def offline_oracle_settings() -> FlextDbOracleSettings:
         "DbOracle": {
             "host": "mock-host",
             "port": 1521,
-            "service_name": "mock-service",
+            c.ContextKey.SERVICE_NAME: "mock-service",
             "username": "mock-user",
             "password": "p" + "4" * 12,
         },
@@ -90,7 +85,7 @@ class TestsFlextDbOracleOracle:
     def test_namespace_overrides_are_stored_verbatim() -> None:
         """Layer-0 namespace stores caller values without business-rule rewriting."""
         settings = FlextDbOracleSettings.model_validate({
-            "DbOracle": {"host": "db-host", "service_name": "svc"},
+            "DbOracle": {"host": "db-host", c.ContextKey.SERVICE_NAME: "svc"},
         })
         tm.that(settings.DbOracle.host, eq="db-host")
         tm.that(settings.DbOracle.service_name, eq="svc")

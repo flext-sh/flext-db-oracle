@@ -325,7 +325,11 @@ class TestsFlextDbOracleConstantsValidation:
             ("port", "ORACLE_PORT", "FLEXT_TARGET_ORACLE_PORT"),
             ("username", "ORACLE_USERNAME", "FLEXT_TARGET_ORACLE_USERNAME"),
             ("password", "ORACLE_PASSWORD", "FLEXT_TARGET_ORACLE_PASSWORD"),
-            ("service_name", "ORACLE_SERVICE_NAME", "FLEXT_TARGET_ORACLE_SERVICE_NAME"),
+            (
+                c.ContextKey.SERVICE_NAME,
+                "ORACLE_SERVICE_NAME",
+                "FLEXT_TARGET_ORACLE_SERVICE_NAME",
+            ),
         ],
     )
     def test_env_mapping_resolves_both_prefixes_to_same_field(
@@ -344,13 +348,20 @@ class TestsFlextDbOracleConstantsValidation:
     def test_connection_type_literal_matches_documented_order() -> None:
         """CONNECTION_TYPE_LITERAL exposes the ordered connection-type tuple."""
         tm.that(c.DbOracle.CONNECTION_TYPE_LITERAL, is_=tuple)
-        tm.that(c.DbOracle.CONNECTION_TYPE_LITERAL, eq=("service_name", "sid", "tns"))
+        tm.that(
+            c.DbOracle.CONNECTION_TYPE_LITERAL,
+            eq=(c.ContextKey.SERVICE_NAME, "sid", "tns"),
+        )
 
     @staticmethod
     @pytest.mark.parametrize(
         ("literal_name", "valid_name", "member"),
         [
-            ("CONNECTION_TYPE_LITERAL", "VALID_CONNECTION_TYPES", "service_name"),
+            (
+                "CONNECTION_TYPE_LITERAL",
+                "VALID_CONNECTION_TYPES",
+                c.ContextKey.SERVICE_NAME,
+            ),
             ("QUERY_TYPE_LITERAL", "VALID_QUERY_TYPES", "DELETE"),
             ("DATA_TYPE_LITERAL", "VALID_DATA_TYPES", "CLOB"),
             ("ISOLATION_LEVEL_LITERAL", "VALID_ISOLATION_LEVELS", "SERIALIZABLE"),

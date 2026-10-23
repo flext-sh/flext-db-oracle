@@ -18,12 +18,12 @@ from flext_tests import FlextTestsDocker
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from flext_db_oracle.services import FlextDbOracleServices
-from tests import c, tk, u
+from tests import c, tk, tm, u
 
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-    from tests import p, t
+from tests import p, t
 
 logger = u.fetch_logger(__name__)
 
@@ -45,7 +45,7 @@ def oracle_unit_settings() -> FlextDbOracleSettings:
         "DbOracle": {
             "host": "localhost",
             "port": 1521,
-            "service_name": "TEST",
+            c.ContextKey.SERVICE_NAME: "TEST",
             "username": "testuser",
             "password": "testpass",
         },
@@ -272,7 +272,7 @@ def real_oracle_settings(oracle_container: str) -> FlextDbOracleSettings:
             "name": os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB"),
             "username": os.getenv("TEST_ORACLE_USER", "flext_test"),
             "password": os.getenv("TEST_ORACLE_PASSWORD", "flext_test_password"),
-            "service_name": os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB"),
+            c.ContextKey.SERVICE_NAME: os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB"),
         },
     })
 
@@ -308,16 +308,11 @@ def oracle_api(real_oracle_settings: FlextDbOracleSettings) -> FlextDbOracleApi:
 
 
 def _assert_oracle_success[TResult](result: p.Result[TResult], operation: str) -> None:
-    """Raise with a clear setup error when an Oracle operation fails.
-
-    Raises:
-        AssertionError: If ``result.failure``.
-
-    """
+    """Reject with a clear setup error when an Oracle operation fails."""
     if result.failure:
         error = result.error or ""
         msg = f"{operation} failed: {error}"
-        raise AssertionError(msg)
+        tm.reject(msg)
 
 
 def _user_tables(api: FlextDbOracleApi) -> set[str]:
@@ -479,7 +474,7 @@ def oracle_test_database(connected_oracle_api: FlextDbOracleApi) -> t.StrMapping
             result = connected_oracle_api.execute_statement(ddl)
             if result.failure:
                 msg = f"Could not create test schema: {result.error}"
-                raise AssertionError(msg)
+                tm.reject(msg)
         except (oracledb.Error, ConnectionError, OSError) as e:
             msg = f"Test setup failed: {e}"
             raise AssertionError(msg) from e

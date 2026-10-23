@@ -166,7 +166,7 @@ import pytest
 from unittest.mock import MagicMock
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope=c.ContextScope.SESSION)
 def oracle_container():
     """Provides Oracle XE 21c container for integration tests."""
     container = start_oracle_container()

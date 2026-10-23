@@ -188,7 +188,7 @@ def test_complete_cli_workflow():
     # Step 2: Execute data query
     query_result = runner.invoke(
         oracle_cli,
-        ["query", "--sql", "SELECT COUNT(*) as customer_count FROM customers"],
+        [c.HandlerMode.QUERY, "--sql", "SELECT COUNT(*) as customer_count FROM customers"],
     )
     tm.that(query_result.exit_code, eq=0)
     assert "customer_count" in query_result.output

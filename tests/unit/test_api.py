@@ -18,7 +18,7 @@ import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from flext_db_oracle.services import FlextDbOracleServices
-from tests import p, t, tm
+from tests import c, p, t, tm
 
 
 class TestsFlextDbOracleApi:
@@ -39,7 +39,7 @@ class TestsFlextDbOracleApi:
             "DbOracle": {
                 "host": host,
                 "port": 19999,
-                "service_name": service_name,
+                c.ContextKey.SERVICE_NAME: service_name,
                 "username": "test_user",
                 "password": "p" + "0" * 12,
                 "timeout": 1,
@@ -123,7 +123,7 @@ class TestsFlextDbOracleApi:
         tm.that(api.settings.DbOracle.host, eq="host")
         tm.that(api.settings.DbOracle.port, eq=1521)
         tm.that(api.settings.DbOracle.service_name, eq="SERVICE")
-        tm.that(api.settings.DbOracle.username, eq="user")
+        tm.that(api.settings.DbOracle.username, eq=c.ContextScope.USER)
 
     @staticmethod
     @pytest.mark.parametrize("bad_url", ["invalid://not-oracle", "://x", "oracle://"])
@@ -189,9 +189,9 @@ class TestsFlextDbOracleApi:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "operation",
+        c.ContextScope.OPERATION,
         [
-            "query",
+            c.HandlerMode.QUERY,
             "query_one",
             "execute_sql",
             "fetch_schemas",
@@ -206,7 +206,9 @@ class TestsFlextDbOracleApi:
     ) -> None:
         """Every data operation returns a failure mentioning the missing connection."""
         calls: Mapping[str, Callable[[], p.Result[bool]]] = {
-            "query": lambda: api.query("SELECT 1 FROM DUAL").map(lambda _: True),
+            c.HandlerMode.QUERY: lambda: api.query("SELECT 1 FROM DUAL").map(
+                lambda _: True
+            ),
             "query_one": lambda: api.query_one("SELECT 1 FROM DUAL").map(
                 lambda _: True,
             ),
@@ -274,8 +276,7 @@ class TestsFlextDbOracleApi:
     ) -> None:
         """optimize_query normalizes runs of whitespace to single spaces."""
         result = api.optimize_query(raw)
-        tm.ok(result)
-        tm.that(result.value, eq=expected)
+        tm.ok(result, eq=expected)
 
     class TestsIntrospection:
         """Offline metrics, schema, plugin, and SQL contracts."""

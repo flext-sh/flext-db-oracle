@@ -52,7 +52,7 @@ settings = FlextDbOracleSettings(
     DbOracle={
         "host": "localhost",
         "port": 1521,
-        "service_name": "XEPDB1",
+        c.ContextKey.SERVICE_NAME: "XEPDB1",
         "username": "system",
         "password": demo_credential,
     },

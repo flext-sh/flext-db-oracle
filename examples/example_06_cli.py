@@ -52,7 +52,12 @@ def _get_cli_examples() -> t.SequenceOf[t.JsonMapping]:
         },
         {
             "name": "Execute Simple Query",
-            "command": ["flext-oracle", "query", "--sql", "SELECT SYSDATE FROM DUAL"],
+            "command": [
+                "flext-oracle",
+                "query",
+                "--sql",
+                "SELECT SYSDATE FROM DUAL",
+            ],
             "description": "Execute a simple query",
             "env_required": True,
         },

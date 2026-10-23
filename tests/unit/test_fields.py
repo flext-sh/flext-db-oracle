@@ -10,7 +10,7 @@ from __future__ import annotations
 import pytest
 
 from flext_db_oracle import FlextDbOracleSettings
-from tests import m, tm
+from tests import c, m, tm
 
 
 class TestsFlextDbOracleFields:
@@ -44,7 +44,7 @@ class TestsFlextDbOracleFields:
     def test_service_name_round_trips_through_namespace() -> None:
         """service_name is stored verbatim inside the DbOracle namespace."""
         settings = FlextDbOracleSettings.model_validate({
-            "DbOracle": {"service_name": "MYPDB"},
+            "DbOracle": {c.ContextKey.SERVICE_NAME: "MYPDB"},
         })
         tm.that(settings.DbOracle.service_name, eq="MYPDB")
 
@@ -52,7 +52,7 @@ class TestsFlextDbOracleFields:
     def test_sid_only_configuration_is_accepted() -> None:
         """A legacy SID connection is valid inside the DbOracle namespace."""
         settings = FlextDbOracleSettings.model_validate({
-            "DbOracle": {"service_name": "", "sid": "legacy"},
+            "DbOracle": {c.ContextKey.SERVICE_NAME: "", "sid": "legacy"},
         })
         tm.that(settings.DbOracle.sid, eq="legacy")
         tm.that(settings.DbOracle.service_name, eq="")

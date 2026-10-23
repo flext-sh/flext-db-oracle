@@ -63,7 +63,7 @@ class TestsFlextDbOracleServices:
                 "DbOracle": {
                     "host": "127.0.0.1",
                     "port": 19999,
-                    "service_name": "INVALID",
+                    c.ContextKey.SERVICE_NAME: "INVALID",
                     "username": "invalid",
                     "password": "invalid",
                     "timeout": 1,
@@ -250,9 +250,8 @@ class TestsFlextDbOracleServicesSql:
             "tablespace": "USERS_TS",
             "parallel": 2,
         })
-        tm.ok(result)
-        tm.that(
-            result.value,
+        tm.ok(
+            result,
             eq=(
                 "CREATE UNIQUE INDEX APP.IDX_USERS_EMAIL ON APP.USERS (EMAIL) "
                 "TABLESPACE USERS_TS PARALLEL 2"
@@ -288,8 +287,7 @@ class TestsFlextDbOracleServicesSinger:
     ) -> None:
         """Each Singer scalar type maps to its canonical Oracle type."""
         result = oracle_unit_services.convert_singer_type(singer_type)
-        tm.ok(result)
-        tm.that(result.value, eq=oracle_type)
+        tm.ok(result, eq=oracle_type)
 
     @staticmethod
     def test_convert_singer_type_unwraps_nullable_array(
@@ -426,8 +424,7 @@ class TestsFlextDbOracleServicesObservability:
         tm.ok(listed)
         tm.that(listed.value.root, eq={"sample": True})
         fetched = oracle_unit_services.fetch_plugin("sample")
-        tm.ok(fetched)
-        tm.that(fetched.value, eq=plugin)
+        tm.ok(fetched, eq=plugin)
         unregister = oracle_unit_services.unregister_plugin("sample")
         tm.ok(unregister)
         tm.ok(oracle_unit_services.fetch_plugin("sample").failure)
@@ -534,7 +531,7 @@ class TestsFlextDbOracleServicesOfflineData:
             "DbOracle": {
                 "host": "dbhost",
                 "port": 1522,
-                "service_name": "XE",
+                c.ContextKey.SERVICE_NAME: "XE",
                 "username": "app",
                 "password": "secret",
             },
@@ -551,7 +548,7 @@ class TestsFlextDbOracleServicesOfflineData:
                 "DbOracle": {
                     "host": "127.0.0.1",
                     "port": 19999,
-                    "service_name": "INVALID",
+                    c.ContextKey.SERVICE_NAME: "INVALID",
                     "username": "invalid",
                     "password": "invalid",
                     "timeout": 1,

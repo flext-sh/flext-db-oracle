@@ -12,16 +12,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
-from typing import TYPE_CHECKING
 
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from flext_db_oracle.services import FlextDbOracleServices
-from tests import t, tm, u
-
-if TYPE_CHECKING:
-    from tests import m
+from tests import c, m, t, tm, u
 
 
 class TestsFlextDbOracleOracleExample:
@@ -151,8 +147,7 @@ class TestsFlextDbOracleOracleExample:
                 "INSERT INTO temp_test_table (id, name) VALUES (:id, :name)",
                 params_list,
             )
-            tm.ok(result)
-            tm.that(result.value, eq=3)
+            tm.ok(result, eq=3)
         finally:
             with contextlib.suppress(Exception):
                 connection.execute_statement("DROP TABLE temp_test_table")
@@ -293,7 +288,7 @@ class TestsFlextDbOracleOracleExample:
             "DbOracle": {
                 "host": "localhost",
                 "port": 1521,
-                "service_name": "XEPDB1",
+                c.ContextKey.SERVICE_NAME: "XEPDB1",
                 "username": "invalid_user",
                 "password": "p" + "1" * 10,
             },

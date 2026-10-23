@@ -201,14 +201,14 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
         if not parsed.hostname:
             return r[Self](error="Oracle URL must include a host", success=False)
         path_service = (parsed.path or "").lstrip("/")
-        query_service = parse_qs(parsed.query).get("service_name", [None])[0]
+        query_service = parse_qs(parsed.query).get(c.ContextKey.SERVICE_NAME, [None])[0]
         service_name = (query_service or path_service or "XEPDB1").upper()
         fields: t.JsonDict = {
             "host": parsed.hostname,
             "port": parsed.port or 1521,
             "username": parsed.username or "",
             "password": parsed.password or "",
-            "service_name": service_name,
+            c.ContextKey.SERVICE_NAME: service_name,
         }
         validated = u.try_(
             lambda: FlextDbOracleSettings.model_validate({"DbOracle": fields}),

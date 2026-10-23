@@ -271,12 +271,12 @@ class TestsFlextDbOracleSchemaModels:
     def test_column_defaults_and_explicit_values() -> None:
         """Column exposes type, nullability and default value through public fields."""
         column = m.DbOracle.Column(
-            name="user_id",
+            name=c.ContextKey.USER_ID,
             data_type="NUMBER(38)",
             nullable=False,
             default_value="NULL",
         )
-        tm.that(column.name, eq="user_id")
+        tm.that(column.name, eq=c.ContextKey.USER_ID)
         tm.that(column.data_type, eq="NUMBER(38)")
         tm.fail(column.nullable)
         tm.that(column.default_value, eq="NULL")
@@ -284,9 +284,9 @@ class TestsFlextDbOracleSchemaModels:
     @staticmethod
     def test_column_mapping_access_exposes_aliases() -> None:
         """Column supports mapping-style access over its public attributes."""
-        column = m.DbOracle.Column(name="user_id", data_type="NUMBER")
+        column = m.DbOracle.Column(name=c.ContextKey.USER_ID, data_type="NUMBER")
         tm.ok("column_name" in column)
-        tm.that(column["column_name"], eq="user_id")
+        tm.that(column["column_name"], eq=c.ContextKey.USER_ID)
         tm.that(column["data_type"], eq="NUMBER")
         tm.fail("unknown" in column)
 
@@ -378,7 +378,7 @@ class TestsFlextDbOracleModelSettings:
                 "host": "oracle.example.com",
                 "port": 1522,
                 "name": "ORCL",
-                "service_name": "ORCLPDB1",
+                c.ContextKey.SERVICE_NAME: "ORCLPDB1",
                 "username": "app_user",
                 "password": "p" + "3" * 12,
                 "ssl_server_cert_dn": "CN=oracle.example.com",
@@ -415,14 +415,14 @@ class TestsFlextDbOracleModelSettings:
             "DbOracle": {
                 "host": "test.com",
                 "port": 1522,
-                "username": "user",
+                "username": c.ContextScope.USER,
                 "password": "pass",
             },
         })
         serialized = settings.model_dump()
         tm.that(serialized["DbOracle"]["host"], eq="test.com")
         tm.that(serialized["DbOracle"]["port"], eq=1522)
-        tm.that(serialized["DbOracle"]["username"], eq="user")
+        tm.that(serialized["DbOracle"]["username"], eq=c.ContextScope.USER)
 
     @staticmethod
     def test_settings_value_equality() -> None:

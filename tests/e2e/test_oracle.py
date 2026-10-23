@@ -22,7 +22,8 @@ from tests import c, t, tm, u
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from tests import m
+from tests import m
+
 _NOT_CONNECTED = "not connected to database"
 
 
@@ -38,7 +39,7 @@ class TestsFlextDbOracleOracle:
             "DbOracle": {
                 "host": "nonexistent-host.invalid",
                 "port": 9999,
-                "service_name": "INVALID_DB",
+                c.ContextKey.SERVICE_NAME: "INVALID_DB",
                 "username": "invalid_user",
                 "password": "p" + "1" * 10,
             },
