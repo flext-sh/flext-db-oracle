@@ -144,12 +144,7 @@ class TestsFlextDbOracleApi:
     def test_to_dict_exposes_state_and_hides_password(
         api: FlextDbOracleApi,
     ) -> None:
-        """to_dict reports settings/connected/plugin_count and never the password.
-
-        Raises:
-            AssertionError: If settings or its Oracle namespace is not a dict.
-
-        """
+        """to_dict reports settings/connected/plugin_count and never the password."""
         result = api.to_dict()
         tm.ok("settings" in result)
         tm.ok("connected" in result)
@@ -159,13 +154,13 @@ class TestsFlextDbOracleApi:
             case dict():
                 pass
             case _:
-                raise AssertionError
+                tm.reject()
         db_dump = settings_dump["DbOracle"]
         match db_dump:
             case dict():
                 pass
             case _:
-                raise AssertionError
+                tm.reject()
         tm.ok("password" not in db_dump)
         tm.that(db_dump["host"], eq="127.0.0.1")
         tm.that(result["connected"], eq=api.connected())

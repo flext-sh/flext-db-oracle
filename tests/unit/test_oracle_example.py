@@ -106,12 +106,7 @@ class TestsFlextDbOracleOracleExample:
         self,
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
-        """``fetch_one`` succeeds and the returned mapping carries the scalar value.
-
-        Raises:
-            AssertionError: If fetch_one returned success with no row.
-
-        """
+        """``fetch_one`` succeeds and the returned mapping carries the scalar value."""
         connection = self._connect_services(real_oracle_config)
         try:
             result = connection.fetch_one("SELECT 42 FROM DUAL")
@@ -119,7 +114,7 @@ class TestsFlextDbOracleOracleExample:
             fetch_data = result.value
             if fetch_data is None:
                 msg = "fetch_one returned success with no row"
-                raise AssertionError(msg)
+                tm.reject(msg)
             first_value = next(iter(fetch_data.values()))
             tm.that(int(str(first_value)), eq=42)
         finally:
