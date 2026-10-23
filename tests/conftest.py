@@ -105,7 +105,7 @@ def _cleanup_dirty_oracle_container() -> None:
     if not docker.dirty_containers:
         logger.debug("No dirty containers to clean")
         return
-    status_result = docker.fetch_container_status(container_name)
+    status_result = docker.fetch_container_info(container_name)
     if status_result.success and status_result.value.status == (
         c.Tests.ContainerStatus.RUNNING
     ):
