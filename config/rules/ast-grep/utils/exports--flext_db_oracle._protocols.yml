@@ -1,0 +1,5 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
+id: exports--flext_db_oracle._protocols
+language: Python
+rule:
+  regex: ^(?:FlextDbOracleProtocolsBase|FlextDbOracleProtocolsConnection|FlextDbOracleProtocolsQuery)$

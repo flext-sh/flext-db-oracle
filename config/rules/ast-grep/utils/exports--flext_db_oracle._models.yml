@@ -1,0 +1,5 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
+id: exports--flext_db_oracle._models
+language: Python
+rule:
+  regex: ^(?:FlextDbOracleCredentialModel|FlextDbOracleModelsBase|FlextDbOracleModelsCommand|FlextDbOracleModelsConnection|FlextDbOracleModelsQuery|FlextDbOracleModelsSchema)$

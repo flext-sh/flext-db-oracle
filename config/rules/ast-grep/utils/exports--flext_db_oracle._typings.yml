@@ -1,0 +1,5 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
+id: exports--flext_db_oracle._typings
+language: Python
+rule:
+  regex: ^(?:FlextDbOracleTypes|FlextDbOracleTypingsBase|t)$

@@ -1,0 +1,5 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
+id: exports--flext_db_oracle._utilities
+language: Python
+rule:
+  regex: ^(?:FlextDbOracleUtilitiesBase|FlextDbOracleUtilitiesDbOracle)$

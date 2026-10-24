@@ -15,11 +15,14 @@ from typing import ClassVar
 
 from flext_cli import FlextCliModels
 
-from flext_db_oracle._models.command_models import FlextDbOracleModelsCommand
-from flext_db_oracle._models.connection_models import FlextDbOracleModelsConnection
-from flext_db_oracle._models.credential import FlextDbOracleCredentialModel
-from flext_db_oracle._models.query_models import FlextDbOracleModelsQuery
-from flext_db_oracle._models.schema_models import FlextDbOracleModelsSchema
+from flext_db_oracle._models import (
+    FlextDbOracleCredentialModel,
+    FlextDbOracleModelsBase,
+    FlextDbOracleModelsCommand,
+    FlextDbOracleModelsConnection,
+    FlextDbOracleModelsQuery,
+    FlextDbOracleModelsSchema,
+)
 
 
 class FlextDbOracleModels(FlextCliModels):
@@ -32,6 +35,7 @@ class FlextDbOracleModels(FlextCliModels):
     """
 
     class DbOracle(
+        FlextDbOracleModelsBase,
         FlextDbOracleModelsCommand,
         FlextDbOracleModelsConnection,
         FlextDbOracleModelsQuery,

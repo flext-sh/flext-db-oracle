@@ -9,10 +9,10 @@ from __future__ import annotations
 
 from flext_cli import FlextCliProtocols
 
-from flext_db_oracle._protocols.connection_protocols import (
+from flext_db_oracle._protocols import (
     FlextDbOracleProtocolsConnection,
+    FlextDbOracleProtocolsQuery,
 )
-from flext_db_oracle._protocols.query_protocols import FlextDbOracleProtocolsQuery
 
 
 class FlextDbOracleProtocols(FlextCliProtocols):

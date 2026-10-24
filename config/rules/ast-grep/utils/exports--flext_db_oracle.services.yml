@@ -1,0 +1,5 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
+id: exports--flext_db_oracle.services
+language: Python
+rule:
+  regex: ^(?:FlextDbOracleApiRuntime|FlextDbOracleApiRuntimeExecution|FlextDbOracleApiRuntimeIntrospection|FlextDbOracleApiRuntimeLifecycle|FlextDbOracleApiRuntimeState|FlextDbOracleServiceConnection|FlextDbOracleServicePlugin|FlextDbOracleServiceQuery|FlextDbOracleServiceSchema|FlextDbOracleServiceSinger|FlextDbOracleServiceSqlBuilder|FlextDbOracleServices)$
