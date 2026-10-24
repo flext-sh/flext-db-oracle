@@ -7,14 +7,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
-
 from flext_cli import FlextCliProtocols
 
-from flext_db_oracle._protocols import (
+from flext_db_oracle._protocols.connection_protocols import (
     FlextDbOracleProtocolsConnection,
-    FlextDbOracleProtocolsQuery,
 )
+from flext_db_oracle._protocols.query_protocols import FlextDbOracleProtocolsQuery
 
 
 class FlextDbOracleProtocols(FlextCliProtocols):
@@ -39,20 +37,8 @@ class FlextDbOracleProtocols(FlextCliProtocols):
     query: FlextDbOracleProtocols.Database.QueryExecutor
     """
 
-    @runtime_checkable
-    class DbOracle(Protocol):
+    class DbOracle(FlextDbOracleProtocolsConnection, FlextDbOracleProtocolsQuery):
         """Oracle database domain-specific protocols."""
-
-        Connection = FlextDbOracleProtocolsConnection.Connection
-        OraclePlugin = FlextDbOracleProtocolsConnection.OraclePlugin
-        QueryExecutor = FlextDbOracleProtocolsQuery.QueryExecutor
-        SchemaIntrospector = FlextDbOracleProtocolsQuery.SchemaIntrospector
-        SqlBuilder = FlextDbOracleProtocolsQuery.SqlBuilder
-        DdlGenerator = FlextDbOracleProtocolsQuery.DdlGenerator
-        MetricsCollector = FlextDbOracleProtocolsQuery.MetricsCollector
-        PluginRegistry = FlextDbOracleProtocolsConnection.PluginRegistry
-        HealthCheck = FlextDbOracleProtocolsConnection.HealthCheck
-        Runtime = FlextDbOracleProtocolsConnection.Runtime
 
 
 p = FlextDbOracleProtocols
