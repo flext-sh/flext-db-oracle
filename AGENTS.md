@@ -1,12 +1,13 @@
 # AGENTS.md — flext-db-oracle
 
-> **Parent workspace law** lives in [`../AGENTS.md`](../AGENTS.md) — read it first.
-> Universal engineering core: `~/.agents/UNIVERSAL_CORE.md`. Composition: global
-> skills + parent/root `AGENTS.md` + this scope delta. Do not re-embed universal law.
->
-> **Standalone / independent mode:** when `../AGENTS.md` does not resolve, pin the
-> parent raw `AGENTS.md` URL to the same branch/release as this package (never
-> `main`): <https://raw.githubusercontent.com/flext-sh/flext/0.12.0-dev/AGENTS.md>
+Read the branch-matched [FLEXT root](../AGENTS.md) and its local flext-law through
+that root's authority entry point. In standalone mode resolve the same branch or
+release; a coincidental parent instruction file does not establish FLEXT authority.
+This file adds only this package's domain delta. Command routing, architecture
+and universal execution stay with their parent owners.
+
+Embedded AI Hub or Beads generated blocks are retired delivery material, not
+active local rules. Their withdrawal remains the publisher's responsibility.
 
 <!-- AIHUB-AGENTS-SCOPE-LOCAL-BEGIN -->
 
@@ -17,48 +18,16 @@
 Enterprise Oracle database operations library. Base for the Oracle Singer connectors
 (`flext-tap-oracle`, `flext-target-oracle`, `flext-dbt-oracle`).
 
-## Structure
-
-```text
-src/flext_db_oracle/
-├── api.py            # FlextDbOracleApi facade
-├── base.py client.py dispatcher.py exceptions.py
-├── services/         # connection, query, schema, SQL building, Singer, plugins, API runtime
-├── constants.py typings.py protocols.py models.py utilities.py   # AUTO-GENERATED facets
-└── _models/ _utilities/db_oracle.py
-```
-
-## Code Map
-
-| Symbol                      | Kind  | Location            | Role                                        |
-| --------------------------- | ----- | ------------------- | ------------------------------------------- |
-| `FlextDbOracleApi`          | class | `api.py`            | facade; ctor resolves `settings.DbOracle.*` |
-| `FlextDbOracleClient`       | class | `client.py`         | connection client                           |
-| `FlextDbOracleDispatcher`   | class | `dispatcher.py`     | command dispatch                            |
-| `FlextDbOracleServiceQuery` | class | `services/query.py` | query service                               |
-
 ## Conventions (specific to this package)
 
 - **Settings are namespaced** — access `settings.DbOracle.*`
   (host/port/user/service_name/context_name), never flat `settings.host`. The API ctor
   resolves them from that namespace.
-- Config/settings canonical pattern: ADR-012.
-- Codemod governance (ast-grep + make mod): ADR-014.
 
 ## Anti-Patterns / Gotchas
 
-- Downstream consumers construct config as nested `{"DbOracle": {...}}` — flat
-  construction is dropped (`extra=ignore`).
-
-## Commands
-
-Run from the workspace root (selector-free; the root dispatcher routes to every
-member — `PROJECT=` is not a root Make variable):
-
-```bash
-make check
-make test
-```
+- Downstream configuration uses the typed `DbOracle` namespace. Legacy flat
+  inputs and silent discard are implementation findings, not an accepted contract.
 
 <!-- AIHUB-AGENTS-SCOPE-LOCAL-END -->
 
