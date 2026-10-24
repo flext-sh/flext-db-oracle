@@ -92,7 +92,7 @@ class FlextDbOracleUtilitiesDbOracle:
     @classmethod
     def format_query_result(
         cls,
-        result: t.JsonPayload,
+        result: t.JsonPayload | t.JsonMapping | t.VariadicTuple[t.JsonValue],
         format_type: str = "table",
     ) -> p.Result[str]:
         """Format a query result to string or JSON.

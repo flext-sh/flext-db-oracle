@@ -116,14 +116,14 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
             env_port = os.getenv("TEST_ORACLE_PORT")
             if env_port is not None and env_port.isdigit():
                 env_port_int = int(env_port)
-                status_result = docker_control.fetch_container_status(container_name)
+                status_result = docker_control.fetch_container_info(container_name)
                 if status_result.success:
                     ports = cls._oracle_host_ports(status_result.value)
                     if cls._env_port_matches(ports, env_port_int):
                         return env_port_int
             fallback_port = cls._fallback_port(container_name)
             for _ in range(30):
-                status_result = docker_control.fetch_container_status(container_name)
+                status_result = docker_control.fetch_container_info(container_name)
                 if status_result.success:
                     host_port = cls._first_oracle_host_port(
                         cls._oracle_host_ports(status_result.value),

@@ -1,7 +1,8 @@
 """Behavioral tests for the flext-db-oracle public API contract.
 
-Container-gated tests exercise REAL Oracle connectivity and fail loudly when
-the shared container is unavailable. Container-free tests assert observable contract of
+Container-gated tests exercise REAL Oracle connectivity when prerequisites are
+available, skipping before fixtures otherwise. Container-free tests assert the
+contract of
 ``FlextDbOracleSettings`` and ``FlextDbOracleApi`` (validation, factories,
 representation, connection state) without any external dependency.
 
@@ -12,15 +13,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import tm
-
-if TYPE_CHECKING:
-    from tests import m, t
+from tests import c, m, t, tm
 
 
 @pytest.fixture
@@ -30,7 +26,7 @@ def offline_oracle_settings() -> FlextDbOracleSettings:
         "DbOracle": {
             "host": "mock-host",
             "port": 1521,
-            "service_name": "mock-service",
+            c.ContextKey.SERVICE_NAME: "mock-service",
             "username": "mock-user",
             "password": "p" + "4" * 12,
         },
@@ -38,14 +34,13 @@ def offline_oracle_settings() -> FlextDbOracleSettings:
 
 
 @pytest.mark.integration
-@pytest.mark.docker
 class TestsFlextDbOracleOracle:
     """Behavioral contract of the Oracle settings and API public surface."""
 
     # ----------------------------------------------------------------- helpers
     @staticmethod
     def _cell(row: m.Dict, *keys: str) -> str:
-        """Read one column value from a query row via its public model dump.
+        """Read one column value from a query row via its public root mapping.
 
         Oracle returns column names in varying case; probe the requested keys
         (and their case variants) against the row's public mapping.
@@ -54,11 +49,11 @@ class TestsFlextDbOracleOracle:
             The resulting ``str``.
 
         """
-        dumped = row.model_dump()
+        values = row.root
         for key in keys:
             for candidate in (key, key.upper(), key.lower()):
-                if candidate in dumped:
-                    return str(dumped[candidate])
+                if candidate in values:
+                    return str(values[candidate])
         return ""
 
     @staticmethod
@@ -72,7 +67,7 @@ class TestsFlextDbOracleOracle:
         api = FlextDbOracleApi(settings=settings)
         connect_result = api.connect()
         tm.ok(connect_result)
-        tm.that(api.connected(), eq=True)
+        tm.ok(api.connected())
         return api
 
     # -------------------------------------------- container-free: settings API
@@ -90,7 +85,7 @@ class TestsFlextDbOracleOracle:
     def test_namespace_overrides_are_stored_verbatim() -> None:
         """Layer-0 namespace stores caller values without business-rule rewriting."""
         settings = FlextDbOracleSettings.model_validate({
-            "DbOracle": {"host": "db-host", "service_name": "svc"},
+            "DbOracle": {"host": "db-host", c.ContextKey.SERVICE_NAME: "svc"},
         })
         tm.that(settings.DbOracle.host, eq="db-host")
         tm.that(settings.DbOracle.service_name, eq="svc")
@@ -120,7 +115,7 @@ class TestsFlextDbOracleOracle:
     ) -> None:
         """A freshly built API reports a disconnected connection state."""
         api = FlextDbOracleApi(settings=offline_oracle_settings)
-        tm.that(api.connected(), eq=False)
+        tm.fail(api.connected())
         tm.that(api.connection, none=True)
 
     @staticmethod
@@ -129,8 +124,8 @@ class TestsFlextDbOracleOracle:
     ) -> None:
         """The API surfaces the same settings value it was constructed with."""
         api = FlextDbOracleApi(settings=offline_oracle_settings)
-        assert api.settings is offline_oracle_settings
-        assert api.oracle_config is offline_oracle_settings
+        tm.that(api.settings is offline_oracle_settings)
+        tm.that(api.oracle_config is offline_oracle_settings)
 
     @staticmethod
     def test_from_config_builds_equivalent_api(
@@ -139,8 +134,8 @@ class TestsFlextDbOracleOracle:
         """``from_config`` yields an API bound to the given settings."""
         api = FlextDbOracleApi.from_config(offline_oracle_settings)
         tm.that(api, is_=FlextDbOracleApi)
-        assert api.settings is offline_oracle_settings
-        tm.that(api.connected(), eq=False)
+        tm.that(api.settings is offline_oracle_settings)
+        tm.fail(api.connected())
 
     @staticmethod
     def test_repr_reflects_host_and_disconnected_state(
@@ -159,37 +154,44 @@ class TestsFlextDbOracleOracle:
     ) -> None:
         """Connecting and querying DUAL returns exactly one row on success."""
         connected_api = self._connect(oracle_config)
-        tm.that(connected_api.test_connection().unwrap(), eq=True)
+        tm.ok(connected_api.test_connection().unwrap())
 
         query_result = connected_api.query("SELECT SYSDATE FROM DUAL")
         tm.ok(query_result)
         tm.that(len(query_result.unwrap()), eq=1)
 
-        tm.that(connected_api.disconnect().unwrap(), eq=True)
-        tm.that(connected_api.connected(), eq=False)
+        tm.ok(connected_api.disconnect().unwrap())
+        tm.fail(connected_api.connected())
 
     def test_metadata_queries_return_string_sequences(
         self,
         oracle_config: FlextDbOracleSettings,
     ) -> None:
-        """Schema/table/column lookups return string sequences on success."""
+        """Schema/table names are strings; columns expose typed metadata."""
         connected_api = self._connect(oracle_config)
 
         schemas_result = connected_api.fetch_schemas()
         tm.ok(schemas_result)
         schemas = schemas_result.unwrap()
-        assert all(isinstance(name, str) for name in schemas)
-        assert schemas, "A connected Oracle instance must expose at least one schema"
+        for name in schemas:
+            tm.instance(name, str)
+        tm.that(
+            schemas,
+            where=bool,
+            msg="A connected Oracle instance must expose at least one schema",
+        )
 
         tables_result = connected_api.fetch_tables(schemas[0])
         tm.ok(tables_result)
         tables = tables_result.unwrap()
-        assert all(isinstance(name, str) for name in tables)
+        for name in tables:
+            tm.instance(name, str)
 
         if tables:
             columns_result = connected_api.fetch_columns(tables[0])
             tm.ok(columns_result)
-            assert all(isinstance(col, str) for col in columns_result.unwrap())
+            for column in columns_result.unwrap():
+                tm.instance(column, m.DbOracle.Column)
 
         connected_api.disconnect()
 
@@ -207,7 +209,7 @@ class TestsFlextDbOracleOracle:
 
         result = connected_api.query(invalid_sql)
         tm.fail(result)
-        assert result.error
+        tm.that(result.error, where=bool)
 
         connected_api.disconnect()
 
@@ -218,9 +220,9 @@ class TestsFlextDbOracleOracle:
         """``with api`` yields a connected session and disconnects on exit."""
         api = FlextDbOracleApi(settings=oracle_config)
         with api as session:
-            tm.that(session.connected(), eq=True)
+            tm.ok(session.connected())
             tm.ok(session.query("SELECT 1 FROM DUAL"))
-        tm.that(api.connected(), eq=False)
+        tm.fail(api.connected())
 
     def test_insert_update_delete_roundtrip_is_observable_via_queries(
         self,
@@ -241,7 +243,7 @@ class TestsFlextDbOracleOracle:
         tm.ok(after_insert)
         rows = after_insert.unwrap()
         tm.that(len(rows), eq=1)
-        tm.that(self._cell(rows[0], "id"), eq="1")
+        tm.that(self._cell(rows[0], "id"), eq=c.ParserBooleanToken.ONE)
         tm.that(self._cell(rows[0], "name"), eq="Test User")
 
         update = connected_oracle_api.execute_statement(
@@ -260,7 +262,10 @@ class TestsFlextDbOracleOracle:
         remaining = connected_oracle_api.query(
             "SELECT COUNT(*) AS count FROM test_table",
         )
-        tm.that(self._cell(remaining.unwrap()[0], "count", "count(*)"), eq="0")
+        tm.that(
+            self._cell(remaining.unwrap()[0], c.Aggregation.COUNT, "count(*)"),
+            eq=c.ParserBooleanToken.ZERO,
+        )
 
     @pytest.mark.usefixtures("oracle_test_database")
     def test_committed_row_is_visible_after_commit(
@@ -292,8 +297,9 @@ class TestsFlextDbOracleOracle:
         result = connected_oracle_api.fetch_schemas()
         tm.ok(result)
         schemas = result.unwrap()
-        assert schemas
-        assert all(isinstance(name, str) for name in schemas)
+        tm.that(schemas, where=bool)
+        for name in schemas:
+            tm.instance(name, str)
 
     def test_health_status_reports_connected_and_healthy(
         self,
@@ -304,10 +310,10 @@ class TestsFlextDbOracleOracle:
 
         health_result = connected_api.fetch_health_status()
         tm.ok(health_result)
-        status = health_result.unwrap()
-        tm.that(status.connected, eq=True)
-        tm.that(status.healthy, eq=True)
+        status = tm.instance(health_result.unwrap(), m.DbOracle.ConnectionStatus)
+        tm.ok(status.connected)
+        tm.ok(status.healthy)
         tm.that(status.status_description, eq="Connected")
-        assert status.connection_age_seconds >= 0
+        tm.that(status.connection_age_seconds >= 0)
 
         tm.ok(connected_api.disconnect())

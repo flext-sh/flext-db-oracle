@@ -38,7 +38,7 @@ class TestsFlextDbOracleDispatcher:
     def test_execute_reports_success() -> None:
         """execute() is a no-op factory hook that yields a successful result."""
         result = FlextDbOracleDispatcher().execute()
-        tm.that(result.success, eq=True)
+        tm.ok(result.success)
 
     @staticmethod
     def test_build_dispatcher_exposes_dispatch_capability(
@@ -46,7 +46,7 @@ class TestsFlextDbOracleDispatcher:
     ) -> None:
         """build_dispatcher returns a wired dispatcher exposing dispatch()."""
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
-        tm.that(callable(dispatcher.dispatch), eq=True)
+        tm.ok(callable(dispatcher.dispatch))
 
     @staticmethod
     def test_build_dispatcher_exposes_register_handler_capability(
@@ -54,7 +54,7 @@ class TestsFlextDbOracleDispatcher:
     ) -> None:
         """The wired dispatcher can accept handler registrations."""
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
-        tm.that(callable(dispatcher.register_handler), eq=True)
+        tm.ok(callable(dispatcher.register_handler))
 
     @staticmethod
     def test_build_dispatcher_reuses_shared_dispatcher(
@@ -63,7 +63,7 @@ class TestsFlextDbOracleDispatcher:
         """Repeated builds resolve the same shared container dispatcher."""
         first = FlextDbOracleDispatcher.build_dispatcher(services)
         second = FlextDbOracleDispatcher.build_dispatcher(services)
-        tm.that(first is second, eq=True)
+        tm.ok(first is second)
 
     @staticmethod
     def test_execute_query_command_carries_sql_and_parameters() -> None:

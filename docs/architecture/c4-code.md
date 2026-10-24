@@ -252,10 +252,10 @@ class FlextDbOracleApi:
         return r[Transaction].ok(Transaction())
 
     def commit_transaction(self) -> p.Result[bool]:
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)=True)
 
     def rollback_transaction(self) -> p.Result[bool]:
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)=True)
 
 
 api = FlextDbOracleApi()

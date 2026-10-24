@@ -59,11 +59,11 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
         """
         return self._services.fetch_metrics().map(lambda metrics: metrics.model_dump())
 
-    def fetch_plugin(self, name: str) -> p.Result[t.JsonPayload]:
+    def fetch_plugin(self, name: str) -> p.Result[t.JsonPayload | t.FlatContainer]:
         """Get a registered plugin by name.
 
         Returns:
-            The resulting ``p.Result[t.JsonPayload]``.
+            The resulting ``p.Result[t.JsonPayload | t.FlatContainer]``.
 
         """
         return self._services.fetch_plugin(name)
@@ -139,7 +139,11 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
             lambda value: value.mapping,
         )
 
-    def register_plugin(self, name: str, plugin: t.JsonPayload) -> p.Result[bool]:
+    def register_plugin(
+        self,
+        name: str,
+        plugin: t.JsonPayload | t.FlatContainer,
+    ) -> p.Result[bool]:
         """Register a plugin in local API registry.
 
         Returns:

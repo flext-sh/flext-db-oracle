@@ -69,9 +69,9 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
 
     def __exit__(
         self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: types.TracebackType | None,
+        _exc_type: type[BaseException] | None,
+        _exc_val: BaseException | None,
+        _exc_tb: types.TracebackType | None,
     ) -> None:
         """Context manager exit - cleanup resources."""
         try:
@@ -201,14 +201,14 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
         if not parsed.hostname:
             return r[Self](error="Oracle URL must include a host", success=False)
         path_service = (parsed.path or "").lstrip("/")
-        query_service = parse_qs(parsed.query).get("service_name", [None])[0]
+        query_service = parse_qs(parsed.query).get(c.ContextKey.SERVICE_NAME, [None])[0]
         service_name = (query_service or path_service or "XEPDB1").upper()
         fields: t.JsonDict = {
             "host": parsed.hostname,
             "port": parsed.port or 1521,
             "username": parsed.username or "",
             "password": parsed.password or "",
-            "service_name": service_name,
+            c.ContextKey.SERVICE_NAME: service_name,
         }
         validated = u.try_(
             lambda: FlextDbOracleSettings.model_validate({"DbOracle": fields}),
@@ -260,7 +260,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
             root={
                 "settings": self.oracle_config.model_dump(
                     exclude={"DbOracle": {"password"}},
-                    mode="python",
+                    mode="json",
                 ),
                 "connected": self.connected(),
                 "plugin_count": len(

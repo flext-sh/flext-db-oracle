@@ -176,7 +176,7 @@ def test_oracle_connection_with_real_database():
     result = connection.connect()
 
     # Assert
-    assert result.success
+    tm.ok(result.success)
     assert connection.is_connected()
 
     # Cleanup
@@ -198,10 +198,10 @@ def test_query_execution_with_real_oracle():
         result = api.execute_query(test_sql)
 
     # Assert
-    assert result.success
+    tm.ok(result.success)
     assert result.value.row_count >= 0
-    assert len(result.value.columns) == 1
-    assert result.value.columns[0] == "employee_count"
+    tm.that(len(result.value.columns), eq=1)
+    tm.that(result.value.columns[0], eq="employee_count")
 ```
 
 ### **Schema Integration Testing**
@@ -219,16 +219,16 @@ def test_schema_metadata_extraction():
         result = metadata_manager.get_schema_metadata("FLEXT_TEST")
 
     # Assert
-    assert result.success
+    tm.ok(result.success)
     schema = result.value
-    assert schema.name == "FLEXT_TEST"
+    tm.that(schema.name, eq="FLEXT_TEST")
     assert len(schema.tables) >= 0
 
     # Validate table metadata
     if schema.tables:
         table = schema.tables[0]
         assert table.name
-        assert table.schema_name == "FLEXT_TEST"
+        tm.that(table.schema_name, eq="FLEXT_TEST")
         assert len(table.columns) > 0
 ```
 

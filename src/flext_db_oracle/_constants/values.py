@@ -16,7 +16,7 @@ from enum import StrEnum, unique
 from types import MappingProxyType
 from typing import ClassVar, Final
 
-from flext_core import FlextConstants as c, t
+from flext_core import c, t
 
 
 class FlextDbOracleConstantsValues:
@@ -234,7 +234,7 @@ class FlextDbOracleConstantsValues:
         class ConnectionType(StrEnum):
             """Oracle connection types."""
 
-            SERVICE_NAME = "service_name"
+            SERVICE_NAME = c.ContextKey.SERVICE_NAME
             SID = "sid"
             TNS = "tns"
 
@@ -330,8 +330,8 @@ class FlextDbOracleConstantsValues:
             ENV_HOST: "host",
             "FLEXT_TARGET_ORACLE_PORT": "port",
             ENV_PORT: "port",
-            "FLEXT_TARGET_ORACLE_SERVICE_NAME": "service_name",
-            ENV_SERVICE_NAME: "service_name",
+            "FLEXT_TARGET_ORACLE_SERVICE_NAME": c.ContextKey.SERVICE_NAME,
+            ENV_SERVICE_NAME: c.ContextKey.SERVICE_NAME,
             "FLEXT_TARGET_ORACLE_USERNAME": "username",
             ENV_USERNAME: "username",
             "FLEXT_TARGET_ORACLE_PASSWORD": "password",  # nosec B105

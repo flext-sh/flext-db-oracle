@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
+from datetime import datetime
 from typing import override
 
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
@@ -26,17 +27,17 @@ class FlextDbOracleClient(s):
     integration.
     """
 
-    debug: bool = u.Field(
+    debug: bool = m.Field(
         default=False,
         description="Enable debug output",
         validate_default=True,
     )
-    current_connection: FlextDbOracleApi | None = u.Field(
+    current_connection: FlextDbOracleApi | None = m.Field(
         None,
         description="Active Oracle API connection instance",
         validate_default=True,
     )
-    user_preferences: m.ConfigMap = u.Field(
+    user_preferences: m.ConfigMap = m.Field(
         default_factory=lambda: m.ConfigMap(
             root={
                 "default_output_format": "table",
@@ -99,7 +100,10 @@ class FlextDbOracleClient(s):
             )
         return r[str].fail(f"Unknown CLI operation: {operation}")
 
-    def configure_preferences(self, **preferences: t.Scalar) -> p.Result[bool]:
+    def configure_preferences(
+        self,
+        **preferences: t.Primitives | datetime,
+    ) -> p.Result[bool]:
         """Configure client preferences.
 
         Returns:
@@ -188,14 +192,14 @@ class FlextDbOracleClient(s):
         )
         # NOTE (multi-agent): ADR-005 — password is a plain str in the DbOracle
         # namespace and is guaranteed non-empty by the validations above.
-        db_oracle_payload: t.MappingKV[str, t.JsonPayloadLeaf] = {
+        db_oracle_payload: t.JsonDict = {
             "host": actual_host,
             "port": actual_port,
-            "service_name": actual_service_name,
+            c.ContextKey.SERVICE_NAME: actual_service_name,
             "username": actual_username,
             "password": actual_password_raw,
         }
-        payload: t.MappingKV[str, t.JsonPayload] = {"DbOracle": db_oracle_payload}
+        payload: t.JsonDict = {"DbOracle": db_oracle_payload}
         settings = FlextDbOracleSettings.model_validate(payload)
         return r[FlextDbOracleSettings].ok(settings)
 
@@ -249,7 +253,7 @@ class FlextDbOracleClient(s):
         """
         query_params = m.ConfigMap.model_validate(params or {})
         operation_result = self._execute_with_chain(
-            "query",
+            c.HandlerMode.QUERY,
             sql=sql,
             params=query_params,
         )
@@ -397,7 +401,7 @@ class FlextDbOracleClient(s):
                     else "inactive",
                     "host": self.current_connection.oracle_config.DbOracle.host,
                     "port": self.current_connection.oracle_config.DbOracle.port,
-                    "service_name": (
+                    c.ContextKey.SERVICE_NAME: (
                         self.current_connection.oracle_config.DbOracle.service_name
                     ),
                     "timestamp": "now",
@@ -441,7 +445,7 @@ class FlextDbOracleClient(s):
                 return self._handle_list_schemas_operation()
             case "list_tables":
                 return self._handle_list_tables_operation(**params)
-            case "query":
+            case c.HandlerMode.QUERY:
                 return self._handle_query_operation(**params)
             case "health_check":
                 return self._handle_health_check_operation()

@@ -15,7 +15,7 @@ from __future__ import annotations
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleClient, FlextDbOracleSettings
-from tests import r, t, tm, u
+from tests import c, r, t, tm, u
 
 _NO_CONNECTION_ERROR = "No active Oracle connection"
 _CONNECTION_FAILURE_SNIPPETS = (
@@ -28,92 +28,97 @@ _CONNECTION_FAILURE_SNIPPETS = (
 class TestsFlextDbOracleCli:
     """Public-contract behavior of the Oracle CLI client (no mocks)."""
 
-    # ---- construction / public model state -------------------------------
+    class TestsPreferences:
+        """Client construction and preference state contracts."""
 
-    @staticmethod
-    @pytest.mark.parametrize("debug", [True, False])
-    def test_construction_exposes_requested_debug_flag(*, debug: bool) -> None:
-        """The ``debug`` public field reflects the constructor argument."""
-        client = FlextDbOracleClient(debug=debug)
-        tm.that(client.debug, eq=debug)
+        @staticmethod
+        @pytest.mark.parametrize("debug", [True, False])
+        def test_construction_exposes_requested_debug_flag(*, debug: bool) -> None:
+            """The ``debug`` public field reflects the constructor argument."""
+            client = FlextDbOracleClient(debug=debug)
+            tm.that(client.debug, eq=debug)
 
-    @staticmethod
-    def test_construction_starts_without_active_connection() -> None:
-        """A freshly built client reports no active connection."""
-        client = FlextDbOracleClient()
-        tm.that(client.current_connection, none=True)
+        @staticmethod
+        def test_construction_starts_without_active_connection() -> None:
+            """A freshly built client reports no active connection."""
+            client = FlextDbOracleClient()
+            tm.that(client.current_connection, none=True)
 
-    @staticmethod
-    @pytest.mark.parametrize(
-        ("preference_key", "expected_value"),
-        [
-            ("default_output_format", "table"),
-            ("show_execution_time", "True"),
-            ("auto_confirm_operations", "False"),
-            ("connection_timeout", 30),
-            ("query_limit", 1000),
-        ],
-    )
-    def test_default_preferences_are_populated(
-        preference_key: str,
-        expected_value: str | int,
-    ) -> None:
-        """Default user preferences expose the documented defaults."""
-        client = FlextDbOracleClient()
-        tm.that(client.user_preferences[preference_key], eq=expected_value)
-
-    @staticmethod
-    def test_each_construction_yields_an_independent_client() -> None:
-        """Constructing twice yields distinct, independent instances."""
-        client_a = FlextDbOracleClient()
-        client_b = FlextDbOracleClient()
-        tm.that(client_a is not client_b, eq=True)
-
-    # ---- preference configuration ----------------------------------------
-
-    @staticmethod
-    def test_configure_preferences_updates_values_and_reports_success() -> None:
-        """Configuring known preferences succeeds and mutates public state."""
-        client = FlextDbOracleClient()
-        tm.ok(
-            client.configure_preferences(
-                default_output_format="json",
-                query_limit=2000,
-                show_execution_time=False,
-            ),
+        @staticmethod
+        @pytest.mark.parametrize(
+            ("preference_key", "expected_value"),
+            [
+                ("default_output_format", "table"),
+                ("show_execution_time", "True"),
+                ("auto_confirm_operations", "False"),
+                ("connection_timeout", c.DbOracle.DEFAULT_CONNECTION_TIMEOUT),
+                ("query_limit", c.DbOracle.DEFAULT_QUERY_LIMIT),
+            ],
         )
-        tm.that(client.user_preferences["default_output_format"], eq="json")
-        tm.that(client.user_preferences["query_limit"], eq=2000)
-        tm.that(client.user_preferences["show_execution_time"], eq=False)
+        def test_default_preferences_are_populated(
+            preference_key: str,
+            expected_value: str | int,
+        ) -> None:
+            """Default user preferences expose the documented defaults."""
+            client = FlextDbOracleClient()
+            tm.that(client.user_preferences[preference_key], eq=expected_value)
 
-    @staticmethod
-    def test_configure_preferences_preserves_untouched_defaults() -> None:
-        """Partial updates leave unrelated defaults intact."""
-        client = FlextDbOracleClient()
-        tm.ok(
-            client.configure_preferences(
-                default_output_format="json",
-                connection_timeout=60,
-            ),
-        )
-        tm.that(client.user_preferences["default_output_format"], eq="json")
-        tm.that(client.user_preferences["connection_timeout"], eq=60)
-        tm.that(client.user_preferences["query_limit"], eq=1000)
+        @staticmethod
+        def test_each_construction_yields_an_independent_client() -> None:
+            """Constructing twice yields distinct, independent instances."""
+            client_a = FlextDbOracleClient()
+            client_b = FlextDbOracleClient()
+            tm.ok(client_a is not client_b)
 
-    @staticmethod
-    def test_configure_preferences_tolerates_unknown_keys() -> None:
-        """Unknown preference keys are accepted without failing the operation."""
-        client = FlextDbOracleClient()
-        result = client.configure_preferences(invalid_key="value", another="test")
-        tm.that(result, is_=r)
-        tm.ok(result)
-        tm.that(client.user_preferences["query_limit"], eq=1000)
+        @staticmethod
+        def test_configure_preferences_updates_values_and_reports_success() -> None:
+            """Configuring known preferences succeeds and mutates public state."""
+            client = FlextDbOracleClient()
+            tm.ok(
+                client.configure_preferences(
+                    default_output_format="json",
+                    query_limit=2000,
+                    show_execution_time=False,
+                ),
+            )
+            tm.that(client.user_preferences["default_output_format"], eq="json")
+            tm.that(client.user_preferences["query_limit"], eq=2000)
+            tm.that(client.user_preferences["show_execution_time"], eq=False)
 
-    @staticmethod
-    def test_configure_preferences_accepts_empty_string_value() -> None:
-        """An empty preference value is a valid, non-failing configuration."""
-        client = FlextDbOracleClient()
-        tm.ok(client.configure_preferences(valid_key=""))
+        @staticmethod
+        def test_configure_preferences_preserves_untouched_defaults() -> None:
+            """Partial updates leave unrelated defaults intact."""
+            client = FlextDbOracleClient()
+            tm.ok(
+                client.configure_preferences(
+                    default_output_format="json",
+                    connection_timeout=60,
+                ),
+            )
+            tm.that(client.user_preferences["default_output_format"], eq="json")
+            tm.that(client.user_preferences["connection_timeout"], eq=60)
+            tm.that(
+                client.user_preferences["query_limit"],
+                eq=c.DbOracle.DEFAULT_QUERY_LIMIT,
+            )
+
+        @staticmethod
+        def test_configure_preferences_tolerates_unknown_keys() -> None:
+            """Unknown preference keys are accepted without failing the operation."""
+            client = FlextDbOracleClient()
+            result = client.configure_preferences(invalid_key="value", another="test")
+            tm.that(result, is_=r)
+            tm.ok(result)
+            tm.that(
+                client.user_preferences["query_limit"],
+                eq=c.DbOracle.DEFAULT_QUERY_LIMIT,
+            )
+
+        @staticmethod
+        def test_configure_preferences_accepts_empty_string_value() -> None:
+            """An empty preference value is a valid, non-failing configuration."""
+            client = FlextDbOracleClient()
+            tm.ok(client.configure_preferences(valid_key=""))
 
     # ---- fail-fast without a connection ----------------------------------
 
@@ -155,7 +160,7 @@ class TestsFlextDbOracleCli:
             username="invalid_user",
             password="invalid" + "_" + "password",
         )
-        tm.that(result.failure, eq=True)
+        tm.ok(result.failure)
         error_text = result.error or ""
         tm.that(
             any(snippet in error_text for snippet in _CONNECTION_FAILURE_SNIPPETS),
@@ -170,7 +175,7 @@ class TestsFlextDbOracleCli:
                 "host": "localhost",
                 "port": 1521,
                 "name": "XE",
-                "service_name": "XE",
+                c.ContextKey.SERVICE_NAME: "XE",
                 "username": "test",
                 "password": "test",
             },
@@ -183,7 +188,7 @@ class TestsFlextDbOracleCli:
             settings.DbOracle.username,
             settings.DbOracle.password,
         )
-        tm.that(result.failure, eq=True)
+        tm.ok(result.failure)
         tm.that(result.error, is_=str)
 
     # ---- class-level CLI command dispatch --------------------------------
@@ -240,9 +245,9 @@ class TestsFlextDbOracleCli:
                 "DbOracle": {
                     "host": "param_test_host",
                     "port": 1521,
-                    "service_name": "PARAM_TEST",
+                    c.ContextKey.SERVICE_NAME: "PARAM_TEST",
                     "username": "param_user",
-                    "password": "p" + "0" * 10,
+                    "password": "p" + c.ParserBooleanToken.ZERO * 10,
                 },
             }),
         )
@@ -262,7 +267,7 @@ class TestsFlextDbOracleCli:
         """A fully-specified API validates its own configuration."""
         api = self._sample_api()
         api.test_connection()
-        tm.that(api.valid(), eq=True)
+        tm.ok(api.valid())
 
     def test_api_optimize_query_succeeds(self) -> None:
         """Query optimization is a pure, connection-independent success."""
@@ -277,22 +282,22 @@ class TestsFlextDbOracleCli:
                 "DbOracle": {
                     "host": "invalid.host",
                     "port": 9999,
-                    "service_name": "INVALID_SERVICE",
+                    c.ContextKey.SERVICE_NAME: "INVALID_SERVICE",
                     "username": "invalid_user",
-                    "password": "p" + "1" * 10,
+                    "password": "p" + c.ParserBooleanToken.ONE * 10,
                 },
             }),
         )
         query_result = api.query("SELECT 1 FROM DUAL")
-        tm.that(query_result.failure, eq=True)
+        tm.ok(query_result.failure)
         error_lower = (query_result.error or "").lower()
-        tm.that("not connected" in error_lower or "connection" in error_lower, eq=True)
+        tm.ok("not connected" in error_lower or "connection" in error_lower)
 
     def test_api_schema_and_table_fetches_fail_without_connection(self) -> None:
         """Schema/table listing fails without an established connection."""
         api = self._sample_api()
-        tm.that(api.fetch_schemas().failure, eq=True)
-        tm.that(api.fetch_tables().failure, eq=True)
+        tm.ok(api.fetch_schemas().failure)
+        tm.ok(api.fetch_tables().failure)
 
     # ---- output formatting -----------------------------------------------
 
@@ -309,7 +314,7 @@ class TestsFlextDbOracleCli:
         tm.ok(formatted)
         unwrapped = formatted.unwrap()
         tm.that(unwrapped, is_=str)
-        tm.that(bool(unwrapped), eq=True)
+        tm.ok(bool(unwrapped))
 
     @staticmethod
     def test_yaml_dump_serializes_mapping_to_string() -> None:
@@ -328,7 +333,7 @@ class TestsFlextDbOracleCli:
         tm.that(tm.ok(api.list_plugins()), has="test_plugin")
         tm.that(api.fetch_plugin("test_plugin").unwrap(), eq=plugin_payload)
         tm.ok(api.unregister_plugin("test_plugin"))
-        tm.that("test_plugin" not in api.list_plugins().unwrap(), eq=True)
+        tm.ok("test_plugin" not in api.list_plugins().unwrap())
 
     def test_list_plugins_starts_empty(self) -> None:
         """A fresh API exposes an empty plugin registry."""
@@ -350,7 +355,7 @@ class TestsFlextDbOracleCli:
                 "DbOracle": {
                     "host": "localhost",
                     "port": 1521,
-                    "service_name": "TESTDB",
+                    c.ContextKey.SERVICE_NAME: "TESTDB",
                     "username": "test",
                     "password": "test",
                 },

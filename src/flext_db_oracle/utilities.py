@@ -1,3 +1,4 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
 """FlextDbOracle utilities module.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
@@ -8,7 +9,10 @@ from __future__ import annotations
 
 from flext_cli import FlextCliUtilities
 
-from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
+from flext_db_oracle._utilities import (
+    FlextDbOracleUtilitiesBase,
+    FlextDbOracleUtilitiesDbOracle,
+)
 
 
 class FlextDbOracleUtilities(FlextCliUtilities):
@@ -21,7 +25,7 @@ class FlextDbOracleUtilities(FlextCliUtilities):
     - Generic parsing utilities for StrEnums (inherited from parent)
     """
 
-    class DbOracle(FlextDbOracleUtilitiesDbOracle):
+    class DbOracle(FlextDbOracleUtilitiesBase, FlextDbOracleUtilitiesDbOracle):
         """Oracle-specific utility namespace."""
 
 

@@ -27,7 +27,7 @@ class TestsFlextDbOracleOracleExceptions:
     @staticmethod
     def test_family_alias_exposes_facade() -> None:
         """The `e` alias exported by the module is the facade class itself."""
-        assert e is FlextDbOracleExceptions
+        tm.ok(e is FlextDbOracleExceptions)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -158,7 +158,7 @@ class TestsFlextDbOracleOracleExceptions:
         present = {
             name: getattr(exc, name) for name in optional_fields if hasattr(exc, name)
         }
-        assert all(value is None for value in present.values())
+        tm.ok(all(value is None for value in present.values()))
 
     @staticmethod
     def test_connection_error_is_raisable_and_catchable_as_category() -> None:
@@ -174,7 +174,7 @@ class TestsFlextDbOracleOracleExceptions:
         with pytest.raises(FlextExceptions.FlextConnectionError) as caught:
             _raise()
 
-        assert caught.value is exc
+        tm.ok(caught.value is exc)
         tm.that(exc.tns_error, eq="TNS-12541")
         tm.that(str(caught.value), has="unreachable")
 
@@ -196,5 +196,5 @@ class TestsFlextDbOracleOracleExceptions:
         with pytest.raises(FlextDbOracleExceptions.Error) as caught:
             _translate()
 
-        assert caught.value.__cause__ is root
+        tm.ok(caught.value.__cause__ is root)
         tm.that(caught.value.oracle_error_code, eq="ORA-01017")
