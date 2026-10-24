@@ -14,17 +14,21 @@ from flext_cli import FlextCliTypes
 if TYPE_CHECKING:
     from flext_db_oracle import FlextDbOracleSettings
 
-OracleDatabaseError: type[Exception] = oracledb.DatabaseError
-OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
-type QueryParameters = FlextCliTypes.JsonMapping
-type CliScalar = FlextCliTypes.Scalar | None
-type Settings = FlextDbOracleSettings
+class FlextDbOracleTypes(FlextCliTypes):
+    """Oracle database-specific type definitions extending t via MRO."""
 
-__all__: list[str] = [
-    "CliScalar",
-    "OracleDatabaseError",
-    "OracleInterfaceError",
-    "QueryParameters",
-    "Settings",
-]
+    class DbOracle:
+        """Oracle domain namespace (flat members per AGENTS.md §149)."""
+
+        OracleDatabaseError: type[Exception] = oracledb.DatabaseError
+        OracleInterfaceError: type[Exception] = oracledb.InterfaceError
+
+        type QueryParameters = FlextCliTypes.JsonMapping
+        type CliScalar = FlextCliTypes.Scalar | None
+        type Settings = FlextDbOracleSettings
+
+
+t = FlextDbOracleTypes
+
+__all__: list[str] = ["FlextDbOracleTypes", "t"]
