@@ -285,7 +285,7 @@ class TestsFlextDbOracleOracleExample:
                 "port": 1521,
                 c.ContextKey.SERVICE_NAME: "XEPDB1",
                 "username": "invalid_user",
-                "password": "p" + "1" * 10,
+                "password": "p" + c.ParserBooleanToken.ONE * 10,
             },
         })
         connection = FlextDbOracleServices(settings=invalid_config)

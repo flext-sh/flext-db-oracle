@@ -242,7 +242,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         """
 
         def _fetch_count() -> int:
-            statement = select(func.count().label("count")).select_from(
+            statement = select(func.count().label(c.Aggregation.COUNT)).select_from(
                 table(
                     table_name.upper()
                     if c.DbOracle.IDENTIFIER_RE.fullmatch(table_name)

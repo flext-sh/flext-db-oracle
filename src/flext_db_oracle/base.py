@@ -78,7 +78,7 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
         """
         if not rows:
             return 0
-        count_raw = rows[0].root.get("count")
+        count_raw = rows[0].root.get(c.Aggregation.COUNT)
         if count_raw is None:
             return 0
         return self._parse_count_value(str(count_raw))

@@ -41,7 +41,7 @@ class TestsFlextDbOracleApi:
                 "port": 19999,
                 c.ContextKey.SERVICE_NAME: service_name,
                 "username": "test_user",
-                "password": "p" + "0" * 12,
+                "password": "p" + c.ParserBooleanToken.ZERO * 12,
                 "timeout": 1,
             },
         })

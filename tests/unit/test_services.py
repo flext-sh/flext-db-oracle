@@ -248,7 +248,7 @@ class TestsFlextDbOracleServicesSql:
             "schema_name": "APP",
             "unique": True,
             "tablespace": "USERS_TS",
-            "parallel": 2,
+            c.ProcessingMode.PARALLEL: 2,
         })
         tm.ok(
             result,
@@ -442,7 +442,11 @@ class TestsFlextDbOracleServicesObservability:
         oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """All plugin operations reject an empty plugin name."""
-        tm.ok(oracle_unit_services.register_plugin("", {"v": "1"}).failure)
+        tm.ok(
+            oracle_unit_services.register_plugin(
+                "", {"v": c.ParserBooleanToken.ONE}
+            ).failure
+        )
         tm.ok(oracle_unit_services.fetch_plugin("").failure)
         tm.ok(oracle_unit_services.unregister_plugin("").failure)
 
@@ -501,12 +505,12 @@ class TestsFlextDbOracleServicesOfflineData:
             name="ID",
             data_type="NUMBER",
             nullable=False,
-            default_value="0",
+            default_value=c.ParserBooleanToken.ZERO,
         )
         tm.that(column.name, eq="ID")
         tm.that(column.data_type, eq="NUMBER")
         tm.fail(column.nullable)
-        tm.that(column.default_value, eq="0")
+        tm.that(column.default_value, eq=c.ParserBooleanToken.ZERO)
 
     @staticmethod
     def test_table_model_exposes_columns() -> None:

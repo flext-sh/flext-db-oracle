@@ -77,9 +77,9 @@ def pytest_runtest_teardown(item: pytest.Item, nextitem: pytest.Item | None) -> 
 def pytest_configure(config: pytest.Config) -> None:
     """Configure pytest with Oracle container for ALL tests."""
     _ = config
-    os.environ["SKIP_E2E_TESTS"] = "false"
-    os.environ["ORACLE_INTEGRATION_TESTS"] = "1"
-    os.environ["USE_REAL_ORACLE"] = "true"
+    os.environ["SKIP_E2E_TESTS"] = c.ParserBooleanToken.FALSE
+    os.environ["ORACLE_INTEGRATION_TESTS"] = c.ParserBooleanToken.ONE
+    os.environ["USE_REAL_ORACLE"] = c.ParserBooleanToken.TRUE
 
 
 def pytest_sessionstart(session: pytest.Session) -> None:

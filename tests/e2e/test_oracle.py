@@ -41,7 +41,7 @@ class TestsFlextDbOracleOracle:
                 "port": 9999,
                 c.ContextKey.SERVICE_NAME: "INVALID_DB",
                 "username": "invalid_user",
-                "password": "p" + "1" * 10,
+                "password": "p" + c.ParserBooleanToken.ONE * 10,
             },
         })
 

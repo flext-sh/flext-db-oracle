@@ -247,7 +247,7 @@ class TestsFlextDbOracleCli:
                     "port": 1521,
                     c.ContextKey.SERVICE_NAME: "PARAM_TEST",
                     "username": "param_user",
-                    "password": "p" + "0" * 10,
+                    "password": "p" + c.ParserBooleanToken.ZERO * 10,
                 },
             }),
         )
@@ -284,7 +284,7 @@ class TestsFlextDbOracleCli:
                     "port": 9999,
                     c.ContextKey.SERVICE_NAME: "INVALID_SERVICE",
                     "username": "invalid_user",
-                    "password": "p" + "1" * 10,
+                    "password": "p" + c.ParserBooleanToken.ONE * 10,
                 },
             }),
         )

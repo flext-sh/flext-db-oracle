@@ -243,7 +243,7 @@ class TestsFlextDbOracleOracle:
         tm.ok(after_insert)
         rows = after_insert.unwrap()
         tm.that(len(rows), eq=1)
-        tm.that(self._cell(rows[0], "id"), eq="1")
+        tm.that(self._cell(rows[0], "id"), eq=c.ParserBooleanToken.ONE)
         tm.that(self._cell(rows[0], "name"), eq="Test User")
 
         update = connected_oracle_api.execute_statement(
@@ -262,7 +262,10 @@ class TestsFlextDbOracleOracle:
         remaining = connected_oracle_api.query(
             "SELECT COUNT(*) AS count FROM test_table",
         )
-        tm.that(self._cell(remaining.unwrap()[0], "count", "count(*)"), eq="0")
+        tm.that(
+            self._cell(remaining.unwrap()[0], c.Aggregation.COUNT, "count(*)"),
+            eq=c.ParserBooleanToken.ZERO,
+        )
 
     @pytest.mark.usefixtures("oracle_test_database")
     def test_committed_row_is_visible_after_commit(

@@ -276,7 +276,7 @@ class TestsFlextDbOracleConstantsValidation:
             max_port=65535,
             port=0,
         )
-        tm.that(rendered, has="1")
+        tm.that(rendered, has=c.ParserBooleanToken.ONE)
         tm.that(rendered, has="65535")
 
     # ---- keyword / reserved-word sets -----------------------------------

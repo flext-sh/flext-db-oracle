@@ -63,7 +63,7 @@ class TestsFlextDbOracleCoverageBaseline:
                 "port": 2484,
                 c.ContextKey.SERVICE_NAME: "SECURE_DB",
                 "username": "secure_user",
-                "password": "p" + "1" * 12,
+                "password": "p" + c.ParserBooleanToken.ONE * 12,
                 "ssl_cert_file": "/path/to/cert.pem",
             },
         })
@@ -86,12 +86,12 @@ class TestsFlextDbOracleCoverageBaseline:
             name="ID",
             data_type="NUMBER",
             nullable=False,
-            default_value="1",
+            default_value=c.ParserBooleanToken.ONE,
         )
         tm.that(column.name, eq="ID")
         tm.that(column.data_type, eq="NUMBER")
         tm.fail(column.nullable)
-        tm.that(column.default_value, eq="1")
+        tm.that(column.default_value, eq=c.ParserBooleanToken.ONE)
 
     @staticmethod
     def test_column_mapping_access_contract() -> None:
