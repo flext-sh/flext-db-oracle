@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 from typing import Final
 
-from examples import m, t, u
+from examples import c, m, t, u
 
 MAX_OUTPUT_LINES: Final[int] = 3
 
