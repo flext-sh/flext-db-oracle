@@ -42,7 +42,7 @@ src/flext_db_oracle/
 - **Settings are namespaced** — access `settings.DbOracle.*`
   (host/port/user/service_name/context_name), never flat `settings.host`. The API ctor
   resolves them from that namespace.
-- Config/settings canonical pattern: ADR-012.
+- Config/settings canonical pattern: ADR-005 (SSOT) and ADR-024 (DI config contract).
 - Codemod governance (ast-grep + make mod): ADR-014.
 
 ## Anti-Patterns / Gotchas
@@ -57,7 +57,7 @@ member — `PROJECT=` is not a root Make variable):
 
 ```bash
 make check
-make test
+make tests
 ```
 
 <!-- AIHUB-AGENTS-SCOPE-LOCAL-END -->
