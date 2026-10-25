@@ -7,6 +7,25 @@ config_version = "0"
 
 exclude_patterns = [
   "**/protos/**",
+  "**/conftest.py",
+  "**/examples/__init__.py",
+  "**/src/flext_db_oracle/__init__.py",
+  "**/src/flext_db_oracle/__version__.py",
+  "**/src/flext_db_oracle/_constants/__init__.py",
+  "**/src/flext_db_oracle/_models/__init__.py",
+  "**/src/flext_db_oracle/_protocols/__init__.py",
+  "**/src/flext_db_oracle/_typings/__init__.py",
+  "**/src/flext_db_oracle/_utilities/__init__.py",
+  "**/src/flext_db_oracle/constants.py",
+  "**/src/flext_db_oracle/models.py",
+  "**/src/flext_db_oracle/protocols.py",
+  "**/src/flext_db_oracle/services/__init__.py",
+  "**/src/flext_db_oracle/typings.py",
+  "**/src/flext_db_oracle/utilities.py",
+  "**/tests/__init__.py",
+  "**/tests/e2e/__init__.py",
+  "**/tests/integration/__init__.py",
+  "**/tests/unit/__init__.py",
 ]
 
 [smells]

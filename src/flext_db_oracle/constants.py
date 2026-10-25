@@ -49,5 +49,4 @@ class FlextDbOracleConstants(FlextConstants):
 
 
 c = FlextDbOracleConstants
-
-__all__ = ["FlextDbOracleConstants", "c"]
+__all__: list[str] = ["FlextDbOracleConstants", "c"]

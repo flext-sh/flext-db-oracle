@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import ClassVar
+from typing import TypeAlias
 
 from flext_cli import FlextCliModels
 
@@ -43,11 +43,8 @@ class FlextDbOracleModels(FlextCliModels):
     ):
         """DbOracle domain namespace."""
 
-        Password: ClassVar[type[FlextDbOracleCredentialModel]] = (
-            FlextDbOracleCredentialModel
-        )
+        Password: TypeAlias = FlextDbOracleCredentialModel
 
 
 m = FlextDbOracleModels
-
 __all__: list[str] = ["FlextDbOracleModels", "m"]
