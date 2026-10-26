@@ -13,7 +13,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextConstants
+from flext_core import c
 
 from flext_db_oracle._constants import (
     FlextDbOracleConstantsBase,
@@ -22,7 +22,7 @@ from flext_db_oracle._constants import (
 )
 
 
-class FlextDbOracleConstants(FlextConstants):
+class FlextDbOracleConstants(c):
     """Oracle database constants extending c foundation.
 
     Usage:

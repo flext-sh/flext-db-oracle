@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import FlextCliUtilities
+from flext_cli import u
 
 from flext_db_oracle._utilities import (
     FlextDbOracleUtilitiesBase,
@@ -15,7 +15,7 @@ from flext_db_oracle._utilities import (
 )
 
 
-class FlextDbOracleUtilities(FlextCliUtilities):
+class FlextDbOracleUtilities(u):
     """FlextDbOracle utilities extending FlextUtilities with Oracle-specific helpers.
 
     Architecture: Advanced utilities with ZERO code bloat through:
@@ -25,7 +25,7 @@ class FlextDbOracleUtilities(FlextCliUtilities):
     - Generic parsing utilities for StrEnums (inherited from parent)
     """
 
-    class DbOracle(FlextDbOracleUtilitiesBase, FlextDbOracleUtilitiesDbOracle):
+    class DbOracle(FlextDbOracleUtilitiesDbOracle, FlextDbOracleUtilitiesBase):
         """Oracle-specific utility namespace."""
 
 

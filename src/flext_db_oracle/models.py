@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import FlextCliModels
+from flext_cli import m
 
 from flext_db_oracle._models import (
     FlextDbOracleCredentialModel,
@@ -23,7 +23,7 @@ from flext_db_oracle._models import (
 )
 
 
-class FlextDbOracleModels(FlextCliModels):
+class FlextDbOracleModels(m):
     """Oracle database models using flext-core exclusively.
 
     Contains ONLY pure domain models (Entity, Value, AggregateRoot, etc.).
