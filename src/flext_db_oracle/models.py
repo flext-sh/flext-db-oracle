@@ -11,8 +11,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TypeAlias
-
 from flext_cli import FlextCliModels
 
 from flext_db_oracle._models import (
@@ -38,12 +36,11 @@ class FlextDbOracleModels(FlextCliModels):
         FlextDbOracleModelsBase,
         FlextDbOracleModelsCommand,
         FlextDbOracleModelsConnection,
+        FlextDbOracleCredentialModel,
         FlextDbOracleModelsQuery,
         FlextDbOracleModelsSchema,
     ):
         """DbOracle domain namespace."""
-
-        Password: TypeAlias = FlextDbOracleCredentialModel
 
 
 m = FlextDbOracleModels

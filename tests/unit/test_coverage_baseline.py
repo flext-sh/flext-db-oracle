@@ -72,10 +72,10 @@ class TestsFlextDbOracleCoverageBaseline:
 
     @staticmethod
     def test_password_equality_and_secret_access() -> None:
-        """Password exposes its root string, str form, and wrapper equality."""
+        """Password preserves its root, serialized value and model equality."""
         password = m.DbOracle.Password("h" + "2" * 6)
         tm.that(password.root, eq="h" + "2" * 6)
-        tm.that(str(password), eq="h" + "2" * 6)
+        tm.that(password.model_dump(), eq="h" + "2" * 6)
         tm.that(password, eq=m.DbOracle.Password("h" + "2" * 6))
         tm.that(password, ne=m.DbOracle.Password("other"))
 

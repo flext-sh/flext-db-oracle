@@ -17,7 +17,7 @@ from collections.abc import Mapping, Sequence
 import pytest
 
 from flext_db_oracle import FlextDbOracleSettings
-from tests import c, m, t, tm, u
+from tests import c, t, tm, u
 
 
 @pytest.mark.unit
@@ -28,7 +28,7 @@ class TestsFlextDbOracleUtilitiesUnit:
     # checker-visible type expression (aliases unwrap to the same adapter).
     # Concrete generics only: bare PEP 695 aliases in a runtime union collapse
     # to UnionType/TypeAliasType objects, which the adapter form rejects.
-    _JSON_RESULT_ADAPTER: m.TypeAdapter[
+    _JSON_RESULT_ADAPTER: u.type_adapter[
         Sequence[Mapping[str, int | str | bool]]
         | Sequence[Mapping[str, str]]
         | Sequence[Mapping[str, int]]
