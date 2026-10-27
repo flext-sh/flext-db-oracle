@@ -8,8 +8,10 @@ from __future__ import annotations
 
 from flext_cli import m
 
+from flext_db_oracle.config_models import FlextDbOracleConfigModels
 
-class FlextDbOracleModelsBase:
+
+class FlextDbOracleModelsBase(FlextDbOracleConfigModels):
     """Base models for flext-db-oracle."""
 
     class CredentialRoot(m.RootModel[str]):
@@ -20,11 +22,6 @@ class FlextDbOracleModelsBase:
             description="Oracle database password",
             validate_default=True,
         )
-
-    class ConfigNamespace(m.BaseModel):
-        """Open, frozen namespace exposing every ``config/*.yaml`` domain."""
-
-        model_config = m.ConfigDict(extra="allow", frozen=True)
 
 
 __all__: list[str] = ["FlextDbOracleModelsBase"]
