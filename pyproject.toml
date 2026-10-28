@@ -603,7 +603,7 @@ runtime-evaluated-base-classes = [
   "flext_core.FlextService",
   "flext_db_oracle.FlextDbOracleServiceBase",
   "flext_db_oracle.FlextDbOracleSettings",
-  "flext_db_oracle._models.FlextDbOracleModelsBase.CredentialRoot",
+  "flext_db_oracle._models.FlextModelsDbOracleBase.CredentialRoot",
   "flext_db_oracle._models.query_models.DbOracleDomainModel",
   "flext_db_oracle.s",
   "flext_db_oracle.services.FlextDbOracleApiRuntime",

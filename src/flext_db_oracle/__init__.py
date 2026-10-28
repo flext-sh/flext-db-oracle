@@ -54,7 +54,7 @@ if TYPE_CHECKING:
     from flext_db_oracle.constants import FlextDbOracleConstants, c
     from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
     from flext_db_oracle.exceptions import FlextDbOracleExceptions, e
-    from flext_db_oracle.models import FlextDbOracleModels, m
+    from flext_db_oracle.models import FlextModelsDbOracle, m
     from flext_db_oracle.protocols import FlextDbOracleProtocols, p
     from flext_db_oracle.typings import FlextDbOracleTypes, t
     from flext_db_oracle.utilities import FlextDbOracleUtilities, u
@@ -68,13 +68,13 @@ __all__: tuple[str, ...] = (
     "FlextDbOracleConstants",
     "FlextDbOracleDispatcher",
     "FlextDbOracleExceptions",
-    "FlextDbOracleModels",
     "FlextDbOracleProtocols",
     "FlextDbOracleServiceBase",
     "FlextDbOracleSettings",
     "FlextDbOracleTypes",
     "FlextDbOracleUtilities",
     "FlextDbOracleVersion",
+    "FlextModelsDbOracle",
     "__author__",
     "__author_email__",
     "__description__",
@@ -121,7 +121,7 @@ install_lazy_exports(
         "FlextDbOracleConstants": ".constants",
         "FlextDbOracleDispatcher": ".dispatcher",
         "FlextDbOracleExceptions": ".exceptions",
-        "FlextDbOracleModels": ".models",
+        "FlextModelsDbOracle": ".models",
         "FlextDbOracleProtocols": ".protocols",
         "FlextDbOracleServiceBase": ".base",
         "FlextDbOracleSettings": "._settings",

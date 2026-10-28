@@ -15,7 +15,7 @@ from typing import Annotated
 from flext_cli import FlextCliConfig
 from pydantic import Field
 
-from flext_db_oracle.config_models import FlextDbOracleConfigModels
+from flext_db_oracle.config_models import FlextModelsDbOracleConfig
 
 
 class FlextDbOracleConfig(FlextCliConfig):
@@ -28,11 +28,11 @@ class FlextDbOracleConfig(FlextCliConfig):
     """
 
     DbOracle: Annotated[
-        FlextDbOracleConfigModels.ConfigNamespace,
+        FlextModelsDbOracleConfig.ConfigNamespace,
         Field(
             description="Open namespace exposing ``config/*.yaml`` under ``DbOracle``.",
         ),
-    ] = FlextDbOracleConfigModels.ConfigNamespace()
+    ] = FlextModelsDbOracleConfig.ConfigNamespace()
 
 
 config: FlextDbOracleConfig = FlextDbOracleConfig.fetch_global()

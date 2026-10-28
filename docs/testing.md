@@ -12,18 +12,6 @@
   - [Test Quality Metrics](#test-quality-metrics)
 - [🚀 Testing Strategy & Best Practices](#testing-strategy-best-practices)
   - [1. Railway Pattern Testing](#1-railway-pattern-testing)
-  - [2. Fixture-Based Testing](#2-fixture-based-testing)
-  - [3. Parametrized Testing](#3-parametrized-testing)
-  - [4. Mock Strategy](#4-mock-strategy)
-- [📊 Current Test Results & Issues](#current-test-results-issues_1)
-  - [Test Execution Status](#test-execution-status)
-  - [CI/CD Integration](#cicd-integration)
-- [🎯 Testing Roadmap](#testing-roadmap)
-  - [Phase 2 Priorities](#phase-2-priorities)
-  - [Established Practices](#established-practices)
-- [📈 Testing Quality Metrics](#testing-quality-metrics)
-  - [Targets](#targets)
-- [🔍 Maintenance](#maintenance)
 
 <!-- TOC END -->
 
@@ -137,7 +125,7 @@ Basic functionality tests failing **Files Affected**: `tests/unit/test_constants
 
 #### Test r Operations
 
-````python notest
+````{.python .notest}
 from __future__ import annotations
 
 

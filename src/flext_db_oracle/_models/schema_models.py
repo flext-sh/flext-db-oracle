@@ -12,10 +12,10 @@ from typing import cast
 from flext_cli import m
 
 from flext_db_oracle import t
-from flext_db_oracle._models import FlextDbOracleModelsQuery
+from flext_db_oracle._models import FlextModelsDbOracleQuery
 
 
-class FlextDbOracleModelsSchema:
+class FlextModelsDbOracleSchema:
     """Oracle Database schema models composed into ``m.DbOracle``."""
 
     class TableMetadata(m.Entity):
@@ -27,7 +27,7 @@ class FlextDbOracleModelsSchema:
             description="Oracle schema name",
             validate_default=True,
         )
-        columns: t.SequenceOf[FlextDbOracleModelsQuery.ColumnMetadata] = m.Field(
+        columns: t.SequenceOf[FlextModelsDbOracleQuery.ColumnMetadata] = m.Field(
             default_factory=lambda: (),
             description="Column metadata for the table",
         )
@@ -104,10 +104,10 @@ class FlextDbOracleModelsSchema:
     class SingerSchema(m.Entity):
         """Singer schema container with typed properties."""
 
-        properties: t.MappingKV[str, FlextDbOracleModelsSchema.SingerField] = m.Field(
+        properties: t.MappingKV[str, FlextModelsDbOracleSchema.SingerField] = m.Field(
             default_factory=lambda: MappingProxyType(
                 cast(
-                    "dict[str, FlextDbOracleModelsSchema.SingerField]",
+                    "dict[str, FlextModelsDbOracleSchema.SingerField]",
                     {},
                 ),
             ),
@@ -123,7 +123,7 @@ class FlextDbOracleModelsSchema:
             description="Table owner or schema",
             validate_default=True,
         )
-        columns: t.SequenceOf[FlextDbOracleModelsSchema.Column] = m.Field(
+        columns: t.SequenceOf[FlextModelsDbOracleSchema.Column] = m.Field(
             default_factory=lambda: (),
             description="Column definitions for the table",
         )
@@ -188,7 +188,7 @@ class FlextDbOracleModelsSchema:
         """Schema metadata using flext-core Entity."""
 
         name: str = m.Field(description="Schema name")
-        tables: t.SequenceOf[FlextDbOracleModelsSchema.Table] = m.Field(
+        tables: t.SequenceOf[FlextModelsDbOracleSchema.Table] = m.Field(
             default_factory=lambda: (),
             description="Tables within this schema",
         )
@@ -223,4 +223,4 @@ class FlextDbOracleModelsSchema:
         )
 
 
-__all__: list[str] = ["FlextDbOracleModelsSchema"]
+__all__: list[str] = ["FlextModelsDbOracleSchema"]

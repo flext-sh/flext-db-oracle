@@ -41,7 +41,7 @@ graph TB
     end
 
     subgraph "Domain Layer"
-        MODELS[FlextDbOracleModels<br/>📋 Domain Models<br/>Entity Pattern]
+        MODELS[FlextModelsDbOracle<br/>📋 Domain Models<br/>Entity Pattern]
 
         SERVICES[FlextDbOracleServices<br/>🔧 Business Logic<br/>Service Pattern]
 
@@ -201,7 +201,7 @@ target
 
 ### Domain Layer Components
 
-#### FlextDbOracleModels (Domain Models)
+#### FlextModelsDbOracle (Domain Models)
 
 **Pattern**: Entity Pattern **Responsibilities**:
 
@@ -217,9 +217,8 @@ from __future__ import annotations
 
 import os
 
-from pydantic import SecretStr
-
 from flext_core import m, t
+from pydantic import SecretStr
 
 
 class OracleConfig(m.BaseModel):
@@ -364,7 +363,7 @@ sequenceDiagram
     participant Client
     participant API as FlextDbOracleApi
     participant Services as FlextDbOracleServices
-    participant Models as FlextDbOracleModels
+    participant Models as FlextModelsDbOracle
     participant Connection as FlextDbOracleConnection
     participant Oracle as Oracle Database
 

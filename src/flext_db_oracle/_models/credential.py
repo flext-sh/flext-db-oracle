@@ -6,13 +6,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle._models import FlextDbOracleModelsBase
+from flext_db_oracle._models import FlextModelsDbOracleBase
 
 
 class FlextDbOracleCredentialModel:
     """Credential declarations composed into the Oracle model namespace."""
 
-    class Password(FlextDbOracleModelsBase.CredentialRoot):
+    class Password(FlextModelsDbOracleBase.CredentialRoot):
         """Password value transported by the origin's root-model contract."""
 
 

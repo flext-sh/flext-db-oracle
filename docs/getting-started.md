@@ -45,7 +45,7 @@ make setup
 ## Quick Connection Test
 
 ```python
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c
 
 # Configure Oracle connection
 settings = FlextDbOracleSettings.model_validate({
@@ -74,7 +74,7 @@ else:
 ### Query Execution
 
 ```python
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c
 
 settings = FlextDbOracleSettings.model_validate({
     "DbOracle": {
@@ -103,7 +103,7 @@ if result.success:
 ### Schema Operations
 
 ```python
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c
 
 settings = FlextDbOracleSettings.model_validate({
     "DbOracle": {

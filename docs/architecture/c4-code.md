@@ -54,7 +54,7 @@ graph TB
     end
 
     subgraph "Domain Model Layer"
-        MODELS[models.py<br/>FlextDbOracleModels<br/>Pydantic v2 Models<br/>Data Validation]
+        MODELS[models.py<br/>FlextModelsDbOracle<br/>Pydantic v2 Models<br/>Data Validation]
         EXCEPTIONS[exceptions.py<br/>FlextDbOracleExceptions<br/>Error Hierarchy]
         CONSTANTS[constants.py<br/>FlextDbOracleConstants<br/>System Constants<br/>Configuration]
     end
@@ -252,10 +252,10 @@ class FlextDbOracleApi:
         return r[Transaction].ok(Transaction())
 
     def commit_transaction(self) -> p.Result[bool]:
-        return r[bool].ok(value=True)=True)
+        return r[bool].ok(value=True)
 
     def rollback_transaction(self) -> p.Result[bool]:
-        return r[bool].ok(value=True)=True)
+        return r[bool].ok(value=True)
 
 
 api = FlextDbOracleApi()
@@ -292,7 +292,7 @@ operations **Current State**: SimpleNamespace placeholders for Rich components
 
 ### Domain Model Layer
 
-#### `models.py` (FlextDbOracleModels)
+#### `models.py` (FlextModelsDbOracle)
 
 **Lines**: ~1,200 **Models**: 15+ Pydantic classes **Purpose**: Domain models and data
 validation **Features**:

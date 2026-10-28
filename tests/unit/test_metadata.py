@@ -108,8 +108,9 @@ class TestsFlextDbOracleMetadata:
             },
         })
 
+    @staticmethod
     @pytest.fixture
-    def services(self, settings: FlextDbOracleSettings) -> FlextDbOracleServices:
+    def services(settings: FlextDbOracleSettings) -> FlextDbOracleServices:
         """Return a freshly composed, unconnected services facade."""
         return FlextDbOracleServices(settings=settings)
 
