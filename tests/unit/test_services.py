@@ -11,6 +11,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
@@ -220,7 +222,7 @@ class TestsFlextDbOracleServicesSql:
         oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """create_table_ddl renders the table with PK and NOT NULL constraints."""
-        columns: t.SequenceOf[t.JsonMapping] = [
+        columns: Sequence[t.JsonMapping] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",

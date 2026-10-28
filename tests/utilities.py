@@ -26,29 +26,29 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
         def normalize_port_bindings(
             cls,
             value: t.JsonValue | t.JsonMapping,
-        ) -> t.StrMapping:
+        ) -> Mapping[str, str]:
             """Normalize Docker port bindings into a typed mapping.
 
             Returns:
-                The resulting ``t.StrMapping``.
+                The resulting ``Mapping[str, str]``.
 
             """
             # Why: no-hidden-errors — propagate a malformed Docker port
             # payload instead of masking it as "no bindings".
-            validated: t.StrMapping = u.type_adapter(Mapping[str, ...]).validate_python(
-                value
-            )
+            validated: Mapping[str, str] = u.type_adapter(
+                Mapping[str, str]
+            ).validate_python(value)
             return validated
 
         @classmethod
         def _oracle_host_ports(
             cls,
             status_value: FlextTestsModels.Tests.ContainerInfo,
-        ) -> t.StrMapping:
+        ) -> Mapping[str, str]:
             """Normalize the port bindings carried by a container status value.
 
             Returns:
-                The resulting ``t.StrMapping``.
+                The resulting ``Mapping[str, str]``.
 
             """
             return cls.normalize_port_bindings(status_value.ports)
@@ -56,7 +56,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
         @classmethod
         def _env_port_matches(
             cls,
-            ports: t.StrMapping,
+            ports: Mapping[str, str],
             env_port_int: int,
         ) -> bool:
             """Report whether any Oracle listener publishes ``env_port_int``.
@@ -73,7 +73,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
             )
 
         @classmethod
-        def _first_oracle_host_port(cls, ports: t.StrMapping) -> int | None:
+        def _first_oracle_host_port(cls, ports: Mapping[str, str]) -> int | None:
             """Return the first published Oracle listener host port, if any.
 
             Returns:

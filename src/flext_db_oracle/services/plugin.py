@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
@@ -41,7 +41,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
         """
         status = "connected" if self.connected() else "disconnected"
-        metrics_payload: t.StrMapping = {
+        metrics_payload: Mapping[str, str] = {
             metric_name: str(metric_value)
             for metric_name, metric_value in self._metrics.items()
         }

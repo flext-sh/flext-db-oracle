@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Protocol, Self, runtime_checkable
 
 from flext_cli import FlextCliProtocols
@@ -98,11 +99,11 @@ class FlextDbOracleProtocolsConnection:
             """
             ...
 
-        def list_plugins(self) -> p.Result[t.StrSequence]:
+        def list_plugins(self) -> p.Result[Sequence[str]]:
             """List registered Oracle database plugins.
 
             Returns:
-            r[t.StrSequence]: Plugin names or error
+            r[Sequence[str]]: Plugin names or error
 
             """
             ...

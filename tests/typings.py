@@ -25,7 +25,7 @@ class TestsFlextDbOracleTypes(FlextTestsTypes, FlextDbOracleTypes):
             | m.ConfigMap
             | p.Result[Mapping[str, FlextDbOracleTypes.FlatContainer]]
             | p.Result[str]
-            | p.Result[FlextDbOracleTypes.StrSequence]
+            | p.Result[FlextDbOracleTypes.Sequence[str]]
         )
         type ApiCoverageCallable = Callable[[], ApiCoverageReturn]
         type ProtocolContract = tuple[str, type, FlextDbOracleTypes.VariadicTuple[str]]

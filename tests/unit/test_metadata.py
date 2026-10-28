@@ -23,7 +23,7 @@ import pytest
 
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.services import FlextDbOracleServices
-from tests import c, m, t, tm
+from tests import c, m, tm
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -37,31 +37,31 @@ _T = TypeVar("_T")
 # `services` parameter from the explicit annotation -- an inline lambda
 # inside the parametrize list literal has no expected-type context to infer
 # its parameter from ([implicit-any-lambda]).
-def _call_fetch_schemas(services: FlextDbOracleServices) -> p.Result[t.StrSequence]:
+def _call_fetch_schemas(services: FlextDbOracleServices) -> p.Result[Sequence[str]]:
     return services.fetch_schemas()
 
 
 def _call_fetch_tables_default(
     services: FlextDbOracleServices,
-) -> p.Result[t.StrSequence]:
+) -> p.Result[Sequence[str]]:
     return services.fetch_tables()
 
 
 def _call_fetch_tables_schema(
     services: FlextDbOracleServices,
-) -> p.Result[t.StrSequence]:
+) -> p.Result[Sequence[str]]:
     return services.fetch_tables("APP_SCHEMA")
 
 
 def _call_fetch_tables_empty_schema(
     services: FlextDbOracleServices,
-) -> p.Result[t.StrSequence]:
+) -> p.Result[Sequence[str]]:
     return services.fetch_tables("")
 
 
 def _call_fetch_tables_none_schema(
     services: FlextDbOracleServices,
-) -> p.Result[t.StrSequence]:
+) -> p.Result[Sequence[str]]:
     return services.fetch_tables(None)
 
 
@@ -85,7 +85,7 @@ def _call_fetch_table_metadata(
 
 def _call_fetch_primary_keys(
     services: FlextDbOracleServices,
-) -> p.Result[t.StrSequence]:
+) -> p.Result[Sequence[str]]:
     return services.fetch_primary_keys("T")
 
 

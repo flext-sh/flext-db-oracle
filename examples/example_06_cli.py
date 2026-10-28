@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import os
 import sys
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Final
 
@@ -19,11 +20,11 @@ from examples import c, m, t, u
 MAX_OUTPUT_LINES: Final[int] = 3
 
 
-def _get_cli_examples() -> t.SequenceOf[t.JsonMapping]:
+def _get_cli_examples() -> Sequence[t.JsonMapping]:
     """Get CLI command examples - DRY pattern for example data.
 
     Returns:
-        t.SequenceOf[t.JsonMapping]: List of CLI command examples with metadata.
+        Sequence[t.JsonMapping]: List of CLI command examples with metadata.
 
     """
     return [
@@ -126,7 +127,7 @@ def _check_oracle_env() -> bool:
     return all(os.getenv(var) for var in required_vars)
 
 
-def run_cli_command(cmd: t.StrSequence) -> t.Triple[int, str, str]:
+def run_cli_command(cmd: Sequence[str]) -> tuple[int, str, str]:
     """Run CLI command and return exit code, stdout, stderr (no shell).
 
     Returns:
@@ -134,7 +135,7 @@ def run_cli_command(cmd: t.StrSequence) -> t.Triple[int, str, str]:
 
     """
 
-    def _run() -> t.Triple[int, str, str]:
+    def _run() -> tuple[int, str, str]:
         result = u.Cli.run_raw(cmd, timeout=30)
         if result.success:
             process = result.value

@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from types import MappingProxyType
 from typing import cast
 
@@ -27,11 +28,11 @@ class FlextModelsDbOracleSchema:
             description="Oracle schema name",
             validate_default=True,
         )
-        columns: t.SequenceOf[FlextModelsDbOracleQuery.ColumnMetadata] = m.Field(
+        columns: Sequence[FlextModelsDbOracleQuery.ColumnMetadata] = m.Field(
             default_factory=lambda: (),
             description="Column metadata for the table",
         )
-        primary_keys: t.StrSequence = m.Field(
+        primary_keys: Sequence[str] = m.Field(
             default_factory=tuple[str, ...],
             description="Primary key column names",
         )
@@ -59,7 +60,7 @@ class FlextModelsDbOracleSchema:
     class TypeMapping(m.Entity):
         """Singer-to-Oracle type mapping."""
 
-        mapping: t.StrMapping = m.Field(
+        mapping: Mapping[str, str] = m.Field(
             default_factory=lambda: MappingProxyType[str, str]({}),
             description="Singer-to-Oracle type conversion map",
         )
@@ -95,7 +96,7 @@ class FlextModelsDbOracleSchema:
     class SingerField(m.Entity):
         """Singer field definition."""
 
-        type: str | t.StrSequence = m.Field(
+        type: str | Sequence[str] = m.Field(
             default="string",
             description="Singer JSON Schema type or type array",
             validate_default=True,
@@ -104,7 +105,7 @@ class FlextModelsDbOracleSchema:
     class SingerSchema(m.Entity):
         """Singer schema container with typed properties."""
 
-        properties: t.MappingKV[str, FlextModelsDbOracleSchema.SingerField] = m.Field(
+        properties: Mapping[str, FlextModelsDbOracleSchema.SingerField] = m.Field(
             default_factory=lambda: MappingProxyType(
                 cast(
                     "dict[str, FlextModelsDbOracleSchema.SingerField]",
@@ -123,7 +124,7 @@ class FlextModelsDbOracleSchema:
             description="Table owner or schema",
             validate_default=True,
         )
-        columns: t.SequenceOf[FlextModelsDbOracleSchema.Column] = m.Field(
+        columns: Sequence[FlextModelsDbOracleSchema.Column] = m.Field(
             default_factory=lambda: (),
             description="Column definitions for the table",
         )
@@ -188,7 +189,7 @@ class FlextModelsDbOracleSchema:
         """Schema metadata using flext-core Entity."""
 
         name: str = m.Field(description="Schema name")
-        tables: t.SequenceOf[FlextModelsDbOracleSchema.Table] = m.Field(
+        tables: Sequence[FlextModelsDbOracleSchema.Table] = m.Field(
             default_factory=lambda: (),
             description="Tables within this schema",
         )
@@ -198,7 +199,7 @@ class FlextModelsDbOracleSchema:
 
         table_name: str = m.Field(description="Target table for the index")
         index_name: str = m.Field(description="Name of the index to create")
-        columns: t.StrSequence = m.Field(
+        columns: Sequence[str] = m.Field(
             description="Columns to include in the index",
         )
         unique: bool = m.Field(

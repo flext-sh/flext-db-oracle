@@ -6,11 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-
     from flext_db_oracle import m, p, t
 
 
@@ -24,7 +23,7 @@ class FlextDbOracleProtocolsQuery:
         def execute_many(
             self,
             sql: str,
-            params_list: t.SequenceOf[t.JsonMapping],
+            params_list: Sequence[t.JsonMapping],
         ) -> p.Result[int]:
             """Execute Oracle SQL statement with multiple parameter sets.
 
@@ -114,7 +113,7 @@ class FlextDbOracleProtocolsQuery:
             self,
             table: str,
             schema: str | None = None,
-        ) -> p.Result[t.StrSequence]:
+        ) -> p.Result[Sequence[str]]:
             """Get primary key columns for Oracle table.
 
             Args:
@@ -122,16 +121,16 @@ class FlextDbOracleProtocolsQuery:
             schema: Schema name (optional)
 
             Returns:
-            r[t.StrSequence]: Primary key column names or error
+            r[Sequence[str]]: Primary key column names or error
 
             """
             ...
 
-        def fetch_schemas(self) -> p.Result[t.StrSequence]:
+        def fetch_schemas(self) -> p.Result[Sequence[str]]:
             """Get list of Oracle schemas.
 
             Returns:
-            r[t.StrSequence]: Schema names or error
+            r[Sequence[str]]: Schema names or error
 
             """
             ...
@@ -156,14 +155,14 @@ class FlextDbOracleProtocolsQuery:
         def fetch_tables(
             self,
             schema: str | None = None,
-        ) -> p.Result[t.StrSequence]:
+        ) -> p.Result[Sequence[str]]:
             """Get list of tables in Oracle schema.
 
             Args:
             schema: Schema name (optional)
 
             Returns:
-            r[t.StrSequence]: Table names or error
+            r[Sequence[str]]: Table names or error
 
             """
             ...
@@ -175,7 +174,7 @@ class FlextDbOracleProtocolsQuery:
         def build_delete_statement(
             self,
             table_name: str,
-            where_columns: t.StrSequence,
+            where_columns: Sequence[str],
             schema: str | None = None,
         ) -> p.Result[str]:
             """Build Oracle DELETE statement.
@@ -194,9 +193,9 @@ class FlextDbOracleProtocolsQuery:
         def build_insert_statement(
             self,
             table_name: str,
-            columns: t.StrSequence,
+            columns: Sequence[str],
             schema: str | None = None,
-            returning_columns: t.StrSequence | None = None,
+            returning_columns: Sequence[str] | None = None,
         ) -> p.Result[str]:
             """Build Oracle INSERT statement.
 
@@ -215,7 +214,7 @@ class FlextDbOracleProtocolsQuery:
         def build_select(
             self,
             table_name: str,
-            columns: t.StrSequence | None = None,
+            columns: Sequence[str] | None = None,
             conditions: m.ConfigMap | t.JsonMapping | None = None,
             schema_name: str | None = None,
         ) -> p.Result[str]:
@@ -236,8 +235,8 @@ class FlextDbOracleProtocolsQuery:
         def build_update_statement(
             self,
             table_name: str,
-            set_columns: t.StrSequence,
-            where_columns: t.StrSequence,
+            set_columns: Sequence[str],
+            where_columns: Sequence[str],
             schema: str | None = None,
         ) -> p.Result[str]:
             """Build Oracle UPDATE statement.
@@ -261,7 +260,7 @@ class FlextDbOracleProtocolsQuery:
         def build_create_index_statement(
             self,
             table: str,
-            columns: t.StrSequence,
+            columns: Sequence[str],
             index_name: str | None = None,
             *,
             unique: bool = False,
@@ -283,7 +282,7 @@ class FlextDbOracleProtocolsQuery:
         def create_table_ddl(
             self,
             table: str,
-            columns: t.SequenceOf[m.DbOracle.Column],
+            columns: Sequence[m.DbOracle.Column],
             schema: str | None = None,
         ) -> p.Result[str]:
             """Generate Oracle CREATE TABLE DDL.
@@ -333,7 +332,7 @@ class FlextDbOracleProtocolsQuery:
             self,
             name: str,
             value: float,
-            tags: t.StrMapping | None = None,
+            tags: Mapping[str, str] | None = None,
         ) -> p.Result[bool]:
             """Record Oracle database metric.
 

@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime
 from typing import override
 
@@ -78,7 +78,7 @@ class FlextDbOracleClient(s):
     def _run_cli_command(
         cls,
         operation: str,
-        params: t.MappingKV[str, t.Scalar],
+        params: Mapping[str, t.Scalar],
     ) -> p.Result[str]:
         """Run a normalized CLI operation.
 
@@ -303,17 +303,17 @@ class FlextDbOracleClient(s):
         return self._format_and_display_result(operation_result, format_type)
 
     @staticmethod
-    def _adapt_schemas(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
+    def _adapt_schemas(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:
         schemas = u.json_list_adapter().validate_python(raw_value)
         return [m.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
 
     @staticmethod
-    def _adapt_tables(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
+    def _adapt_tables(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:
         tables = u.json_list_adapter().validate_python(raw_value)
         return [m.ConfigMap(root={"table": str(table)}) for table in tables]
 
     @staticmethod
-    def _adapt_health(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
+    def _adapt_health(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:
         # Why: no-hidden-errors — validate_config_map now raises on malformed
         # input instead of returning None; no sentinel branch needed here.
         health = u.DbOracle.validate_config_map(raw_value)
@@ -342,16 +342,16 @@ class FlextDbOracleClient(s):
 
     def _adapt_data_root(
         self,
-        data_root: t.MappingKV[str, t.JsonPayload],
-    ) -> t.SequenceOf[m.ConfigMap]:
+        data_root: Mapping[str, t.JsonPayload],
+    ) -> Sequence[m.ConfigMap]:
         """Adapt one ConfigMap root into table rows.
 
         Returns:
-            The resulting ``t.SequenceOf[m.ConfigMap]``.
+            The resulting ``Sequence[m.ConfigMap]``.
 
         """
-        strategies: t.SequenceOf[
-            t.Pair[str, Callable[[t.JsonValue], t.SequenceOf[m.ConfigMap]]]
+        strategies: Sequence[
+            tuple[str, Callable[[t.JsonValue], Sequence[m.ConfigMap]]]
         ] = [
             ("schemas", self._adapt_schemas),
             ("tables", self._adapt_tables),
@@ -366,15 +366,15 @@ class FlextDbOracleClient(s):
         ]
 
     @staticmethod
-    def _build_table_string(adapted_data: t.SequenceOf[m.ConfigMap]) -> str:
+    def _build_table_string(adapted_data: Sequence[m.ConfigMap]) -> str:
         """Build table string from adapted data.
 
         Returns:
             The resulting ``str``.
 
         """
-        headers: t.StrSequence = list(adapted_data[0].keys())
-        rows: t.SequenceOf[t.StrSequence] = [
+        headers: Sequence[str] = list(adapted_data[0].keys())
+        rows: Sequence[Sequence[str]] = [
             [str(row[h]) for h in headers] for row in adapted_data
         ]
         result_str = f"{'|'.join(headers)}\n{'|'.join(['---'] * len(headers))}\n"
@@ -432,7 +432,7 @@ class FlextDbOracleClient(s):
     def _dispatch_operation(
         self,
         operation: str,
-        params: t.MappingKV[str, t.Scalar | m.ConfigMap],
+        params: Mapping[str, t.Scalar | m.ConfigMap],
     ) -> p.Result[m.ConfigMap]:
         """Dispatch one validated Oracle client operation.
 
@@ -534,8 +534,8 @@ class FlextDbOracleClient(s):
 
         """
         try:
-            formatter_strategies: t.SequenceOf[
-                t.Pair[str, Callable[[m.ConfigMap], p.Result[str]]]
+            formatter_strategies: Sequence[
+                tuple[str, Callable[[m.ConfigMap], p.Result[str]]]
             ] = [
                 ("table", self._format_as_table),
                 ("json", self._format_as_json),
@@ -644,4 +644,4 @@ class FlextDbOracleClient(s):
         return r[bool].ok(value=True)
 
 
-__all__: t.StrSequence = ("FlextDbOracleClient",)
+__all__: Sequence[str] = ("FlextDbOracleClient",)

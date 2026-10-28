@@ -180,6 +180,15 @@ self._formatters = SimpleNamespace(
 ````{.python .notest}
 from __future__ import annotations
 
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
+
 # Planned Rich integration
 from rich.table import Table
 from rich.console import Console

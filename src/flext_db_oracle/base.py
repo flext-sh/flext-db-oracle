@@ -69,7 +69,7 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
         """
         return self._engine is not None
 
-    def _parse_count_from_rows(self, rows: t.SequenceOf[m.Dict]) -> int:
+    def _parse_count_from_rows(self, rows: Sequence[m.Dict]) -> int:
         """Parse COUNT(*) value from normalized query rows.
 
         Returns:

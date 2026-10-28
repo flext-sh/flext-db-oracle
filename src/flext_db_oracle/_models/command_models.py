@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from flext_cli import m
 
 from flext_db_oracle import t
@@ -57,7 +59,7 @@ class FlextModelsDbOracleCommand:
         """Command to execute batch statements."""
 
         sql: str = m.Field(description="SQL statement for batch execution")
-        parameters_list: t.SequenceOf[t.JsonMapping] = m.Field(
+        parameters_list: Sequence[t.JsonMapping] = m.Field(
             default_factory=tuple[t.JsonMapping, ...],
             description="List of parameter sets for batch execution",
         )

@@ -120,6 +120,15 @@ def test_connection_with_mocked_engine(mock_create_engine):
 ```python notest
 from __future__ import annotations
 
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
+
 
 def test_config_validation_with_invalid_host():
     """Test configuration validation fails with empty host."""

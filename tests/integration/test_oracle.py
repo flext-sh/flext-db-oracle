@@ -13,10 +13,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import c, m, t, tm
+from tests import c, m, tm
 
 
 @pytest.fixture
@@ -227,7 +229,7 @@ class TestsFlextDbOracleOracle:
     def test_insert_update_delete_roundtrip_is_observable_via_queries(
         self,
         connected_oracle_api: FlextDbOracleApi,
-        oracle_test_database: t.StrMapping,
+        oracle_test_database: Mapping[str, str],
     ) -> None:
         """DML mutations are observable through subsequent SELECT results."""
         tm.that(oracle_test_database, has="test_table")

@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
+from collections.abc import Sequence
 
 import pytest
 
@@ -133,7 +134,7 @@ class TestsFlextDbOracleOracleExample:
                 "CREATE TABLE temp_test_table (id NUMBER, name VARCHAR2(100))",
             )
             tm.ok(create_result)
-            params_list: t.SequenceOf[t.JsonMapping] = [
+            params_list: Sequence[t.JsonMapping] = [
                 {"id": 1, "name": "Test 1"},
                 {"id": 2, "name": "Test 2"},
                 {"id": 3, "name": "Test 3"},

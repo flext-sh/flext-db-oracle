@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import ClassVar
 
 from flext_cli import m
@@ -65,11 +66,11 @@ class FlextModelsDbOracleQuery:
         )
 
         # Additional Oracle-specific query result details
-        columns: t.StrSequence = m.Field(
+        columns: Sequence[str] = m.Field(
             default_factory=tuple[str, ...],
             description="Column names in result set",
         )
-        rows: t.SequenceOf[FlextModelsDbOracleQuery.RowData] = m.Field(
+        rows: Sequence[FlextModelsDbOracleQuery.RowData] = m.Field(
             default_factory=lambda: (),
             description="Typed row data from query result",
         )

@@ -6,10 +6,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 import pytest
 
 from flext_db_oracle import FlextDbOracleSettings
-from tests import c, m, t, tm, u
+from tests import c, m, tm, u
 
 
 @pytest.mark.unit
@@ -334,7 +336,7 @@ class TestsFlextDbOracleSchemaModels:
     @staticmethod
     def test_create_index_config_requires_columns() -> None:
         """A CreateIndexConfig without columns is rejected."""
-        payload: t.StrMapping = {
+        payload: Mapping[str, str] = {
             "table_name": "users",
             "index_name": "idx_users_email",
         }

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -23,7 +24,7 @@ from tests import c, tk, tm, u
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-from tests import p, t
+from tests import p
 
 logger = u.fetch_logger(__name__)
 
@@ -449,11 +450,11 @@ def oracle_available(connected_oracle_api: FlextDbOracleApi) -> bool:
 
 
 @pytest.fixture
-def oracle_test_database(connected_oracle_api: FlextDbOracleApi) -> t.StrMapping:
+def oracle_test_database(connected_oracle_api: FlextDbOracleApi) -> Mapping[str, str]:
     """Set up test database schema and return test table info.
 
     Returns:
-        The resulting ``t.StrMapping``.
+        The resulting ``Mapping[str, str]``.
 
     Raises:
         AssertionError: If Could not create test schema; or if Test setup failed.

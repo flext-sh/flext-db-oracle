@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 
 import pytest
 
@@ -392,7 +392,7 @@ class TestsFlextDbOracleApi:
         def test_build_select_emits_select_over_named_table_and_columns(
             settings: FlextDbOracleSettings,
             table_name: str,
-            columns: t.SequenceOf[str],
+            columns: Sequence[str],
         ) -> None:
             """build_select produces a SELECT that references the table and columns."""
             services = FlextDbOracleServices(settings=settings)

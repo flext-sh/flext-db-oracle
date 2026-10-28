@@ -128,6 +128,15 @@ Basic functionality tests failing **Files Affected**: `tests/unit/test_constants
 ````{.python .notest}
 from __future__ import annotations
 
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
+
 
 def test_flext_result_success_path(flext_db_oracle_api):
     """Test successful operation returns r.ok()."""
@@ -149,6 +158,15 @@ def test_flext_result_error_path(flext_db_oracle_api):
 
 ```python
 from __future__ import annotations
+
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
 
 import pytest
 from unittest.mock import MagicMock
@@ -180,6 +198,15 @@ def flext_db_oracle_api(oracle_config):
 ```python
 from __future__ import annotations
 
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
+
 import pytest
 
 
@@ -203,6 +230,15 @@ def test_sql_query_validation(flext_db_oracle_api, sql_query, expected_result):
 
 ```python
 from __future__ import annotations
+
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
 
 import pytest
 
