@@ -111,10 +111,10 @@ class TestsFlextDbOracleOracleExample:
         try:
             result = connection.fetch_one("SELECT 42 FROM DUAL")
             tm.ok(result)
-            fetch_data = result.value
-            if fetch_data is None:
-                msg = "fetch_one returned success with no row"
-                tm.reject(msg)
+            fetch_data = tm.not_none(
+                result.value,
+                msg="fetch_one returned success with no row",
+            )
             first_value = next(iter(fetch_data.values()))
             tm.that(int(str(first_value)), eq=42)
         finally:

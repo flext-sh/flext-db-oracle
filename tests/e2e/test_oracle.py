@@ -45,14 +45,14 @@ class TestsFlextDbOracleOracle:
         })
 
     @pytest.fixture
-    def offline_api(self: FlextDbOracleSettings) -> FlextDbOracleApi:
+    def offline_api(self, offline_settings: FlextDbOracleSettings) -> FlextDbOracleApi:
         """Unconnected API instance for pure-logic and error-path behavior.
 
         Returns:
             The resulting ``FlextDbOracleApi``.
 
         """
-        return FlextDbOracleApi(self)
+        return FlextDbOracleApi(offline_settings)
 
     @staticmethod
     def test_env_vars_populate_settings_namespace() -> None:

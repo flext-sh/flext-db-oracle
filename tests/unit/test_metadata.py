@@ -109,9 +109,9 @@ class TestsFlextDbOracleMetadata:
         })
 
     @pytest.fixture
-    def services(self: FlextDbOracleSettings) -> FlextDbOracleServices:
+    def services(self, settings: FlextDbOracleSettings) -> FlextDbOracleServices:
         """Return a freshly composed, unconnected services facade."""
-        return FlextDbOracleServices(settings=self)
+        return FlextDbOracleServices(settings=settings)
 
     @staticmethod
     def test_settings_property_exposes_supplied_connection_config(

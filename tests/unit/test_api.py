@@ -57,9 +57,9 @@ class TestsFlextDbOracleApi:
         return self._settings()
 
     @pytest.fixture
-    def api(self: FlextDbOracleSettings) -> FlextDbOracleApi:
+    def api(self, settings: FlextDbOracleSettings) -> FlextDbOracleApi:
         """Return a fresh, disconnected API instance under test."""
-        return FlextDbOracleApi(self)
+        return FlextDbOracleApi(settings)
 
     @staticmethod
     def test_construction_exposes_settings_and_starts_disconnected(
@@ -145,10 +145,11 @@ class TestsFlextDbOracleApi:
     ) -> None:
         """to_dict reports settings/connected/plugin_count and never the password."""
         result = api.to_dict()
-        tm.ok("settings" in result)
-        tm.ok("connected" in result)
-        tm.ok("plugin_count" in result)
-        settings_dump = result["settings"]
+        state = result.root
+        tm.ok("settings" in state)
+        tm.ok("connected" in state)
+        tm.ok("plugin_count" in state)
+        settings_dump = state["settings"]
         match settings_dump:
             case dict():
                 pass
@@ -162,8 +163,8 @@ class TestsFlextDbOracleApi:
                 tm.reject()
         tm.ok("password" not in db_dump)
         tm.that(db_dump["host"], eq="127.0.0.1")
-        tm.that(result["connected"], eq=api.connected())
-        tm.that(result["plugin_count"], eq=0)
+        tm.that(state["connected"], eq=api.connected())
+        tm.that(state["plugin_count"], eq=0)
 
     @staticmethod
     def test_to_dict_plugin_count_tracks_registrations(
