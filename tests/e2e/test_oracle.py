@@ -31,8 +31,8 @@ _NOT_CONNECTED = "not connected to database"
 class TestsFlextDbOracleOracle:
     """Behavioral end-to-end tests for the Oracle API public contract."""
 
-    @staticmethod
     @pytest.fixture
+    @staticmethod
     def offline_settings() -> FlextDbOracleSettings:
         """Return settings for an unreachable host in offline contract tests."""
         return FlextDbOracleSettings.model_validate({
@@ -45,8 +45,8 @@ class TestsFlextDbOracleOracle:
             },
         })
 
-    @staticmethod
     @pytest.fixture
+    @staticmethod
     def offline_api(offline_settings: FlextDbOracleSettings) -> FlextDbOracleApi:
         """Unconnected API instance for pure-logic and error-path behavior.
 
