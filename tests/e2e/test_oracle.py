@@ -32,7 +32,6 @@ class TestsFlextDbOracleOracle:
     """Behavioral end-to-end tests for the Oracle API public contract."""
 
     @pytest.fixture
-    @staticmethod
     def offline_settings() -> FlextDbOracleSettings:
         """Return settings for an unreachable host in offline contract tests."""
         return FlextDbOracleSettings.model_validate({
@@ -46,15 +45,14 @@ class TestsFlextDbOracleOracle:
         })
 
     @pytest.fixture
-    @staticmethod
-    def offline_api(offline_settings: FlextDbOracleSettings) -> FlextDbOracleApi:
+    def offline_api(self: FlextDbOracleSettings) -> FlextDbOracleApi:
         """Unconnected API instance for pure-logic and error-path behavior.
 
         Returns:
             The resulting ``FlextDbOracleApi``.
 
         """
-        return FlextDbOracleApi(offline_settings)
+        return FlextDbOracleApi(self)
 
     @staticmethod
     def test_env_vars_populate_settings_namespace() -> None:

@@ -96,7 +96,6 @@ class TestsFlextDbOracleMetadata:
     """Public-contract tests for Oracle metadata introspection."""
 
     @pytest.fixture
-    @staticmethod
     def settings() -> FlextDbOracleSettings:
         """Return in-memory Oracle settings pointing at no reachable host."""
         return FlextDbOracleSettings.model_validate({
@@ -110,10 +109,9 @@ class TestsFlextDbOracleMetadata:
         })
 
     @pytest.fixture
-    @staticmethod
-    def services(settings: FlextDbOracleSettings) -> FlextDbOracleServices:
+    def services(self: FlextDbOracleSettings) -> FlextDbOracleServices:
         """Return a freshly composed, unconnected services facade."""
-        return FlextDbOracleServices(settings=settings)
+        return FlextDbOracleServices(settings=self)
 
     @staticmethod
     def test_settings_property_exposes_supplied_connection_config(
