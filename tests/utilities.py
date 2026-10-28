@@ -35,9 +35,9 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
             """
             # Why: no-hidden-errors — propagate a malformed Docker port
             # payload instead of masking it as "no bindings".
-            validated: t.StrMapping = u.type_adapter(
-                Mapping[str, str],
-            ).validate_python(value)
+            validated: t.StrMapping = u.type_adapter(Mapping[str, ...]).validate_python(
+                value
+            )
             return validated
 
         @classmethod

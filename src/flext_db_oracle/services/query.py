@@ -137,7 +137,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
 
     @staticmethod
     def _normalize_query_rows(
-        query_result: CursorResult[t.VariadicTuple[t.JsonValue]],
+        query_result: CursorResult[tuple[t.JsonValue, ...]],
     ) -> t.SequenceOf[m.Dict]:
         """Normalize SQLAlchemy query result rows into typed mapping models.
 

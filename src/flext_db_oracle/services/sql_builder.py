@@ -79,9 +79,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
     @classmethod
     def _compile_statement_with_binds(
-        cls,
-        statement: ClauseElement,
-        bind_names: t.MappingKV[str, str],
+        cls, statement: ClauseElement, bind_names: t.MappingKV[str, ...]
     ) -> str:
         sql = cls._compile_statement(statement)
         for column_name, bind_name in bind_names.items():

@@ -20,7 +20,7 @@ from tests import p, t, tm
 
 # (public name, protocol class, promised method surface) — the contract each
 # Oracle domain protocol advertises to implementers.
-_DB_ORACLE_CONTRACTS: t.VariadicTuple[t.Tests.ProtocolContract] = (
+_DB_ORACLE_CONTRACTS: tuple[t.Tests.ProtocolContract, ...] = (
     ("Connection", p.DbOracle.Connection, ("connect", "disconnect", "connected")),
     (
         "OraclePlugin",

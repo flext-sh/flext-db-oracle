@@ -92,7 +92,7 @@ class FlextDbOracleUtilitiesDbOracle:
     @classmethod
     def format_query_result(
         cls,
-        result: t.JsonPayload | t.JsonMapping | t.VariadicTuple[t.JsonValue],
+        result: t.JsonPayload | t.JsonMapping | tuple[t.JsonValue, ...],
         format_type: str = "table",
     ) -> p.Result[str]:
         """Format a query result to string or JSON.
@@ -255,7 +255,7 @@ class FlextDbOracleUtilitiesDbOracle:
         connection: SAConnection,
         statement: TextClause,
         parameters: m.ConfigMap | None = None,
-    ) -> CursorResult[t.VariadicTuple[t.JsonValue]]:
+    ) -> CursorResult[tuple[t.JsonValue, ...]]:
         """Execute statement on SQL connection.
 
         Returns:

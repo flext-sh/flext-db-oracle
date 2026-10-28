@@ -6,7 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import t
 from oracledb import (
     DatabaseError as OracleDatabaseError,
     InterfaceError as OracleInterfaceError,
@@ -24,14 +23,14 @@ class FlextDbOracleConstantsExceptions:
     class DbOracle:
         """Oracle domain exception constants."""
 
-        EXC_DB_CONNECT: t.VariadicTuple[type[Exception]] = (
+        EXC_DB_CONNECT: tuple[type[Exception], ...] = (
             ConnectionError,
             OracleDatabaseError,
             OracleInterfaceError,
         )
         """Oracle DB connection boundary catch (oracledb library errors)."""
 
-        EXC_DB_BROAD: t.VariadicTuple[type[Exception]] = (
+        EXC_DB_BROAD: tuple[type[Exception], ...] = (
             ConnectionError,
             OSError,
             SQLAlchemyDatabaseError,

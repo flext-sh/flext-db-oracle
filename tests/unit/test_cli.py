@@ -15,7 +15,7 @@ from __future__ import annotations
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleClient, FlextDbOracleSettings
-from tests import c, r, t, tm, u
+from tests import c, r, tm, u
 
 _NO_CONNECTION_ERROR = "No active Oracle connection"
 _CONNECTION_FAILURE_SNIPPETS = (
@@ -134,7 +134,7 @@ class TestsFlextDbOracleCli:
     )
     def test_privileged_operations_fail_without_connection(
         method_name: str,
-        args: t.VariadicTuple[str],
+        args: tuple[str, ...],
     ) -> None:
         """Every privileged operation fails fast when no connection is active."""
         client = FlextDbOracleClient()
