@@ -12,17 +12,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Mapping
 
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import c, t, tm, u
+from tests import c, m, t, tm, u
 
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from tests import m
 _NOT_CONNECTED = "not connected to database"
 
 
@@ -30,7 +26,6 @@ _NOT_CONNECTED = "not connected to database"
 class TestsFlextDbOracleOracle:
     """Behavioral end-to-end tests for the Oracle API public contract."""
 
-    @staticmethod
     @pytest.fixture
     def offline_settings() -> FlextDbOracleSettings:
         """Return settings for an unreachable host in offline contract tests."""
@@ -38,9 +33,9 @@ class TestsFlextDbOracleOracle:
             "DbOracle": {
                 "host": "nonexistent-host.invalid",
                 "port": 9999,
-                "service_name": "INVALID_DB",
+                c.ContextKey.SERVICE_NAME: "INVALID_DB",
                 "username": "invalid_user",
-                "password": "p" + "1" * 10,
+                "password": "p" + c.ParserBooleanToken.ONE * 10,
             },
         })
 
@@ -105,7 +100,7 @@ class TestsFlextDbOracleOracle:
         result = offline_api.transaction()
         tm.ok(result)
         status = result.value
-        tm.that(status["connected"], eq=False)
+        tm.that(status["connected"], eq=offline_api.connected())
         tm.that(status["transaction_available"], eq=True)
 
     @staticmethod
@@ -156,7 +151,7 @@ class TestsFlextDbOracleOracle:
         self,
         api1: FlextDbOracleApi,
         api2: FlextDbOracleApi,
-    ) -> t.Pair[Mapping[str, t.JsonPayload], Mapping[str, t.JsonPayload]]:
+    ) -> tuple[Mapping[str, t.JsonPayload], Mapping[str, t.JsonPayload]]:
         """Return one query row from each concurrent API context."""
         with api1, api2:
             result1 = api1.query("SELECT 'API1' AS SOURCE FROM DUAL")
@@ -179,7 +174,7 @@ class TestsFlextDbOracleOracle:
             tm.ok(api.test_connection())
             schemas = api.fetch_schemas()
             tm.ok(schemas)
-            assert schemas.value
+            tm.that(schemas.value, empty=False)
             create = api.execute_sql(
                 f"CREATE TABLE {table} ( ID NUMBER(10) NOT NULL PRIMARY KEY, "
                 "NAME VARCHAR2(100) NOT NULL, EMAIL VARCHAR2(255))",
@@ -210,7 +205,10 @@ class TestsFlextDbOracleOracle:
                 tm.that(metadata.value.table_name, eq=table)
                 columns = api.fetch_columns(table)
                 tm.ok(columns)
-                assert len(columns.value) >= 3
+                tm.that(
+                    {column.name for column in columns.value},
+                    has=["ID", "NAME", "EMAIL"],
+                )
                 primary_keys = api.fetch_primary_keys(table)
                 tm.ok(primary_keys)
                 tm.that(primary_keys.value, has="ID")

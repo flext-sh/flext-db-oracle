@@ -29,15 +29,15 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
     - Count parsing utilities
     """
 
-    _db_config: FlextDbOracleSettings | None = u.PrivateAttr()
-    _engine: SAEngine | None = u.PrivateAttr(default_factory=lambda: None)
-    _operations: MutableSequence[m.DbOracle.OperationRecord] = u.PrivateAttr(
+    _db_config: FlextDbOracleSettings | None = m.PrivateAttr()
+    _engine: SAEngine | None = m.PrivateAttr(default_factory=lambda: None)
+    _operations: MutableSequence[m.DbOracle.OperationRecord] = m.PrivateAttr(
         default_factory=list[m.DbOracle.OperationRecord],
     )
-    _plugins: MutableMapping[str, t.JsonPayload] = u.PrivateAttr(
-        default_factory=dict[str, t.JsonPayload],
+    _plugins: MutableMapping[str, t.JsonPayload | t.FlatContainer] = m.PrivateAttr(
+        default_factory=dict[str, t.JsonPayload | t.FlatContainer],
     )
-    _metrics: t.MutableJsonMapping = u.PrivateAttr(
+    _metrics: t.MutableJsonMapping = m.PrivateAttr(
         default_factory=dict[str, t.JsonValue],
     )
 
@@ -69,7 +69,7 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
         """
         return self._engine is not None
 
-    def _parse_count_from_rows(self, rows: t.SequenceOf[m.Dict]) -> int:
+    def _parse_count_from_rows(self, rows: Sequence[m.Dict]) -> int:
         """Parse COUNT(*) value from normalized query rows.
 
         Returns:
@@ -78,7 +78,7 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
         """
         if not rows:
             return 0
-        count_raw = rows[0].root.get("count")
+        count_raw = rows[0].root.get(c.Aggregation.COUNT)
         if count_raw is None:
             return 0
         return self._parse_count_value(str(count_raw))

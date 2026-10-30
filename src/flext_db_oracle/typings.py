@@ -1,3 +1,4 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
 """FLEXT DB Oracle Types.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -5,32 +6,13 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-import oracledb
-from flext_cli import FlextCliTypes
-
-if TYPE_CHECKING:
-    from flext_db_oracle import FlextDbOracleSettings
+# Generated type facade; declarations belong to flext_db_oracle._typings.db_oracle.
+from flext_db_oracle._typings import FlextDbOracleTypes as _FlextDbOracleTypes
 
 
-class FlextDbOracleTypes(FlextCliTypes):
-    """Oracle database-specific type definitions extending t via MRO."""
-
-    class DbOracle:
-        """Oracle domain namespace (flat members per AGENTS.md §149)."""
-
-        OracleDatabaseError: type[Exception] = oracledb.DatabaseError
-        OracleInterfaceError: type[Exception] = oracledb.InterfaceError
-
-        type QueryParameters = FlextCliTypes.JsonMapping
-        type CliScalar = FlextCliTypes.Scalar | None
-        if TYPE_CHECKING:
-            type Settings = FlextDbOracleSettings
+class FlextDbOracleTypes(_FlextDbOracleTypes):
+    """Public type facade inheriting its complete canonical owner."""
 
 
 t = FlextDbOracleTypes
-
 __all__: list[str] = ["FlextDbOracleTypes", "t"]

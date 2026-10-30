@@ -47,7 +47,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     def execute_many(
         self,
         sql: str,
-        params_list: t.SequenceOf[t.JsonMapping | m.ConfigMap],
+        params_list: Sequence[t.JsonMapping | m.ConfigMap],
     ) -> p.Result[int]:
         """Execute SQL statement multiple times.
 
@@ -93,7 +93,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         try:
             with self._engine_connect(engine_result.value) as conn:
                 result = self._connection_execute(conn, text(sql), params)
-                rows: t.SequenceOf[m.Dict] = self._normalize_query_rows(result)
+                rows: Sequence[m.Dict] = self._normalize_query_rows(result)
                 return r[Sequence[m.Dict]].ok(rows)
         except c.DbOracle.EXC_DB_BROAD as exc:
             return r[Sequence[m.Dict]].fail_op("Query execution", exc)
@@ -137,17 +137,17 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
 
     @staticmethod
     def _normalize_query_rows(
-        query_result: CursorResult[t.VariadicTuple[t.JsonValue]],
-    ) -> t.SequenceOf[m.Dict]:
+        query_result: CursorResult[tuple[t.JsonValue, ...]],
+    ) -> Sequence[m.Dict]:
         """Normalize SQLAlchemy query result rows into typed mapping models.
 
         Returns:
-            The resulting ``t.SequenceOf[m.Dict]``.
+            The resulting ``Sequence[m.Dict]``.
 
         """
         mapping_result = query_result.mappings()
         rows = mapping_result.all()
-        result: t.SequenceOf[m.Dict] = [
+        result: Sequence[m.Dict] = [
             m.Dict(root={str(key): str(val) for key, val in dict(row).items()})
             for row in rows
         ]

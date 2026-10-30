@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 from flext_db_oracle import m, p, r, t
 from flext_db_oracle.services import FlextDbOracleApiRuntimeState
@@ -17,7 +17,7 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
 
     def convert_singer_type(
         self,
-        singer_type: str | t.StrSequence,
+        singer_type: str | Sequence[str],
         _format_hint: str | None = None,
     ) -> p.Result[str]:
         """Convert Singer JSON Schema type to Oracle SQL type.
@@ -59,11 +59,11 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
         """
         return self._services.fetch_metrics().map(lambda metrics: metrics.model_dump())
 
-    def fetch_plugin(self, name: str) -> p.Result[t.JsonPayload]:
+    def fetch_plugin(self, name: str) -> p.Result[t.JsonPayload | t.FlatContainer]:
         """Get a registered plugin by name.
 
         Returns:
-            The resulting ``p.Result[t.JsonPayload]``.
+            The resulting ``p.Result[t.JsonPayload | t.FlatContainer]``.
 
         """
         return self._services.fetch_plugin(name)
@@ -72,20 +72,20 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
         self,
         table_name: str,
         schema: str | None = None,
-    ) -> p.Result[t.StrSequence]:
+    ) -> p.Result[Sequence[str]]:
         """Delegate primary key retrieval to the schema service.
 
         Returns:
-            The resulting ``p.Result[t.StrSequence]``.
+            The resulting ``p.Result[Sequence[str]]``.
 
         """
         return self._services.fetch_primary_keys(table_name, schema)
 
-    def fetch_schemas(self) -> p.Result[t.StrSequence]:
+    def fetch_schemas(self) -> p.Result[Sequence[str]]:
         """Get list of available schemas.
 
         Returns:
-            The resulting ``p.Result[t.StrSequence]``.
+            The resulting ``p.Result[Sequence[str]]``.
 
         """
         return self._services.fetch_schemas()
@@ -103,20 +103,20 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
         """
         return self._services.fetch_table_metadata(table_name, schema)
 
-    def fetch_tables(self, schema: str | None = None) -> p.Result[t.StrSequence]:
+    def fetch_tables(self, schema: str | None = None) -> p.Result[Sequence[str]]:
         """Get list of tables in specified schema.
 
         Returns:
-            The resulting ``p.Result[t.StrSequence]``.
+            The resulting ``p.Result[Sequence[str]]``.
 
         """
         return self._services.fetch_tables(schema)
 
-    def list_plugins(self) -> p.Result[t.StrSequence]:
+    def list_plugins(self) -> p.Result[Sequence[str]]:
         """List all registered plugin names.
 
         Returns:
-            The resulting ``p.Result[t.StrSequence]``.
+            The resulting ``p.Result[Sequence[str]]``.
 
         """
         return self._services.list_plugins().map(
@@ -126,20 +126,24 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
     def map_singer_schema(
         self,
         singer_schema: m.DbOracle.SingerSchema | t.JsonMapping,
-    ) -> p.Result[t.StrMapping]:
+    ) -> p.Result[Mapping[str, str]]:
         """Map Singer JSON Schema to Oracle table schema.
 
         Returns:
-            The resulting ``p.Result[t.StrMapping]``.
+            The resulting ``p.Result[Mapping[str, str]]``.
 
         """
         if not singer_schema:
-            return r[t.StrMapping].fail("Schema must be a mapping")
+            return r[Mapping[str, str]].fail("Schema must be a mapping")
         return self._services.map_singer_schema(singer_schema).map(
             lambda value: value.mapping,
         )
 
-    def register_plugin(self, name: str, plugin: t.JsonPayload) -> p.Result[bool]:
+    def register_plugin(
+        self,
+        name: str,
+        plugin: t.JsonPayload | t.FlatContainer,
+    ) -> p.Result[bool]:
         """Register a plugin in local API registry.
 
         Returns:

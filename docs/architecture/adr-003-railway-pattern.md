@@ -62,6 +62,15 @@ Implement Railway Pattern error handling throughout flext-db-oracle using r\[T\]
 ```{.python .notest}
 from __future__ import annotations
 
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
+
 
 # Railway Pattern with r[T]
 def enterprise_operation(settings: Config) -> p.Result[Result]:

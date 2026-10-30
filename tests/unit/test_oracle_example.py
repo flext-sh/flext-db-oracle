@@ -12,19 +12,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
-from typing import TYPE_CHECKING
+from collections.abc import Sequence
 
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from flext_db_oracle.services import FlextDbOracleServices
-from tests import t, tm, u
-
-if TYPE_CHECKING:
-    from tests import m
-
-# Live Oracle paths pull the session docker fixture via real_oracle_settings.
-pytestmark = pytest.mark.docker
+from tests import c, m, t, tm, u
 
 
 class TestsFlextDbOracleOracleExample:
@@ -39,10 +33,8 @@ class TestsFlextDbOracleOracleExample:
         val = next(iter(root.values()))
         if val is None:
             return None
-        if isinstance(val, tuple):
-            return [u.normalize_to_metadata(item) for item in val]
         if isinstance(val, (str, int, float, bool, dict, list)):
-            return u.normalize_to_metadata(val)
+            return u.normalize_to_json_value(val)
         return None
 
     @classmethod
@@ -76,7 +68,7 @@ class TestsFlextDbOracleOracleExample:
         connection = FlextDbOracleServices(settings=real_oracle_config)
         connect_result = connection.connect()
         tm.ok(connect_result)
-        tm.that(connection.connected(), eq=True)
+        tm.ok(connection.connected())
         return connection
 
     # ------------------------------------------------------------------
@@ -90,11 +82,11 @@ class TestsFlextDbOracleOracleExample:
         """After connect ``connected()`` is True, after disconnect False."""
         connection = self._connect_services(real_oracle_config)
 
-        tm.that(connection.connected(), eq=True)
+        tm.ok(connection.connected())
 
         disconnect_result = connection.disconnect()
         tm.ok(disconnect_result)
-        tm.that(connection.connected(), eq=False)
+        tm.fail(connection.connected())
 
     def test_execute_query_returns_single_row_result(
         self,
@@ -115,20 +107,15 @@ class TestsFlextDbOracleOracleExample:
         self,
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
-        """``fetch_one`` succeeds and the returned mapping carries the scalar value.
-
-        Raises:
-            AssertionError: If fetch_one returned success with no row.
-
-        """
+        """``fetch_one`` succeeds and the returned mapping carries the scalar value."""
         connection = self._connect_services(real_oracle_config)
         try:
             result = connection.fetch_one("SELECT 42 FROM DUAL")
             tm.ok(result)
-            fetch_data = result.value
-            if fetch_data is None:
-                msg = "fetch_one returned success with no row"
-                raise AssertionError(msg)
+            fetch_data = tm.not_none(
+                result.value,
+                msg="fetch_one returned success with no row",
+            )
             first_value = next(iter(fetch_data.values()))
             tm.that(int(str(first_value)), eq=42)
         finally:
@@ -147,7 +134,7 @@ class TestsFlextDbOracleOracleExample:
                 "CREATE TABLE temp_test_table (id NUMBER, name VARCHAR2(100))",
             )
             tm.ok(create_result)
-            params_list: t.SequenceOf[t.JsonMapping] = [
+            params_list: Sequence[t.JsonMapping] = [
                 {"id": 1, "name": "Test 1"},
                 {"id": 2, "name": "Test 2"},
                 {"id": 3, "name": "Test 3"},
@@ -156,8 +143,7 @@ class TestsFlextDbOracleOracleExample:
                 "INSERT INTO temp_test_table (id, name) VALUES (:id, :name)",
                 params_list,
             )
-            tm.ok(result)
-            tm.that(result.value, eq=3)
+            tm.ok(result, eq=3)
         finally:
             with contextlib.suppress(Exception):
                 connection.execute_statement("DROP TABLE temp_test_table")
@@ -183,7 +169,7 @@ class TestsFlextDbOracleOracleExample:
         schemas_result = connected_oracle_api.fetch_schemas()
         tm.ok(schemas_result)
         schemas = schemas_result.value
-        tm.that(len(schemas) > 0, eq=True)
+        tm.ok(len(schemas) > 0)
         system_schemas = ("SYS", "SYSTEM", "FLEXT", "FLEXTTEST", "XDB")
         tm.that(
             any(
@@ -203,7 +189,7 @@ class TestsFlextDbOracleOracleExample:
         tm.ok(tables_result)
         tables_upper = [name.upper() for name in tables_result.value]
         for expected in ("EMPLOYEES", "DEPARTMENTS", "JOBS"):
-            tm.that(any(expected in name for name in tables_upper), eq=True)
+            tm.ok(any(expected in name for name in tables_upper))
 
     @staticmethod
     def test_fetch_columns_exposes_named_columns(
@@ -213,7 +199,7 @@ class TestsFlextDbOracleOracleExample:
         result = connected_oracle_api.fetch_columns("EMPLOYEES")
         tm.ok(result)
         columns = result.value
-        tm.that(len(columns) > 0, eq=True)
+        tm.ok(len(columns) > 0)
         column_names = [col.name.upper() for col in columns]
         for expected in ("EMPLOYEE_ID", "FIRST_NAME", "LAST_NAME", "EMAIL"):
             tm.that(column_names, has=expected)
@@ -225,7 +211,7 @@ class TestsFlextDbOracleOracleExample:
         """``query`` succeeds and returns at least one row for a COUNT aggregate."""
         result = connected_oracle_api.query("SELECT COUNT(*) FROM EMPLOYEES")
         tm.ok(result)
-        tm.that(len(result.value) > 0, eq=True)
+        tm.ok(len(result.value) > 0)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -288,6 +274,7 @@ class TestsFlextDbOracleOracleExample:
     # ------------------------------------------------------------------
 
     @staticmethod
+    @pytest.mark.docker
     def test_connect_with_invalid_credentials_fails_with_reason() -> None:
         """Connecting with bad credentials yields a failing result.
 
@@ -297,9 +284,9 @@ class TestsFlextDbOracleOracleExample:
             "DbOracle": {
                 "host": "localhost",
                 "port": 1521,
-                "service_name": "XEPDB1",
+                c.ContextKey.SERVICE_NAME: "XEPDB1",
                 "username": "invalid_user",
-                "password": "p" + "1" * 10,
+                "password": "p" + c.ParserBooleanToken.ONE * 10,
             },
         })
         connection = FlextDbOracleServices(settings=invalid_config)
@@ -315,7 +302,7 @@ class TestsFlextDbOracleOracleExample:
             "connection test failed",
             "not connected to database",
         )
-        tm.that(any(reason in error_msg for reason in reasons), eq=True)
+        tm.ok(any(reason in error_msg for reason in reasons))
 
     def test_invalid_sql_returns_failure(
         self,
@@ -329,16 +316,16 @@ class TestsFlextDbOracleOracleExample:
             )
             tm.fail(result)
             error_msg = (result.error or "").lower()
-            tm.that("table" in error_msg or "not exist" in error_msg, eq=True)
+            tm.ok("table" in error_msg or "not exist" in error_msg)
         finally:
             connection.disconnect()
 
     @staticmethod
     def test_api_operations_fail_when_not_connected(
-        real_oracle_config: FlextDbOracleSettings,
+        oracle_unit_settings: FlextDbOracleSettings,
     ) -> None:
         """API queries and metadata fetches fail cleanly before ``connect``."""
-        api = FlextDbOracleApi(real_oracle_config)
+        api = FlextDbOracleApi(oracle_unit_settings)
 
         query_result = api.query("SELECT 1 FROM DUAL")
         tm.fail(query_result)

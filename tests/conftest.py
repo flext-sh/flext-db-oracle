@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -18,12 +19,12 @@ from flext_tests import FlextTestsDocker
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from flext_db_oracle.services import FlextDbOracleServices
-from tests import c, tk, u
+from tests import c, tk, tm, u
 
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-    from tests import p, t
+from tests import p
 
 logger = u.fetch_logger(__name__)
 
@@ -45,7 +46,7 @@ def oracle_unit_settings() -> FlextDbOracleSettings:
         "DbOracle": {
             "host": "localhost",
             "port": 1521,
-            "service_name": "TEST",
+            c.ContextKey.SERVICE_NAME: "TEST",
             "username": "testuser",
             "password": "testpass",
         },
@@ -77,9 +78,9 @@ def pytest_runtest_teardown(item: pytest.Item, nextitem: pytest.Item | None) -> 
 def pytest_configure(config: pytest.Config) -> None:
     """Configure pytest with Oracle container for ALL tests."""
     _ = config
-    os.environ["SKIP_E2E_TESTS"] = "false"
-    os.environ["ORACLE_INTEGRATION_TESTS"] = "1"
-    os.environ["USE_REAL_ORACLE"] = "true"
+    os.environ["SKIP_E2E_TESTS"] = c.ParserBooleanToken.FALSE
+    os.environ["ORACLE_INTEGRATION_TESTS"] = c.ParserBooleanToken.ONE
+    os.environ["USE_REAL_ORACLE"] = c.ParserBooleanToken.TRUE
 
 
 def pytest_sessionstart(session: pytest.Session) -> None:
@@ -105,7 +106,7 @@ def _cleanup_dirty_oracle_container() -> None:
     if not docker.dirty_containers:
         logger.debug("No dirty containers to clean")
         return
-    status_result = docker.fetch_container_status(container_name)
+    status_result = docker.fetch_container_info(container_name)
     if status_result.success and status_result.value.status == (
         c.Tests.ContainerStatus.RUNNING
     ):
@@ -272,7 +273,7 @@ def real_oracle_settings(oracle_container: str) -> FlextDbOracleSettings:
             "name": os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB"),
             "username": os.getenv("TEST_ORACLE_USER", "flext_test"),
             "password": os.getenv("TEST_ORACLE_PASSWORD", "flext_test_password"),
-            "service_name": os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB"),
+            c.ContextKey.SERVICE_NAME: os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB"),
         },
     })
 
@@ -308,16 +309,11 @@ def oracle_api(real_oracle_settings: FlextDbOracleSettings) -> FlextDbOracleApi:
 
 
 def _assert_oracle_success[TResult](result: p.Result[TResult], operation: str) -> None:
-    """Raise with a clear setup error when an Oracle operation fails.
-
-    Raises:
-        AssertionError: If ``result.failure``.
-
-    """
+    """Reject with a clear setup error when an Oracle operation fails."""
     if result.failure:
         error = result.error or ""
         msg = f"{operation} failed: {error}"
-        raise AssertionError(msg)
+        tm.reject(msg)
 
 
 def _user_tables(api: FlextDbOracleApi) -> set[str]:
@@ -454,11 +450,11 @@ def oracle_available(connected_oracle_api: FlextDbOracleApi) -> bool:
 
 
 @pytest.fixture
-def oracle_test_database(connected_oracle_api: FlextDbOracleApi) -> t.StrMapping:
+def oracle_test_database(connected_oracle_api: FlextDbOracleApi) -> Mapping[str, str]:
     """Set up test database schema and return test table info.
 
     Returns:
-        The resulting ``t.StrMapping``.
+        The resulting ``Mapping[str, str]``.
 
     Raises:
         AssertionError: If Could not create test schema; or if Test setup failed.
@@ -479,7 +475,7 @@ def oracle_test_database(connected_oracle_api: FlextDbOracleApi) -> t.StrMapping
             result = connected_oracle_api.execute_statement(ddl)
             if result.failure:
                 msg = f"Could not create test schema: {result.error}"
-                raise AssertionError(msg)
+                tm.reject(msg)
         except (oracledb.Error, ConnectionError, OSError) as e:
             msg = f"Test setup failed: {e}"
             raise AssertionError(msg) from e

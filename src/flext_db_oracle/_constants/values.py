@@ -12,11 +12,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping, Sequence
 from enum import StrEnum, unique
 from types import MappingProxyType
 from typing import ClassVar, Final
 
-from flext_core import FlextConstants as c, t
+from flext_core import c, t
 
 
 class FlextDbOracleConstantsValues:
@@ -234,7 +235,7 @@ class FlextDbOracleConstantsValues:
         class ConnectionType(StrEnum):
             """Oracle connection types."""
 
-            SERVICE_NAME = "service_name"
+            SERVICE_NAME = c.ContextKey.SERVICE_NAME
             SID = "sid"
             TNS = "tns"
 
@@ -272,12 +273,12 @@ class FlextDbOracleConstantsValues:
             REPEATABLE_READ = "REPEATABLE_READ"
             SERIALIZABLE = "SERIALIZABLE"
 
-        CONNECTION_TYPE_LITERAL: Final[t.StrSequence] = (
+        CONNECTION_TYPE_LITERAL: Final[Sequence[str]] = (
             ConnectionType.SERVICE_NAME.value,
             ConnectionType.SID.value,
             ConnectionType.TNS.value,
         )
-        QUERY_TYPE_LITERAL: Final[t.StrSequence] = (
+        QUERY_TYPE_LITERAL: Final[Sequence[str]] = (
             QueryType.SELECT.value,
             QueryType.INSERT.value,
             QueryType.UPDATE.value,
@@ -286,7 +287,7 @@ class FlextDbOracleConstantsValues:
             QueryType.DROP.value,
             QueryType.ALTER.value,
         )
-        DATA_TYPE_LITERAL: Final[t.StrSequence] = (
+        DATA_TYPE_LITERAL: Final[Sequence[str]] = (
             DataType.VARCHAR2.value,
             DataType.NUMBER.value,
             DataType.DATE.value,
@@ -296,7 +297,7 @@ class FlextDbOracleConstantsValues:
             DataType.CHAR.value,
             DataType.RAW.value,
         )
-        ISOLATION_LEVEL_LITERAL: Final[t.StrSequence] = (
+        ISOLATION_LEVEL_LITERAL: Final[Sequence[str]] = (
             IsolationLevel.READ_UNCOMMITTED.value,
             IsolationLevel.READ_COMMITTED.value,
             IsolationLevel.REPEATABLE_READ.value,
@@ -311,10 +312,10 @@ class FlextDbOracleConstantsValues:
         VALID_ISOLATION_LEVELS: Final[frozenset[str]] = frozenset(
             ISOLATION_LEVEL_LITERAL,
         )
-        SYSTEM_USERS: Final[t.StrSequence] = ("SYS", "SYSTEM", "XDB", "DBSNMP", "OUTLN")
-        DEFAULT_SCHEMAS: Final[t.StrSequence] = ("SYSTEM", "SYS", "PUBLIC")
+        SYSTEM_USERS: Final[Sequence[str]] = ("SYS", "SYSTEM", "XDB", "DBSNMP", "OUTLN")
+        DEFAULT_SCHEMAS: Final[Sequence[str]] = ("SYSTEM", "SYS", "PUBLIC")
 
-        SINGER_TYPE_MAP: Final[t.StrMapping] = MappingProxyType({
+        SINGER_TYPE_MAP: Final[Mapping[str, str]] = MappingProxyType({
             "string": DEFAULT_VARCHAR_TYPE,
             "integer": INTEGER_TYPE,
             "number": DataType.NUMBER.value,
@@ -325,13 +326,13 @@ class FlextDbOracleConstantsValues:
             "date": DataType.DATE.value,
             "time": DataType.TIMESTAMP.value,
         })
-        ENV_MAPPING: Final[t.StrMapping] = MappingProxyType({
+        ENV_MAPPING: Final[Mapping[str, str]] = MappingProxyType({
             "FLEXT_TARGET_ORACLE_HOST": "host",
             ENV_HOST: "host",
             "FLEXT_TARGET_ORACLE_PORT": "port",
             ENV_PORT: "port",
-            "FLEXT_TARGET_ORACLE_SERVICE_NAME": "service_name",
-            ENV_SERVICE_NAME: "service_name",
+            "FLEXT_TARGET_ORACLE_SERVICE_NAME": c.ContextKey.SERVICE_NAME,
+            ENV_SERVICE_NAME: c.ContextKey.SERVICE_NAME,
             "FLEXT_TARGET_ORACLE_USERNAME": "username",
             ENV_USERNAME: "username",
             "FLEXT_TARGET_ORACLE_PASSWORD": "password",  # nosec B105

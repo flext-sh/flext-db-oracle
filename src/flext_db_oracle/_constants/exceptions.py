@@ -6,15 +6,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import t
 from oracledb import (
-    DatabaseError as _OracleDatabaseError,
-    InterfaceError as _OracleInterfaceError,
+    DatabaseError as OracleDatabaseError,
+    InterfaceError as OracleInterfaceError,
 )
 from sqlalchemy.exc import (
-    DatabaseError as _SQLAlchemyDatabaseError,
-    OperationalError as _SQLAlchemyOperationalError,
-    SQLAlchemyError as _SQLAlchemyError,
+    DatabaseError as SQLAlchemyDatabaseError,
+    OperationalError as SQLAlchemyOperationalError,
+    SQLAlchemyError,
 )
 
 
@@ -24,21 +23,21 @@ class FlextDbOracleConstantsExceptions:
     class DbOracle:
         """Oracle domain exception constants."""
 
-        EXC_DB_CONNECT: t.VariadicTuple[type[Exception]] = (
+        EXC_DB_CONNECT: tuple[type[Exception], ...] = (
             ConnectionError,
-            _OracleDatabaseError,
-            _OracleInterfaceError,
+            OracleDatabaseError,
+            OracleInterfaceError,
         )
         """Oracle DB connection boundary catch (oracledb library errors)."""
 
-        EXC_DB_BROAD: t.VariadicTuple[type[Exception]] = (
+        EXC_DB_BROAD: tuple[type[Exception], ...] = (
             ConnectionError,
             OSError,
-            _SQLAlchemyDatabaseError,
-            _SQLAlchemyError,
-            _SQLAlchemyOperationalError,
-            _OracleDatabaseError,
-            _OracleInterfaceError,
+            SQLAlchemyDatabaseError,
+            SQLAlchemyError,
+            SQLAlchemyOperationalError,
+            OracleDatabaseError,
+            OracleInterfaceError,
         )
         """Broad Oracle DB boundary catch including SQLAlchemy errors."""
 

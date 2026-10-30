@@ -7,7 +7,6 @@
   - [Code Configuration](#code-configuration)
 - [Connection Parameters](#connection-parameters)
 - [Testing Connection](#testing-connection)
-- [CLI Configuration](#cli-configuration)
 
 <!-- TOC END -->
 
@@ -30,7 +29,7 @@ export ORACLE_PASSWORD="Oracle123"
 ```python
 import os
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c
 
 # Provide environment values so the API can be built from env vars.
 # Demo credential only; load real values from a secret store or the environment.
@@ -52,7 +51,7 @@ settings = FlextDbOracleSettings(
     DbOracle={
         "host": "localhost",
         "port": 1521,
-        "service_name": "XEPDB1",
+        c.ContextKey.SERVICE_NAME: "XEPDB1",
         "username": "system",
         "password": demo_credential,
     },
@@ -72,7 +71,7 @@ api = FlextDbOracleApi(settings)
 
 ## Testing Connection
 
-````python notest
+````{.python .notest}
 import os
 
 # Seed environment values so the API can be resolved from settings.

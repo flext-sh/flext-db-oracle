@@ -58,7 +58,7 @@ graph TB
         subgraph "Core Components"
             API[FlextDbOracleApi<br/>🎯 Main API<br/>Orchestration Layer]
             SERVICES[FlextDbOracleServices<br/>🔧 Business Logic<br/>Query Building & Execution]
-            MODELS[FlextDbOracleModels<br/>📋 Domain Models<br/>Pydantic v2 Models]
+            MODELS[FlextModelsDbOracle<br/>📋 Domain Models<br/>Pydantic v2 Models]
             CONNECTION[FlextDbOracleConnection<br/>🔗 Connections<br/>SQLAlchemy Pool]
         end
 

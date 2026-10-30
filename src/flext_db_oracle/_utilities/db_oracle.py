@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableMapping, Sequence
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
@@ -92,7 +92,7 @@ class FlextDbOracleUtilitiesDbOracle:
     @classmethod
     def format_query_result(
         cls,
-        result: t.JsonPayload,
+        result: t.JsonPayload | t.JsonMapping | tuple[t.JsonValue, ...],
         format_type: str = "table",
     ) -> p.Result[str]:
         """Format a query result to string or JSON.
@@ -175,7 +175,7 @@ class FlextDbOracleUtilitiesDbOracle:
         return int(value)
 
     @staticmethod
-    def _normalize_singer_type(value: str | t.StrSequence) -> str:
+    def _normalize_singer_type(value: str | Sequence[str]) -> str:
         """Normalize Singer type input to a single string value.
 
         Returns:
@@ -204,7 +204,7 @@ class FlextDbOracleUtilitiesDbOracle:
             The resulting ``SAEngine``.
 
         """
-        connect_args: t.MutableMappingKV[str, int] = {}
+        connect_args: MutableMapping[str, int] = {}
         if connect_timeout is not None:
             connect_args["tcp_connect_timeout"] = connect_timeout
         return create_engine(
@@ -255,11 +255,11 @@ class FlextDbOracleUtilitiesDbOracle:
         connection: SAConnection,
         statement: TextClause,
         parameters: m.ConfigMap | None = None,
-    ) -> CursorResult[t.VariadicTuple[t.JsonValue]]:
+    ) -> CursorResult[tuple[t.JsonValue, ...]]:
         """Execute statement on SQL connection.
 
         Returns:
-            The resulting ``CursorResult[t.VariadicTuple[t.JsonValue]]``.
+            The resulting ``CursorResult[tuple[t.JsonValue, ...]]``.
 
         """
         normalized_params = cls.normalize_params(parameters)

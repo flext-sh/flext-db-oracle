@@ -12,19 +12,24 @@ from typing import TYPE_CHECKING
 
 from flext_core.lazy import install_lazy_exports
 
-from flext_db_oracle.__version__ import __version__
-
 if TYPE_CHECKING:
-    from flext_core import d, h, r, x
-
-    from flext_db_oracle import (
-        _constants,
-        _models,
-        _protocols,
-        _typings,
-        _utilities,
-        services,
+    from flext_core import (
+        build_lazy_import_map,
+        cleanup_submodule_namespace,
+        core,
+        d,
+        h,
+        install_lazy_exports,
+        lazy,
+        lazy_getattr,
+        lazy_member,
+        merge_lazy_imports,
+        normalize_lazy_imports,
+        r,
+        resolve_lazy_members,
+        x,
     )
+
     from flext_db_oracle.__version__ import (
         FlextDbOracleVersion,
         __author__,
@@ -33,6 +38,7 @@ if TYPE_CHECKING:
         __license__,
         __title__,
         __url__,
+        __version__,
         __version_info__,
     )
     from flext_db_oracle._config import FlextDbOracleConfig, config
@@ -48,7 +54,7 @@ if TYPE_CHECKING:
     from flext_db_oracle.constants import FlextDbOracleConstants, c
     from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
     from flext_db_oracle.exceptions import FlextDbOracleExceptions, e
-    from flext_db_oracle.models import FlextDbOracleModels, m
+    from flext_db_oracle.models import FlextModelsDbOracle, m
     from flext_db_oracle.protocols import FlextDbOracleProtocols, p
     from flext_db_oracle.typings import FlextDbOracleTypes, t
     from flext_db_oracle.utilities import FlextDbOracleUtilities, u
@@ -62,13 +68,13 @@ __all__: tuple[str, ...] = (
     "FlextDbOracleConstants",
     "FlextDbOracleDispatcher",
     "FlextDbOracleExceptions",
-    "FlextDbOracleModels",
     "FlextDbOracleProtocols",
     "FlextDbOracleServiceBase",
     "FlextDbOracleSettings",
     "FlextDbOracleTypes",
     "FlextDbOracleUtilities",
     "FlextDbOracleVersion",
+    "FlextModelsDbOracle",
     "__author__",
     "__author_email__",
     "__description__",
@@ -77,23 +83,27 @@ __all__: tuple[str, ...] = (
     "__url__",
     "__version__",
     "__version_info__",
-    "_constants",
-    "_models",
-    "_protocols",
-    "_typings",
-    "_utilities",
+    "build_lazy_import_map",
     "c",
+    "cleanup_submodule_namespace",
     "config",
+    "core",
     "d",
     "db_oracle",
     "e",
     "h",
+    "install_lazy_exports",
+    "lazy",
+    "lazy_getattr",
+    "lazy_member",
     "m",
     "main",
+    "merge_lazy_imports",
+    "normalize_lazy_imports",
     "p",
     "r",
+    "resolve_lazy_members",
     "s",
-    "services",
     "settings",
     "t",
     "u",
@@ -111,7 +121,7 @@ install_lazy_exports(
         "FlextDbOracleConstants": ".constants",
         "FlextDbOracleDispatcher": ".dispatcher",
         "FlextDbOracleExceptions": ".exceptions",
-        "FlextDbOracleModels": ".models",
+        "FlextModelsDbOracle": ".models",
         "FlextDbOracleProtocols": ".protocols",
         "FlextDbOracleServiceBase": ".base",
         "FlextDbOracleSettings": "._settings",
@@ -125,23 +135,27 @@ install_lazy_exports(
         "__title__": ".__version__",
         "__url__": ".__version__",
         "__version_info__": ".__version__",
-        "_constants": "._constants",
-        "_models": "._models",
-        "_protocols": "._protocols",
-        "_typings": "._typings",
-        "_utilities": "._utilities",
+        "build_lazy_import_map": "flext_core",
         "c": ".constants",
+        "cleanup_submodule_namespace": "flext_core",
         "config": "._config",
+        "core": "flext_core",
         "d": "flext_core",
         "db_oracle": ".api",
         "e": ".exceptions",
         "h": "flext_core",
+        "install_lazy_exports": "flext_core",
+        "lazy": "flext_core",
+        "lazy_getattr": "flext_core",
+        "lazy_member": "flext_core",
         "m": ".models",
         "main": ".cli",
+        "merge_lazy_imports": "flext_core",
+        "normalize_lazy_imports": "flext_core",
         "p": ".protocols",
         "r": "flext_core",
+        "resolve_lazy_members": "flext_core",
         "s": ".base",
-        "services": ".services",
         "settings": "._settings",
         "t": ".typings",
         "u": ".utilities",
@@ -149,3 +163,6 @@ install_lazy_exports(
     }),
     public_exports=__all__,
 )
+
+if not TYPE_CHECKING:
+    from flext_db_oracle.__version__ import __version__

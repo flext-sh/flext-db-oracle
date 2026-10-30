@@ -12,18 +12,6 @@
   - [Test Quality Metrics](#test-quality-metrics)
 - [🚀 Testing Strategy & Best Practices](#testing-strategy-best-practices)
   - [1. Railway Pattern Testing](#1-railway-pattern-testing)
-  - [2. Fixture-Based Testing](#2-fixture-based-testing)
-  - [3. Parametrized Testing](#3-parametrized-testing)
-  - [4. Mock Strategy](#4-mock-strategy)
-- [📊 Current Test Results & Issues](#current-test-results-issues_1)
-  - [Test Execution Status](#test-execution-status)
-  - [CI/CD Integration](#cicd-integration)
-- [🎯 Testing Roadmap](#testing-roadmap)
-  - [Phase 2 Priorities](#phase-2-priorities)
-  - [Established Practices](#established-practices)
-- [📈 Testing Quality Metrics](#testing-quality-metrics)
-  - [Targets](#targets)
-- [🔍 Maintenance](#maintenance)
 
 <!-- TOC END -->
 
@@ -74,7 +62,7 @@ deprecated Pydantic v1 style configuration
 
 #### 3. **Constants Test Failures**
 
-**Issue**: `AssertionError: assert 1 == 1024` in network constants test **Impact**:
+**Issue**: `AssertionError: tm.that(1, eq=1024` in network constants test **Impact**:)
 Basic functionality tests failing **Files Affected**: `tests/unit/test_constants.py`
 **Root Cause**: Incorrect constant values or test expectations
 
@@ -137,22 +125,31 @@ Basic functionality tests failing **Files Affected**: `tests/unit/test_constants
 
 #### Test r Operations
 
-````python notest
+````{.python .notest}
 from __future__ import annotations
+
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
 
 
 def test_flext_result_success_path(flext_db_oracle_api):
     """Test successful operation returns r.ok()."""
     result = flext_db_oracle_api.connect(valid_config)
-    assert result.success
+    tm.ok(result.success)
     connection = result.unwrap()
-    assert connection is not None
+    tm.not_none(connection)
 
 
 def test_flext_result_error_path(flext_db_oracle_api):
     """Test failed operation returns r.fail()."""
     result = flext_db_oracle_api.connect(invalid_config)
-    assert result.failure
+    tm.fail(result)
     assert "connection failed" in result.error.lower()
     ```
 ### 2. Fixture-Based Testing
@@ -162,11 +159,20 @@ def test_flext_result_error_path(flext_db_oracle_api):
 ```python
 from __future__ import annotations
 
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
+
 import pytest
 from unittest.mock import MagicMock
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope=c.ContextScope.SESSION)
 def oracle_container():
     """Provides Oracle XE 21c container for integration tests."""
     container = start_oracle_container()
@@ -192,6 +198,15 @@ def flext_db_oracle_api(oracle_config):
 ```python
 from __future__ import annotations
 
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
+
 import pytest
 
 
@@ -207,7 +222,7 @@ import pytest
 def test_sql_query_validation(flext_db_oracle_api, sql_query, expected_result):
     """Test SQL query validation with multiple scenarios."""
     result = flext_db_oracle_api.validate_query(sql_query)
-    assert result.success == expected_result
+    tm.that(result.success, eq=expected_result)
     ```
 ### 4. Mock Strategy
 
@@ -216,6 +231,15 @@ def test_sql_query_validation(flext_db_oracle_api, sql_query, expected_result):
 ```python
 from __future__ import annotations
 
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
+
 import pytest
 
 
@@ -223,7 +247,7 @@ import pytest
 def test_real_connection_pool():
     """Test with actual connection pool (preferred)."""
     pool = create_real_connection_pool()
-    assert pool.max_connections == 20
+    tm.that(pool.max_connections, eq=20)
 
 
 # Use mocks only when necessary

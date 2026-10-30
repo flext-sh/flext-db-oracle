@@ -14,7 +14,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_db_oracle import FlextDbOracleSettings
-from tests import m, tm
+from tests import c, m, tm
 
 if TYPE_CHECKING:
     from flext_db_oracle.services import FlextDbOracleServices
@@ -47,7 +47,7 @@ class TestsFlextDbOracleCoverageBaseline:
             "DbOracle": {
                 "host": "localhost",
                 "port": 1521,
-                "service_name": "lower_svc",
+                c.ContextKey.SERVICE_NAME: "lower_svc",
                 "username": "testuser",
                 "password": "testpass",
             },
@@ -61,9 +61,9 @@ class TestsFlextDbOracleCoverageBaseline:
             "DbOracle": {
                 "host": "secure.example.com",
                 "port": 2484,
-                "service_name": "SECURE_DB",
+                c.ContextKey.SERVICE_NAME: "SECURE_DB",
                 "username": "secure_user",
-                "password": "p" + "1" * 12,
+                "password": "p" + c.ParserBooleanToken.ONE * 12,
                 "ssl_cert_file": "/path/to/cert.pem",
             },
         })
@@ -72,10 +72,10 @@ class TestsFlextDbOracleCoverageBaseline:
 
     @staticmethod
     def test_password_equality_and_secret_access() -> None:
-        """Password exposes its root string, str form, and wrapper equality."""
+        """Password preserves its root, serialized value and model equality."""
         password = m.DbOracle.Password("h" + "2" * 6)
         tm.that(password.root, eq="h" + "2" * 6)
-        tm.that(str(password), eq="h" + "2" * 6)
+        tm.that(password.model_dump(), eq="h" + "2" * 6)
         tm.that(password, eq=m.DbOracle.Password("h" + "2" * 6))
         tm.that(password, ne=m.DbOracle.Password("other"))
 
@@ -86,12 +86,12 @@ class TestsFlextDbOracleCoverageBaseline:
             name="ID",
             data_type="NUMBER",
             nullable=False,
-            default_value="1",
+            default_value=c.ParserBooleanToken.ONE,
         )
         tm.that(column.name, eq="ID")
         tm.that(column.data_type, eq="NUMBER")
-        tm.that(column.nullable, eq=False)
-        tm.that(column.default_value, eq="1")
+        tm.fail(column.nullable)
+        tm.that(column.default_value, eq=c.ParserBooleanToken.ONE)
 
     @staticmethod
     def test_column_mapping_access_contract() -> None:
@@ -99,8 +99,8 @@ class TestsFlextDbOracleCoverageBaseline:
         column = m.DbOracle.Column(name="ID", data_type="NUMBER")
         tm.that(column["column_name"], eq="ID")
         tm.that(column["data_type"], eq="NUMBER")
-        tm.that("nullable" in column, eq=True)
-        tm.that("unknown_key" in column, eq=False)
+        tm.ok("nullable" in column)
+        tm.fail("unknown_key" in column)
         tm.that(column["unknown_key"], eq="")
 
     @staticmethod
@@ -117,7 +117,7 @@ class TestsFlextDbOracleCoverageBaseline:
         oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """A freshly built facade reports no active engine."""
-        tm.that(oracle_unit_services.connected(), eq=False)
+        tm.fail(oracle_unit_services.connected())
 
     @staticmethod
     def test_service_execute_returns_active_configuration(
@@ -126,8 +126,7 @@ class TestsFlextDbOracleCoverageBaseline:
     ) -> None:
         """execute() yields the active configuration as its default result."""
         result = oracle_unit_services.execute()
-        tm.ok(result)
-        tm.that(result.value, eq=oracle_unit_settings)
+        tm.ok(result, eq=oracle_unit_settings)
 
     @staticmethod
     def test_build_select_with_columns(

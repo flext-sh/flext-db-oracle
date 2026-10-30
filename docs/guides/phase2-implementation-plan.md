@@ -13,24 +13,6 @@
   - [4. ❌ NOT STARTED - Interactive Features (0%)](#4-not-started-interactive-features-0)
 - [🔧 Technical Implementation Details](#technical-implementation-details)
   - [Rich Integration Architecture](#rich-integration-architecture)
-  - [CLI Command Structure](#cli-command-structure)
-- [🧪 Testing Implementation](#testing-implementation)
-  - [Current Test Status](#current-test-status)
-  - [Testing Plan for Phase 2](#testing-plan-for-phase-2)
-- [📊 Progress Tracking](#progress-tracking)
-  - [Daily Progress Log](#daily-progress-log)
-  - [Phase Completion Criteria](#phase-completion-criteria)
-- [🚧 Known Issues & Blockers](#known-issues-blockers)
-  - [Current Blockers](#current-blockers)
-  - [Risk Mitigation](#risk-mitigation)
-  - [Dependencies](#dependencies)
-- [📈 Success Metrics](#success-metrics)
-  - [Quantitative Metrics](#quantitative-metrics)
-  - [Qualitative Metrics](#qualitative-metrics)
-- [🎯 Next Steps](#next-steps)
-  - [Immediate Actions (Next 24 hours)](#immediate-actions-next-24-hours)
-  - [Short Term (Next 3 days)](#short-term-next-3-days)
-  - [Long Term (Phase Completion)](#long-term-phase-completion)
 
 <!-- TOC END -->
 
@@ -195,8 +177,17 @@ self._formatters = SimpleNamespace(
 
 #### Target Functional Implementation
 
-````python notest
+````{.python .notest}
 from __future__ import annotations
+
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
 
 # Planned Rich integration
 from rich.table import Table

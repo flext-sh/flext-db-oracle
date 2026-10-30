@@ -16,18 +16,19 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, TypeVar
 
 import pytest
 
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.services import FlextDbOracleServices
-from tests import m, t, tm
+from tests import c, m, tm
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
+    from collections.abc import Callable
 
-    from tests import p
+from tests import p
 
 _T = TypeVar("_T")
 
@@ -36,31 +37,31 @@ _T = TypeVar("_T")
 # `services` parameter from the explicit annotation -- an inline lambda
 # inside the parametrize list literal has no expected-type context to infer
 # its parameter from ([implicit-any-lambda]).
-def _call_fetch_schemas(services: FlextDbOracleServices) -> p.Result[t.StrSequence]:
+def _call_fetch_schemas(services: FlextDbOracleServices) -> p.Result[Sequence[str]]:
     return services.fetch_schemas()
 
 
 def _call_fetch_tables_default(
     services: FlextDbOracleServices,
-) -> p.Result[t.StrSequence]:
+) -> p.Result[Sequence[str]]:
     return services.fetch_tables()
 
 
 def _call_fetch_tables_schema(
     services: FlextDbOracleServices,
-) -> p.Result[t.StrSequence]:
+) -> p.Result[Sequence[str]]:
     return services.fetch_tables("APP_SCHEMA")
 
 
 def _call_fetch_tables_empty_schema(
     services: FlextDbOracleServices,
-) -> p.Result[t.StrSequence]:
+) -> p.Result[Sequence[str]]:
     return services.fetch_tables("")
 
 
 def _call_fetch_tables_none_schema(
     services: FlextDbOracleServices,
-) -> p.Result[t.StrSequence]:
+) -> p.Result[Sequence[str]]:
     return services.fetch_tables(None)
 
 
@@ -84,7 +85,7 @@ def _call_fetch_table_metadata(
 
 def _call_fetch_primary_keys(
     services: FlextDbOracleServices,
-) -> p.Result[t.StrSequence]:
+) -> p.Result[Sequence[str]]:
     return services.fetch_primary_keys("T")
 
 
@@ -95,7 +96,6 @@ def _call_test_connection(services: FlextDbOracleServices) -> p.Result[bool]:
 class TestsFlextDbOracleMetadata:
     """Public-contract tests for Oracle metadata introspection."""
 
-    @staticmethod
     @pytest.fixture
     def settings() -> FlextDbOracleSettings:
         """Return in-memory Oracle settings pointing at no reachable host."""
@@ -103,7 +103,7 @@ class TestsFlextDbOracleMetadata:
             "DbOracle": {
                 "host": "test",
                 "port": 1521,
-                "service_name": "TEST",
+                c.ContextKey.SERVICE_NAME: "TEST",
                 "username": "test",
                 "password": "test",
             },
@@ -133,7 +133,7 @@ class TestsFlextDbOracleMetadata:
         services: FlextDbOracleServices,
     ) -> None:
         """A freshly built facade is not connected until connect succeeds."""
-        tm.that(services.connected(), eq=False)
+        tm.fail(services.connected())
 
     @staticmethod
     def test_execute_returns_active_settings_as_success(
@@ -169,7 +169,7 @@ class TestsFlextDbOracleMetadata:
         _ = label
         result = call(services)
         error = tm.fail(result, has="Not connected")
-        tm.that(bool(error), eq=True)
+        tm.ok(bool(error))
 
     @staticmethod
     def test_failed_op_recovers_via_unwrap_or_default(
@@ -212,7 +212,7 @@ class TestsFlextDbOracleMetadata:
         tm.that(column.name, eq="ID")
         tm.that(column.data_type, eq=data_type)
         tm.that(column.nullable, eq=nullable)
-        tm.that(column.primary_key, eq=False)
+        tm.fail(column.primary_key)
         tm.that(column.default_value, eq="")
 
     @staticmethod
@@ -222,8 +222,8 @@ class TestsFlextDbOracleMetadata:
         tm.that(column["name"], eq="CODE")
         tm.that(column["column_name"], eq="CODE")
         tm.that(column["data_type"], eq="VARCHAR2")
-        tm.that("data_type" in column, eq=True)
-        tm.that("missing_key" in column, eq=False)
+        tm.ok("data_type" in column)
+        tm.fail("missing_key" in column)
         tm.that(column["missing_key"], eq="")
 
     @staticmethod
@@ -238,8 +238,8 @@ class TestsFlextDbOracleMetadata:
         dumped = column.model_dump()
         tm.that(dumped["name"], eq="AMOUNT")
         tm.that(dumped["data_type"], eq="NUMBER")
-        tm.that(dumped["nullable"], eq=True)
-        tm.that(dumped["primary_key"], eq=True)
+        tm.ok(dumped["nullable"])
+        tm.ok(dumped["primary_key"])
 
     @staticmethod
     def test_table_aggregates_its_columns() -> None:

@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Sequence
 
 from sqlalchemy import func, select, table
 from sqlalchemy.dialects.oracle import dialect as oracle_dialect
@@ -21,9 +21,6 @@ from sqlalchemy.exc import (
 from sqlalchemy.sql import quoted_name
 
 from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, t, u
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
 
 
 class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
@@ -98,11 +95,11 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         self,
         table_name: str,
         schema_name: str | None = None,
-    ) -> p.Result[t.StrSequence]:
+    ) -> p.Result[Sequence[str]]:
         """Alias for get_primary_keys.
 
         Returns:
-            The resulting ``p.Result[t.StrSequence]``.
+            The resulting ``p.Result[Sequence[str]]``.
 
         """
         return self.fetch_primary_keys(table_name, schema_name)
@@ -111,15 +108,15 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         self,
         table_name: str,
         schema: str | None = None,
-    ) -> p.Result[t.StrSequence]:
+    ) -> p.Result[Sequence[str]]:
         """Get primary key column names for specified table.
 
         Returns:
-            The resulting ``p.Result[t.StrSequence]``.
+            The resulting ``p.Result[Sequence[str]]``.
 
         """
 
-        def _fetch_keys() -> t.StrSequence:
+        def _fetch_keys() -> Sequence[str]:
             if schema:
                 sql = (
                     "\n                SELECT column_name\n"
@@ -162,11 +159,11 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             ),
         ).map_error(lambda e: f"Failed to get primary keys: {e}")
 
-    def fetch_schemas(self) -> p.Result[t.StrSequence]:
+    def fetch_schemas(self) -> p.Result[Sequence[str]]:
         """Get list of Oracle schemas.
 
         Returns:
-            The resulting ``p.Result[t.StrSequence]``.
+            The resulting ``p.Result[Sequence[str]]``.
 
         """
         sql = (
@@ -242,7 +239,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         """
 
         def _fetch_count() -> int:
-            statement = select(func.count().label("count")).select_from(
+            statement = select(func.count().label(c.Aggregation.COUNT)).select_from(
                 table(
                     table_name.upper()
                     if c.DbOracle.IDENTIFIER_RE.fullmatch(table_name)
@@ -277,11 +274,11 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             ),
         ).map_error(lambda e: f"Failed to get row count: {e}")
 
-    def fetch_tables(self, schema: str | None = None) -> p.Result[t.StrSequence]:
+    def fetch_tables(self, schema: str | None = None) -> p.Result[Sequence[str]]:
         """Get list of tables in Oracle schema.
 
         Returns:
-            The resulting ``p.Result[t.StrSequence]``.
+            The resulting ``p.Result[Sequence[str]]``.
 
         """
         if schema:

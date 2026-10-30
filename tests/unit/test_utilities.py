@@ -17,7 +17,7 @@ from collections.abc import Mapping, Sequence
 import pytest
 
 from flext_db_oracle import FlextDbOracleSettings
-from tests import c, m, t, tm, u
+from tests import c, t, tm, u
 
 
 @pytest.mark.unit
@@ -28,7 +28,7 @@ class TestsFlextDbOracleUtilitiesUnit:
     # checker-visible type expression (aliases unwrap to the same adapter).
     # Concrete generics only: bare PEP 695 aliases in a runtime union collapse
     # to UnionType/TypeAliasType objects, which the adapter form rejects.
-    _JSON_RESULT_ADAPTER: m.TypeAdapter[
+    _JSON_RESULT_ADAPTER: u.type_adapter[
         Sequence[Mapping[str, int | str | bool]]
         | Sequence[Mapping[str, str]]
         | Sequence[Mapping[str, int]]
@@ -56,7 +56,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         )
         tm.that(hash_value, is_=str)
         tm.that(len(hash_value), eq=16)
-        tm.that(hash_value.isalnum(), eq=True)
+        tm.ok(hash_value.isalnum())
 
     @staticmethod
     def test_generate_query_hash_is_deterministic_for_same_inputs() -> None:
@@ -142,8 +142,8 @@ class TestsFlextDbOracleUtilitiesUnit:
         """Newlines and runs of whitespace collapse to single spaces."""
         sql = "\nSELECT   id,\n  name\nFROM users\nWHERE active = 1\n"
         formatted: str = tm.ok(u.DbOracle.format_sql_for_oracle(sql))
-        tm.that("\n" not in formatted, eq=True)
-        tm.that("  " not in formatted, eq=True)
+        tm.ok("\n" not in formatted)
+        tm.ok("  " not in formatted)
 
     @staticmethod
     def test_format_sql_preserves_all_clause_keywords() -> None:
@@ -241,7 +241,7 @@ class TestsFlextDbOracleUtilitiesUnit:
     @staticmethod
     def test_validate_identifier_accepts_valid_name() -> None:
         """A valid identifier validates successfully returning True."""
-        tm.that(tm.ok(u.DbOracle.validate_identifier("VALID_TABLE")), eq=True)
+        tm.ok(tm.ok(u.DbOracle.validate_identifier("VALID_TABLE")))
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -272,12 +272,22 @@ class TestsFlextDbOracleUtilitiesUnit:
             [{"key": "non-serializable-test"}],
             [{"id": 1, "name": "John"}],
             [{"id": 1}],
+            ({"id": 1, "name": "John"},),
+            (),
         ],
-        ids=["full", "empty", "non-serializable", "table", "single"],
+        ids=[
+            "full",
+            "empty",
+            "non-serializable",
+            "table",
+            "single",
+            "tuple",
+            "empty-tuple",
+        ],
     )
     def test_format_query_result_json_is_reparseable(
         self,
-        data: t.SequenceOf[t.JsonValue],
+        data: list[t.JsonValue] | tuple[t.JsonValue, ...],
     ) -> None:
         """JSON formatting yields a string that re-parses to the same shape."""
         formatted: str = tm.ok(u.DbOracle.format_query_result(data, "json"))
@@ -292,6 +302,8 @@ class TestsFlextDbOracleUtilitiesUnit:
         data: list[t.JsonValue] = [{"id": 1, "name": "John"}]
         formatted: str = tm.ok(u.DbOracle.format_query_result(data, "table"))
         tm.that(formatted, eq=str(data))
+        with pytest.raises(c.PydanticSerializationError, match="range"):
+            u.normalize_to_json_value(range(3))
 
     @staticmethod
     def test_format_query_result_defaults_to_table() -> None:
@@ -299,9 +311,10 @@ class TestsFlextDbOracleUtilitiesUnit:
         data: list[t.JsonValue] = [{"id": 7}]
         tm.that(tm.ok(u.DbOracle.format_query_result(data)), eq=str(data))
 
-    # ------------------------------------------------------------------ #
-    # Settings from environment                                          #
-    # ------------------------------------------------------------------ #
+
+@pytest.mark.unit
+class TestsFlextDbOracleUtilitiesEnvironmentAndSql:
+    """Environment loading and composed offline Oracle SQL contracts."""
 
     @staticmethod
     def test_settings_from_env_reads_public_fields() -> None:

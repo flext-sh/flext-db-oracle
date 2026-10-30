@@ -45,14 +45,14 @@ make setup
 ## Quick Connection Test
 
 ```python
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c
 
 # Configure Oracle connection
 settings = FlextDbOracleSettings.model_validate({
     "DbOracle": {
         "host": "localhost",
         "port": 1521,
-        "service_name": "XEPDB1",
+        c.ContextKey.SERVICE_NAME: "XEPDB1",
         "username": "system",
         "password": "Oracle123",
     },
@@ -74,13 +74,13 @@ else:
 ### Query Execution
 
 ```python
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c
 
 settings = FlextDbOracleSettings.model_validate({
     "DbOracle": {
         "host": "localhost",
         "port": 1521,
-        "service_name": "XEPDB1",
+        c.ContextKey.SERVICE_NAME: "XEPDB1",
         "username": "system",
         "password": "Oracle123",
     },
@@ -103,13 +103,13 @@ if result.success:
 ### Schema Operations
 
 ```python
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c
 
 settings = FlextDbOracleSettings.model_validate({
     "DbOracle": {
         "host": "localhost",
         "port": 1521,
-        "service_name": "XEPDB1",
+        c.ContextKey.SERVICE_NAME: "XEPDB1",
         "username": "system",
         "password": "Oracle123",
     },

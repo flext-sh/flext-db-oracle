@@ -18,18 +18,6 @@
 - [🔄 Implementation Challenges & Solutions](#implementation-challenges-solutions)
   - [Major Challenges Overcome](#major-challenges-overcome)
   - [Best Practices Established](#best-practices-established)
-- [🎯 Current Phase Focus (CLI Enhancement)](#current-phase-focus-cli-enhancement)
-  - [Phase 2 Goals](#phase-2-goals)
-  - [Implementation Approach](#implementation-approach)
-  - [Success Criteria](#success-criteria)
-- [📈 Project Health Metrics](#project-health-metrics)
-  - [Quality Metrics](#quality-metrics)
-  - [Performance Metrics](#performance-metrics)
-  - [Ecosystem Impact](#ecosystem-impact)
-- [🚀 Next Steps](#next-steps)
-  - [Immediate Priorities (Phase 2)](#immediate-priorities-phase-2)
-  - [Future Phases (Phase 3+)](#future-phases-phase-3)
-  - [Documentation Updates Needed](#documentation-updates-needed)
 
 <!-- TOC END -->
 
@@ -215,14 +203,14 @@ Production-quality testing environment
 
 #### 1. **Railway Pattern Throughout**
 
-````python notest
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+````{.python .notest}
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c
 
 settings = FlextDbOracleSettings(
     DbOracle={
         "host": "localhost",
         "port": 1521,
-        "service_name": "XEPDB1",
+        c.ContextKey.SERVICE_NAME: "XEPDB1",
         "username": "system",
         "password": "",
     }

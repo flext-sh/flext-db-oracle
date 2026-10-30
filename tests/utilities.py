@@ -26,17 +26,17 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
         def normalize_port_bindings(
             cls,
             value: t.JsonValue | t.JsonMapping,
-        ) -> t.StrMapping:
+        ) -> Mapping[str, str]:
             """Normalize Docker port bindings into a typed mapping.
 
             Returns:
-                The resulting ``t.StrMapping``.
+                The resulting ``Mapping[str, str]``.
 
             """
             # Why: no-hidden-errors — propagate a malformed Docker port
             # payload instead of masking it as "no bindings".
-            validated: t.StrMapping = u.type_adapter(
-                Mapping[str, str],
+            validated: Mapping[str, str] = u.type_adapter(
+                Mapping[str, str]
             ).validate_python(value)
             return validated
 
@@ -44,11 +44,11 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
         def _oracle_host_ports(
             cls,
             status_value: FlextTestsModels.Tests.ContainerInfo,
-        ) -> t.StrMapping:
+        ) -> Mapping[str, str]:
             """Normalize the port bindings carried by a container status value.
 
             Returns:
-                The resulting ``t.StrMapping``.
+                The resulting ``Mapping[str, str]``.
 
             """
             return cls.normalize_port_bindings(status_value.ports)
@@ -56,7 +56,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
         @classmethod
         def _env_port_matches(
             cls,
-            ports: t.StrMapping,
+            ports: Mapping[str, str],
             env_port_int: int,
         ) -> bool:
             """Report whether any Oracle listener publishes ``env_port_int``.
@@ -73,7 +73,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
             )
 
         @classmethod
-        def _first_oracle_host_port(cls, ports: t.StrMapping) -> int | None:
+        def _first_oracle_host_port(cls, ports: Mapping[str, str]) -> int | None:
             """Return the first published Oracle listener host port, if any.
 
             Returns:
@@ -116,14 +116,14 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
             env_port = os.getenv("TEST_ORACLE_PORT")
             if env_port is not None and env_port.isdigit():
                 env_port_int = int(env_port)
-                status_result = docker_control.fetch_container_status(container_name)
+                status_result = docker_control.fetch_container_info(container_name)
                 if status_result.success:
                     ports = cls._oracle_host_ports(status_result.value)
                     if cls._env_port_matches(ports, env_port_int):
                         return env_port_int
             fallback_port = cls._fallback_port(container_name)
             for _ in range(30):
-                status_result = docker_control.fetch_container_status(container_name)
+                status_result = docker_control.fetch_container_info(container_name)
                 if status_result.success:
                     host_port = cls._first_oracle_host_port(
                         cls._oracle_host_ports(status_result.value),

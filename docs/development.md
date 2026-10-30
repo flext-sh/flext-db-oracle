@@ -212,7 +212,7 @@ and performance.
 
 - **Railway Pattern Throughout**: All operations return `r[T]`
 - **Single Class Per Module**: Unified API per module (FlextDbOracleApi,
-  FlextDbOracleModels, etc.)
+  FlextModelsDbOracle, etc.)
 - **Root Module Imports**: `from flext_db_oracle import X` only, no internal imports
 - **Zero Breaking Changes**: Maintained API compatibility across ecosystem
 

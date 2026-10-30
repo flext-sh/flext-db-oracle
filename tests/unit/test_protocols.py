@@ -14,18 +14,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.services import FlextDbOracleServices
-from tests import p, tm
-
-if TYPE_CHECKING:
-    from tests import t
+from tests import p, t, tm
 
 # (public name, protocol class, promised method surface) — the contract each
 # Oracle domain protocol advertises to implementers.
-_DB_ORACLE_CONTRACTS: t.VariadicTuple[t.Tests.ProtocolContract] = (
+_DB_ORACLE_CONTRACTS: tuple[t.Tests.ProtocolContract, ...] = (
     ("Connection", p.DbOracle.Connection, ("connect", "disconnect", "connected")),
     (
         "OraclePlugin",
@@ -90,29 +85,29 @@ class TestsFlextDbOracleProtocols:
         exposed = {name for name in dir(p.DbOracle) if not name.startswith("_")}
         promised = {name for name, _proto, _methods in _DB_ORACLE_CONTRACTS}
 
-        assert promised <= exposed
+        tm.ok(promised <= exposed)
 
     @staticmethod
     def test_real_services_satisfy_connection_contract() -> None:
         """The actual services expose disconnected connection behavior."""
         services = FlextDbOracleServices(FlextDbOracleSettings())
-        assert isinstance(services, p.DbOracle.Connection)
-        assert services.connected() is False
+        tm.that(services, is_=p.DbOracle.Connection)
+        tm.ok(services.connected() is False)
         tm.ok(services.disconnect())
-        assert services.connected() is False
+        tm.ok(services.connected() is False)
 
     @staticmethod
     def test_real_services_satisfy_sql_builder_contract() -> None:
         """The actual SQL builder produces the requested identifiers."""
         services = FlextDbOracleServices(FlextDbOracleSettings())
-        assert isinstance(services, p.DbOracle.SqlBuilder)
+        tm.that(services, is_=p.DbOracle.SqlBuilder)
         result = services.build_select("customers", ["customer_id"])
         tm.ok(result)
-        assert "SELECT" in result.value.upper()
-        assert "customers" in result.value.lower()
-        assert "customer_id" in result.value.lower()
+        tm.that(result.value.upper(), has="SELECT")
+        tm.that(result.value.lower(), has="customers")
+        tm.that(result.value.lower(), has="customer_id")
 
     @staticmethod
     def test_foundation_result_protocol_inherited_from_flext_cli() -> None:
         """FlextDbOracleProtocols inherits foundation protocols from flext_cli."""
-        assert hasattr(p, "Result")
+        tm.ok(hasattr(p, "Result"))

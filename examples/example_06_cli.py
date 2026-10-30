@@ -11,66 +11,72 @@ from __future__ import annotations
 
 import os
 import sys
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Final
 
-from examples import m, t, u
+from examples import c, m, t, u
 
 MAX_OUTPUT_LINES: Final[int] = 3
 
 
-def _get_cli_examples() -> t.SequenceOf[t.JsonMapping]:
+def _get_cli_examples() -> Sequence[t.JsonMapping]:
     """Get CLI command examples - DRY pattern for example data.
 
     Returns:
-        t.SequenceOf[t.JsonMapping]: List of CLI command examples with metadata.
+        Sequence[t.JsonMapping]: List of CLI command examples with metadata.
 
     """
     return [
         {
             "name": "Show CLI Help",
-            "command": ["flext-oracle", "--help"],
+            c.HandlerType.COMMAND: ["flext-oracle", "--help"],
             "description": "Display all available CLI commands",
         },
         {
             "name": "Connect using Environment Variables",
-            "command": ["flext-oracle", "connect-env", "--debug"],
+            c.HandlerType.COMMAND: ["flext-oracle", "connect-env", "--debug"],
             "description": "Connect to Oracle using environment variables",
             "env_required": True,
         },
         {
             "name": "List Database Schemas",
-            "command": ["flext-oracle", "schemas"],
+            c.HandlerType.COMMAND: ["flext-oracle", "schemas"],
             "description": "List all available schemas",
             "env_required": True,
         },
         {
             "name": "List Database Tables",
-            "command": ["flext-oracle", "tables"],
+            c.HandlerType.COMMAND: ["flext-oracle", "tables"],
             "description": "List all tables",
             "env_required": True,
         },
         {
             "name": "Execute Simple Query",
-            "command": ["flext-oracle", "query", "--sql", "SELECT SYSDATE FROM DUAL"],
+            c.HandlerType.COMMAND: [
+                "flext-oracle",
+                c.HandlerType.QUERY,
+                "--sql",
+                "SELECT SYSDATE FROM DUAL",
+            ],
             "description": "Execute a simple query",
             "env_required": True,
         },
         {
             "name": "Check Database Health",
-            "command": ["flext-oracle", "health"],
+            c.HandlerType.COMMAND: ["flext-oracle", "health"],
             "description": "Check database connection health",
             "env_required": True,
         },
         {
             "name": "Show Plugin Management",
-            "command": ["flext-oracle", "plugins"],
+            c.HandlerType.COMMAND: ["flext-oracle", "plugins"],
             "description": "List and manage Oracle plugins",
             "env_required": True,
         },
         {
             "name": "Optimize Query",
-            "command": [
+            c.HandlerType.COMMAND: [
                 "flext-oracle",
                 "optimize",
                 "--sql",
@@ -86,7 +92,7 @@ def _run_example_command(example: t.JsonMapping) -> None:
     """Run a single CLI example command - DRY pattern."""
     if example.get("env_required") and (not _check_oracle_env()):
         return
-    command = example["command"]
+    command = example[c.HandlerType.COMMAND]
     if isinstance(command, list):
         command_list = [str(item) for item in command]
     else:
@@ -121,7 +127,7 @@ def _check_oracle_env() -> bool:
     return all(os.getenv(var) for var in required_vars)
 
 
-def run_cli_command(cmd: t.StrSequence) -> t.Triple[int, str, str]:
+def run_cli_command(cmd: Sequence[str]) -> tuple[int, str, str]:
     """Run CLI command and return exit code, stdout, stderr (no shell).
 
     Returns:
@@ -129,7 +135,7 @@ def run_cli_command(cmd: t.StrSequence) -> t.Triple[int, str, str]:
 
     """
 
-    def _run() -> t.Triple[int, str, str]:
+    def _run() -> tuple[int, str, str]:
         result = u.Cli.run_raw(cmd, timeout=30)
         if result.success:
             process = result.value
@@ -168,11 +174,11 @@ def show_environment_setup() -> None:
         'export FLEXT_TARGET_ORACLE_USERNAME="flext_user"\n'
         'export FLEXT_TARGET_ORACLE_PASSWORD="<set-from-your-secret-store>"\n'
         "\n# Optional: Connection Pool Settings\n"
-        'export FLEXT_TARGET_ORACLE_POOL_MIN="1"\n'
+        "export FLEXT_TARGET_ORACLE_POOL_MIN=c.ParserBooleanToken.ONE\n"
         'export FLEXT_TARGET_ORACLE_POOL_MAX="10"\n'
         'export FLEXT_TARGET_ORACLE_TIMEOUT="30"\n'
         "\n# Optional: Debug Mode\n"
-        'export FLEXT_CLI_DEV_MODE="true"\n'
+        "export FLEXT_CLI_DEV_MODE=c.ParserBooleanToken.TRUE\n"
         'export FLEXT_CLI_LOG_LEVEL="debug"\n'
     )
     env_file = Path(".env")

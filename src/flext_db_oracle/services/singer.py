@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, MutableMapping
+from collections.abc import Mapping, MutableMapping, Sequence
 
 from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
 
@@ -27,7 +27,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
 
     def convert_singer_type(
         self,
-        singer_type: str | t.StrSequence = "string",
+        singer_type: str | Sequence[str] = "string",
         _format_hint: str | None = None,
     ) -> p.Result[str]:
         """Convert Singer type to Oracle type via the config-owned type map.
@@ -53,7 +53,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
 
         """
         raw_properties: t.JsonDict = {}
-        if isinstance(singer_schema, m.DbOracle.SingerSchema):
+        if not isinstance(singer_schema, Mapping):
             schema_model = singer_schema
         else:
             raw_props_value = singer_schema.get("properties", {})
