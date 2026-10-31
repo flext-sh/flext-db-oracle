@@ -13,7 +13,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from flext_cli import FlextCliSettings, m
 
@@ -50,6 +50,14 @@ class FlextDbOracleSettings(FlextCliSettings):
             str,
             m.Field(description="Oracle database password"),
         ] = ""
+        mode: Annotated[
+            Literal["SYSDBA", "SYSOPER"] | None,
+            m.Field(
+                description=(
+                    "Connection privilege mode (SYSDBA/SYSOPER); None = normal"
+                ),
+            ),
+        ] = None
         timeout: Annotated[
             int,
             m.Field(description="Connection timeout (s)"),

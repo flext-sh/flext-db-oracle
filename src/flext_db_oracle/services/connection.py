@@ -52,6 +52,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         self._engine = self._sqlalchemy_create_engine(
             url_result.value,
             connect_timeout=self.db_config.DbOracle.timeout,
+            mode=self.db_config.DbOracle.mode,
         )
         try:
             with self._engine_connect(self._engine) as conn:
@@ -73,6 +74,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                     self._engine = self._sqlalchemy_create_engine(
                         retry_url_result.value,
                         connect_timeout=self.db_config.DbOracle.timeout,
+                        mode=self.db_config.DbOracle.mode,
                     )
                     try:
                         with self._engine_connect(self._engine) as conn:
