@@ -47,6 +47,7 @@ class TestsFlextDbOracleSettings:
             "ssl_cert_file",
             "ssl_server_cert_dn",
             "enable_dispatcher",
+            "mode",
         }
         assert expected_fields <= set(dumped["DbOracle"])
 
@@ -100,6 +101,19 @@ class TestsFlextDbOracleSettings:
         })
         tm.that(settings.DbOracle.ssl_cert_file, eq="/etc/oracle/cert.pem")
         tm.that(settings.DbOracle.ssl_server_cert_dn, eq="CN=oracle,O=flext")
+
+    @staticmethod
+    def test_mode_defaults_to_none() -> None:
+        """Privilege mode is unset by default (normal connection)."""
+        tm.that(FlextDbOracleSettings().DbOracle.mode, none=True)
+
+    @staticmethod
+    def test_explicit_mode_is_preserved() -> None:
+        """An explicit privilege mode round-trips through the namespace."""
+        settings = FlextDbOracleSettings.model_validate({
+            "DbOracle": {"mode": "SYSDBA"},
+        })
+        tm.that(settings.DbOracle.mode, eq="SYSDBA")
 
     @staticmethod
     def test_fetch_global_returns_shared_singleton() -> None:

@@ -9,8 +9,9 @@ from __future__ import annotations
 import hashlib
 from collections.abc import Mapping
 from enum import StrEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
+import oracledb
 from flext_cli import m, p, r, t, u
 from sqlalchemy import (
     Connection as SAConnection,
@@ -197,16 +198,27 @@ class FlextDbOracleUtilitiesDbOracle:
     def _sqlalchemy_create_engine(
         url: str,
         connect_timeout: int | None = None,
+        mode: Literal["SYSDBA", "SYSOPER"] | None = None,
     ) -> SAEngine:
         """Create SQLAlchemy engine with optional connection timeout.
+
+        ``mode`` maps to the oracledb privilege mode (AUTH_MODE_SYSDBA/
+        AUTH_MODE_SYSOPER) via ``connect_args`` — SYSDBA logins recusam
+        conexão normal com ORA-28009.
 
         Returns:
             The resulting ``SAEngine``.
 
         """
-        connect_args: t.MutableMappingKV[str, int] = {}
+        connect_args: dict[str, object] = {}
         if connect_timeout is not None:
             connect_args["tcp_connect_timeout"] = connect_timeout
+        if mode is not None:
+            connect_args["mode"] = (
+                oracledb.AUTH_MODE_SYSDBA
+                if mode == "SYSDBA"
+                else oracledb.AUTH_MODE_SYSOPER
+            )
         return create_engine(
             url,
             pool_pre_ping=True,
