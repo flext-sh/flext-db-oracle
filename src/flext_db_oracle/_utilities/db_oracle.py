@@ -7,12 +7,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Mapping, MutableMapping, Sequence
+from collections.abc import Mapping, Sequence
 from enum import StrEnum
 from typing import TYPE_CHECKING, Literal
 
 import oracledb
-
 from flext_cli import m, p, r, t, u
 from sqlalchemy import (
     Connection as SAConnection,
