@@ -36,8 +36,6 @@ class FlextDbOracleConstants(c):
 
     class DbOracle(
         FlextDbOracleConstantsBase,
-        FlextDbOracleConstantsExceptions.DbOracle,
-        FlextDbOracleConstantsValues.DbOracle,
         FlextDbOracleConstantsExceptions,
         FlextDbOracleConstantsValues,
     ):

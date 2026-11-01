@@ -7,6 +7,7 @@
   - [Code Configuration](#code-configuration)
 - [Connection Parameters](#connection-parameters)
 - [Testing Connection](#testing-connection)
+- [CLI Configuration](#cli-configuration)
 
 <!-- TOC END -->
 
@@ -71,17 +72,19 @@ api = FlextDbOracleApi(settings)
 
 ## Testing Connection
 
-````python
+```python
 import os
 
+from flext_db_oracle import FlextDbOracleApi
+
 # Seed environment values so the API can be resolved from settings.
+# Demo credential only; load real values from a secret store or the environment.
+demo_credential = "placeholder"
 os.environ["ORACLE_DBORACLE__HOST"] = "localhost"
 os.environ["ORACLE_DBORACLE__PORT"] = "1521"
 os.environ["ORACLE_DBORACLE__SERVICE_NAME"] = "XEPDB1"
 os.environ["ORACLE_DBORACLE__USERNAME"] = "system"
-os.environ["ORACLE_DBORACLE__PASSWORD"] = "Oracle123"
-
-from flext_db_oracle import FlextDbOracleApi
+os.environ["ORACLE_DBORACLE__PASSWORD"] = demo_credential
 
 api_result = FlextDbOracleApi.from_env()
 if api_result.success:
@@ -95,7 +98,8 @@ if api_result.success:
         print(f"Connection failed: {result.error}")
 else:
     print(f"API could not be created: {api_result.error}")
-    ```
+```
+
 ## CLI Configuration
 
 ```bash
@@ -108,14 +112,10 @@ export ORACLE_PASSWORD=Oracle123
 
 # Test connection
 python -m flext_db_oracle.cli health
-````
+```
 
 For advanced configuration patterns, see the FLEXT workspace documentation.
 
 ---
 
 Updated: April 14, 2026 | Version: 0.12.0-dev
-
-```
-
-```
