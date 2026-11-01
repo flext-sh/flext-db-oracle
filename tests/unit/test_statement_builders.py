@@ -28,6 +28,13 @@ class TestsFlextDbOracleStatementBuilders:
         tm.that(str(u.DbOracle.func.max(u.DbOracle.text("dh_exec"))), has="max(")
 
     @staticmethod
+    def test_select_renders_the_listed_columns() -> None:
+        """``u.DbOracle.select`` renders a SELECT of every listed column."""
+        sql = str(u.DbOracle.select(u.DbOracle.func.count(), u.DbOracle.func.max(1)))
+        tm.that(sql, has="SELECT count(*)")
+        tm.that(sql, has="max(")
+
+    @staticmethod
     def test_sql_datetime_reads_oracle_date_as_naive() -> None:
         """``SqlDateTime()`` keeps Oracle DATE as a timezone-naive timestamp."""
         tm.ok(not t.DbOracle.SqlDateTime().timezone)

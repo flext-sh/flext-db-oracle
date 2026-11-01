@@ -22,6 +22,7 @@ from sqlalchemy import (
     create_engine,
     event,
     func as _sqlalchemy_func,
+    select as _sqlalchemy_select,
     text as _sqlalchemy_text,
 )
 from sqlalchemy.exc import DatabaseError as SADatabaseError
@@ -60,7 +61,9 @@ class FlextDbOracleUtilitiesDbOracle:
     DatabaseError: ClassVar[type[Exception]] = SADatabaseError
 
     # Statement builders published natively (every overload kept):
-    # `u.DbOracle.func.count()` and `u.DbOracle.aliased(Model)`.
+    # `u.DbOracle.select(*columns)`, `u.DbOracle.func.count()` and
+    # `u.DbOracle.aliased(Model)`.
+    select = FlextTypingNativeExport(_sqlalchemy_select)
     func = FlextTypingNativeExport(_sqlalchemy_func)
     aliased = FlextTypingNativeExport(_sqlalchemy_aliased)
 
