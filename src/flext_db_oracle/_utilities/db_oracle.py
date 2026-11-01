@@ -14,15 +14,19 @@ from typing import TYPE_CHECKING, ClassVar
 
 import oracledb
 from flext_cli import u
+from flext_core import FlextTypingNativeExport
 from sqlalchemy import (
     Connection as SAConnection,
     Engine as SAEngine,
     TextClause,
     create_engine,
     event,
+    func as _sqlalchemy_func,
+    select as _sqlalchemy_select,
     text as _sqlalchemy_text,
 )
 from sqlalchemy.exc import DatabaseError as SADatabaseError
+from sqlalchemy.orm import aliased as _sqlalchemy_aliased
 
 from flext_db_oracle import c, m, p, r, settings, t
 from flext_db_oracle._models import FlextModelsDbOracleConnection
@@ -55,6 +59,13 @@ class FlextDbOracleUtilitiesDbOracle:
     # Driver exception published for consumers: `except u.DbOracle.DatabaseError`
     # keeps the library import inside the owner facade.
     DatabaseError: ClassVar[type[Exception]] = SADatabaseError
+
+    # Statement builders published natively (every overload kept):
+    # `u.DbOracle.select(*columns)`, `u.DbOracle.func.count()` and
+    # `u.DbOracle.aliased(Model)`.
+    select = FlextTypingNativeExport(_sqlalchemy_select)
+    func = FlextTypingNativeExport(_sqlalchemy_func)
+    aliased = FlextTypingNativeExport(_sqlalchemy_aliased)
 
     @staticmethod
     def text(statement: str) -> TextClause:
