@@ -595,6 +595,7 @@ runtime-evaluated-base-classes = [
   "flext_cli.m.ArbitraryTypesModel",
   "flext_cli.m.BaseModel",
   "flext_cli.m.Entity",
+  "flext_cli.m.FrozenModel",
   "flext_cli.m.RootModel",
   "flext_core.FlextService",
   "flext_db_oracle.FlextDbOracleServiceBase",

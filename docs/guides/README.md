@@ -14,6 +14,7 @@ sourced from code and docstrings.
 - [Development](development.md)
 - [Engine](engine.md)
 - [Getting started](getting-started.md)
+- [Golden pattern db access](golden-pattern-db-access.md)
 - [Implementation status](implementation-status.md)
 - [Integration](integration.md)
 - [Maintenance procedures](maintenance-procedures.md)

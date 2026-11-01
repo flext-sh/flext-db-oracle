@@ -25,7 +25,7 @@
 - Public symbol exports: `DbOracleSettings`, `FlextDbOracleApi`, `FlextDbOracleClient`,
   `FlextDbOracleConfig`, `FlextDbOracleConstants`, `FlextDbOracleDispatcher`,
   `FlextDbOracleExceptions`, `FlextDbOracleProtocols`, `FlextDbOracleServiceBase`,
-  `FlextDbOracleSettings` (+8 more)
+  `FlextDbOracleSettings` (+9 more)
 - Exported module shortcuts: _none_
 - Generated module pages: `12`
 
