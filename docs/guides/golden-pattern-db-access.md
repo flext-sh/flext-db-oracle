@@ -1,5 +1,14 @@
 # Golden Pattern — Database Access (flext-db-oracle / SQLAlchemy 2 / SQLModel)
 
+<!-- TOC START -->
+
+- [Layers](#layers)
+- [Rules](#rules)
+- [Member adoption sketch](#member-adoption-sketch)
+- [Forward compatibility](#forward-compatibility)
+
+<!-- TOC END -->
+
 The single reference for every flext member that touches a database
 (dc-recon today; flext-tap-oracle, flext-target-oracle, flext-dbt-oracle and
 non-Oracle adapters tomorrow). Consumers depend on **ports**, never on the
@@ -48,24 +57,72 @@ rows         pydantic / SQLModel models validated from native mappings
 
 ## Member adoption sketch
 
+A member composes the mixins it needs from `flext_db_oracle.services` and adds
+only its own operations. Members with another transport (TNS descriptor, thick
+mode, custom pools) override the `_engine_factory(url)` hook of
+`FlextDbOracleServiceConnection`; they never reimplement the lifecycle.
+
+Control-table example (dc-recon): typed rows through `fetch_models` with a
+bind parameter, no positional parsing.
+
 ```python
+from __future__ import annotations
+
+from collections.abc import Sequence
+from datetime import UTC, datetime
+
+from flext_core import p
+
+from flext_db_oracle import FlextDbOracleSettings, m
+from flext_db_oracle.services import (
+    FlextDbOracleServiceConnection,
+    FlextDbOracleServiceQuery,
+    FlextDbOracleServiceSchema,
+)
+
+
 class MemberServiceBase(
     FlextDbOracleServiceQuery,  # execute/fetch_models/execute_many
     FlextDbOracleServiceSchema,  # fetch_columns/fetch_primary_keys
-    FlextDbOracleServiceBase,
+    FlextDbOracleServiceConnection,  # connect/disconnect/_engine_factory
 ):
-    def _engine_factory(self, url: str) -> SAEngine:
-        return u.Member.engine(url)  # member transport (TNS/thick/pools)
-```
+    """Member service composed from the ports it needs."""
 
-Control-table example (dc-recon):
 
-```python
-stmt = select(CmpFatiaHist).where(
-    CmpFatiaHist.owner == owner, CmpFatiaHist.dh_exec >= desde
+class SliceHistory(m.FrozenModel):
+    owner: str
+    dh_exec: datetime
+
+
+class SliceHistoryService(MemberServiceBase):
+    def fetch_since(
+        self, owner: str, since: datetime
+    ) -> p.Result[Sequence[SliceHistory]]:
+        return self.fetch_models(
+            "SELECT owner, dh_exec FROM cmp_fatia_hist"
+            " WHERE owner = :owner AND dh_exec >= :since",
+            m.ConfigMap({"owner": owner, "since": since}),
+            model=SliceHistory,
+        )
+
+
+settings = FlextDbOracleSettings.model_validate({
+    "DbOracle": {
+        "host": "localhost",
+        "port": 1521,
+        "service_name": "XEPDB1",
+        "username": "user",
+        "password": "placeholder",
+    },
+})
+outcome = SliceHistoryService(settings).fetch_since(
+    "HR", datetime(2026, 1, 1, tzinfo=UTC)
 )
-rows = self.fetch_models(stmt, model=CmpFatiaHist).unwrap()
+print(outcome.failure, outcome.error)
 ```
+
+Without a connected engine the call fails on the railway instead of raising:
+the example prints `True Not connected to database`.
 
 ## Forward compatibility
 
