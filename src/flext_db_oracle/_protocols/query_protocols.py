@@ -45,7 +45,7 @@ class FlextDbOracleProtocolsQuery:
         def fetch_models[T: BaseModel](
             self,
             sql: str | Executable,
-            params: t.JsonMapping | None = None,
+            params: m.ConfigMap | None = None,
             *,
             model: type[T],
         ) -> FlextProtocolsResult.Result[Sequence[T]]:
@@ -65,7 +65,7 @@ class FlextDbOracleProtocolsQuery:
         def execute_query(
             self,
             sql: str,
-            params: t.JsonMapping | None = None,
+            params: m.ConfigMap | None = None,
         ) -> FlextProtocolsResult.Result[Sequence[m.Dict]]:
             """Execute Oracle SQL query.
 
@@ -82,8 +82,8 @@ class FlextDbOracleProtocolsQuery:
         def execute_statement(
             self,
             sql: str,
-            params: t.JsonMapping | None = None,
-        ) -> FlextProtocolsResult.Result[bool]:
+            params: m.ConfigMap | None = None,
+        ) -> FlextProtocolsResult.Result[int]:
             """Execute Oracle SQL statement.
 
             Args:
@@ -91,7 +91,7 @@ class FlextDbOracleProtocolsQuery:
             params: Statement parameters
 
             Returns:
-            r[bool]: Execution success status
+            r[int]: Number of affected rows
 
             """
             ...
@@ -99,7 +99,7 @@ class FlextDbOracleProtocolsQuery:
         def fetch_one(
             self,
             sql: str,
-            params: t.JsonMapping | None = None,
+            params: m.ConfigMap | None = None,
         ) -> FlextProtocolsResult.Result[m.Dict | None]:
             """Fetch single result from Oracle query.
 

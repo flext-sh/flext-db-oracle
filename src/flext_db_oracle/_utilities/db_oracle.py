@@ -9,7 +9,7 @@ from __future__ import annotations
 import hashlib
 from collections.abc import Mapping, Sequence
 from enum import StrEnum
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 import oracledb
 from flext_cli import u
@@ -209,80 +209,45 @@ class FlextDbOracleUtilitiesDbOracle:
         return validated[0]
 
     @staticmethod
-    def engine(
-        url: str,
-        *,
-        connect_args: Mapping[str, object] | None = None,
-        pool_size: int | None = None,
-        max_overflow: int | None = None,
-        pool_recycle: int | None = None,
-        connect_timeout: int | None = None,
-        mode: Literal["SYSDBA", "SYSOPER"] | None = None,
-    ) -> SAEngine:
+    def engine(url: str, options: m.DbOracle.EngineOptions) -> SAEngine:
         """Build a SQLAlchemy engine through the database facade.
 
         SQLAlchemy is owned by flext-db-oracle: consumers construct engines
-        here instead of importing the library. ``mode`` maps to the oracledb
-        privilege mode (AUTH_MODE_SYSDBA/AUTH_MODE_SYSOPER) via ``connect_args``.
+        here instead of importing the library. ``options.mode`` maps to the
+        oracledb privilege mode (SYSDBA logins reject a normal connection with
+        ORA-28009); ``options.dsn`` carries a TNS descriptor or alias.
 
         Returns:
             The resulting ``SAEngine``.
 
         """
-        return FlextDbOracleUtilitiesDbOracle._sqlalchemy_create_engine(
-            url,
-            connect_timeout=connect_timeout,
-            mode=mode,
-            connect_args=connect_args,
-            pool_size=pool_size,
-            max_overflow=max_overflow,
-            pool_recycle=pool_recycle,
-        )
-
-    @staticmethod
-    def _sqlalchemy_create_engine(
-        url: str,
-        connect_timeout: int | None = None,
-        mode: Literal["SYSDBA", "SYSOPER"] | None = None,
-        connect_args: Mapping[str, object] | None = None,
-        pool_size: int | None = None,
-        max_overflow: int | None = None,
-        pool_recycle: int | None = None,
-    ) -> SAEngine:
-        """Create SQLAlchemy engine with optional connection timeout.
-
-        ``mode`` maps to the oracledb privilege mode (AUTH_MODE_SYSDBA/
-        AUTH_MODE_SYSOPER) via ``connect_args`` — SYSDBA logins reject a
-        normal connection with ORA-28009. ``connect_args`` carries any extra
-        driver keyword (e.g. ``dsn`` for TNS descriptors) and wins over the
-        scalars above when they collide.
-
-        Returns:
-            The resulting ``SAEngine``.
-
-        """
-        resolved: dict[str, object] = {}
-        if connect_timeout is not None:
-            resolved["tcp_connect_timeout"] = connect_timeout
-        if mode is not None:
-            resolved["mode"] = (
+        connect_args: dict[str, str | int] = {}
+        if options.dsn is not None:
+            connect_args["dsn"] = options.dsn
+        if options.connect_timeout is not None:
+            connect_args["tcp_connect_timeout"] = options.connect_timeout
+        if options.mode is not None:
+            connect_args["mode"] = (
                 oracledb.AUTH_MODE_SYSDBA
-                if mode == "SYSDBA"
+                if options.mode == "SYSDBA"
                 else oracledb.AUTH_MODE_SYSOPER
             )
-        if connect_args:
-            resolved.update(connect_args)
-        options: dict[str, object] = {
-            "pool_pre_ping": True,
-            "pool_recycle": pool_recycle if pool_recycle is not None else 3600,
-            "echo": False,
-            "connect_args": resolved,
+        pool: dict[str, int] = {
+            name: value
+            for name, value in (
+                ("pool_size", options.pool_size),
+                ("max_overflow", options.max_overflow),
+            )
+            if value is not None
         }
-        if pool_size is not None:
-            options["pool_size"] = pool_size
-        if max_overflow is not None:
-            options["max_overflow"] = max_overflow
-        return create_engine(url, **options)
+        return create_engine(
+            url,
+            pool_pre_ping=True,
+            pool_recycle=options.pool_recycle,
+            echo=False,
+            connect_args=connect_args,
+            **pool,
+        )
 
     @staticmethod
     def _engine_connect(engine: SAEngine) -> SAConnection:

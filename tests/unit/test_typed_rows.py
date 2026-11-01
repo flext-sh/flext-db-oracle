@@ -40,23 +40,14 @@ class TestsFetchModelsContract:
         tm.that((result.error or "").lower(), has="not connected")
 
     @staticmethod
-    def test_fetch_models_requires_keyword_model(
+    def test_facade_serves_the_query_executor_port(
         oracle_unit_services: FlextDbOracleServices,
     ) -> None:
-        """The projection model is a required keyword argument."""
-        try:
-            oracle_unit_services.fetch_models("SELECT 1 FROM dual")  # type: ignore[call-arg]
-        except TypeError as exc:
-            tm.that(str(exc), has="model")
-        else:
-            tm.fail(value=True)
-
-    @staticmethod
-    def test_facade_satisfies_query_executor_protocol(
-        oracle_unit_services: FlextDbOracleServices,
-    ) -> None:
-        """The composed facade structurally satisfies the query port."""
-        tm.ok(isinstance(oracle_unit_services, p.DbOracle.QueryExecutor))
+        """Consumers typed on the query port get the facade's typed failure."""
+        port: p.DbOracle.QueryExecutor = oracle_unit_services
+        result = port.fetch_models("SELECT 1 AS user_id FROM dual", model=TypedRow)
+        tm.ok(result.failure)
+        tm.that((result.error or "").lower(), has="not connected")
 
 
 class TestsExecuteManyContract:

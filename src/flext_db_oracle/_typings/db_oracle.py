@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import Literal
+
 import oracledb
 from flext_cli import FlextCliTypes
 
@@ -24,6 +26,7 @@ class FlextDbOracleTypes(FlextCliTypes):
         type QueryParameters = FlextCliTypes.JsonMapping
         type CliScalar = FlextCliTypes.Scalar | None
         type Settings = FlextDbOracleSettings
+        type PrivilegeMode = Literal["SYSDBA", "SYSOPER"]
 
 
 t = FlextDbOracleTypes

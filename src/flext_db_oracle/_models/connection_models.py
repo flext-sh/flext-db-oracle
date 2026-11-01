@@ -219,6 +219,31 @@ class FlextModelsDbOracleConnection:
                 raise ValueError(msg)
             return self
 
+    class EngineOptions(m.FrozenModel):
+        """Driver and pool options of one SQLAlchemy engine (single owner)."""
+
+        dsn: str | None = m.Field(
+            default=None,
+            description="TNS descriptor or alias; None = host/port/service of the URL",
+        )
+        mode: t.DbOracle.PrivilegeMode | None = m.Field(
+            default=None,
+            description="oracledb privilege mode (SYSDBA/SYSOPER); None = normal",
+        )
+        connect_timeout: int | None = m.Field(
+            default=None, description="TCP connect timeout in seconds"
+        )
+        pool_size: int | None = m.Field(
+            default=None, description="Pool size; None = SQLAlchemy default"
+        )
+        max_overflow: int | None = m.Field(
+            default=None, description="Pool overflow; None = SQLAlchemy default"
+        )
+        pool_recycle: int = m.Field(
+            default=c.DbOracle.DEFAULT_POOL_RECYCLE,
+            description="Seconds before a pooled connection is recycled",
+        )
+
     class OperationRecord(m.Entity):
         """Operation tracking record for observability workflows."""
 

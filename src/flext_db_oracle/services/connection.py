@@ -128,10 +128,12 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             The resulting ``SAEngine``.
 
         """
-        return self._sqlalchemy_create_engine(
+        return self.engine(
             url,
-            connect_timeout=self.db_config.DbOracle.timeout,
-            mode=self.db_config.DbOracle.mode,
+            m.DbOracle.EngineOptions(
+                connect_timeout=self.db_config.DbOracle.timeout,
+                mode=self.db_config.DbOracle.mode,
+            ),
         )
 
     def _require_engine(self) -> SAEngine:
