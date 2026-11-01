@@ -12,6 +12,18 @@
   - [Test Quality Metrics](#test-quality-metrics)
 - [🚀 Testing Strategy & Best Practices](#testing-strategy-best-practices)
   - [1. Railway Pattern Testing](#1-railway-pattern-testing)
+  - [2. Fixture-Based Testing](#2-fixture-based-testing)
+  - [3. Parametrized Testing](#3-parametrized-testing)
+  - [4. Mock Strategy](#4-mock-strategy)
+- [📊 Recent Test Run & CI/CD](#recent-test-run-cicd)
+  - [Test Execution Status](#test-execution-status)
+  - [CI/CD Integration](#cicd-integration)
+- [🎯 Testing Roadmap](#testing-roadmap)
+  - [Phase 2 Priorities](#phase-2-priorities)
+  - [Established Practices](#established-practices)
+- [📈 Testing Quality Metrics](#testing-quality-metrics)
+  - [Targets](#targets)
+- [🔍 Maintenance](#maintenance)
 
 <!-- TOC END -->
 
@@ -39,7 +51,7 @@
   issues
 - ✅ **Performance Tests**: Benchmarking capabilities (not yet validated)
 
----
+______________________________________________________________________
 
 ## 🚨 Current Test Issues & Blockers
 
@@ -84,7 +96,7 @@ Basic functionality tests failing **Files Affected**: `tests/unit/test_constants
 1. **CI/CD Pipeline Stability**: Automated testing working reliably
 1. **Coverage Validation**: Actual 100% coverage confirmed
 
----
+______________________________________________________________________
 
 ## 📊 Current Test Results & Issues
 
@@ -117,7 +129,7 @@ Basic functionality tests failing **Files Affected**: `tests/unit/test_constants
 - **Fixture Reuse**: Common fixtures for consistent testing
 - **Mock Usage**: Minimal mocking, prefer real implementations
 
----
+______________________________________________________________________
 
 ## 🚀 Testing Strategy & Best Practices
 
@@ -125,33 +137,32 @@ Basic functionality tests failing **Files Affected**: `tests/unit/test_constants
 
 #### Test r Operations
 
-````python
+```python
 from __future__ import annotations
 
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
+from flext_tests import tm
+
+from flext_db_oracle import FlextDbOracleApi
 
 
-def test_flext_result_success_path(flext_db_oracle_api):
-    """Test successful operation returns r.ok()."""
-    result = flext_db_oracle_api.connect(valid_config)
-    tm.ok(result.success)
-    connection = result.unwrap()
-    tm.not_none(connection)
+def test_flext_result_success_path() -> None:
+    """A valid URL returns r.ok() carrying a configured API."""
+    result = FlextDbOracleApi.from_url("oracle://user:secret@localhost:1521/XEPDB1")
+    tm.ok(result)
+    tm.that(result.value.settings.DbOracle.host, eq="localhost")
 
 
-def test_flext_result_error_path(flext_db_oracle_api):
-    """Test failed operation returns r.fail()."""
-    result = flext_db_oracle_api.connect(invalid_config)
+def test_flext_result_error_path() -> None:
+    """A malformed URL returns r.fail() with an explanatory error."""
+    result = FlextDbOracleApi.from_url("invalid://not-oracle")
     tm.fail(result)
-    assert "connection failed" in result.error.lower()
-    ```
+    tm.that(result.error, none=False)
+
+
+test_flext_result_success_path()
+test_flext_result_error_path()
+```
+
 ### 2. Fixture-Based Testing
 
 #### Comprehensive Test Fixtures
@@ -159,38 +170,44 @@ def test_flext_result_error_path(flext_db_oracle_api):
 ```python
 from __future__ import annotations
 
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
-
 import pytest
-from unittest.mock import MagicMock
+from flext_tests import tm
 
-
-@pytest.fixture(scope=c.ContextScope.SESSION)
-def oracle_container():
-    """Provides Oracle XE 21c container for integration tests."""
-    container = start_oracle_container()
-    yield container
-    container.stop()
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 
 @pytest.fixture
-def mock_oracle_connection():
-    """Provides mocked Oracle connection for unit tests."""
-    return MagicMock(spec=Connection)
+def oracle_settings() -> FlextDbOracleSettings:
+    """Provide valid Oracle settings built from the typed settings model."""
+    return FlextDbOracleSettings.model_validate({
+        "DbOracle": {
+            "host": "localhost",
+            "port": 1521,
+            "service_name": "XEPDB1",
+            "username": "user",
+            "password": "placeholder",
+        },
+    })
 
 
 @pytest.fixture
-def flext_db_oracle_api(oracle_config):
-    """Provides fully configured API instance."""
-    return FlextDbOracleApi(oracle_config)
-    ```
+def flext_db_oracle_api(oracle_settings: FlextDbOracleSettings) -> FlextDbOracleApi:
+    """Provide a fully configured API instance."""
+    return FlextDbOracleApi.from_config(oracle_settings)
+
+
+def test_api_is_configured_but_not_connected(
+    flext_db_oracle_api: FlextDbOracleApi,
+) -> None:
+    """The API starts configured and disconnected."""
+    tm.that(flext_db_oracle_api.settings.DbOracle.port, eq=1521)
+    tm.that(flext_db_oracle_api.connected(), eq=False)
+```
+
+Integration tests that need a live Oracle container use the shared Docker harness
+from `flext-tests` (`FlextTestsDocker`), provisioned once per host; the repository
+`tests/conftest.py` shows the session-scoped fixture.
+
 ### 3. Parametrized Testing
 
 #### Test Multiple Scenarios
@@ -198,79 +215,63 @@ def flext_db_oracle_api(oracle_config):
 ```python
 from __future__ import annotations
 
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
-
 import pytest
+from flext_tests import tm
+
+from flext_db_oracle import FlextDbOracleApi
 
 
-@pytest.mark.parametrize(
-    "sql_query,expected_result",
-    [
-        ("SELECT 1 FROM DUAL", True),
-        ("SELECT SYSDATE FROM DUAL", True),
-        ("INVALID SQL", False),
-        ("SELECT * FROM NONEXISTENT_TABLE", False),
-    ],
-)
-def test_sql_query_validation(flext_db_oracle_api, sql_query, expected_result):
-    """Test SQL query validation with multiple scenarios."""
-    result = flext_db_oracle_api.validate_query(sql_query)
-    tm.that(result.success, eq=expected_result)
-    ```
+@pytest.mark.parametrize("bad_url", ["invalid://not-oracle", "://x", "oracle://"])
+def test_from_url_rejects_malformed_urls(bad_url: str) -> None:
+    """from_url yields a failure carrying an explanatory error for bad input."""
+    result = FlextDbOracleApi.from_url(bad_url)
+    tm.fail(result)
+    tm.that(result.error, none=False)
+```
+
 ### 4. Mock Strategy
 
-#### Minimal Mocking Approach
+#### No Mocks: Real Implementations Only
+
+Tests use real implementations through public facades; mocks, patches and
+`MagicMock` are not part of the strategy. Failure paths are driven by real inputs:
+an API that was never connected reports the failure on the railway.
 
 ```python
 from __future__ import annotations
 
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
+from flext_tests import tm
 
-import pytest
+from flext_db_oracle import FlextDbOracleApi
 
 
-# Prefer real implementations over mocks
-def test_real_connection_pool():
-    """Test with actual connection pool (preferred)."""
-    pool = create_real_connection_pool()
-    tm.that(pool.max_connections, eq=20)
+def test_unconnected_api_reports_failure() -> None:
+    """Without a connection the connection test fails instead of raising."""
+    api = FlextDbOracleApi.from_url(
+        "oracle://user:secret@localhost:1521/XEPDB1"
+    ).unwrap()
+    result = api.test_connection()
+    tm.fail(result)
+    tm.that(result.error, eq="Not connected to database")
 
 
-# Use mocks only when necessary
-def test_connection_timeout(mock_oracle_connection):
-    """Test timeout handling with controlled mock."""
-    mock_oracle_connection.execute.side_effect = TimeoutError()
-    with pytest.raises(TimeoutError):
-        execute_with_timeout(mock_oracle_connection)
-        ```
+test_unconnected_api_reports_failure()
+```
+
 ______________________________________________________________________
 
-## 📊 Current Test Results & Issues
+## 📊 Recent Test Run & CI/CD
 
 ### Test Execution Status
 
 #### Recent Test Run (2026-04-14)
-````
 
+```text
 ✅ Tests collected and executed successfully ✅ Core unit suites passed ✅ Integration
 suites (Oracle container) passed ⚠️ Remaining work: expand CLI formatter scenarios and
 edge-case coverage
+```
 
-````
 ### CI/CD Integration
 
 #### Automated Testing Pipeline
@@ -282,7 +283,8 @@ edge-case coverage
     make oracle-start
     make test
     make oracle-stop
-    ```
+```
+
 ______________________________________________________________________
 
 ## 🎯 Testing Roadmap
@@ -323,4 +325,3 @@ ______________________________________________________________________
 **Testing Status**: test suite active with quality gates in CI.
 **Next Phase**: expand formatter and stress scenarios.
 **Quality Assurance**: strict lint/type/test enforcement across environments.
-````
