@@ -23,12 +23,10 @@ import pytest
 
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.services import FlextDbOracleServices
-from tests import c, m, tm
+from tests import c, m, p, tm
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-from tests import p
 
 _T = TypeVar("_T")
 
@@ -97,7 +95,7 @@ class TestsFlextDbOracleMetadata:
     """Public-contract tests for Oracle metadata introspection."""
 
     @pytest.fixture
-    def settings() -> FlextDbOracleSettings:
+    def settings(self) -> FlextDbOracleSettings:
         """Return in-memory Oracle settings pointing at no reachable host."""
         return FlextDbOracleSettings.model_validate({
             "DbOracle": {
@@ -109,9 +107,8 @@ class TestsFlextDbOracleMetadata:
             },
         })
 
-    @staticmethod
     @pytest.fixture
-    def services(settings: FlextDbOracleSettings) -> FlextDbOracleServices:
+    def services(self, settings: FlextDbOracleSettings) -> FlextDbOracleServices:
         """Return a freshly composed, unconnected services facade."""
         return FlextDbOracleServices(settings=settings)
 

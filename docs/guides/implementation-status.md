@@ -203,7 +203,7 @@ Production-quality testing environment
 
 #### 1. **Railway Pattern Throughout**
 
-````{.python .notest}
+````python
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c
 
 settings = FlextDbOracleSettings(

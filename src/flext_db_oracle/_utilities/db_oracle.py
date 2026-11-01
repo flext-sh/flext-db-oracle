@@ -12,15 +12,16 @@ from enum import StrEnum
 from typing import TYPE_CHECKING, Literal
 
 import oracledb
-from flext_cli import m, p, r, t, u
+from flext_cli import u
 from sqlalchemy import (
     Connection as SAConnection,
     Engine as SAEngine,
     TextClause,
     create_engine,
+    text as _sqlalchemy_text,
 )
 
-from flext_db_oracle import c, settings
+from flext_db_oracle import c, m, p, r, settings, t
 
 if TYPE_CHECKING:
     import contextlib
@@ -40,6 +41,19 @@ class FlextDbOracleUtilitiesDbOracle:
         parsed = u.DbOracle.Args.parse_kwargs(kwargs, enum_fields)
 
     """
+
+    @staticmethod
+    def text(statement: str) -> TextClause:
+        """Build a SQLAlchemy text clause through the database facade.
+
+        SQLAlchemy is owned by flext-db-oracle: consumers construct statement
+        clauses here instead of importing the library.
+
+        Returns:
+            The resulting ``TextClause``.
+
+        """
+        return _sqlalchemy_text(statement)
 
     @staticmethod
     def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type[E]:
@@ -195,37 +209,80 @@ class FlextDbOracleUtilitiesDbOracle:
         return validated[0]
 
     @staticmethod
-    def _sqlalchemy_create_engine(
+    def engine(
         url: str,
+        *,
+        connect_args: Mapping[str, object] | None = None,
+        pool_size: int | None = None,
+        max_overflow: int | None = None,
+        pool_recycle: int | None = None,
         connect_timeout: int | None = None,
         mode: Literal["SYSDBA", "SYSOPER"] | None = None,
     ) -> SAEngine:
-        """Create SQLAlchemy engine with optional connection timeout.
+        """Build a SQLAlchemy engine through the database facade.
 
-        ``mode`` maps to the oracledb privilege mode (AUTH_MODE_SYSDBA/
-        AUTH_MODE_SYSOPER) via ``connect_args`` — SYSDBA logins reject a
-        normal connection with ORA-28009.
+        SQLAlchemy is owned by flext-db-oracle: consumers construct engines
+        here instead of importing the library. ``mode`` maps to the oracledb
+        privilege mode (AUTH_MODE_SYSDBA/AUTH_MODE_SYSOPER) via ``connect_args``.
 
         Returns:
             The resulting ``SAEngine``.
 
         """
-        connect_args: dict[str, object] = {}
+        return FlextDbOracleUtilitiesDbOracle._sqlalchemy_create_engine(
+            url,
+            connect_timeout=connect_timeout,
+            mode=mode,
+            connect_args=connect_args,
+            pool_size=pool_size,
+            max_overflow=max_overflow,
+            pool_recycle=pool_recycle,
+        )
+
+    @staticmethod
+    def _sqlalchemy_create_engine(
+        url: str,
+        connect_timeout: int | None = None,
+        mode: Literal["SYSDBA", "SYSOPER"] | None = None,
+        connect_args: Mapping[str, object] | None = None,
+        pool_size: int | None = None,
+        max_overflow: int | None = None,
+        pool_recycle: int | None = None,
+    ) -> SAEngine:
+        """Create SQLAlchemy engine with optional connection timeout.
+
+        ``mode`` maps to the oracledb privilege mode (AUTH_MODE_SYSDBA/
+        AUTH_MODE_SYSOPER) via ``connect_args`` — SYSDBA logins reject a
+        normal connection with ORA-28009. ``connect_args`` carries any extra
+        driver keyword (e.g. ``dsn`` for TNS descriptors) and wins over the
+        scalars above when they collide.
+
+        Returns:
+            The resulting ``SAEngine``.
+
+        """
+        resolved: dict[str, object] = {}
         if connect_timeout is not None:
-            connect_args["tcp_connect_timeout"] = connect_timeout
+            resolved["tcp_connect_timeout"] = connect_timeout
         if mode is not None:
-            connect_args["mode"] = (
+            resolved["mode"] = (
                 oracledb.AUTH_MODE_SYSDBA
                 if mode == "SYSDBA"
                 else oracledb.AUTH_MODE_SYSOPER
             )
-        return create_engine(
-            url,
-            pool_pre_ping=True,
-            pool_recycle=3600,
-            echo=False,
-            connect_args=connect_args,
-        )
+        if connect_args:
+            resolved.update(connect_args)
+        options: dict[str, object] = {
+            "pool_pre_ping": True,
+            "pool_recycle": pool_recycle if pool_recycle is not None else 3600,
+            "echo": False,
+            "connect_args": resolved,
+        }
+        if pool_size is not None:
+            options["pool_size"] = pool_size
+        if max_overflow is not None:
+            options["max_overflow"] = max_overflow
+        return create_engine(url, **options)
 
     @staticmethod
     def _engine_connect(engine: SAEngine) -> SAConnection:

@@ -59,7 +59,7 @@ Implement Railway Pattern error handling throughout flext-db-oracle using r\[T\]
 
 **Core Pattern:**
 
-```{.python .notest}
+```python
 from __future__ import annotations
 
 from collections.abc import (

@@ -71,7 +71,7 @@ api = FlextDbOracleApi(settings)
 
 ## Testing Connection
 
-````{.python .notest}
+````python
 import os
 
 # Seed environment values so the API can be resolved from settings.

@@ -10,7 +10,8 @@ from datetime import datetime
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_cli import m, u
+from flext_cli import m
+from flext_core import FlextUtilities
 
 from flext_db_oracle import c, t
 
@@ -31,7 +32,7 @@ class FlextModelsDbOracleConnection:
             validate_default=True,
         )
         last_check: datetime = m.Field(
-            default_factory=u.now,
+            default_factory=FlextUtilities.now,
             description="Timestamp of last connection check",
         )
         error_message: str = m.Field(
@@ -47,7 +48,7 @@ class FlextModelsDbOracleConnection:
             validate_default=True,
         )
         last_activity: datetime = m.Field(
-            default_factory=u.now,
+            default_factory=FlextUtilities.now,
             description="Timestamp of last database activity",
         )
         session_id: str = m.Field(
@@ -90,7 +91,7 @@ class FlextModelsDbOracleConnection:
         def connection_age_seconds(self) -> float:
             """Connection age in seconds."""
             if self.connected:
-                current_time: datetime = u.now()
+                current_time: datetime = FlextUtilities.now()
                 age_seconds: float = (current_time - self.last_activity).total_seconds()
                 return age_seconds
             return 0.0

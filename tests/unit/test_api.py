@@ -56,9 +56,8 @@ class TestsFlextDbOracleApi:
         """
         return self._settings()
 
-    @staticmethod
     @pytest.fixture
-    def api(settings: FlextDbOracleSettings) -> FlextDbOracleApi:
+    def api(self, settings: FlextDbOracleSettings) -> FlextDbOracleApi:
         """Return a fresh, disconnected API instance under test."""
         return FlextDbOracleApi(settings)
 

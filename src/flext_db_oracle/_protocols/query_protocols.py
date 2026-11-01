@@ -9,8 +9,13 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
+from pydantic import BaseModel
+
 if TYPE_CHECKING:
-    from flext_db_oracle import m, p, t
+    from flext_core._protocols import FlextProtocolsResult
+    from sqlalchemy import Executable
+
+    from flext_db_oracle import m, t
 
 
 class FlextDbOracleProtocolsQuery:
@@ -24,7 +29,7 @@ class FlextDbOracleProtocolsQuery:
             self,
             sql: str,
             params_list: Sequence[t.JsonMapping],
-        ) -> p.Result[int]:
+        ) -> FlextProtocolsResult.Result[int]:
             """Execute Oracle SQL statement with multiple parameter sets.
 
             Args:
@@ -37,11 +42,31 @@ class FlextDbOracleProtocolsQuery:
             """
             ...
 
+        def fetch_models[T: BaseModel](
+            self,
+            sql: str | Executable,
+            params: t.JsonMapping | None = None,
+            *,
+            model: type[T],
+        ) -> FlextProtocolsResult.Result[Sequence[T]]:
+            """Execute Oracle SQL query and validate each native row.
+
+            Args:
+            sql: SQL statement string or a SQLAlchemy ``Executable``.
+            params: Query parameters.
+            model: pydantic/SQLModel model validated from each row mapping.
+
+            Returns:
+            r[Sequence[T]]: Validated rows with native column values.
+
+            """
+            ...
+
         def execute_query(
             self,
             sql: str,
             params: t.JsonMapping | None = None,
-        ) -> p.Result[Sequence[m.Dict]]:
+        ) -> FlextProtocolsResult.Result[Sequence[m.Dict]]:
             """Execute Oracle SQL query.
 
             Args:
@@ -58,7 +83,7 @@ class FlextDbOracleProtocolsQuery:
             self,
             sql: str,
             params: t.JsonMapping | None = None,
-        ) -> p.Result[bool]:
+        ) -> FlextProtocolsResult.Result[bool]:
             """Execute Oracle SQL statement.
 
             Args:
@@ -75,7 +100,7 @@ class FlextDbOracleProtocolsQuery:
             self,
             sql: str,
             params: t.JsonMapping | None = None,
-        ) -> p.Result[m.Dict | None]:
+        ) -> FlextProtocolsResult.Result[m.Dict | None]:
             """Fetch single result from Oracle query.
 
             Args:
@@ -96,7 +121,7 @@ class FlextDbOracleProtocolsQuery:
             self,
             table: str,
             schema: str | None = None,
-        ) -> p.Result[Sequence[m.DbOracle.Column]]:
+        ) -> FlextProtocolsResult.Result[Sequence[m.DbOracle.Column]]:
             """Get column information for Oracle table.
 
             Args:
@@ -113,7 +138,7 @@ class FlextDbOracleProtocolsQuery:
             self,
             table: str,
             schema: str | None = None,
-        ) -> p.Result[Sequence[str]]:
+        ) -> FlextProtocolsResult.Result[Sequence[str]]:
             """Get primary key columns for Oracle table.
 
             Args:
@@ -126,7 +151,7 @@ class FlextDbOracleProtocolsQuery:
             """
             ...
 
-        def fetch_schemas(self) -> p.Result[Sequence[str]]:
+        def fetch_schemas(self) -> FlextProtocolsResult.Result[Sequence[str]]:
             """Get list of Oracle schemas.
 
             Returns:
@@ -139,7 +164,7 @@ class FlextDbOracleProtocolsQuery:
             self,
             table: str,
             schema: str | None = None,
-        ) -> p.Result[m.DbOracle.TableMetadata]:
+        ) -> FlextProtocolsResult.Result[m.DbOracle.TableMetadata]:
             """Get Oracle table metadata.
 
             Args:
@@ -155,7 +180,7 @@ class FlextDbOracleProtocolsQuery:
         def fetch_tables(
             self,
             schema: str | None = None,
-        ) -> p.Result[Sequence[str]]:
+        ) -> FlextProtocolsResult.Result[Sequence[str]]:
             """Get list of tables in Oracle schema.
 
             Args:
@@ -176,7 +201,7 @@ class FlextDbOracleProtocolsQuery:
             table_name: str,
             where_columns: Sequence[str],
             schema: str | None = None,
-        ) -> p.Result[str]:
+        ) -> FlextProtocolsResult.Result[str]:
             """Build Oracle DELETE statement.
 
             Args:
@@ -196,7 +221,7 @@ class FlextDbOracleProtocolsQuery:
             columns: Sequence[str],
             schema: str | None = None,
             returning_columns: Sequence[str] | None = None,
-        ) -> p.Result[str]:
+        ) -> FlextProtocolsResult.Result[str]:
             """Build Oracle INSERT statement.
 
             Args:
@@ -217,7 +242,7 @@ class FlextDbOracleProtocolsQuery:
             columns: Sequence[str] | None = None,
             conditions: m.ConfigMap | t.JsonMapping | None = None,
             schema_name: str | None = None,
-        ) -> p.Result[str]:
+        ) -> FlextProtocolsResult.Result[str]:
             """Build Oracle SELECT statement.
 
             Args:
@@ -238,7 +263,7 @@ class FlextDbOracleProtocolsQuery:
             set_columns: Sequence[str],
             where_columns: Sequence[str],
             schema: str | None = None,
-        ) -> p.Result[str]:
+        ) -> FlextProtocolsResult.Result[str]:
             """Build Oracle UPDATE statement.
 
             Args:
@@ -264,7 +289,7 @@ class FlextDbOracleProtocolsQuery:
             index_name: str | None = None,
             *,
             unique: bool = False,
-        ) -> p.Result[str]:
+        ) -> FlextProtocolsResult.Result[str]:
             """Build Oracle CREATE INDEX statement.
 
             Args:
@@ -284,7 +309,7 @@ class FlextDbOracleProtocolsQuery:
             table: str,
             columns: Sequence[m.DbOracle.Column],
             schema: str | None = None,
-        ) -> p.Result[str]:
+        ) -> FlextProtocolsResult.Result[str]:
             """Generate Oracle CREATE TABLE DDL.
 
             Args:
@@ -302,7 +327,7 @@ class FlextDbOracleProtocolsQuery:
             self,
             table: str,
             schema: str | None = None,
-        ) -> p.Result[str]:
+        ) -> FlextProtocolsResult.Result[str]:
             """Generate Oracle DROP TABLE DDL.
 
             Args:
@@ -319,7 +344,7 @@ class FlextDbOracleProtocolsQuery:
     class MetricsCollector(Protocol):
         """Protocol for Oracle database metrics collection."""
 
-        def fetch_metrics(self) -> p.Result[m.DbOracle.HealthStatus]:
+        def fetch_metrics(self) -> FlextProtocolsResult.Result[m.DbOracle.HealthStatus]:
             """Get collected Oracle metrics.
 
             Returns:
@@ -333,7 +358,7 @@ class FlextDbOracleProtocolsQuery:
             name: str,
             value: float,
             tags: Mapping[str, str] | None = None,
-        ) -> p.Result[bool]:
+        ) -> FlextProtocolsResult.Result[bool]:
             """Record Oracle database metric.
 
             Args:
@@ -353,7 +378,7 @@ class FlextDbOracleProtocolsQuery:
             duration: float,
             *,
             success: bool,
-        ) -> p.Result[bool]:
+        ) -> FlextProtocolsResult.Result[bool]:
             """Track Oracle operation performance.
 
             Args:

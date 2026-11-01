@@ -117,7 +117,7 @@ def test_connection_with_mocked_engine(mock_create_engine):
 
 ### **Domain Logic Testing**
 
-```python notest
+```python
 from __future__ import annotations
 
 from collections.abc import (

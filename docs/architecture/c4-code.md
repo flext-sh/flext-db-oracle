@@ -173,7 +173,7 @@ graph TB
 main classes and version information **Pattern**: Selective imports to maintain clean
 public interface
 
-```{.python .notest}
+```python
 # Key exports
 __all__: list[str] = [
     "FlextDbOracleApi",  # Main API
@@ -209,15 +209,6 @@ layer) **Responsibilities**:
 
 ```python
 from __future__ import annotations
-
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
 
 from flext_core import m, p, r, t
 

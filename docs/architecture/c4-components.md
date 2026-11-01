@@ -151,7 +151,7 @@ graph TB
 
 **Key Interfaces**:
 
-```{.python .notest}
+```python
 from __future__ import annotations
 
 from collections.abc import (
@@ -223,15 +223,6 @@ target
 
 ```python
 from __future__ import annotations
-
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
 
 import os
 

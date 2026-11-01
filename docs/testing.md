@@ -125,7 +125,7 @@ Basic functionality tests failing **Files Affected**: `tests/unit/test_constants
 
 #### Test r Operations
 
-````{.python .notest}
+````python
 from __future__ import annotations
 
 from collections.abc import (

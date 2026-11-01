@@ -177,7 +177,7 @@ self._formatters = SimpleNamespace(
 
 #### Target Functional Implementation
 
-````{.python .notest}
+````python
 from __future__ import annotations
 
 from collections.abc import (

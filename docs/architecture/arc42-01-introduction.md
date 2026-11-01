@@ -225,7 +225,7 @@ Presentation Layer → Application Layer → Domain Layer ← Infrastructure Lay
 
 #### Error Handling Flow
 
-```{.python .notest}
+```python
 # Railway Pattern Implementation
 from __future__ import annotations
 

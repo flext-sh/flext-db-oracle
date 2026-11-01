@@ -10,6 +10,7 @@ from __future__ import annotations
 from flext_cli import p
 
 from flext_db_oracle._protocols import (
+    FlextDbOracleProtocolsBase,
     FlextDbOracleProtocolsConnection,
     FlextDbOracleProtocolsQuery,
 )
@@ -37,7 +38,11 @@ class FlextDbOracleProtocols(p):
     query: FlextDbOracleProtocols.Database.QueryExecutor
     """
 
-    class DbOracle(FlextDbOracleProtocolsConnection, FlextDbOracleProtocolsQuery):
+    class DbOracle(
+        FlextDbOracleProtocolsConnection,
+        FlextDbOracleProtocolsQuery,
+        FlextDbOracleProtocolsBase,
+    ):
         """Oracle database domain-specific protocols."""
 
 

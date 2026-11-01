@@ -17,7 +17,7 @@ class TestsFlextDbOracleDispatcher:
     """Observable public contract of the Oracle dispatcher and its command surface."""
 
     @pytest.fixture
-    def services() -> FlextDbOracleServices:
+    def services(self) -> FlextDbOracleServices:
         """Oracle services wired to non-connecting placeholder settings.
 
         Returns:

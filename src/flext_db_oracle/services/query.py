@@ -12,7 +12,8 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Engine as SAEngine, text
+from pydantic import BaseModel, ValidationError
+from sqlalchemy import Engine as SAEngine, Executable, text
 
 from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
 
@@ -24,7 +25,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     """Mixin providing query execution for FlextDbOracleServices.
 
     Handles: execute_query, execute_statement, execute_many,
-    fetch_one, generate_query_hash, result normalization.
+    fetch_one, fetch_models, result normalization.
     """
 
     # flext-1wjg1.16: see services/plugin.py -- explicit wrapper keeps this
@@ -49,27 +50,30 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         sql: str,
         params_list: Sequence[t.JsonMapping | m.ConfigMap],
     ) -> p.Result[int]:
-        """Execute SQL statement multiple times.
+        """Execute SQL statement multiple times (native driver executemany).
+
+        One round trip with the whole parameter batch instead of a Python
+        loop over single executions; the transaction commits on context exit.
 
         Returns:
             The resulting ``p.Result[int]``.
 
         """
+        if not params_list:
+            return r[int].ok(value=0)
         engine_result = self._connected_engine()
         if engine_result.failure:
             return r[int].from_failure(engine_result)
+        batch = [
+            params.root
+            if isinstance(params, m.ConfigMap)
+            else m.ConfigMap.model_validate(params).root
+            for params in params_list
+        ]
         try:
             with self._engine_begin(engine_result.value) as conn:
-                total_affected = 0
-                for params in params_list:
-                    typed_params = (
-                        params
-                        if isinstance(params, m.ConfigMap)
-                        else m.ConfigMap.model_validate(params)
-                    )
-                    result = self._connection_execute(conn, text(sql), typed_params)
-                    total_affected += max(result.rowcount, 0)
-                return r[int].ok(total_affected)
+                result = conn.execute(text(sql), batch)
+                return r[int].ok(max(result.rowcount, 0))
         except c.DbOracle.EXC_DB_BROAD as exc:
             return r[int].fail_op("Bulk execution", exc)
 
@@ -134,6 +138,40 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         return self.execute_query(sql, params).map(
             lambda rows: rows[0] if rows else None,
         )
+
+    def fetch_models[T: BaseModel](
+        self,
+        sql: str | Executable,
+        params: m.ConfigMap | None = None,
+        *,
+        model: type[T],
+    ) -> p.Result[Sequence[T]]:
+        """Execute a query and validate each native row into ``model``.
+
+        Rows keep the driver's native values (dates, decimals — no string
+        coercion): the mapping of each cursor row validates directly into the
+        pydantic/SQLModel ``model``. Accepts raw SQL or a SQLAlchemy
+        ``Selectable`` (the typed-statement path of the golden pattern).
+
+        Returns:
+            The resulting ``p.Result[Sequence[T]]``.
+
+        """
+        engine_result = self._connected_engine()
+        if engine_result.failure:
+            return r[Sequence[T]].from_failure(engine_result)
+        statement = text(sql) if isinstance(sql, str) else sql
+        try:
+            with self._engine_connect(engine_result.value) as conn:
+                result = conn.execute(statement, params.root if params else {})
+                rows: Sequence[T] = [
+                    model.model_validate(dict(row)) for row in result.mappings().all()
+                ]
+                return r[Sequence[T]].ok(rows)
+        except c.DbOracle.EXC_DB_BROAD as exc:
+            return r[Sequence[T]].fail_op("Typed query execution", exc)
+        except ValidationError as exc:
+            return r[Sequence[T]].fail_op("Row validation", exc)
 
     @staticmethod
     def _normalize_query_rows(

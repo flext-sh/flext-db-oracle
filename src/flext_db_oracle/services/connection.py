@@ -49,11 +49,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                 error=url_result.error or "Failed to build connection URL",
                 success=False,
             )
-        self._engine = self._sqlalchemy_create_engine(
-            url_result.value,
-            connect_timeout=self.db_config.DbOracle.timeout,
-            mode=self.db_config.DbOracle.mode,
-        )
+        self._engine = self._engine_factory(url_result.value)
         try:
             with self._engine_connect(self._engine) as conn:
                 _ = self._connection_execute(conn, text("SELECT 1 FROM dual"))
@@ -71,11 +67,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             if local_host and self.db_config.DbOracle.port != default_port:
                 retry_url_result = self._build_connection_url(port=default_port)
                 if retry_url_result.success:
-                    self._engine = self._sqlalchemy_create_engine(
-                        retry_url_result.value,
-                        connect_timeout=self.db_config.DbOracle.timeout,
-                        mode=self.db_config.DbOracle.mode,
-                    )
+                    self._engine = self._engine_factory(retry_url_result.value)
                     try:
                         with self._engine_connect(self._engine) as conn:
                             _ = self._connection_execute(
@@ -123,6 +115,24 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         if test_result.success:
             return r[p.Base].ok(self.db_config)
         return r[p.Base].fail(test_result.error or "Connection test failed")
+
+    def _engine_factory(self, url: str) -> SAEngine:
+        """Build the SQLAlchemy engine for a connection URL (override point).
+
+        Single owner of the engine options of the connection lifecycle
+        (settings timeout and privilege mode). Members with a different
+        transport — TNS descriptors, thick mode, custom pools — override this
+        hook instead of reimplementing ``connect``/``disconnect``.
+
+        Returns:
+            The resulting ``SAEngine``.
+
+        """
+        return self._sqlalchemy_create_engine(
+            url,
+            connect_timeout=self.db_config.DbOracle.timeout,
+            mode=self.db_config.DbOracle.mode,
+        )
 
     def _require_engine(self) -> SAEngine:
         """Return the active SQLAlchemy engine.
