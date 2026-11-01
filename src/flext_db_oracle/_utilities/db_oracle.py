@@ -22,7 +22,7 @@ from sqlalchemy import (
     event,
     text as _sqlalchemy_text,
 )
-from sqlalchemy.exc import DatabaseError as _sqlalchemy_database_error
+from sqlalchemy.exc import DatabaseError as SADatabaseError
 
 from flext_db_oracle import c, m, p, r, settings, t
 
@@ -53,7 +53,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
     # Driver exception published for consumers: `except u.DbOracle.DatabaseError`
     # keeps the library import inside the owner facade.
-    DatabaseError: ClassVar[type[Exception]] = _sqlalchemy_database_error
+    DatabaseError: ClassVar[type[Exception]] = SADatabaseError
 
     @staticmethod
     def text(statement: str) -> TextClause:
