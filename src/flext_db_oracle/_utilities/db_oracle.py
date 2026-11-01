@@ -22,8 +22,12 @@ from sqlalchemy import (
     event,
     text as _sqlalchemy_text,
 )
+from sqlalchemy.exc import DatabaseError as SADatabaseError
 
 from flext_db_oracle import c, m, p, r, settings, t
+from flext_db_oracle._models.connection_models import (
+    FlextModelsDbOracleConnection,
+)
 
 if TYPE_CHECKING:
     import contextlib
@@ -49,6 +53,10 @@ class FlextDbOracleUtilitiesDbOracle:
     # set a signal handler cancels so a killed process leaves no server call.
     _CHECKED_OUT: ClassVar[set[oracledb.Connection]] = set()
     _CHECKED_OUT_LOCK: ClassVar[threading.Lock] = threading.Lock()
+
+    # Driver exception published for consumers: `except u.DbOracle.DatabaseError`
+    # keeps the library import inside the owner facade.
+    DatabaseError: ClassVar[type[Exception]] = SADatabaseError
 
     @staticmethod
     def text(statement: str) -> TextClause:
@@ -217,7 +225,9 @@ class FlextDbOracleUtilitiesDbOracle:
         return validated[0]
 
     @staticmethod
-    def engine(url: str, options: m.DbOracle.EngineOptions) -> SAEngine:
+    def engine(
+        url: str, options: FlextModelsDbOracleConnection.EngineOptions
+    ) -> SAEngine:
         """Build a SQLAlchemy engine through the database facade.
 
         SQLAlchemy is owned by flext-db-oracle: consumers construct engines
