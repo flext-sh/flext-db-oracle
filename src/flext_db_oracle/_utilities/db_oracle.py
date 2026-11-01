@@ -7,9 +7,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import hashlib
+import threading
 from collections.abc import Mapping, Sequence
 from enum import StrEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 import oracledb
 from flext_cli import u
@@ -18,6 +19,7 @@ from sqlalchemy import (
     Engine as SAEngine,
     TextClause,
     create_engine,
+    event,
     text as _sqlalchemy_text,
 )
 
@@ -27,6 +29,7 @@ if TYPE_CHECKING:
     import contextlib
 
     from sqlalchemy.engine import CursorResult
+    from sqlalchemy.pool import ConnectionPoolEntry, PoolProxiedConnection
 
 
 class FlextDbOracleUtilitiesDbOracle:
@@ -41,6 +44,11 @@ class FlextDbOracleUtilitiesDbOracle:
         parsed = u.DbOracle.Args.parse_kwargs(kwargs, enum_fields)
 
     """
+
+    # Driver connections currently checked out of any engine built here: the
+    # set a signal handler cancels so a killed process leaves no server call.
+    _CHECKED_OUT: ClassVar[set[oracledb.Connection]] = set()
+    _CHECKED_OUT_LOCK: ClassVar[threading.Lock] = threading.Lock()
 
     @staticmethod
     def text(statement: str) -> TextClause:
@@ -240,7 +248,7 @@ class FlextDbOracleUtilitiesDbOracle:
             )
             if value is not None
         }
-        return create_engine(
+        engine = create_engine(
             url,
             pool_pre_ping=True,
             pool_recycle=options.pool_recycle,
@@ -248,6 +256,45 @@ class FlextDbOracleUtilitiesDbOracle:
             connect_args=connect_args,
             **pool,
         )
+        event.listen(engine, "checkout", FlextDbOracleUtilitiesDbOracle._track_checkout)
+        event.listen(engine, "checkin", FlextDbOracleUtilitiesDbOracle._track_checkin)
+        return engine
+
+    @classmethod
+    def _track_checkout(
+        cls,
+        dbapi_connection: oracledb.Connection,
+        _record: ConnectionPoolEntry,
+        _proxy: PoolProxiedConnection,
+    ) -> None:
+        with cls._CHECKED_OUT_LOCK:
+            cls._CHECKED_OUT.add(dbapi_connection)
+
+    @classmethod
+    def _track_checkin(
+        cls, dbapi_connection: oracledb.Connection, _record: ConnectionPoolEntry
+    ) -> None:
+        with cls._CHECKED_OUT_LOCK:
+            cls._CHECKED_OUT.discard(dbapi_connection)
+
+    @classmethod
+    def cancel_active(cls) -> int:
+        """Break the server call of every checked-out driver connection.
+
+        ``oracledb.Connection.cancel`` is the driver's thread-safe break: the
+        server aborts the running call with ORA-01013 and rolls it back. Meant
+        for a process's SIGTERM/SIGINT handler, so a killed CLI leaves no
+        session executing on the database.
+
+        Returns:
+            How many connections received the break.
+
+        """
+        with cls._CHECKED_OUT_LOCK:
+            active = tuple(cls._CHECKED_OUT)
+        for connection in active:
+            connection.cancel()
+        return len(active)
 
     @staticmethod
     def _engine_connect(engine: SAEngine) -> SAConnection:
