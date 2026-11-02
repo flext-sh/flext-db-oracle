@@ -164,7 +164,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
             "_FlextDbOracleEnvSettings",
             (FlextDbOracleSettings,),
             {
-                "model_config": p.SettingsConfigDict(
+                "model_config": m.SettingsConfigDict(
                     env_prefix=prefix,
                     env_nested_delimiter="__",
                     extra="ignore",
