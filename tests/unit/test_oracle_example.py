@@ -18,14 +18,14 @@ import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from flext_db_oracle.services import FlextDbOracleServices
-from tests import c, m, t, tm, u
+from tests import c, p, t, tm, u
 
 
 class TestsFlextDbOracleOracleExample:
     """Public-contract behavior for the Oracle API and services facade."""
 
     @staticmethod
-    def _first_cell(row: m.Dict) -> t.JsonValue:
+    def _first_cell(row: p.Dict) -> t.JsonValue:
         """Return the first cell of a query row via its public ``root`` mapping."""
         root = row.root
         if not root:

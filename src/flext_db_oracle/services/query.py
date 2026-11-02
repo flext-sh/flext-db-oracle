@@ -10,7 +10,8 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from sqlalchemy import text
+from pydantic import BaseModel, ValidationError
+from sqlalchemy import Executable, text
 
 from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
 
@@ -32,7 +33,10 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         sql: str,
         params_list: Sequence[t.JsonMapping | m.ConfigMap],
     ) -> p.Result[int]:
-        """Execute SQL statement multiple times.
+        """Execute SQL statement multiple times (native driver executemany).
+
+        One round trip with the whole parameter batch instead of a Python
+        loop over single executions; the transaction commits on context exit.
 
         Returns:
             The resulting ``p.Result[int]``.
@@ -41,18 +45,16 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         engine_result = self._get_engine()
         if engine_result.failure:
             return r[int].from_failure(engine_result)
+        batch = [
+            params.root
+            if isinstance(params, m.ConfigMap)
+            else m.ConfigMap.model_validate(params).root
+            for params in params_list
+        ]
         try:
             with self._engine_begin(engine_result.value) as conn:
-                total_affected = 0
-                for params in params_list:
-                    typed_params = (
-                        params
-                        if isinstance(params, m.ConfigMap)
-                        else m.ConfigMap.model_validate(params)
-                    )
-                    result = self._connection_execute(conn, text(sql), typed_params)
-                    total_affected += max(result.rowcount, 0)
-                return r[int].ok(total_affected)
+                result = conn.execute(text(sql), batch)
+                return r[int].ok(max(result.rowcount, 0))
         except c.DbOracle.EXC_DB_BROAD as exc:
             return r[int].fail_op("Bulk execution", exc)
 
@@ -64,7 +66,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         """Execute SQL query and return its rows with driver-native values.
 
         Returns:
-            The resulting ``p.Result[Sequence[m.Dict]]``.
+            The resulting ``p.Result[Sequence[p.Dict]]``.
 
         """
         return self.execute_rows(sql, params)
@@ -72,7 +74,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     def execute_statement(
         self,
         sql: str,
-        params: m.ConfigMap | None = None,
+        params: p.ConfigMap | None = None,
     ) -> p.Result[int]:
         """Execute SQL statement and return affected rows.
 
@@ -94,12 +96,12 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     def fetch_one(
         self,
         sql: str,
-        params: m.ConfigMap | None = None,
-    ) -> p.Result[m.Dict | None]:
+        params: p.ConfigMap | None = None,
+    ) -> p.Result[p.Dict | None]:
         """Execute query and return first result.
 
         Returns:
-            The resulting ``p.Result[m.Dict | None]``.
+            The resulting ``p.Result[p.Dict | None]``.
 
         """
         return self.execute_query(sql, params).map(

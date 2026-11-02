@@ -7,13 +7,15 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import hashlib
+import threading
 from collections.abc import Mapping, Sequence
 from enum import StrEnum
 from typing import TYPE_CHECKING
 from urllib.parse import quote_plus
 
 import oracledb
-from flext_cli import m, p, r, t, u
+from flext_cli import u
+from flext_core import FlextTypingNativeExport
 from sqlalchemy import (
     Connection as SAConnection,
     Engine as SAEngine,
@@ -21,8 +23,11 @@ from sqlalchemy import (
     create_engine,
     text,
 )
+from sqlalchemy.exc import DatabaseError as SADatabaseError
+from sqlalchemy.orm import aliased as _sqlalchemy_aliased
 
-from flext_db_oracle import c, settings
+from flext_db_oracle import c, m, p, r, settings, t
+from flext_db_oracle._models import FlextModelsDbOracleConnection
 
 if TYPE_CHECKING:
     import contextlib
@@ -44,6 +49,35 @@ class FlextDbOracleUtilitiesDbOracle:
         parsed = u.DbOracle.Args.parse_kwargs(kwargs, enum_fields)
 
     """
+
+    # Driver connections currently checked out of any engine built here: the
+    # set a signal handler cancels so a killed process leaves no server call.
+    _CHECKED_OUT: ClassVar[set[oracledb.Connection]] = set()
+    _CHECKED_OUT_LOCK: ClassVar[threading.Lock] = threading.Lock()
+
+    # Driver exception published for consumers: `except u.DbOracle.DatabaseError`
+    # keeps the library import inside the owner facade.
+    DatabaseError: ClassVar[type[Exception]] = SADatabaseError
+
+    # Statement builders published natively (every overload kept):
+    # `u.DbOracle.select(*columns)`, `u.DbOracle.func.count()` and
+    # `u.DbOracle.aliased(Model)`.
+    select = FlextTypingNativeExport(_sqlalchemy_select)
+    func = FlextTypingNativeExport(_sqlalchemy_func)
+    aliased = FlextTypingNativeExport(_sqlalchemy_aliased)
+
+    @staticmethod
+    def text(statement: str) -> TextClause:
+        """Build a SQLAlchemy text clause through the database facade.
+
+        SQLAlchemy is owned by flext-db-oracle: consumers construct statement
+        clauses here instead of importing the library.
+
+        Returns:
+            The resulting ``TextClause``.
+
+        """
+        return _sqlalchemy_text(statement)
 
     @staticmethod
     def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type[E]:
@@ -140,7 +174,7 @@ class FlextDbOracleUtilitiesDbOracle:
         return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
 
     @staticmethod
-    def validate_config_map(value: t.JsonValue | t.JsonMapping) -> m.ConfigMap:
+    def validate_config_map(value: t.JsonValue | t.JsonMapping) -> p.ConfigMap:
         """Validate arbitrary mapping input as ConfigMap.
 
         Returns:
@@ -158,7 +192,7 @@ class FlextDbOracleUtilitiesDbOracle:
         return m.ConfigMap.model_validate({"root": dict(value)})
 
     @staticmethod
-    def normalize_params(params: m.ConfigMap | None) -> m.ConfigMap:
+    def normalize_params(params: p.ConfigMap | None) -> p.ConfigMap:
         """Normalize optional parameters into ConfigMap.
 
         Returns:
@@ -338,7 +372,7 @@ class FlextDbOracleUtilitiesDbOracle:
         cls,
         connection: SAConnection,
         statement: TextClause,
-        parameters: m.ConfigMap | None = None,
+        parameters: p.ConfigMap | None = None,
     ) -> CursorResult[tuple[t.JsonValue, ...]]:
         """Execute statement on SQL connection.
 

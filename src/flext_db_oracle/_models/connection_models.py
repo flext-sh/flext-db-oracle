@@ -10,9 +10,10 @@ from datetime import datetime
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_cli import m, u
+from flext_cli import m, p
+from flext_core import FlextUtilities
 
-from flext_db_oracle import c, t
+from flext_db_oracle import c, p, t
 
 
 class FlextModelsDbOracleConnection:
@@ -21,7 +22,7 @@ class FlextModelsDbOracleConnection:
     class ConnectionStatus(m.Entity):
         """Connection status using flext-core Entity."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[p.ConfigDict] = m.ConfigDict(
             frozen=False, extra="ignore", strict=False
         )
 
@@ -31,7 +32,7 @@ class FlextModelsDbOracleConnection:
             validate_default=True,
         )
         last_check: datetime = m.Field(
-            default_factory=u.now,
+            default_factory=FlextUtilities.now,
             description="Timestamp of last connection check",
         )
         error_message: str = m.Field(
@@ -47,7 +48,7 @@ class FlextModelsDbOracleConnection:
             validate_default=True,
         )
         last_activity: datetime = m.Field(
-            default_factory=u.now,
+            default_factory=FlextUtilities.now,
             description="Timestamp of last database activity",
         )
         session_id: str = m.Field(
@@ -90,7 +91,7 @@ class FlextModelsDbOracleConnection:
         def connection_age_seconds(self) -> float:
             """Connection age in seconds."""
             if self.connected:
-                current_time: datetime = u.now()
+                current_time: datetime = FlextUtilities.now()
                 age_seconds: float = (current_time - self.last_activity).total_seconds()
                 return age_seconds
             return 0.0
@@ -217,6 +218,31 @@ class FlextModelsDbOracleConnection:
                 msg = "Connection time cannot be negative"
                 raise ValueError(msg)
             return self
+
+    class EngineOptions(m.FrozenModel):
+        """Driver and pool options of one SQLAlchemy engine (single owner)."""
+
+        dsn: str | None = m.Field(
+            default=None,
+            description="TNS descriptor or alias; None = host/port/service of the URL",
+        )
+        mode: t.DbOracle.PrivilegeMode | None = m.Field(
+            default=None,
+            description="oracledb privilege mode (SYSDBA/SYSOPER); None = normal",
+        )
+        connect_timeout: int | None = m.Field(
+            default=None, description="TCP connect timeout in seconds"
+        )
+        pool_size: int | None = m.Field(
+            default=None, description="Pool size; None = SQLAlchemy default"
+        )
+        max_overflow: int | None = m.Field(
+            default=None, description="Pool overflow; None = SQLAlchemy default"
+        )
+        pool_recycle: int = m.Field(
+            default=c.DbOracle.DEFAULT_POOL_RECYCLE,
+            description="Seconds before a pooled connection is recycled",
+        )
 
     class OperationRecord(m.Entity):
         """Operation tracking record for observability workflows."""

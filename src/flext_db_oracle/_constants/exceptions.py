@@ -20,26 +20,23 @@ from sqlalchemy.exc import (
 class FlextDbOracleConstantsExceptions:
     """Oracle database exception type tuples."""
 
-    class DbOracle:
-        """Oracle domain exception constants."""
+    EXC_DB_CONNECT: tuple[type[Exception], ...] = (
+        ConnectionError,
+        OracleDatabaseError,
+        OracleInterfaceError,
+    )
+    """Oracle DB connection boundary catch (oracledb library errors)."""
 
-        EXC_DB_CONNECT: tuple[type[Exception], ...] = (
-            ConnectionError,
-            OracleDatabaseError,
-            OracleInterfaceError,
-        )
-        """Oracle DB connection boundary catch (oracledb library errors)."""
-
-        EXC_DB_BROAD: tuple[type[Exception], ...] = (
-            ConnectionError,
-            OSError,
-            SQLAlchemyDatabaseError,
-            SQLAlchemyError,
-            SQLAlchemyOperationalError,
-            OracleDatabaseError,
-            OracleInterfaceError,
-        )
-        """Broad Oracle DB boundary catch including SQLAlchemy errors."""
+    EXC_DB_BROAD: tuple[type[Exception], ...] = (
+        ConnectionError,
+        OSError,
+        SQLAlchemyDatabaseError,
+        SQLAlchemyError,
+        SQLAlchemyOperationalError,
+        OracleDatabaseError,
+        OracleInterfaceError,
+    )
+    """Broad Oracle DB boundary catch including SQLAlchemy errors."""
 
 
 __all__: tuple[str, ...] = ("FlextDbOracleConstantsExceptions",)

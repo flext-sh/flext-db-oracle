@@ -95,6 +95,26 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             return r[p.Base].ok(self.db_config)
         return r[p.Base].fail(test_result.error or "Connection test failed")
 
+    def _engine_factory(self, url: str) -> SAEngine:
+        """Build the SQLAlchemy engine for a connection URL (override point).
+
+        Single owner of the engine options of the connection lifecycle
+        (settings timeout and privilege mode). Members with a different
+        transport — TNS descriptors, thick mode, custom pools — override this
+        hook instead of reimplementing ``connect``/``disconnect``.
+
+        Returns:
+            The resulting ``SAEngine``.
+
+        """
+        return self.engine(
+            url,
+            m.DbOracle.EngineOptions(
+                connect_timeout=self.db_config.DbOracle.timeout,
+                mode=self.db_config.DbOracle.mode,
+            ),
+        )
+
     def _require_engine(self) -> SAEngine:
         """Return the active SQLAlchemy engine.
 
@@ -122,15 +142,15 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         with self._engine_connect(self._require_engine()) as connection:
             yield connection
 
-    def fetch_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
+    def fetch_connection_status(self) -> p.Result[p.DbOracle.ConnectionStatus]:
         """Get connection status - simplified.
 
         Returns:
-            The resulting ``p.Result[m.DbOracle.ConnectionStatus]``.
+            The resulting ``p.Result[p.DbOracle.ConnectionStatus]``.
 
         """
         now = u.now()
-        return r[m.DbOracle.ConnectionStatus].ok(
+        return r[p.DbOracle.ConnectionStatus].ok(
             m.DbOracle.ConnectionStatus(
                 connected=self.connected(),
                 last_check=now,
@@ -146,14 +166,14 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             ),
         )
 
-    def health_check(self) -> p.Result[m.DbOracle.HealthStatus]:
+    def health_check(self) -> p.Result[p.DbOracle.HealthStatus]:
         """Perform health check.
 
         Returns:
-            The resulting ``p.Result[m.DbOracle.HealthStatus]``.
+            The resulting ``p.Result[p.DbOracle.HealthStatus]``.
 
         """
-        return r[m.DbOracle.HealthStatus].ok(
+        return r[p.DbOracle.HealthStatus].ok(
             m.DbOracle.HealthStatus(
                 status=c.HealthStatus.HEALTHY.value
                 if self.connected()

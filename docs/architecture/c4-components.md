@@ -151,31 +151,24 @@ graph TB
 
 **Key Interfaces**:
 
-```{.python .notest}
+```python
 from __future__ import annotations
 
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
+from collections.abc import Sequence
 
-from flext_core import p, s, t
+from flext_core import p
+
+from flext_db_oracle import FlextDbOracleApi
 
 
-class FlextDbOracleApi(s):
-    def connect(self, settings: OracleConfig) -> p.Result[Connection]: ...
+def list_tables(api: FlextDbOracleApi, schema: str) -> p.Result[Sequence[str]]:
+    """Connect, then fetch table names: one railway, no exception handling."""
+    return api.connect().flat_map(lambda connected: connected.fetch_tables(schema))
 
-    def execute_query(
-        self, sql: str, params: t.JsonMapping | None = None
-    ) -> p.Result[QueryResult]: ...
 
-    def get_schema_info(self, schema: str) -> p.Result[SchemaInfo]: ...
-
-    def close_connection(self) -> p.Result[bool]: ...
+api = FlextDbOracleApi.from_url("oracle://user:secret@localhost:1521/XEPDB1").unwrap()
+status = api.test_connection()
+print(api.connected(), status.failure)
 ```
 
 **Dependencies**: Services, Models, Connection, Exceptions, Logger, Container
@@ -224,18 +217,9 @@ target
 ```python
 from __future__ import annotations
 
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
-
 import os
 
-from flext_core import m, t
+from flext_core import m, p, t
 from pydantic import SecretStr
 
 

@@ -10,7 +10,7 @@ from __future__ import annotations
 import pytest
 
 from flext_db_oracle import FlextDbOracleSettings
-from tests import c, m, tm
+from tests import c, m, p, tm
 
 
 class TestsFlextDbOracleFields:
@@ -87,7 +87,7 @@ class TestsFlextDbOracleFields:
             m.DbOracle.QueryResult(
                 query="SELECT a FROM t",
                 columns=("a",),
-                rows=[m.DbOracle.RowData(values=(1, 2))],
+                rows=[p.DbOracle.RowData(values=(1, 2))],
             )
 
     @staticmethod

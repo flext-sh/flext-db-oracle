@@ -23,12 +23,10 @@ import pytest
 
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.services import FlextDbOracleServices
-from tests import c, m, tm
+from tests import c, m, p, tm
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-from tests import p
 
 _T = TypeVar("_T")
 
@@ -67,19 +65,19 @@ def _call_fetch_tables_none_schema(
 
 def _call_fetch_columns_table(
     services: FlextDbOracleServices,
-) -> p.Result[Sequence[m.DbOracle.Column]]:
+) -> p.Result[Sequence[p.DbOracle.Column]]:
     return services.fetch_columns("T")
 
 
 def _call_fetch_columns_schema(
     services: FlextDbOracleServices,
-) -> p.Result[Sequence[m.DbOracle.Column]]:
+) -> p.Result[Sequence[p.DbOracle.Column]]:
     return services.fetch_columns("T", "APP_SCHEMA")
 
 
 def _call_fetch_table_metadata(
     services: FlextDbOracleServices,
-) -> p.Result[m.DbOracle.TableMetadata]:
+) -> p.Result[p.DbOracle.TableMetadata]:
     return services.fetch_table_metadata("T")
 
 
@@ -97,6 +95,7 @@ class TestsFlextDbOracleMetadata:
     """Public-contract tests for Oracle metadata introspection."""
 
     @pytest.fixture
+    @staticmethod
     def settings() -> FlextDbOracleSettings:
         """Return in-memory Oracle settings pointing at no reachable host."""
         return FlextDbOracleSettings.model_validate({
@@ -109,8 +108,8 @@ class TestsFlextDbOracleMetadata:
             },
         })
 
-    @staticmethod
     @pytest.fixture
+    @staticmethod
     def services(settings: FlextDbOracleSettings) -> FlextDbOracleServices:
         """Return a freshly composed, unconnected services facade."""
         return FlextDbOracleServices(settings=settings)

@@ -13,12 +13,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import threading
+import time
 from collections.abc import Mapping
 
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import c, m, tm
+from tests import c, m, p, tm, u
 
 
 @pytest.fixture
@@ -41,7 +43,7 @@ class TestsFlextDbOracleOracle:
 
     # ----------------------------------------------------------------- helpers
     @staticmethod
-    def _cell(row: m.Dict, *keys: str) -> str:
+    def _cell(row: p.Dict, *keys: str) -> str:
         """Read one column value from a query row via its public root mapping.
 
         Oracle returns column names in varying case; probe the requested keys
@@ -319,3 +321,27 @@ class TestsFlextDbOracleOracle:
         tm.that(status.connection_age_seconds >= 0)
 
         tm.ok(connected_api.disconnect())
+
+    @staticmethod
+    def test_cancel_active_breaks_the_running_server_call(
+        connected_oracle_api: FlextDbOracleApi,
+    ) -> None:
+        """A signal handler's cancel_active aborts an in-flight call (ORA-01013)."""
+        sleep_seconds = 30
+        outcome: list[str] = []
+
+        def run_long_call() -> None:
+            result = connected_oracle_api.execute_statement(
+                f"BEGIN DBMS_SESSION.SLEEP({sleep_seconds}); END;",
+            )
+            outcome.append(result.error or "completed")
+
+        started = time.monotonic()
+        call = threading.Thread(target=run_long_call)
+        call.start()
+        while call.is_alive() and u.DbOracle.cancel_active() == 0:
+            time.sleep(0.2)
+        call.join(sleep_seconds)
+        tm.fail(call.is_alive())
+        tm.that(time.monotonic() - started < sleep_seconds)
+        tm.that(outcome[0], has="ORA-01013")

@@ -173,18 +173,22 @@ graph TB
 main classes and version information **Pattern**: Selective imports to maintain clean
 public interface
 
-```{.python .notest}
-# Key exports
-__all__: list[str] = [
-    "FlextDbOracleApi",  # Main API
-    "FlextDbOracleCli",  # CLI interface
-    "FlextDbOracleClient",  # Client operations
-    "FlextDbOracleSettings",  # Configuration
-    "FlextDbOracleConstants",  # Constants
-    # ... 9 more classes
-    "__version__",  # Version info
-    "__version_info__",
-]
+```python
+from flext_db_oracle import (
+    FlextDbOracleApi,  # main API
+    FlextDbOracleClient,  # client operations
+    FlextDbOracleConstants,  # constants
+    FlextDbOracleSettings,  # configuration
+    __version__,  # version info
+)
+
+public_surface = (
+    FlextDbOracleApi,
+    FlextDbOracleClient,
+    FlextDbOracleConstants,
+    FlextDbOracleSettings,
+    __version__,
+)
 ```
 
 #### `cli.py` (CLI Entry Point)
@@ -209,15 +213,6 @@ layer) **Responsibilities**:
 
 ```python
 from __future__ import annotations
-
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
 
 from flext_core import m, p, r, t
 

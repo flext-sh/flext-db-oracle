@@ -12,7 +12,9 @@ from typing import TYPE_CHECKING, Protocol, Self, runtime_checkable
 from flext_cli import FlextCliProtocols
 
 if TYPE_CHECKING:
-    from flext_db_oracle import m, p, t
+    from flext_core._protocols import FlextProtocolsResult
+
+    from flext_db_oracle import t
 
 
 class FlextDbOracleProtocolsConnection:
@@ -22,7 +24,7 @@ class FlextDbOracleProtocolsConnection:
     class Connection(Protocol):
         """Protocol for Oracle database connection operations."""
 
-        def connect(self) -> p.Result[Self]:
+        def connect(self) -> FlextProtocolsResult.Result[Self]:
             """Establish Oracle database connection.
 
             Returns:
@@ -31,7 +33,7 @@ class FlextDbOracleProtocolsConnection:
             """
             ...
 
-        def disconnect(self) -> p.Result[bool]:
+        def disconnect(self) -> FlextProtocolsResult.Result[bool]:
             """Close Oracle database connection.
 
             Returns:
@@ -57,7 +59,7 @@ class FlextDbOracleProtocolsConnection:
         must satisfy this protocol.
         """
 
-        def fetch_connection(self) -> p.Result[t.JsonValue]:
+        def fetch_connection(self) -> FlextProtocolsResult.Result[t.JsonValue]:
             """Get current Oracle connection t.JsonValue.
 
             Returns:
@@ -66,15 +68,15 @@ class FlextDbOracleProtocolsConnection:
             """
             ...
 
-        def initialize(self) -> p.Result[bool]:
+        def initialize(self) -> FlextProtocolsResult.Result[bool]:
             """Initialize the plugin."""
             ...
 
-        def shutdown(self) -> p.Result[bool]:
+        def shutdown(self) -> FlextProtocolsResult.Result[bool]:
             """Shutdown the plugin."""
             ...
 
-        def test_connection(self) -> p.Result[bool]:
+        def test_connection(self) -> FlextProtocolsResult.Result[bool]:
             """Test Oracle database connectivity.
 
             Returns:
@@ -87,7 +89,10 @@ class FlextDbOracleProtocolsConnection:
     class PluginRegistry(Protocol):
         """Protocol for Oracle database plugin registry operations."""
 
-        def fetch_plugin(self, name: str) -> p.Result[t.JsonPayload | t.FlatContainer]:
+        def fetch_plugin(
+            self,
+            name: str,
+        ) -> FlextProtocolsResult.Result[t.JsonPayload | t.FlatContainer]:
             """Get Oracle database plugin by name.
 
             Args:
@@ -99,7 +104,7 @@ class FlextDbOracleProtocolsConnection:
             """
             ...
 
-        def list_plugins(self) -> p.Result[Sequence[str]]:
+        def list_plugins(self) -> FlextProtocolsResult.Result[Sequence[str]]:
             """List registered Oracle database plugins.
 
             Returns:
@@ -112,7 +117,7 @@ class FlextDbOracleProtocolsConnection:
             self,
             name: str,
             plugin: t.JsonPayload | t.FlatContainer,
-        ) -> p.Result[bool]:
+        ) -> FlextProtocolsResult.Result[bool]:
             """Register Oracle database plugin.
 
             Args:
@@ -125,7 +130,7 @@ class FlextDbOracleProtocolsConnection:
             """
             ...
 
-        def unregister_plugin(self, name: str) -> p.Result[bool]:
+        def unregister_plugin(self, name: str) -> FlextProtocolsResult.Result[bool]:
             """Unregister Oracle database plugin.
 
             Args:
@@ -141,7 +146,9 @@ class FlextDbOracleProtocolsConnection:
     class HealthCheck(Protocol):
         """Protocol for Oracle database health check operations."""
 
-        def fetch_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
+        def fetch_connection_status(
+            self,
+        ) -> FlextProtocolsResult.Result[p.DbOracle.ConnectionStatus]:
             """Get Oracle connection status information.
 
             Returns:
@@ -150,7 +157,7 @@ class FlextDbOracleProtocolsConnection:
             """
             ...
 
-        def health_check(self) -> p.Result[m.DbOracle.HealthStatus]:
+        def health_check(self) -> FlextProtocolsResult.Result[p.DbOracle.HealthStatus]:
             """Perform Oracle database health check.
 
             Returns:
