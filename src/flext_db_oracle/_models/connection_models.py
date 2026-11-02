@@ -10,10 +10,10 @@ from datetime import datetime
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_cli import m
+from flext_cli import m, p
 from flext_core import FlextUtilities
 
-from flext_db_oracle import c, t
+from flext_db_oracle import c, p, t
 
 
 class FlextModelsDbOracleConnection:

@@ -9,9 +9,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import ClassVar
 
-from flext_cli import m
+from flext_cli import m, p
 
-from flext_db_oracle import c, t
+from flext_db_oracle import c, p, t
 
 
 class FlextModelsDbOracleQuery:
