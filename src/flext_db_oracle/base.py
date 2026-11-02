@@ -32,13 +32,13 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
     _db_config: FlextDbOracleSettings | None = m.PrivateAttr()
     _engine: SAEngine | None = m.PrivateAttr(default_factory=lambda: None)
     _operations: MutableSequence[p.DbOracle.OperationRecord] = m.PrivateAttr(
-        default_factory=list[p.DbOracle.OperationRecord],
+        default_factory=list,
     )
     _plugins: MutableMapping[str, t.JsonPayload | t.FlatContainer] = m.PrivateAttr(
-        default_factory=dict[str, t.JsonPayload | t.FlatContainer],
+        default_factory=dict,
     )
     _metrics: t.MutableJsonMapping = m.PrivateAttr(
-        default_factory=dict[str, t.JsonValue],
+        default_factory=dict,
     )
 
     def __init__(self, settings: FlextDbOracleSettings) -> None:

@@ -60,7 +60,7 @@ class FlextModelsDbOracleCommand:
 
         sql: str = m.Field(description="SQL statement for batch execution")
         parameters_list: Sequence[t.JsonMapping] = m.Field(
-            default_factory=tuple[t.JsonMapping, ...],
+            default_factory=tuple,
             description="List of parameter sets for batch execution",
         )
 

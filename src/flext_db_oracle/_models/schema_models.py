@@ -33,7 +33,7 @@ class FlextModelsDbOracleSchema:
             description="Column metadata for the table",
         )
         primary_keys: Sequence[str] = m.Field(
-            default_factory=tuple[str, ...],
+            default_factory=tuple,
             description="Primary key column names",
         )
 

@@ -10,10 +10,10 @@ from datetime import datetime
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_cli import m, p
+from flext_cli import m
 from flext_core import FlextUtilities
 
-from flext_db_oracle import c, p, t
+from flext_db_oracle import c, t
 
 
 class FlextModelsDbOracleConnection:
@@ -22,7 +22,7 @@ class FlextModelsDbOracleConnection:
     class ConnectionStatus(m.Entity):
         """Connection status using flext-core Entity."""
 
-        model_config: ClassVar[p.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             frozen=False, extra="ignore", strict=False
         )
 
