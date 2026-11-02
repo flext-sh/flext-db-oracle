@@ -13,7 +13,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
 from flext_cli import FlextCliSettings, m
 
@@ -42,6 +42,15 @@ class FlextDbOracleSettings(FlextCliSettings):
             str,
             m.Field(description="Oracle service name for connection"),
         ] = "XEPDB1"
+        dsn: Annotated[
+            str | None,
+            m.Field(
+                description=(
+                    "TNS connect descriptor or tnsnames alias; when set it is "
+                    "the driver dsn and host/port/service_name are not used"
+                ),
+            ),
+        ] = None
         username: Annotated[
             str,
             m.Field(description="Oracle database username"),
@@ -94,6 +103,24 @@ class FlextDbOracleSettings(FlextCliSettings):
                 description="Enable dispatcher integration for CQRS patterns",
             ),
         ] = False
+
+        @m.model_validator(mode="after")
+        def validate_pool_bounds(self) -> Self:
+            """Reject a pool whose maximum is below its minimum.
+
+            Returns:
+                The validated settings namespace.
+
+            Raises:
+                ValueError: ``pool_max`` is lower than ``pool_min``.
+
+            """
+            if self.pool_max < self.pool_min:
+                msg = (
+                    f"pool_max ({self.pool_max}) must be >= pool_min ({self.pool_min})"
+                )
+                raise ValueError(msg)
+            return self
 
     DbOracle: DbOracleSettings = m.Field(
         default_factory=DbOracleSettings,

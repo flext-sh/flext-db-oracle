@@ -101,7 +101,6 @@ class FlextDbOracleConstantsValues:
         ENV_DATABASE_NAME: Final[str] = "ORACLE_DATABASE_NAME"
         ENV_SID: Final[str] = "ORACLE_SID"
         ENV_ENABLE_DISPATCHER: Final[str] = "FLEXT_DB_ORACLE_ENABLE_DISPATCHER"
-        LOOPBACK_IP: Final[str] = "127.0.0.1"
 
         ORACLE_IDENTIFIER_PATTERN: Final[str] = "^[A-Z][A-Z0-9_$#]*$"
         ORACLE_IDENTIFIER_RE: ClassVar[t.RegexPattern] = re.compile(

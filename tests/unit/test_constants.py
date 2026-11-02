@@ -43,7 +43,6 @@ class TestsFlextDbOracleConstants:
             ("DEFAULT_LISTENER_PORT", 1521),
             ("DEFAULT_SSL_PORT", 2484),
             ("DEFAULT_POOL_RECYCLE", 3600),
-            ("LOOPBACK_IP", "127.0.0.1"),
         ],
     )
     def test_flat_default_constant_exposes_expected_value(

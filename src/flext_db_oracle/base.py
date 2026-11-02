@@ -110,14 +110,16 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
         sql: str,
         params: m.ConfigMap | None = None,
     ) -> p.Result[Sequence[m.Dict]]:
-        """Execute a SQL query in composed service facades.
+        """Execute a SQL query on a fresh pooled connection.
+
+        Row values stay as the driver returned them and are validated by the
+        ``m.Dict`` payload contract; for caller session state or a typed row
+        model use ``fetch_models`` on the caller's connection.
 
         Returns:
             The resulting ``p.Result[Sequence[m.Dict]]``.
 
         """
-        if not self.connected():
-            return r[Sequence[m.Dict]].fail("Not connected to database")
         engine_result = self._get_engine()
         if engine_result.failure:
             return r[Sequence[m.Dict]].from_failure(engine_result)
@@ -125,8 +127,7 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
             with self._engine_connect(engine_result.value) as connection:
                 result = self._connection_execute(connection, text(sql), params)
                 rows: Sequence[m.Dict] = [
-                    m.Dict(root={str(key): str(value) for key, value in row.items()})
-                    for row in result.mappings().all()
+                    m.Dict(root=dict(row)) for row in result.mappings().all()
                 ]
                 return r[Sequence[m.Dict]].ok(rows)
         except c.DbOracle.EXC_DB_BROAD as error:

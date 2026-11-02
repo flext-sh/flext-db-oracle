@@ -9,7 +9,8 @@ from __future__ import annotations
 import hashlib
 from collections.abc import Mapping, Sequence
 from enum import StrEnum
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
+from urllib.parse import quote_plus
 
 import oracledb
 from flext_cli import m, p, r, t, u
@@ -18,6 +19,7 @@ from sqlalchemy import (
     Engine as SAEngine,
     TextClause,
     create_engine,
+    text,
 )
 
 from flext_db_oracle import c, settings
@@ -26,6 +28,8 @@ if TYPE_CHECKING:
     import contextlib
 
     from sqlalchemy.engine import CursorResult
+
+    from flext_db_oracle import FlextDbOracleSettings
 
 
 class FlextDbOracleUtilitiesDbOracle:
@@ -195,37 +199,105 @@ class FlextDbOracleUtilitiesDbOracle:
         return validated[0]
 
     @staticmethod
-    def _sqlalchemy_create_engine(
-        url: str,
-        connect_timeout: int | None = None,
-        mode: Literal["SYSDBA", "SYSOPER"] | None = None,
+    def build_engine(
+        settings: FlextDbOracleSettings,
+        connect_args: Mapping[str, t.Scalar] | None = None,
     ) -> SAEngine:
-        """Create SQLAlchemy engine with optional connection timeout.
+        """Build the Oracle SQLAlchemy engine declared by ``settings``.
 
-        ``mode`` maps to the oracledb privilege mode (AUTH_MODE_SYSDBA/
-        AUTH_MODE_SYSOPER) via ``connect_args`` — SYSDBA logins reject a
-        normal connection with ORA-28009.
+        ``settings.DbOracle.dsn`` (TNS descriptor or alias), when set, is the
+        driver ``dsn``; otherwise host/port/service_name form the URL. The
+        privilege ``mode`` maps to the oracledb auth mode (SYSDBA logins
+        reject a normal connection with ORA-28009), ``pool_min``/``pool_max``
+        become ``pool_size``/``max_overflow`` and ``connect_args`` adds driver
+        arguments the settings do not own.
 
         Returns:
-            The resulting ``SAEngine``.
+            The unconnected engine; the first checkout opens the session.
+
+        Raises:
+            ValueError: The password is empty, or ``connect_args`` repeats an
+                argument the settings already own.
 
         """
-        connect_args: dict[str, object] = {}
-        if connect_timeout is not None:
-            connect_args["tcp_connect_timeout"] = connect_timeout
-        if mode is not None:
-            connect_args["mode"] = (
+        oracle = settings.DbOracle
+        if not oracle.password:
+            msg = "Password is required for database connection"
+            raise ValueError(msg)
+        credentials = (
+            f"oracle+oracledb://{quote_plus(oracle.username)}"
+            f":{quote_plus(oracle.password)}@"
+        )
+        driver_args: dict[str, t.Scalar] = {"tcp_connect_timeout": oracle.timeout}
+        if oracle.dsn is None:
+            url = (
+                f"{credentials}{oracle.host}:{oracle.port}"
+                f"/?service_name={quote_plus(oracle.service_name)}"
+            )
+        else:
+            url = credentials
+            driver_args["dsn"] = oracle.dsn
+        if oracle.mode is not None:
+            driver_args["mode"] = (
                 oracledb.AUTH_MODE_SYSDBA
-                if mode == "SYSDBA"
+                if oracle.mode == "SYSDBA"
                 else oracledb.AUTH_MODE_SYSOPER
             )
+        extra_args = connect_args or {}
+        conflicting = sorted(driver_args.keys() & extra_args.keys())
+        if conflicting:
+            msg = f"connect_args repeat settings-owned driver arguments: {conflicting}"
+            raise ValueError(msg)
+        driver_args.update(extra_args)
         return create_engine(
             url,
+            pool_size=oracle.pool_min,
+            max_overflow=oracle.pool_max - oracle.pool_min,
             pool_pre_ping=True,
-            pool_recycle=3600,
+            pool_recycle=c.DbOracle.DEFAULT_POOL_RECYCLE,
             echo=False,
-            connect_args=connect_args,
+            connect_args=driver_args,
         )
+
+    @staticmethod
+    def fetch_models[M: m.BaseModel](
+        sql: str,
+        params: Mapping[str, t.Scalar | None] | None = None,
+        *,
+        model: type[M],
+        connection: SAConnection,
+    ) -> Sequence[M]:
+        """Run a query on the caller's open connection and validate each row.
+
+        The connection is injected, so session state the caller set on it
+        (``ALTER SESSION``, LogMiner, an open transaction) is preserved. Row
+        values reach ``model`` as the driver returned them.
+
+        Returns:
+            One ``model`` instance per row, in result order.
+
+        """
+        result = connection.execute(text(sql), dict(params or {}))
+        return [model.model_validate(dict(row)) for row in result.mappings()]
+
+    @staticmethod
+    def execute_driver_sql(
+        sql: str,
+        params: Mapping[str, t.Scalar | None] | None = None,
+        *,
+        connection: SAConnection,
+    ) -> int:
+        """Execute driver-native SQL or a PL/SQL block on the caller's connection.
+
+        The statement goes to the driver verbatim: unlike ``text()``, a colon
+        inside a string literal (``'HH24:MI'``) is not parsed as a bind.
+
+        Returns:
+            The affected row count reported by the driver (zero when unknown).
+
+        """
+        result = connection.exec_driver_sql(sql, dict(params or {}))
+        return max(result.rowcount, 0)
 
     @staticmethod
     def _engine_connect(engine: SAEngine) -> SAConnection:
