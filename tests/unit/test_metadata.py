@@ -65,19 +65,19 @@ def _call_fetch_tables_none_schema(
 
 def _call_fetch_columns_table(
     services: FlextDbOracleServices,
-) -> p.Result[Sequence[m.DbOracle.Column]]:
+) -> p.Result[Sequence[p.DbOracle.Column]]:
     return services.fetch_columns("T")
 
 
 def _call_fetch_columns_schema(
     services: FlextDbOracleServices,
-) -> p.Result[Sequence[m.DbOracle.Column]]:
+) -> p.Result[Sequence[p.DbOracle.Column]]:
     return services.fetch_columns("T", "APP_SCHEMA")
 
 
 def _call_fetch_table_metadata(
     services: FlextDbOracleServices,
-) -> p.Result[m.DbOracle.TableMetadata]:
+) -> p.Result[p.DbOracle.TableMetadata]:
     return services.fetch_table_metadata("T")
 
 

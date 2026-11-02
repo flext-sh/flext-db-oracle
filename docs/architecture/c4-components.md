@@ -219,7 +219,7 @@ from __future__ import annotations
 
 import os
 
-from flext_core import m, t
+from flext_core import m, p, t
 from pydantic import SecretStr
 
 

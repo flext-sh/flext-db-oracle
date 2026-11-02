@@ -14,7 +14,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_db_oracle import FlextDbOracleSettings
-from tests import c, m, tm
+from tests import c, m, p, tm
 
 if TYPE_CHECKING:
     from flext_db_oracle.services import FlextDbOracleServices
@@ -177,7 +177,7 @@ class TestsFlextDbOracleCoverageBaseline:
         oracle_unit_services: FlextDbOracleServices,
     ) -> None:
         """create_table_ddl compiles CREATE TABLE with the column definitions."""
-        columns: list[m.DbOracle.Column] = [
+        columns: list[p.DbOracle.Column] = [
             m.DbOracle.Column(name="ID", data_type="NUMBER", nullable=False),
         ]
         sql = tm.ok(oracle_unit_services.create_table_ddl("ACCOUNTS", columns))

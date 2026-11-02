@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from flext_core._protocols import FlextProtocolsResult
     from sqlalchemy import Executable
 
-    from flext_db_oracle import m, t
+    from flext_db_oracle import t
 
 
 class FlextDbOracleProtocolsQuery:
@@ -45,7 +45,7 @@ class FlextDbOracleProtocolsQuery:
         def fetch_models[T: BaseModel](
             self,
             sql: str | Executable,
-            params: m.ConfigMap | None = None,
+            params: p.ConfigMap | None = None,
             *,
             model: type[T],
         ) -> FlextProtocolsResult.Result[Sequence[T]]:
@@ -65,8 +65,8 @@ class FlextDbOracleProtocolsQuery:
         def execute_query(
             self,
             sql: str,
-            params: m.ConfigMap | None = None,
-        ) -> FlextProtocolsResult.Result[Sequence[m.Dict]]:
+            params: p.ConfigMap | None = None,
+        ) -> FlextProtocolsResult.Result[Sequence[p.Dict]]:
             """Execute Oracle SQL query.
 
             Args:
@@ -82,7 +82,7 @@ class FlextDbOracleProtocolsQuery:
         def execute_statement(
             self,
             sql: str,
-            params: m.ConfigMap | None = None,
+            params: p.ConfigMap | None = None,
         ) -> FlextProtocolsResult.Result[int]:
             """Execute Oracle SQL statement.
 
@@ -99,8 +99,8 @@ class FlextDbOracleProtocolsQuery:
         def fetch_one(
             self,
             sql: str,
-            params: m.ConfigMap | None = None,
-        ) -> FlextProtocolsResult.Result[m.Dict | None]:
+            params: p.ConfigMap | None = None,
+        ) -> FlextProtocolsResult.Result[p.Dict | None]:
             """Fetch single result from Oracle query.
 
             Args:
@@ -108,7 +108,7 @@ class FlextDbOracleProtocolsQuery:
             params: Query parameters
 
             Returns:
-            r[m.Dict | None]: Single result or None
+            r[p.Dict | None]: Single result or None
 
             """
             ...
@@ -121,7 +121,7 @@ class FlextDbOracleProtocolsQuery:
             self,
             table: str,
             schema: str | None = None,
-        ) -> FlextProtocolsResult.Result[Sequence[m.DbOracle.Column]]:
+        ) -> FlextProtocolsResult.Result[Sequence[p.DbOracle.Column]]:
             """Get column information for Oracle table.
 
             Args:
@@ -164,7 +164,7 @@ class FlextDbOracleProtocolsQuery:
             self,
             table: str,
             schema: str | None = None,
-        ) -> FlextProtocolsResult.Result[m.DbOracle.TableMetadata]:
+        ) -> FlextProtocolsResult.Result[p.DbOracle.TableMetadata]:
             """Get Oracle table metadata.
 
             Args:
@@ -240,7 +240,7 @@ class FlextDbOracleProtocolsQuery:
             self,
             table_name: str,
             columns: Sequence[str] | None = None,
-            conditions: m.ConfigMap | t.JsonMapping | None = None,
+            conditions: p.ConfigMap | t.JsonMapping | None = None,
             schema_name: str | None = None,
         ) -> FlextProtocolsResult.Result[str]:
             """Build Oracle SELECT statement.
@@ -307,7 +307,7 @@ class FlextDbOracleProtocolsQuery:
         def create_table_ddl(
             self,
             table: str,
-            columns: Sequence[m.DbOracle.Column],
+            columns: Sequence[p.DbOracle.Column],
             schema: str | None = None,
         ) -> FlextProtocolsResult.Result[str]:
             """Generate Oracle CREATE TABLE DDL.
@@ -344,7 +344,7 @@ class FlextDbOracleProtocolsQuery:
     class MetricsCollector(Protocol):
         """Protocol for Oracle database metrics collection."""
 
-        def fetch_metrics(self) -> FlextProtocolsResult.Result[m.DbOracle.HealthStatus]:
+        def fetch_metrics(self) -> FlextProtocolsResult.Result[p.DbOracle.HealthStatus]:
             """Get collected Oracle metrics.
 
             Returns:

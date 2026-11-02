@@ -31,8 +31,8 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
 
     _db_config: FlextDbOracleSettings | None = m.PrivateAttr()
     _engine: SAEngine | None = m.PrivateAttr(default_factory=lambda: None)
-    _operations: MutableSequence[m.DbOracle.OperationRecord] = m.PrivateAttr(
-        default_factory=list[m.DbOracle.OperationRecord],
+    _operations: MutableSequence[p.DbOracle.OperationRecord] = m.PrivateAttr(
+        default_factory=list[p.DbOracle.OperationRecord],
     )
     _plugins: MutableMapping[str, t.JsonPayload | t.FlatContainer] = m.PrivateAttr(
         default_factory=dict[str, t.JsonPayload | t.FlatContainer],
@@ -69,7 +69,7 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
         """
         return self._engine is not None
 
-    def _parse_count_from_rows(self, rows: Sequence[m.Dict]) -> int:
+    def _parse_count_from_rows(self, rows: Sequence[p.Dict]) -> int:
         """Parse COUNT(*) value from normalized query rows.
 
         Returns:
@@ -108,29 +108,29 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
     def execute_rows(
         self,
         sql: str,
-        params: m.ConfigMap | None = None,
-    ) -> p.Result[Sequence[m.Dict]]:
+        params: p.ConfigMap | None = None,
+    ) -> p.Result[Sequence[p.Dict]]:
         """Execute a SQL query in composed service facades.
 
         Returns:
-            The resulting ``p.Result[Sequence[m.Dict]]``.
+            The resulting ``p.Result[Sequence[p.Dict]]``.
 
         """
         if not self.connected():
-            return r[Sequence[m.Dict]].fail("Not connected to database")
+            return r[Sequence[p.Dict]].fail("Not connected to database")
         engine_result = self._get_engine()
         if engine_result.failure:
-            return r[Sequence[m.Dict]].from_failure(engine_result)
+            return r[Sequence[p.Dict]].from_failure(engine_result)
         try:
             with self._engine_connect(engine_result.value) as connection:
                 result = self._connection_execute(connection, text(sql), params)
-                rows: Sequence[m.Dict] = [
+                rows: Sequence[p.Dict] = [
                     m.Dict(root={str(key): str(value) for key, value in row.items()})
                     for row in result.mappings().all()
                 ]
-                return r[Sequence[m.Dict]].ok(rows)
+                return r[Sequence[p.Dict]].ok(rows)
         except c.DbOracle.EXC_DB_BROAD as error:
-            return r[Sequence[m.Dict]].fail_op("Query execution", error)
+            return r[Sequence[p.Dict]].fail_op("Query execution", error)
 
 
 s = FlextDbOracleServiceBase

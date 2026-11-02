@@ -83,29 +83,29 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     def execute_query(
         self,
         sql: str,
-        params: m.ConfigMap | None = None,
-    ) -> p.Result[Sequence[m.Dict]]:
+        params: p.ConfigMap | None = None,
+    ) -> p.Result[Sequence[p.Dict]]:
         """Execute SQL query and return results.
 
         Returns:
-            The resulting ``p.Result[Sequence[m.Dict]]``.
+            The resulting ``p.Result[Sequence[p.Dict]]``.
 
         """
         engine_result = self._connected_engine()
         if engine_result.failure:
-            return r[Sequence[m.Dict]].from_failure(engine_result)
+            return r[Sequence[p.Dict]].from_failure(engine_result)
         try:
             with self._engine_connect(engine_result.value) as conn:
                 result = self._connection_execute(conn, text(sql), params)
-                rows: Sequence[m.Dict] = self._normalize_query_rows(result)
-                return r[Sequence[m.Dict]].ok(rows)
+                rows: Sequence[p.Dict] = self._normalize_query_rows(result)
+                return r[Sequence[p.Dict]].ok(rows)
         except c.DbOracle.EXC_DB_BROAD as exc:
-            return r[Sequence[m.Dict]].fail_op("Query execution", exc)
+            return r[Sequence[p.Dict]].fail_op("Query execution", exc)
 
     def execute_statement(
         self,
         sql: str,
-        params: m.ConfigMap | None = None,
+        params: p.ConfigMap | None = None,
     ) -> p.Result[int]:
         """Execute SQL statement and return affected rows.
 
@@ -127,12 +127,12 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     def fetch_one(
         self,
         sql: str,
-        params: m.ConfigMap | None = None,
-    ) -> p.Result[m.Dict | None]:
+        params: p.ConfigMap | None = None,
+    ) -> p.Result[p.Dict | None]:
         """Execute query and return first result.
 
         Returns:
-            The resulting ``p.Result[m.Dict | None]``.
+            The resulting ``p.Result[p.Dict | None]``.
 
         """
         return self.execute_query(sql, params).map(
@@ -142,7 +142,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     def fetch_models[T: BaseModel](
         self,
         sql: str | Executable,
-        params: m.ConfigMap | None = None,
+        params: p.ConfigMap | None = None,
         *,
         model: type[T],
     ) -> p.Result[Sequence[T]]:
@@ -176,16 +176,16 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     @staticmethod
     def _normalize_query_rows(
         query_result: CursorResult[tuple[t.JsonValue, ...]],
-    ) -> Sequence[m.Dict]:
+    ) -> Sequence[p.Dict]:
         """Normalize SQLAlchemy query result rows into typed mapping models.
 
         Returns:
-            The resulting ``Sequence[m.Dict]``.
+            The resulting ``Sequence[p.Dict]``.
 
         """
         mapping_result = query_result.mappings()
         rows = mapping_result.all()
-        result: Sequence[m.Dict] = [
+        result: Sequence[p.Dict] = [
             m.Dict(root={str(key): str(val) for key, val in dict(row).items()})
             for row in rows
         ]

@@ -175,7 +175,7 @@ class FlextDbOracleUtilitiesDbOracle:
         return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
 
     @staticmethod
-    def validate_config_map(value: t.JsonValue | t.JsonMapping) -> m.ConfigMap:
+    def validate_config_map(value: t.JsonValue | t.JsonMapping) -> p.ConfigMap:
         """Validate arbitrary mapping input as ConfigMap.
 
         Returns:
@@ -193,7 +193,7 @@ class FlextDbOracleUtilitiesDbOracle:
         return m.ConfigMap.model_validate({"root": dict(value)})
 
     @staticmethod
-    def normalize_params(params: m.ConfigMap | None) -> m.ConfigMap:
+    def normalize_params(params: p.ConfigMap | None) -> p.ConfigMap:
         """Normalize optional parameters into ConfigMap.
 
         Returns:
@@ -354,7 +354,7 @@ class FlextDbOracleUtilitiesDbOracle:
         cls,
         connection: SAConnection,
         statement: TextClause,
-        parameters: m.ConfigMap | None = None,
+        parameters: p.ConfigMap | None = None,
     ) -> CursorResult[tuple[t.JsonValue, ...]]:
         """Execute statement on SQL connection.
 

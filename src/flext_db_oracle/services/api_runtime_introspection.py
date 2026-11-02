@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
-from flext_db_oracle import m, p, r, t
+from flext_db_oracle import p, r, t
 from flext_db_oracle.services import FlextDbOracleApiRuntimeState
 
 
@@ -32,20 +32,20 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
         self,
         table_name: str,
         schema_name: str | None = None,
-    ) -> p.Result[Sequence[m.DbOracle.Column]]:
+    ) -> p.Result[Sequence[p.DbOracle.Column]]:
         """Get column information for specified table.
 
         Returns:
-            The resulting ``p.Result[Sequence[m.DbOracle.Column]]``.
+            The resulting ``p.Result[Sequence[p.DbOracle.Column]]``.
 
         """
         return self._services.fetch_columns(table_name, schema_name)
 
-    def fetch_health_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
+    def fetch_health_status(self) -> p.Result[p.DbOracle.ConnectionStatus]:
         """Get database connection health status.
 
         Returns:
-            The resulting ``p.Result[m.DbOracle.ConnectionStatus]``.
+            The resulting ``p.Result[p.DbOracle.ConnectionStatus]``.
 
         """
         return self._services.fetch_connection_status()
@@ -94,11 +94,11 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
         self,
         table_name: str,
         schema: str | None = None,
-    ) -> p.Result[m.DbOracle.TableMetadata]:
+    ) -> p.Result[p.DbOracle.TableMetadata]:
         """Get complete table metadata including columns and constraints.
 
         Returns:
-            The resulting ``p.Result[m.DbOracle.TableMetadata]``.
+            The resulting ``p.Result[p.DbOracle.TableMetadata]``.
 
         """
         return self._services.fetch_table_metadata(table_name, schema)
@@ -125,7 +125,7 @@ class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):
 
     def map_singer_schema(
         self,
-        singer_schema: m.DbOracle.SingerSchema | t.JsonMapping,
+        singer_schema: p.DbOracle.SingerSchema | t.JsonMapping,
     ) -> p.Result[Mapping[str, str]]:
         """Map Singer JSON Schema to Oracle table schema.
 

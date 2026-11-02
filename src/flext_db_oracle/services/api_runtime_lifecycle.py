@@ -164,7 +164,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
             "_FlextDbOracleEnvSettings",
             (FlextDbOracleSettings,),
             {
-                "model_config": m.SettingsConfigDict(
+                "model_config": p.SettingsConfigDict(
                     env_prefix=prefix,
                     env_nested_delimiter="__",
                     extra="ignore",
@@ -247,7 +247,7 @@ class FlextDbOracleApiRuntimeLifecycle(FlextDbOracleApiRuntimeState):
         """
         return self._services.test_connection()
 
-    def to_dict(self, obj: t.JsonMapping | None = None) -> m.ConfigMap:
+    def to_dict(self, obj: t.JsonMapping | None = None) -> p.ConfigMap:
         """Serialize API state or explicit mapping into the canonical ConfigMap.
 
         Returns:

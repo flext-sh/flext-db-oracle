@@ -20,7 +20,7 @@ from collections.abc import Mapping
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import c, m, tm, u
+from tests import c, m, p, tm, u
 
 
 @pytest.fixture
@@ -43,7 +43,7 @@ class TestsFlextDbOracleOracle:
 
     # ----------------------------------------------------------------- helpers
     @staticmethod
-    def _cell(row: m.Dict, *keys: str) -> str:
+    def _cell(row: p.Dict, *keys: str) -> str:
         """Read one column value from a query row via its public root mapping.
 
         Oracle returns column names in varying case; probe the requested keys

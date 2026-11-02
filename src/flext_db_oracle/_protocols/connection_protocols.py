@@ -14,7 +14,7 @@ from flext_cli import FlextCliProtocols
 if TYPE_CHECKING:
     from flext_core._protocols import FlextProtocolsResult
 
-    from flext_db_oracle import m, t
+    from flext_db_oracle import t
 
 
 class FlextDbOracleProtocolsConnection:
@@ -148,7 +148,7 @@ class FlextDbOracleProtocolsConnection:
 
         def fetch_connection_status(
             self,
-        ) -> FlextProtocolsResult.Result[m.DbOracle.ConnectionStatus]:
+        ) -> FlextProtocolsResult.Result[p.DbOracle.ConnectionStatus]:
             """Get Oracle connection status information.
 
             Returns:
@@ -157,7 +157,7 @@ class FlextDbOracleProtocolsConnection:
             """
             ...
 
-        def health_check(self) -> FlextProtocolsResult.Result[m.DbOracle.HealthStatus]:
+        def health_check(self) -> FlextProtocolsResult.Result[p.DbOracle.HealthStatus]:
             """Perform Oracle database health check.
 
             Returns:

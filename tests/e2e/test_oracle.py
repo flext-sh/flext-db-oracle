@@ -17,7 +17,7 @@ from collections.abc import Mapping
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import c, m, t, tm, u
+from tests import c, p, t, tm, u
 
 _NOT_CONNECTED = "not connected to database"
 
@@ -138,7 +138,7 @@ class TestsFlextDbOracleOracle:
         tm.that(mapped["is_active"], has="NUMBER(1)")
 
     @staticmethod
-    def _row_mapping(row: m.Dict) -> Mapping[str, t.JsonPayload]:
+    def _row_mapping(row: p.Dict) -> Mapping[str, t.JsonPayload]:
         """Expose a query row's public mapping regardless of case handling.
 
         Returns:

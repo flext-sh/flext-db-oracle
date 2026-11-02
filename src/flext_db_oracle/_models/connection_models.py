@@ -22,7 +22,7 @@ class FlextModelsDbOracleConnection:
     class ConnectionStatus(m.Entity):
         """Connection status using flext-core Entity."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[p.ConfigDict] = m.ConfigDict(
             frozen=False, extra="ignore", strict=False
         )
 
