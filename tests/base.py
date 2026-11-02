@@ -10,7 +10,7 @@ from typing import override
 
 from flext_tests import FlextTestsServiceBase
 
-from tests import TestsFlextDbOracleSettings, m
+from tests import TestsFlextDbOracleSettings, m, p
 
 
 class TestsFlextDbOracleServiceBase(FlextTestsServiceBase):
