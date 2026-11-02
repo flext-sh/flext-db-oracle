@@ -27,7 +27,6 @@ from sqlalchemy.exc import DatabaseError as SADatabaseError
 from sqlalchemy.orm import aliased as _sqlalchemy_aliased
 
 from flext_db_oracle import c, m, p, r, settings, t
-from flext_db_oracle._models import FlextModelsDbOracleConnection
 
 if TYPE_CHECKING:
     import contextlib

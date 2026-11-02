@@ -10,8 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from pydantic import BaseModel, ValidationError
-from sqlalchemy import Executable, text
+from sqlalchemy import text
 
 from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
 
