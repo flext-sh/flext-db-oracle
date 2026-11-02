@@ -14,6 +14,11 @@ The single reference for every flext member that touches a database
 non-Oracle adapters tomorrow). Consumers depend on **ports**, never on the
 concrete adapter: Clean Architecture with the flext-core DI container.
 
+Published statement builders such as `u.DbOracle.func` retain their native dynamic
+attribute access. Handler discovery may inspect their utility facade without
+interpreting dynamically manufactured attributes as attached handler metadata or
+changing the builder object. This inspection requires no database connection.
+
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 

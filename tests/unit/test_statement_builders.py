@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from tests import t, tm, u
+from tests import h, t, tm, u
 
 
 class TestsFlextDbOracleStatementBuilders:
@@ -26,6 +26,14 @@ class TestsFlextDbOracleStatementBuilders:
     def test_func_builds_named_sql_functions() -> None:
         """Any attribute of ``u.DbOracle.func`` names a SQL function call."""
         tm.that(str(u.DbOracle.func.max(u.DbOracle.text("dh_exec"))), has="max(")
+
+    @staticmethod
+    def test_native_func_does_not_fabricate_handler_metadata() -> None:
+        """Real dynamic SQL builders remain values during handler discovery."""
+        function_factory = u.DbOracle.func
+        discovered = h.Discovery.scan_class(u.DbOracle)
+        tm.that(all(name != "func" for name, _metadata in discovered))
+        tm.that(u.DbOracle.func is function_factory)
 
     @staticmethod
     def test_select_renders_the_listed_columns() -> None:

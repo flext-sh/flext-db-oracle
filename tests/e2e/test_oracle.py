@@ -39,8 +39,8 @@ class TestsFlextDbOracleOracle:
             },
         })
 
-    @staticmethod
     @pytest.fixture
+    @staticmethod
     def offline_api(offline_settings: FlextDbOracleSettings) -> FlextDbOracleApi:
         """Unconnected API instance for pure-logic and error-path behavior.
 
