@@ -1,0 +1,12 @@
+rules:
+  - id: db-oracle-models-facade-canonical-name
+    description: >-
+      The models facade follows the family naming law (<Prefix><Family>, as
+      flext-infra SRC_MODULES declares and as FlextDbOracleConstants,
+      FlextDbOracleTypes and FlextDbOracleUtilities already do): the class is
+      FlextDbOracleModels, the name the 0.12.0-dev line publishes. Consumers
+      that import the facade by its declared name fail on the inverted
+      FlextModelsDbOracle spelling.
+    include: [src/**/*.py, tests/**/*.py, examples/**/*.py, scripts/**/*.py]
+    find: '\bFlextModelsDbOracle\b'
+    replace: 'FlextDbOracleModels'
