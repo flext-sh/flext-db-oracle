@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import p
+from flext_cli import FlextCliProtocols
 
 from flext_db_oracle._protocols import (
     FlextDbOracleProtocolsBase,
@@ -16,7 +16,7 @@ from flext_db_oracle._protocols import (
 )
 
 
-class FlextDbOracleProtocols(p):
+class FlextDbOracleProtocols(FlextCliProtocols):
     """Oracle database protocols extending FlextProtocols.
 
     Extends FlextProtocols to inherit all foundation protocols (Result, Service, etc.)
