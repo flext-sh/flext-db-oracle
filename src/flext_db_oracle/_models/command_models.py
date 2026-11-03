@@ -13,7 +13,7 @@ from flext_cli import m
 from flext_db_oracle import t
 
 
-class FlextModelsDbOracleCommand:
+class FlextDbOracleModelsCommand:
     """Oracle Database command models composed into ``m.DbOracle``."""
 
     class ConnectCommand(m.Entity):
@@ -87,4 +87,4 @@ class FlextModelsDbOracleCommand:
         )
 
 
-__all__: list[str] = ["FlextModelsDbOracleCommand"]
+__all__: list[str] = ["FlextDbOracleModelsCommand"]

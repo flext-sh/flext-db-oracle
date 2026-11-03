@@ -29,7 +29,7 @@ from sqlalchemy.exc import DatabaseError as SADatabaseError
 from sqlalchemy.orm import aliased as _sqlalchemy_aliased
 
 from flext_db_oracle import c, m, p, r, settings, t
-from flext_db_oracle._models import FlextModelsDbOracleConnection
+from flext_db_oracle._models import FlextDbOracleModelsConnection
 
 if TYPE_CHECKING:
     import contextlib
@@ -235,7 +235,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @staticmethod
     def engine(
-        url: str, options: FlextModelsDbOracleConnection.EngineOptions
+        url: str, options: FlextDbOracleModelsConnection.EngineOptions
     ) -> SAEngine:
         """Build a SQLAlchemy engine through the database facade.
 

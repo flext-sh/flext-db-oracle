@@ -54,7 +54,7 @@ graph TB
     end
 
     subgraph "Domain Model Layer"
-        MODELS[models.py<br/>FlextModelsDbOracle<br/>Pydantic v2 Models<br/>Data Validation]
+        MODELS[models.py<br/>FlextDbOracleModels<br/>Pydantic v2 Models<br/>Data Validation]
         EXCEPTIONS[exceptions.py<br/>FlextDbOracleExceptions<br/>Error Hierarchy]
         CONSTANTS[constants.py<br/>FlextDbOracleConstants<br/>System Constants<br/>Configuration]
     end
@@ -296,7 +296,7 @@ operations **Current State**: SimpleNamespace placeholders for Rich components
 
 ### Domain Model Layer
 
-#### `models.py` (FlextModelsDbOracle)
+#### `models.py` (FlextDbOracleModels)
 
 **Lines**: ~1,200 **Models**: 15+ Pydantic classes **Purpose**: Domain models and data
 validation **Features**:

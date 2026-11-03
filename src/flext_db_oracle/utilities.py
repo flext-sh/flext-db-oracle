@@ -9,10 +9,7 @@ from __future__ import annotations
 
 from flext_cli import u
 
-from flext_db_oracle._utilities import (
-    FlextDbOracleUtilitiesBase,
-    FlextDbOracleUtilitiesDbOracle,
-)
+from flext_db_oracle._utilities import FlextDbOracleUtilitiesDbOracle
 
 
 class FlextDbOracleUtilities(u):
@@ -25,7 +22,9 @@ class FlextDbOracleUtilities(u):
     - Generic parsing utilities for StrEnums (inherited from parent)
     """
 
-    class DbOracle(FlextDbOracleUtilitiesDbOracle, FlextDbOracleUtilitiesBase):
+    class DbOracle(
+        FlextDbOracleUtilitiesDbOracle,
+    ):
         """Oracle-specific utility namespace."""
 
 

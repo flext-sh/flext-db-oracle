@@ -14,7 +14,7 @@ from flext_cli import m
 from flext_db_oracle import c, t
 
 
-class FlextModelsDbOracleQuery:
+class FlextDbOracleModelsQuery:
     """Oracle Database query models composed into ``m.DbOracle``."""
 
     class DbOracleDomainModel(m.BaseModel):
@@ -70,7 +70,7 @@ class FlextModelsDbOracleQuery:
             default_factory=tuple,
             description="Column names in result set",
         )
-        rows: Sequence[FlextModelsDbOracleQuery.RowData] = m.Field(
+        rows: Sequence[FlextDbOracleModelsQuery.RowData] = m.Field(
             default_factory=lambda: (),
             description="Typed row data from query result",
         )
@@ -161,11 +161,11 @@ class FlextModelsDbOracleQuery:
         @m.model_validator(mode="after")
         def validate_query_result_consistency(
             self,
-        ) -> FlextModelsDbOracleQuery.QueryResult:
+        ) -> FlextDbOracleModelsQuery.QueryResult:
             """Validate query result consistency.
 
             Returns:
-                The resulting ``FlextModelsDbOracle.DbOracle.QueryResult``.
+                The resulting ``FlextDbOracleModels.DbOracle.QueryResult``.
 
             Raises:
                 ValueError: If Execution time cannot be negative; or if Row length.
@@ -187,4 +187,4 @@ class FlextModelsDbOracleQuery:
             return self
 
 
-__all__: list[str] = ["FlextModelsDbOracleQuery"]
+__all__: list[str] = ["FlextDbOracleModelsQuery"]

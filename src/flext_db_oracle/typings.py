@@ -8,14 +8,14 @@ SPDX-License-Identifier: MIT
 
 # Generated type facade; declarations belong to flext_db_oracle._typings.db_oracle.
 from flext_db_oracle._typings import (
-    FlextDbOracleTypes as _FlextDbOracleTypes,
+    FlextDbOracleTypesDbOracle,
     FlextDbOracleTypingsBase,
 )
 
 
 class FlextDbOracleTypes(
-    _FlextDbOracleTypes,
     FlextDbOracleTypingsBase,
+    FlextDbOracleTypesDbOracle,
 ):
     """Public type facade inheriting its complete canonical owner."""
 

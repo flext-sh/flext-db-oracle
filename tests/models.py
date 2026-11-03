@@ -8,10 +8,10 @@ from __future__ import annotations
 
 from flext_tests import FlextTestsModels
 
-from flext_db_oracle import FlextModelsDbOracle
+from flext_db_oracle import FlextDbOracleModels
 
 
-class TestsFlextDbOracleModels(FlextTestsModels, FlextModelsDbOracle):
+class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
     """Test models for flext-db-oracle."""
 
     class Tests(FlextTestsModels.Tests):

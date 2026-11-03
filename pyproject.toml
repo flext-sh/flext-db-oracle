@@ -546,20 +546,9 @@ quote-style = "double"
 skip-magic-trailing-comma = false
 
 [tool.ruff.lint]
-extend-safe-fixes = [
-  "relative-imports",
-  "typing-only-first-party-import",
-  "camelcase-imported-as-lowercase",
-]
+extend-safe-fixes = ["relative-imports", "camelcase-imported-as-lowercase"]
 extend-select = ["missing-blank-line-after-last-section"]
-ignore = [
-  "missing-trailing-comma",
-  "non-empty-init-module",
-  "runtime-import-in-type-checking-block",
-  "typing-only-first-party-import",
-  "typing-only-standard-library-import",
-  "typing-only-third-party-import",
-]
+ignore = ["TC", "missing-trailing-comma", "non-empty-init-module"]
 select = ["ALL"]
 unfixable = [
   "multi-value-repeated-key-literal",
@@ -591,45 +580,11 @@ msg = "Use cli.render_table from flext_cli."
 [tool.ruff.lint.flake8-tidy-imports.banned-api.typer]
 msg = "Use cli.create_app_with_common_params / cli.register_command from flext_cli."
 
-[tool.ruff.lint.flake8-type-checking]
-runtime-evaluated-base-classes = [
-  "flext_cli.FlextCliConfig",
-  "flext_cli.FlextCliSettings",
-  "flext_cli.m.ArbitraryTypesModel",
-  "flext_cli.m.BaseModel",
-  "flext_cli.m.Entity",
-  "flext_cli.m.FrozenModel",
-  "flext_cli.m.RootModel",
-  "flext_core.FlextService",
-  "flext_db_oracle.FlextDbOracleServiceBase",
-  "flext_db_oracle.FlextDbOracleSettings",
-  "flext_db_oracle._models.FlextModelsDbOracleBase.CredentialRoot",
-  "flext_db_oracle._models.query_models.DbOracleDomainModel",
-  "flext_db_oracle.s",
-  "flext_db_oracle.services.FlextDbOracleApiRuntime",
-  "flext_db_oracle.services.FlextDbOracleApiRuntimeExecution",
-  "flext_db_oracle.services.FlextDbOracleApiRuntimeIntrospection",
-  "flext_db_oracle.services.FlextDbOracleApiRuntimeLifecycle",
-  "flext_db_oracle.services.FlextDbOracleApiRuntimeState",
-  "flext_db_oracle.services.FlextDbOracleServiceConnection",
-  "flext_db_oracle.services.FlextDbOracleServicePlugin",
-  "flext_db_oracle.services.FlextDbOracleServiceQuery",
-  "flext_db_oracle.services.FlextDbOracleServiceSchema",
-  "flext_db_oracle.services.FlextDbOracleServiceSinger",
-  "flext_db_oracle.services.FlextDbOracleServiceSqlBuilder",
-  "flext_tests.FlextTestsServiceBase",
-  "flext_tests.FlextTestsSettings",
-  "pydantic.BaseModel",
-]
-
 [tool.ruff.lint.isort]
 combine-as-imports = true
 force-single-line = false
 known-first-party = ["flext_db_oracle"]
 split-on-trailing-comma = false
-
-[tool.ruff.lint.pep8-naming]
-ignore-names = ["Ldif"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

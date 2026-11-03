@@ -15,15 +15,15 @@ from flext_cli import m
 
 from flext_db_oracle._models import (
     FlextDbOracleCredentialModel,
-    FlextModelsDbOracleBase,
-    FlextModelsDbOracleCommand,
-    FlextModelsDbOracleConnection,
-    FlextModelsDbOracleQuery,
-    FlextModelsDbOracleSchema,
+    FlextDbOracleModelsBase,
+    FlextDbOracleModelsCommand,
+    FlextDbOracleModelsConnection,
+    FlextDbOracleModelsQuery,
+    FlextDbOracleModelsSchema,
 )
 
 
-class FlextModelsDbOracle(m):
+class FlextDbOracleModels(m):
     """Oracle database models using flext-core exclusively.
 
     Contains ONLY pure domain models (Entity, Value, AggregateRoot, etc.).
@@ -33,15 +33,15 @@ class FlextModelsDbOracle(m):
     """
 
     class DbOracle(
-        FlextModelsDbOracleBase,
-        FlextModelsDbOracleCommand,
-        FlextModelsDbOracleConnection,
+        FlextDbOracleModelsBase,
+        FlextDbOracleModelsCommand,
+        FlextDbOracleModelsConnection,
         FlextDbOracleCredentialModel,
-        FlextModelsDbOracleQuery,
-        FlextModelsDbOracleSchema,
+        FlextDbOracleModelsQuery,
+        FlextDbOracleModelsSchema,
     ):
         """DbOracle domain namespace."""
 
 
-m = FlextModelsDbOracle
-__all__: list[str] = ["FlextModelsDbOracle", "m"]
+m = FlextDbOracleModels
+__all__: list[str] = ["FlextDbOracleModels", "m"]

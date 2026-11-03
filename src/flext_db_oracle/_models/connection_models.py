@@ -16,7 +16,7 @@ from flext_core import FlextUtilities
 from flext_db_oracle import c, t
 
 
-class FlextModelsDbOracleConnection:
+class FlextDbOracleModelsConnection:
     """Oracle Database connection models composed into ``m.DbOracle``."""
 
     class ConnectionStatus(m.Entity):
@@ -195,11 +195,11 @@ class FlextModelsDbOracleConnection:
         @m.model_validator(mode="after")
         def validate_connection_status_consistency(
             self,
-        ) -> FlextModelsDbOracleConnection.ConnectionStatus:
+        ) -> FlextDbOracleModelsConnection.ConnectionStatus:
             """Validate connection status consistency.
 
             Returns:
-                The resulting ``FlextModelsDbOracle.DbOracle.ConnectionStatus``.
+                The resulting ``FlextDbOracleModels.DbOracle.ConnectionStatus``.
 
             Raises:
                 ValueError: If Connected status requires host information; or if
@@ -302,4 +302,4 @@ class FlextModelsDbOracleConnection:
             return key in self.model_dump()
 
 
-__all__: list[str] = ["FlextModelsDbOracleConnection"]
+__all__: list[str] = ["FlextDbOracleModelsConnection"]

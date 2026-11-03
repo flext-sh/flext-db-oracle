@@ -57,7 +57,7 @@ required validation.
   classes listed under Module Map above.
 - Public extensions exposed by this project: `FlextDbOracleApi`, `FlextDbOracleClient`,
   `FlextDbOracleConfig`, `FlextDbOracleConstants`, `FlextDbOracleDispatcher`,
-  `FlextDbOracleExceptions` (+6 more).
+  `FlextDbOracleExceptions` (+8 more).
 - Library abstraction boundaries: see the project `AGENTS.md` and the referenced parent
   architecture rules.
 

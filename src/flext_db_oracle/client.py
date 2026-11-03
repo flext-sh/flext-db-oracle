@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime
-from typing import override
+from typing import Annotated, override
 
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
@@ -37,7 +37,7 @@ class FlextDbOracleClient(s):
         description="Active Oracle API connection instance",
         validate_default=True,
     )
-    user_preferences: p.ConfigMap = m.Field(
+    user_preferences: Annotated[p.ConfigMap, t.schema_for_model(m.ConfigMap)] = m.Field(
         default_factory=lambda: m.ConfigMap(
             root={
                 "default_output_format": "table",

@@ -35,11 +35,11 @@ if TYPE_CHECKING:
     from flext_db_oracle.base import FlextDbOracleServiceBase, s
     from flext_db_oracle.cli import main
     from flext_db_oracle.client import FlextDbOracleClient
-    from flext_db_oracle.config_models import FlextModelsDbOracleConfig
+    from flext_db_oracle.config_models import FlextDbOracleModelsConfig
     from flext_db_oracle.constants import FlextDbOracleConstants, c
     from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
     from flext_db_oracle.exceptions import FlextDbOracleExceptions, e
-    from flext_db_oracle.models import FlextModelsDbOracle, m
+    from flext_db_oracle.models import FlextDbOracleModels, m
     from flext_db_oracle.protocols import FlextDbOracleProtocols, p
     from flext_db_oracle.typings import FlextDbOracleTypes, t
     from flext_db_oracle.utilities import FlextDbOracleUtilities, u
@@ -53,14 +53,14 @@ __all__: tuple[str, ...] = (
     "FlextDbOracleConstants",
     "FlextDbOracleDispatcher",
     "FlextDbOracleExceptions",
+    "FlextDbOracleModels",
+    "FlextDbOracleModelsConfig",
     "FlextDbOracleProtocols",
     "FlextDbOracleServiceBase",
     "FlextDbOracleSettings",
     "FlextDbOracleTypes",
     "FlextDbOracleUtilities",
     "FlextDbOracleVersion",
-    "FlextModelsDbOracle",
-    "FlextModelsDbOracleConfig",
     "__author__",
     "__author_email__",
     "__description__",
@@ -97,14 +97,14 @@ install_lazy_exports(
         "FlextDbOracleConstants": ".constants",
         "FlextDbOracleDispatcher": ".dispatcher",
         "FlextDbOracleExceptions": ".exceptions",
+        "FlextDbOracleModels": ".models",
+        "FlextDbOracleModelsConfig": ".config_models",
         "FlextDbOracleProtocols": ".protocols",
         "FlextDbOracleServiceBase": ".base",
         "FlextDbOracleSettings": "._settings",
         "FlextDbOracleTypes": ".typings",
         "FlextDbOracleUtilities": ".utilities",
         "FlextDbOracleVersion": ".__version__",
-        "FlextModelsDbOracle": ".models",
-        "FlextModelsDbOracleConfig": ".config_models",
         "__author__": ".__version__",
         "__author_email__": ".__version__",
         "__description__": ".__version__",

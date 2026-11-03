@@ -13,18 +13,14 @@ from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_db_oracle._typings.base import FlextDbOracleTypingsBase
-    from flext_db_oracle._typings.db_oracle import FlextDbOracleTypes, t
+    from flext_db_oracle._typings.db_oracle import FlextDbOracleTypesDbOracle
 
 
-__all__: tuple[str, ...] = ("FlextDbOracleTypes", "FlextDbOracleTypingsBase", "t")
+__all__: tuple[str, ...] = ("FlextDbOracleTypesDbOracle", "FlextDbOracleTypingsBase")
 
 install_lazy_exports(
     __name__,
     globals(),
-    {
-        "FlextDbOracleTypes": ".db_oracle",
-        "FlextDbOracleTypingsBase": ".base",
-        "t": ".db_oracle",
-    },
+    {"FlextDbOracleTypesDbOracle": ".db_oracle", "FlextDbOracleTypingsBase": ".base"},
     public_exports=__all__,
 )

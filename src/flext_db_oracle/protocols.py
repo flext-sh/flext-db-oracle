@@ -11,8 +11,13 @@ from flext_cli import p
 
 from flext_db_oracle._protocols import (
     FlextDbOracleProtocolsBase,
+    FlextDbOracleProtocolsCommandModels,
     FlextDbOracleProtocolsConnection,
+    FlextDbOracleProtocolsConnectionModels,
+    FlextDbOracleProtocolsCredential,
     FlextDbOracleProtocolsQuery,
+    FlextDbOracleProtocolsQueryModels,
+    FlextDbOracleProtocolsSchemaModels,
 )
 
 
@@ -39,9 +44,14 @@ class FlextDbOracleProtocols(p):
     """
 
     class DbOracle(
-        FlextDbOracleProtocolsConnection,
-        FlextDbOracleProtocolsQuery,
         FlextDbOracleProtocolsBase,
+        FlextDbOracleProtocolsCommandModels,
+        FlextDbOracleProtocolsConnectionModels,
+        FlextDbOracleProtocolsConnection,
+        FlextDbOracleProtocolsCredential,
+        FlextDbOracleProtocolsQueryModels,
+        FlextDbOracleProtocolsQuery,
+        FlextDbOracleProtocolsSchemaModels,
     ):
         """Oracle database domain-specific protocols."""
 
