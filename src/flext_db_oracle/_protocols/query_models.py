@@ -13,10 +13,10 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_cli import FlextCliProtocols
 
-from flext_db_oracle import t
-
 if TYPE_CHECKING:
     from flext_cli import p
+
+    from flext_db_oracle import t
 
 
 class FlextDbOracleProtocolsQueryModels:
@@ -27,13 +27,13 @@ class FlextDbOracleProtocolsQueryModels:
         """Structural data contract projected from the owning model."""
 
     @runtime_checkable
-    class RowData(FlextCliProtocols.Model, Protocol):
+    class RowData(DbOracleDomainModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         values: t.JsonList
 
     @runtime_checkable
-    class ColumnMetadata(FlextCliProtocols.Model, Protocol):
+    class ColumnMetadata(DbOracleDomainModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         name: str

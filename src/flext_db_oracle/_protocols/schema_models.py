@@ -13,11 +13,10 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_cli import FlextCliProtocols
 
-from flext_db_oracle import t
-
 if TYPE_CHECKING:
     from flext_cli import p
 
+    from flext_db_oracle import t
     from flext_db_oracle._protocols import FlextDbOracleProtocolsQueryModels
 
 
