@@ -25,7 +25,7 @@ class FlextDbOracleProtocolsConnectionModels:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class ConnectionStatus(FlextCliProtocols.Model, Protocol):
+    class ConnectionStatus(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -71,7 +71,7 @@ class FlextDbOracleProtocolsConnectionModels:
             ...
 
     @runtime_checkable
-    class EngineOptions(FlextCliProtocols.Model, Protocol):
+    class EngineOptions(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -105,7 +105,7 @@ class FlextDbOracleProtocolsConnectionModels:
             ...
 
     @runtime_checkable
-    class OperationRecord(FlextCliProtocols.Model, Protocol):
+    class OperationRecord(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -120,7 +120,7 @@ class FlextDbOracleProtocolsConnectionModels:
         timestamp: str
 
     @runtime_checkable
-    class HealthStatus(FlextCliProtocols.Model, Protocol):
+    class HealthStatus(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

@@ -11,7 +11,7 @@ from collections.abc import Mapping
 import pytest
 
 from flext_db_oracle import FlextDbOracleSettings
-from tests import c, m, p, tm, u
+from tests import c, m, tm, u
 
 
 @pytest.mark.unit
@@ -204,7 +204,7 @@ class TestsFlextDbOracleModels:
         result = m.DbOracle.QueryResult(
             query="SELECT 1",
             columns=["col1"],
-            rows=[p.DbOracle.RowData(values=[1])],
+            rows=[m.DbOracle.RowData(values=[1])],
             execution_time_ms=c.DbOracle.QUERY_ACCEPTABLE_THRESHOLD_MS,
         )
         tm.ok(result.has_results)
@@ -217,7 +217,7 @@ class TestsFlextDbOracleModels:
             m.DbOracle.QueryResult(
                 query="SELECT 1",
                 columns=["id", "name"],
-                rows=[p.DbOracle.RowData(values=[1])],
+                rows=[m.DbOracle.RowData(values=[1])],
             )
 
     @staticmethod
@@ -232,7 +232,7 @@ class TestsFlextDbOracleModels:
         result = m.DbOracle.QueryResult(
             query="SELECT 1",
             columns=["id"],
-            rows=[p.DbOracle.RowData(values=[1]), m.DbOracle.RowData(values=[2])],
+            rows=[m.DbOracle.RowData(values=[1]), m.DbOracle.RowData(values=[2])],
             execution_time_ms=100,
         )
         validated = m.DbOracle.QueryResult.model_validate(result.model_dump())

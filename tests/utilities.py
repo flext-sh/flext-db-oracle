@@ -10,10 +10,10 @@ import os
 import time
 from collections.abc import Mapping
 
-from flext_tests import FlextTestsDocker, FlextTestsModels, FlextTestsUtilities
+from flext_tests import FlextTestsDocker, FlextTestsUtilities
 
 from flext_db_oracle import FlextDbOracleUtilities
-from tests import c, t
+from tests import c, p, t
 
 
 class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
@@ -43,7 +43,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
         @classmethod
         def _oracle_host_ports(
             cls,
-            status_value: FlextTestsModels.Tests.ContainerInfo,
+            status_value: p.Tests.ContainerInfo,
         ) -> Mapping[str, str]:
             """Normalize the port bindings carried by a container status value.
 

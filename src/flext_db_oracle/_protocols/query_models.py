@@ -23,7 +23,7 @@ class FlextDbOracleProtocolsQueryModels:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class DbOracleDomainModel(FlextCliProtocols.Model, Protocol):
+    class DbOracleDomainModel(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
     @runtime_checkable
@@ -41,7 +41,7 @@ class FlextDbOracleProtocolsQueryModels:
         nullable: bool
 
     @runtime_checkable
-    class QueryResult(FlextCliProtocols.Model, Protocol):
+    class QueryResult(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

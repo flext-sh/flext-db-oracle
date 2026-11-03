@@ -23,7 +23,7 @@ class FlextDbOracleProtocolsCommandModels:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class ConnectCommand(FlextCliProtocols.Model, Protocol):
+    class ConnectCommand(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -32,7 +32,7 @@ class FlextDbOracleProtocolsCommandModels:
             ...
 
     @runtime_checkable
-    class DisconnectCommand(FlextCliProtocols.Model, Protocol):
+    class DisconnectCommand(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -41,7 +41,7 @@ class FlextDbOracleProtocolsCommandModels:
             ...
 
     @runtime_checkable
-    class TestConnectionCommand(FlextCliProtocols.Model, Protocol):
+    class TestConnectionCommand(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -50,19 +50,7 @@ class FlextDbOracleProtocolsCommandModels:
             ...
 
     @runtime_checkable
-    class ExecuteQueryCommand(FlextCliProtocols.Model, Protocol):
-        """Structural data contract projected from the owning model."""
-
-        @property
-        def domain_events(self) -> Sequence[p.DomainEvent]:
-            """List of uncommitted domain events for event sourcing."""
-            ...
-
-        sql: str
-        parameters: t.JsonMapping | None
-
-    @runtime_checkable
-    class FetchOneCommand(FlextCliProtocols.Model, Protocol):
+    class ExecuteQueryCommand(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -74,7 +62,7 @@ class FlextDbOracleProtocolsCommandModels:
         parameters: t.JsonMapping | None
 
     @runtime_checkable
-    class ExecuteStatementCommand(FlextCliProtocols.Model, Protocol):
+    class FetchOneCommand(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -86,7 +74,19 @@ class FlextDbOracleProtocolsCommandModels:
         parameters: t.JsonMapping | None
 
     @runtime_checkable
-    class ExecuteManyCommand(FlextCliProtocols.Model, Protocol):
+    class ExecuteStatementCommand(FlextCliProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def domain_events(self) -> Sequence[p.DomainEvent]:
+            """List of uncommitted domain events for event sourcing."""
+            ...
+
+        sql: str
+        parameters: t.JsonMapping | None
+
+    @runtime_checkable
+    class ExecuteManyCommand(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -98,7 +98,7 @@ class FlextDbOracleProtocolsCommandModels:
         parameters_list: Sequence[t.JsonMapping]
 
     @runtime_checkable
-    class GetSchemasCommand(FlextCliProtocols.Model, Protocol):
+    class GetSchemasCommand(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -107,7 +107,7 @@ class FlextDbOracleProtocolsCommandModels:
             ...
 
     @runtime_checkable
-    class GetTablesCommand(FlextCliProtocols.Model, Protocol):
+    class GetTablesCommand(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -118,7 +118,7 @@ class FlextDbOracleProtocolsCommandModels:
         schema_name: str | None
 
     @runtime_checkable
-    class GetColumnsCommand(FlextCliProtocols.Model, Protocol):
+    class GetColumnsCommand(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

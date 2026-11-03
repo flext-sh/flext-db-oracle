@@ -48,7 +48,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     def execute_many(
         self,
         sql: str,
-        params_list: Sequence[t.JsonMapping | m.ConfigMap],
+        params_list: Sequence[t.JsonMapping | p.ConfigMap],
     ) -> p.Result[int]:
         """Execute SQL statement multiple times (native driver executemany).
 

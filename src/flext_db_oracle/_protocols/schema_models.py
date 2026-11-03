@@ -24,7 +24,7 @@ class FlextDbOracleProtocolsSchemaModels:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class TableMetadata(FlextCliProtocols.Model, Protocol):
+    class TableMetadata(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -51,7 +51,7 @@ class FlextDbOracleProtocolsSchemaModels:
             ...
 
     @runtime_checkable
-    class TypeMapping(FlextCliProtocols.Model, Protocol):
+    class TypeMapping(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -74,7 +74,7 @@ class FlextDbOracleProtocolsSchemaModels:
             ...
 
     @runtime_checkable
-    class SingerField(FlextCliProtocols.Model, Protocol):
+    class SingerField(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -85,7 +85,7 @@ class FlextDbOracleProtocolsSchemaModels:
         type: str | Sequence[str]
 
     @runtime_checkable
-    class SingerSchema(FlextCliProtocols.Model, Protocol):
+    class SingerSchema(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -101,7 +101,7 @@ class FlextDbOracleProtocolsSchemaModels:
             ...
 
     @runtime_checkable
-    class Table(FlextCliProtocols.Model, Protocol):
+    class Table(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -118,7 +118,7 @@ class FlextDbOracleProtocolsSchemaModels:
             ...
 
     @runtime_checkable
-    class Column(FlextCliProtocols.Model, Protocol):
+    class Column(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -141,7 +141,7 @@ class FlextDbOracleProtocolsSchemaModels:
             ...
 
     @runtime_checkable
-    class Schema(FlextCliProtocols.Model, Protocol):
+    class Schema(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -157,7 +157,7 @@ class FlextDbOracleProtocolsSchemaModels:
             ...
 
     @runtime_checkable
-    class CreateIndexConfig(FlextCliProtocols.Model, Protocol):
+    class CreateIndexConfig(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

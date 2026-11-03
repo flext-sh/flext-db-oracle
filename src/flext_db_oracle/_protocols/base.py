@@ -15,7 +15,7 @@ class FlextDbOracleProtocolsBase:
     """Base protocols for flext-db-oracle."""
 
     @runtime_checkable
-    class CredentialRoot(FlextCliProtocols.Model, Protocol):
+    class CredentialRoot(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         root: str
