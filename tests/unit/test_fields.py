@@ -7,10 +7,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
-
 from flext_db_oracle import FlextDbOracleSettings
-from tests import c, m, tm
+from tests import c, m, tm, u
 
 
 class TestsFlextDbOracleFields:
@@ -83,7 +81,7 @@ class TestsFlextDbOracleFields:
     @staticmethod
     def test_query_result_rejects_row_column_mismatch() -> None:
         """A row whose width differs from the column count is rejected."""
-        with pytest.raises(ValueError, match="match column count"):
+        with u.Tests.raises(ValueError, match="match column count"):
             m.DbOracle.QueryResult(
                 query="SELECT a FROM t",
                 columns=("a",),

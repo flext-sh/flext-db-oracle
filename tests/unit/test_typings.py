@@ -11,12 +11,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import flext_cli
 import oracledb
-import pytest
 
 from flext_db_oracle import FlextDbOracleTypes, typings
-from tests import t, tm
+from tests import c, t, tm
 
 
 class TestsFlextDbOracleTypings:
@@ -38,7 +36,7 @@ class TestsFlextDbOracleTypings:
 
         Inherited members stay reachable.
         """
-        tm.that(FlextDbOracleTypes.__mro__, has=flext_cli.t)
+        tm.that(FlextDbOracleTypes.__mro__, has=t)
         tm.ok(hasattr(FlextDbOracleTypes, "Scalar"))
 
     @staticmethod
@@ -47,7 +45,7 @@ class TestsFlextDbOracleTypings:
         tm.that(FlextDbOracleTypes.DbOracle, none=False)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("attribute", "expected"),
         [
             ("OracleDatabaseError", oracledb.DatabaseError),

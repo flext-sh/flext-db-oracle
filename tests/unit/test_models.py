@@ -8,13 +8,11 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-import pytest
-
 from flext_db_oracle import FlextDbOracleSettings
 from tests import c, m, tm, u
 
 
-@pytest.mark.unit
+@c.Tests.MARK.unit
 class TestsFlextDbOracleModels:
     """Assert observable public behavior of the Oracle domain models and settings."""
 
@@ -46,7 +44,7 @@ class TestsFlextDbOracleModels:
         tm.that(status.connection_info, eq="Not connected")
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("connection_time", "rating"),
         [
             (c.DbOracle.CONNECTION_EXCELLENT_THRESHOLD_SECONDS / 2, "Excellent"),
@@ -85,7 +83,7 @@ class TestsFlextDbOracleModels:
     @staticmethod
     def test_connected_without_host_is_rejected() -> None:
         """Consistency validator rejects a connected status without a host."""
-        with pytest.raises(
+        with u.Tests.raises(
             ValueError,
             match="Connected status requires host information",
         ):
@@ -94,7 +92,7 @@ class TestsFlextDbOracleModels:
     @staticmethod
     def test_out_of_range_port_is_rejected() -> None:
         """Port outside the valid range is rejected at construction."""
-        with pytest.raises(ValueError, match="less than or equal to"):
+        with u.Tests.raises(ValueError, match="less than or equal to"):
             m.DbOracle.ConnectionStatus(connected=True, host="localhost", port=99999)
 
     @staticmethod
@@ -163,7 +161,7 @@ class TestsFlextDbOracleModels:
         tm.that(abs(result.memory_usage_mb - expected_size / (1024 * 1024)), lt=1e-12)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("execution_time_ms", "rating"),
         [
             (c.DbOracle.QUERY_EXCELLENT_THRESHOLD_MS // 2, "Excellent"),
@@ -213,7 +211,9 @@ class TestsFlextDbOracleModels:
     @staticmethod
     def test_row_length_mismatch_is_rejected() -> None:
         """Rows whose width differs from the column count are rejected."""
-        with pytest.raises(ValueError, match=r"Row length.*doesn't match column count"):
+        with u.Tests.raises(
+            ValueError, match=r"Row length.*doesn't match column count"
+        ):
             m.DbOracle.QueryResult(
                 query="SELECT 1",
                 columns=["id", "name"],
@@ -223,7 +223,7 @@ class TestsFlextDbOracleModels:
     @staticmethod
     def test_negative_execution_time_is_rejected() -> None:
         """A negative execution time is rejected at construction."""
-        with pytest.raises(ValueError, match="greater than or equal to"):
+        with u.Tests.raises(ValueError, match="greater than or equal to"):
             m.DbOracle.QueryResult(query="SELECT 1", execution_time_ms=-100)
 
     @staticmethod
@@ -240,7 +240,7 @@ class TestsFlextDbOracleModels:
         tm.that(validated.columns, eq=["id"])
 
 
-@pytest.mark.unit
+@c.Tests.MARK.unit
 class TestsFlextDbOracleSchemaModels:
     """Schema, table, column, and index declaration contracts."""
 
@@ -340,13 +340,13 @@ class TestsFlextDbOracleSchemaModels:
             "table_name": "users",
             "index_name": "idx_users_email",
         }
-        with pytest.raises(ValueError, match="columns"):
+        with u.Tests.raises(ValueError, match="columns"):
             m.DbOracle.CreateIndexConfig.model_validate(payload)
 
     @staticmethod
     def test_positive_index_parallel_degree_is_enforced() -> None:
         """A non-positive parallel degree is rejected."""
-        with pytest.raises(ValueError, match="greater than"):
+        with u.Tests.raises(ValueError, match="greater than"):
             m.DbOracle.CreateIndexConfig(
                 table_name="users",
                 index_name="idx_users",
@@ -355,7 +355,7 @@ class TestsFlextDbOracleSchemaModels:
             )
 
 
-@pytest.mark.unit
+@c.Tests.MARK.unit
 class TestsFlextDbOracleModelSettings:
     """Settings validation, environment, serialization, and isolation."""
 

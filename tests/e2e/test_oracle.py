@@ -14,19 +14,17 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-import pytest
-
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import c, p, t, tm, u
 
 _NOT_CONNECTED = "not connected to database"
 
 
-@pytest.mark.docker
+@c.Tests.MARK.docker
 class TestsFlextDbOracleOracle:
     """Behavioral end-to-end tests for the Oracle API public contract."""
 
-    @pytest.fixture
+    @u.Tests.fixture
     def offline_settings() -> FlextDbOracleSettings:
         """Return settings for an unreachable host in offline contract tests."""
         return FlextDbOracleSettings.model_validate({
@@ -39,7 +37,7 @@ class TestsFlextDbOracleOracle:
             },
         })
 
-    @pytest.fixture
+    @u.Tests.fixture
     @staticmethod
     def offline_api(offline_settings: FlextDbOracleSettings) -> FlextDbOracleApi:
         """Unconnected API instance for pure-logic and error-path behavior.
@@ -104,7 +102,7 @@ class TestsFlextDbOracleOracle:
         tm.that(status["transaction_available"], eq=True)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("singer_type", "expected_oracle_type"),
         list(c.Tests.SINGER_TYPE_MAP_TEST_CASES.items()),
     )
@@ -163,7 +161,7 @@ class TestsFlextDbOracleOracle:
                 self._row_mapping(result2.value[0]),
             )
 
-    @pytest.mark.e2e
+    @c.Tests.MARK.e2e
     def test_complete_crud_workflow_returns_expected_results(
         self,
         real_oracle_config: FlextDbOracleSettings,
@@ -228,7 +226,7 @@ class TestsFlextDbOracleOracle:
             finally:
                 api.execute_sql(f"DROP TABLE {table}")
 
-    @pytest.mark.e2e
+    @c.Tests.MARK.e2e
     def test_concurrent_apis_return_independent_query_results(
         self,
         real_oracle_config: FlextDbOracleSettings,
@@ -241,8 +239,8 @@ class TestsFlextDbOracleOracle:
         tm.that(row2["SOURCE"], eq="API2")
 
     @staticmethod
-    @pytest.mark.e2e
-    @pytest.mark.benchmark
+    @c.Tests.MARK.e2e
+    @c.Tests.MARK.benchmark
     def test_benchmark_query_returns_single_row(
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
