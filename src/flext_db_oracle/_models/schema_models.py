@@ -12,8 +12,8 @@ from typing import cast
 
 from flext_cli import m
 
+from flext_db_oracle import t
 from flext_db_oracle._models import FlextDbOracleModelsQuery
-from flext_db_oracle.typings import t
 
 
 class FlextDbOracleModelsSchema:

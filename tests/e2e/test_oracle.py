@@ -14,8 +14,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-import pytest
-
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import c, p, t, tm, u
 
@@ -104,7 +102,7 @@ class TestsFlextDbOracleOracle:
         tm.that(status["transaction_available"], eq=True)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("singer_type", "expected_oracle_type"),
         list(c.Tests.SINGER_TYPE_MAP_TEST_CASES.items()),
     )
