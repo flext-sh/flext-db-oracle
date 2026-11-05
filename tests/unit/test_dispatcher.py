@@ -12,6 +12,7 @@ from tests import (
     FlextDbOracleSettings,
     c,
     m,
+    p,
     tm,
     u,
 )
@@ -89,7 +90,7 @@ class TestsFlextDbOracleDispatcher:
         ],
     )
     def test_sql_command_parameters_default_to_none(
-        command_type: type[m.DbOracle.ExecuteQueryCommand],
+        command_type: type[p.DbOracle.ExecuteQueryCommand],
     ) -> None:
         """SQL commands omit parameters as None when none are supplied."""
         cmd = command_type(sql="SELECT 1 FROM DUAL")
@@ -107,7 +108,7 @@ class TestsFlextDbOracleDispatcher:
         ],
     )
     def test_sql_command_requires_sql(
-        command_type: type[m.DbOracle.ExecuteQueryCommand],
+        command_type: type[p.DbOracle.ExecuteQueryCommand],
     ) -> None:
         """SQL is a mandatory field; construction without it fails validation."""
         # flext-1wjg1.16: model_validate({}) (its `obj` parameter is
