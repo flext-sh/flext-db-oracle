@@ -10,7 +10,7 @@ import os
 import time
 from collections.abc import Mapping
 
-from flext_tests import FlextTestsUtilities, td
+from flext_tests import FlextTestsDocker, FlextTestsUtilities
 
 from flext_db_oracle import FlextDbOracleUtilities
 from tests import c, p, t
@@ -104,7 +104,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
         @classmethod
         def resolve_oracle_test_port(
             cls,
-            docker_control: td,
+            docker_control: FlextTestsDocker,
             container_name: str,
         ) -> int:
             """Resolve the exposed Oracle test port from Docker state.
