@@ -14,6 +14,8 @@ from __future__ import annotations
 import contextlib
 from collections.abc import Sequence
 
+import pytest
+
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from flext_db_oracle.services import FlextDbOracleServices
 from tests import c, p, t, tm, u
@@ -212,7 +214,7 @@ class TestsFlextDbOracleOracleExample:
         tm.ok(len(result.value) > 0)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("singer_type", "format_hint", "expected_fragment"),
         [
             ("string", None, "VARCHAR2(4000)"),

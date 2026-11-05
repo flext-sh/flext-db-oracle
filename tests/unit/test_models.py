@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+import pytest
+
 from flext_db_oracle import FlextDbOracleSettings
 from tests import c, m, tm, u
 
@@ -44,7 +46,7 @@ class TestsFlextDbOracleModels:
         tm.that(status.connection_info, eq="Not connected")
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("connection_time", "rating"),
         [
             (c.DbOracle.CONNECTION_EXCELLENT_THRESHOLD_SECONDS / 2, "Excellent"),
@@ -161,7 +163,7 @@ class TestsFlextDbOracleModels:
         tm.that(abs(result.memory_usage_mb - expected_size / (1024 * 1024)), lt=1e-12)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("execution_time_ms", "rating"),
         [
             (c.DbOracle.QUERY_EXCELLENT_THRESHOLD_MS // 2, "Excellent"),

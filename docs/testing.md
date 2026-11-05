@@ -221,7 +221,7 @@ from flext_tests import tm
 from flext_db_oracle import FlextDbOracleApi
 
 
-@pytest.mark.parametrize("bad_url", ["invalid://not-oracle", "://x", "oracle://"])
+@c.Tests.MARK.parametrize("bad_url", ["invalid://not-oracle", "://x", "oracle://"])
 def test_from_url_rejects_malformed_urls(bad_url: str) -> None:
     """from_url yields a failure carrying an explanatory error for bad input."""
     result = FlextDbOracleApi.from_url(bad_url)

@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
 
+import pytest
+
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from flext_db_oracle.services import FlextDbOracleServices
 from tests import c, p, t, tm, u
@@ -124,7 +126,7 @@ class TestsFlextDbOracleApi:
         tm.that(api.settings.DbOracle.username, eq=c.ContextScope.USER)
 
     @staticmethod
-    @c.Tests.MARK.parametrize("bad_url", ["invalid://not-oracle", "://x", "oracle://"])
+    @pytest.mark.parametrize("bad_url", ["invalid://not-oracle", "://x", "oracle://"])
     def test_from_url_rejects_malformed_urls(bad_url: str) -> None:
         """from_url yields a failure carrying an explanatory error for bad input."""
         result = FlextDbOracleApi.from_url(bad_url)
@@ -182,7 +184,7 @@ class TestsFlextDbOracleApi:
         tm.that(repr(api), eq="FlextDbOracleApi(host=127.0.0.1, status=disconnected)")
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         c.ContextScope.OPERATION,
         [
             c.HandlerMode.QUERY,
@@ -253,7 +255,7 @@ class TestsFlextDbOracleApi:
         tm.fail(api.connected())
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("raw", "expected"),
         [
             ("  SELECT   *   FROM   test  ", "SELECT * FROM test"),
@@ -285,7 +287,7 @@ class TestsFlextDbOracleApi:
             tm.that(result.value, none=False)
 
         @staticmethod
-        @c.Tests.MARK.parametrize(
+        @pytest.mark.parametrize(
             "singer_type",
             ["string", "integer", "number", "boolean", "date-time"],
         )
@@ -379,7 +381,7 @@ class TestsFlextDbOracleApi:
             tm.that(listed_b.value, empty=True)
 
         @staticmethod
-        @c.Tests.MARK.parametrize(
+        @pytest.mark.parametrize(
             ("table_name", "columns"),
             [
                 ("valid_table", ["col1"]),

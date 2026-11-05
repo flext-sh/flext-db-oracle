@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
+import pytest
+
 from flext_db_oracle import FlextDbOracleSettings
 from tests import c, t, tm, u
 
@@ -170,7 +172,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         )
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("raw", "expected"),
         [("", ""), ("   \n\t  ", "")],
         ids=["empty", "whitespace-only"],
@@ -187,7 +189,7 @@ class TestsFlextDbOracleUtilitiesUnit:
     # ------------------------------------------------------------------ #
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("identifier", "expected"),
         [("users", "users"), ("userTable", "userTable"), ("user_table", "user_table")],
     )
@@ -199,7 +201,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         tm.that(tm.ok(u.DbOracle.escape_oracle_identifier(identifier)), eq=expected)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("identifier", "error_substring"),
         [
             ("user's", "Invalid Oracle identifier"),
@@ -242,7 +244,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         tm.ok(tm.ok(u.DbOracle.validate_identifier("VALID_TABLE")))
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("identifier", "error_substring"),
         [
             ("", "Empty"),
@@ -262,7 +264,7 @@ class TestsFlextDbOracleUtilitiesUnit:
     # format_query_result                                                #
     # ------------------------------------------------------------------ #
 
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "data",
         [
             [{"id": 1, "name": "John", "active": True}],

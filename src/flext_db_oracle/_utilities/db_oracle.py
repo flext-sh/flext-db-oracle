@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING, ClassVar
 
 import oracledb
 from flext_cli import u
-from flext_core import FlextTypingNativeExport
 from sqlalchemy import (
     Connection as SAConnection,
     Engine as SAEngine,
@@ -63,9 +62,9 @@ class FlextDbOracleUtilitiesDbOracle:
     # Statement builders published natively (every overload kept):
     # `u.DbOracle.select(*columns)`, `u.DbOracle.func.count()` and
     # `u.DbOracle.aliased(Model)`.
-    select = FlextTypingNativeExport(_sqlalchemy_select)
-    func = FlextTypingNativeExport(_sqlalchemy_func)
-    aliased = FlextTypingNativeExport(_sqlalchemy_aliased)
+    select = staticmethod(_sqlalchemy_select)
+    func = _sqlalchemy_func
+    aliased = staticmethod(_sqlalchemy_aliased)
 
     @staticmethod
     def text(statement: str) -> TextClause:

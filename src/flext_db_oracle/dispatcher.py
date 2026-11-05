@@ -11,7 +11,10 @@ from typing import TYPE_CHECKING, ClassVar, override
 
 from flext_core import FlextContainer, FlextService
 
-from flext_db_oracle import m, p, r, t
+from flext_db_oracle.models import m
+from flext_db_oracle.protocols import p
+from flext_db_oracle.result import r
+from flext_db_oracle.typings import t
 
 if TYPE_CHECKING:
     from flext_db_oracle.services import FlextDbOracleServices

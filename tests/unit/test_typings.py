@@ -12,9 +12,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import oracledb
+import pytest
 
 from flext_db_oracle import FlextDbOracleTypes, typings
-from tests import c, t, tm
+from tests import t, tm
 
 
 class TestsFlextDbOracleTypings:
@@ -45,7 +46,7 @@ class TestsFlextDbOracleTypings:
         tm.that(FlextDbOracleTypes.DbOracle, none=False)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("attribute", "expected"),
         [
             ("OracleDatabaseError", oracledb.DatabaseError),

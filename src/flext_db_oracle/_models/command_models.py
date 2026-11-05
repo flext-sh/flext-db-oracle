@@ -10,7 +10,7 @@ from collections.abc import Sequence
 
 from flext_cli import m
 
-from flext_db_oracle import t
+from flext_db_oracle.typings import t
 
 
 class FlextDbOracleModelsCommand:

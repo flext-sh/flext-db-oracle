@@ -11,7 +11,8 @@ from typing import ClassVar
 
 from flext_cli import m
 
-from flext_db_oracle import c, t
+from flext_db_oracle.constants import c
+from flext_db_oracle.typings import t
 
 
 class FlextDbOracleModelsQuery:

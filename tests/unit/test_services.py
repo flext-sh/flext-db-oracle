@@ -13,6 +13,8 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
+import pytest
+
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from flext_db_oracle.services import FlextDbOracleServices
 from tests import c, m, t, tm, u
@@ -276,7 +278,7 @@ class TestsFlextDbOracleServicesSinger:
     """Singer schema and type conversion contracts."""
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("singer_type", "oracle_type"),
         list(c.Tests.SINGER_TYPE_MAP_TEST_CASES.items()),
     )
@@ -480,7 +482,7 @@ class TestsFlextDbOracleServicesOfflineData:
         tm.ok("connect" in error_lower or "connection" in error_lower)
 
     @staticmethod
-    @c.Tests.MARK.parametrize("schema", [None, "TEST_SCHEMA", ""])
+    @pytest.mark.parametrize("schema", [None, "TEST_SCHEMA", ""])
     def test_fetch_tables_fails_when_not_connected(
         oracle_unit_services: FlextDbOracleServices,
         schema: str | None,

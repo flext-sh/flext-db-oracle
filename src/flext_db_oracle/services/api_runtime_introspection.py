@@ -8,8 +8,10 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
-from flext_db_oracle import p, r, t
+from flext_db_oracle.protocols import p
+from flext_db_oracle.result import r
 from flext_db_oracle.services import FlextDbOracleApiRuntimeState
+from flext_db_oracle.typings import t
 
 
 class FlextDbOracleApiRuntimeIntrospection(FlextDbOracleApiRuntimeState):

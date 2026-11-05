@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+import pytest
+
 from tests import c, tm, u
 
 
@@ -41,7 +43,7 @@ class TestsFlextDbOracleConftestConstants:
         tm.that(config, is_=Mapping)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("key", "expected"),
         [
             ("service", "oracle-db"),
