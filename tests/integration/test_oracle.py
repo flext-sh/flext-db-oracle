@@ -17,8 +17,7 @@ import threading
 import time
 from collections.abc import Mapping
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import c, m, p, tm, u
+from tests import FlextDbOracleApi, FlextDbOracleSettings, c, m, p, tm, u
 
 
 @u.Tests.fixture

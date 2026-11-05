@@ -10,7 +10,7 @@ import socket
 
 import pytest
 
-from flext_db_oracle import FlextDbOracleClient
+from tests import FlextDbOracleClient
 
 # Prevent unit tests from hanging on network failures.
 socket.setdefaulttimeout(2)

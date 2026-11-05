@@ -14,8 +14,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import c, p, t, tm, u
+from tests import FlextDbOracleApi, FlextDbOracleSettings, c, p, t, tm, u
 
 _NOT_CONNECTED = "not connected to database"
 

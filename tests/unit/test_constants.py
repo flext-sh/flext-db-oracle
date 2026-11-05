@@ -11,8 +11,7 @@ import contextlib
 import time
 from enum import StrEnum
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import c, tm, u
+from tests import FlextDbOracleApi, FlextDbOracleSettings, c, tm, u
 
 
 @c.Tests.MARK.unit

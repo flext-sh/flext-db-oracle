@@ -13,8 +13,7 @@ from __future__ import annotations
 
 import oracledb
 
-from flext_db_oracle import FlextDbOracleTypes, typings
-from tests import c, t, tm
+from tests import FlextDbOracleTypes, c, t, tm, typings
 
 
 class TestsFlextDbOracleTypings:

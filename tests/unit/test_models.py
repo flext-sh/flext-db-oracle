@@ -8,8 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from flext_db_oracle import FlextDbOracleSettings
-from tests import c, m, tm, u
+from tests import FlextDbOracleSettings, c, m, tm, u
 
 
 @c.Tests.MARK.unit

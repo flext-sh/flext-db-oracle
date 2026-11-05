@@ -14,9 +14,16 @@ from __future__ import annotations
 import contextlib
 from collections.abc import Sequence
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from flext_db_oracle.services import FlextDbOracleServices
-from tests import c, p, t, tm, u
+from tests import (
+    FlextDbOracleApi,
+    FlextDbOracleServices,
+    FlextDbOracleSettings,
+    c,
+    p,
+    t,
+    tm,
+    u,
+)
 
 
 class TestsFlextDbOracleOracleExample:

@@ -14,8 +14,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from types import MappingProxyType
 
-from flext_db_oracle import FlextDbOracleClient
-from tests import c, m, tm, u
+from tests import FlextDbOracleClient, c, m, tm, u
 
 
 class TestsFlextDbOracleClient:

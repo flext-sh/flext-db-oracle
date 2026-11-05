@@ -13,8 +13,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from flext_db_oracle.services import FlextDbOracleServices
-from tests import p, tm
+from tests import FlextDbOracleServices, p, tm
 
 
 class TypedRow(BaseModel):
