@@ -6,10 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
-
 from flext_db_oracle import FlextDbOracleExceptions
-from tests import e, tm, u
+from tests import c, e, tm, u
 
 
 class TestsFlextDbOracleExceptions:
@@ -92,7 +90,7 @@ class TestsFlextDbOracleExceptions:
         tm.that(error.elapsed_time, eq=u.Tests.approx(12.5))
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("factory", "base"),
         [
             (FlextDbOracleExceptions.Error, e.BaseError),
@@ -115,7 +113,7 @@ class TestsFlextDbOracleExceptions:
         tm.that(FlextDbOracleExceptions.__mro__, has=e)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "factory",
         [
             FlextDbOracleExceptions.Error,

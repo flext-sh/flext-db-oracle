@@ -6,11 +6,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
-
 from flext_db_oracle import FlextDbOracleDispatcher, FlextDbOracleSettings
 from flext_db_oracle.services import FlextDbOracleServices
-from tests import m, tm, u
+from tests import c, m, tm, u
 
 
 class TestsFlextDbOracleDispatcher:
@@ -76,7 +74,7 @@ class TestsFlextDbOracleDispatcher:
         tm.that(cmd.parameters, eq={"limit": 10})
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "command_type",
         [
             m.DbOracle.ExecuteQueryCommand,
@@ -93,7 +91,7 @@ class TestsFlextDbOracleDispatcher:
         tm.that(cmd.parameters, none=True)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "command_type",
         [
             m.DbOracle.ExecuteQueryCommand,
@@ -131,7 +129,7 @@ class TestsFlextDbOracleDispatcher:
         tm.that(cmd.schema_name, eq="HR")
 
     @staticmethod
-    @pytest.mark.parametrize(("schema_name", "expected"), [("HR", "HR"), (None, None)])
+    @c.Tests.MARK.parametrize(("schema_name", "expected"), [("HR", "HR"), (None, None)])
     def test_get_tables_command_schema_is_optional(
         schema_name: str | None,
         expected: str | None,

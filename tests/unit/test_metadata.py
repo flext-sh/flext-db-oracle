@@ -19,8 +19,6 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, TypeVar
 
-import pytest
-
 from flext_db_oracle import FlextDbOracleSettings
 from flext_db_oracle.services import FlextDbOracleServices
 from tests import c, m, p, tm, u
@@ -144,7 +142,7 @@ class TestsFlextDbOracleMetadata:
         tm.that(value, eq=settings)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("label", "call"),
         [
             ("fetch_schemas", _call_fetch_schemas),
@@ -197,7 +195,7 @@ class TestsFlextDbOracleMetadata:
         tm.that(value, eq=["RECOVERED"])
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("data_type", "nullable"),
         [("NUMBER", False), ("VARCHAR2", True), ("DATE", True)],
     )

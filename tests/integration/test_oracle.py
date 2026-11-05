@@ -17,8 +17,6 @@ import threading
 import time
 from collections.abc import Mapping
 
-import pytest
-
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import c, m, p, tm, u
 
@@ -199,7 +197,7 @@ class TestsFlextDbOracleOracle:
 
         connected_api.disconnect()
 
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "invalid_sql",
         ["INVALID SQL STATEMENT", "SELECT * FROM NONEXISTENT_TABLE_12345"],
     )
