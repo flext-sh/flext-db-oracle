@@ -7,24 +7,34 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Mapping
+import threading
+from collections.abc import Mapping, Sequence
 from enum import StrEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
-from flext_cli import m, p, r, t, u
+import oracledb
+from flext_cli import u
 from sqlalchemy import (
     Connection as SAConnection,
     Engine as SAEngine,
     TextClause,
     create_engine,
+    event,
+    func as _sqlalchemy_func,
+    select as _sqlalchemy_select,
+    text as _sqlalchemy_text,
 )
+from sqlalchemy.exc import DatabaseError as SADatabaseError
+from sqlalchemy.orm import aliased as _sqlalchemy_aliased
 
-from flext_db_oracle import c, settings
+from flext_db_oracle import c, m, p, r, settings, t
+from flext_db_oracle._models import FlextDbOracleModelsConnection
 
 if TYPE_CHECKING:
     import contextlib
 
     from sqlalchemy.engine import CursorResult
+    from sqlalchemy.pool import ConnectionPoolEntry, PoolProxiedConnection
 
 
 class FlextDbOracleUtilitiesDbOracle:
@@ -39,6 +49,35 @@ class FlextDbOracleUtilitiesDbOracle:
         parsed = u.DbOracle.Args.parse_kwargs(kwargs, enum_fields)
 
     """
+
+    # Driver connections currently checked out of any engine built here: the
+    # set a signal handler cancels so a killed process leaves no server call.
+    _CHECKED_OUT: ClassVar[set[oracledb.Connection]] = set()
+    _CHECKED_OUT_LOCK: ClassVar[threading.Lock] = threading.Lock()
+
+    # Driver exception published for consumers: `except u.DbOracle.DatabaseError`
+    # keeps the library import inside the owner facade.
+    DatabaseError: ClassVar[type[Exception]] = SADatabaseError
+
+    # Statement builders published natively (every overload kept):
+    # `u.DbOracle.select(*columns)`, `u.DbOracle.func.count()` and
+    # `u.DbOracle.aliased(Model)`.
+    select = staticmethod(_sqlalchemy_select)
+    func = _sqlalchemy_func
+    aliased = staticmethod(_sqlalchemy_aliased)
+
+    @staticmethod
+    def text(statement: str) -> TextClause:
+        """Build a SQLAlchemy text clause through the database facade.
+
+        SQLAlchemy is owned by flext-db-oracle: consumers construct statement
+        clauses here instead of importing the library.
+
+        Returns:
+            The resulting ``TextClause``.
+
+        """
+        return _sqlalchemy_text(statement)
 
     @staticmethod
     def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type[E]:
@@ -92,7 +131,7 @@ class FlextDbOracleUtilitiesDbOracle:
     @classmethod
     def format_query_result(
         cls,
-        result: t.JsonPayload,
+        result: t.JsonPayload | t.JsonMapping | tuple[t.JsonValue, ...],
         format_type: str = "table",
     ) -> p.Result[str]:
         """Format a query result to string or JSON.
@@ -135,7 +174,7 @@ class FlextDbOracleUtilitiesDbOracle:
         return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
 
     @staticmethod
-    def validate_config_map(value: t.JsonValue | t.JsonMapping) -> m.ConfigMap:
+    def validate_config_map(value: t.JsonValue | t.JsonMapping) -> p.ConfigMap:
         """Validate arbitrary mapping input as ConfigMap.
 
         Returns:
@@ -153,7 +192,7 @@ class FlextDbOracleUtilitiesDbOracle:
         return m.ConfigMap.model_validate({"root": dict(value)})
 
     @staticmethod
-    def normalize_params(params: m.ConfigMap | None) -> m.ConfigMap:
+    def normalize_params(params: p.ConfigMap | None) -> p.ConfigMap:
         """Normalize optional parameters into ConfigMap.
 
         Returns:
@@ -175,7 +214,7 @@ class FlextDbOracleUtilitiesDbOracle:
         return int(value)
 
     @staticmethod
-    def _normalize_singer_type(value: str | t.StrSequence) -> str:
+    def _normalize_singer_type(value: str | Sequence[str]) -> str:
         """Normalize Singer type input to a single string value.
 
         Returns:
@@ -194,26 +233,86 @@ class FlextDbOracleUtilitiesDbOracle:
         return validated[0]
 
     @staticmethod
-    def _sqlalchemy_create_engine(
-        url: str,
-        connect_timeout: int | None = None,
+    def engine(
+        url: str, options: FlextDbOracleModelsConnection.EngineOptions
     ) -> SAEngine:
-        """Create SQLAlchemy engine with optional connection timeout.
+        """Build a SQLAlchemy engine through the database facade.
+
+        SQLAlchemy is owned by flext-db-oracle: consumers construct engines
+        here instead of importing the library. ``options.mode`` maps to the
+        oracledb privilege mode (SYSDBA logins reject a normal connection with
+        ORA-28009); ``options.dsn`` carries a TNS descriptor or alias.
 
         Returns:
             The resulting ``SAEngine``.
 
         """
-        connect_args: t.MutableMappingKV[str, int] = {}
-        if connect_timeout is not None:
-            connect_args["tcp_connect_timeout"] = connect_timeout
-        return create_engine(
+        connect_args: dict[str, str | int] = {}
+        if options.dsn is not None:
+            connect_args["dsn"] = options.dsn
+        if options.connect_timeout is not None:
+            connect_args["tcp_connect_timeout"] = options.connect_timeout
+        if options.mode is not None:
+            connect_args["mode"] = (
+                oracledb.AUTH_MODE_SYSDBA
+                if options.mode == "SYSDBA"
+                else oracledb.AUTH_MODE_SYSOPER
+            )
+        pool: dict[str, int] = {
+            name: value
+            for name, value in (
+                ("pool_size", options.pool_size),
+                ("max_overflow", options.max_overflow),
+            )
+            if value is not None
+        }
+        engine = create_engine(
             url,
             pool_pre_ping=True,
-            pool_recycle=3600,
+            pool_recycle=options.pool_recycle,
             echo=False,
             connect_args=connect_args,
+            **pool,
         )
+        event.listen(engine, "checkout", FlextDbOracleUtilitiesDbOracle._track_checkout)
+        event.listen(engine, "checkin", FlextDbOracleUtilitiesDbOracle._track_checkin)
+        return engine
+
+    @classmethod
+    def _track_checkout(
+        cls,
+        dbapi_connection: oracledb.Connection,
+        _record: ConnectionPoolEntry,
+        _proxy: PoolProxiedConnection,
+    ) -> None:
+        with cls._CHECKED_OUT_LOCK:
+            cls._CHECKED_OUT.add(dbapi_connection)
+
+    @classmethod
+    def _track_checkin(
+        cls, dbapi_connection: oracledb.Connection, _record: ConnectionPoolEntry
+    ) -> None:
+        with cls._CHECKED_OUT_LOCK:
+            cls._CHECKED_OUT.discard(dbapi_connection)
+
+    @classmethod
+    def cancel_active(cls) -> int:
+        """Break the server call of every checked-out driver connection.
+
+        ``oracledb.Connection.cancel`` is the driver's thread-safe break: the
+        server aborts the running call with ORA-01013 and rolls it back. Meant
+        for a process's SIGTERM/SIGINT handler, so a killed CLI leaves no
+        session executing on the database.
+
+        Returns:
+            How many connections received the break.
+
+        """
+        with cls._CHECKED_OUT_LOCK:
+            active = tuple(cls._CHECKED_OUT)
+        for connection in active:
+            connection.cancel()
+        return len(active)
 
     @staticmethod
     def _engine_connect(engine: SAEngine) -> SAConnection:
@@ -254,12 +353,12 @@ class FlextDbOracleUtilitiesDbOracle:
         cls,
         connection: SAConnection,
         statement: TextClause,
-        parameters: m.ConfigMap | None = None,
-    ) -> CursorResult[t.VariadicTuple[t.JsonValue]]:
+        parameters: p.ConfigMap | None = None,
+    ) -> CursorResult[tuple[t.JsonValue, ...]]:
         """Execute statement on SQL connection.
 
         Returns:
-            The resulting ``CursorResult[t.VariadicTuple[t.JsonValue]]``.
+            The resulting ``CursorResult[tuple[t.JsonValue, ...]]``.
 
         """
         normalized_params = cls.normalize_params(parameters)

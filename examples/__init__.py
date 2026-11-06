@@ -7,34 +7,67 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from types import MappingProxyType
 from typing import TYPE_CHECKING
 
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_core import d, h, r, x
+    from flext_db_oracle import (
+        c,
+        config,
+        d,
+        db_oracle,
+        e,
+        h,
+        m,
+        main,
+        p,
+        r,
+        s,
+        settings,
+        t,
+        u,
+        x,
+    )
 
-    from flext_db_oracle import c, e, m, p, s, t, u
 
-
-__all__: tuple[str, ...] = ("c", "d", "e", "h", "m", "p", "r", "s", "t", "u", "x")
+__all__: tuple[str, ...] = (
+    "c",
+    "config",
+    "d",
+    "db_oracle",
+    "e",
+    "h",
+    "m",
+    "main",
+    "p",
+    "r",
+    "s",
+    "settings",
+    "t",
+    "u",
+    "x",
+)
 
 install_lazy_exports(
     __name__,
     globals(),
-    MappingProxyType({
+    {
         "c": "flext_db_oracle",
-        "d": "flext_core",
+        "config": "flext_db_oracle",
+        "d": "flext_db_oracle",
+        "db_oracle": "flext_db_oracle",
         "e": "flext_db_oracle",
-        "h": "flext_core",
+        "h": "flext_db_oracle",
         "m": "flext_db_oracle",
+        "main": "flext_db_oracle",
         "p": "flext_db_oracle",
-        "r": "flext_core",
+        "r": "flext_db_oracle",
         "s": "flext_db_oracle",
+        "settings": "flext_db_oracle",
         "t": "flext_db_oracle",
         "u": "flext_db_oracle",
-        "x": "flext_core",
-    }),
+        "x": "flext_db_oracle",
+    },
     public_exports=__all__,
 )

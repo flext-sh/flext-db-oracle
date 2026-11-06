@@ -53,7 +53,7 @@ features.
 - ✅ Interactive prompts and user confirmations working
 - ✅ User-friendly error messages and progress indicators
 
----
+______________________________________________________________________
 
 ## 🎯 Implementation Tasks
 
@@ -88,7 +88,7 @@ Cannot confirm functionality or proceed with confidence
 
 #### Timeline: Complete by 2025-10-12 (2 days)
 
----
+______________________________________________________________________
 
 ### 1. ✅ **COMPLETED - CLI Architecture Foundation (100%)**
 
@@ -170,7 +170,7 @@ self._formatters = FlextCliFormatters()
 - Integration with Rich prompts and dialogs
 - Support for complex multi-step interactions
 
----
+______________________________________________________________________
 
 ## 🔧 Technical Implementation Details
 
@@ -195,39 +195,18 @@ self._formatters = SimpleNamespace(
 
 #### Target Functional Implementation
 
-````python notest
-from __future__ import annotations
+The Rich-based formatters are a planned design, not shipped code. Library names
+stay inside the owning facade (ADR-028 Decision 15), so the target is described by
+capability rather than as a runnable snippet:
 
-# Planned Rich integration
-from rich.table import Table
-from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn
+```text
+FlextCliFormatters (planned, owned by the CLI facade family)
+  create_table(rows, headers)  -> terminal table, bold header columns,
+                                  every cell rendered as text
+  create_progress()            -> spinner plus task description progress bar
+                                  bound to the shared console
+```
 
-
-class FlextCliFormatters:
-    """Actual Rich-based formatters."""
-
-    def __init__(self, console: Console):
-        self.console = console
-
-    def create_table(self, data: list, headers: list = None) -> Table:
-        """Create Rich table with proper formatting."""
-        table = Table()
-        if headers:
-            for header in headers:
-                table.add_column(header, style="bold")
-        for row in data:
-            table.add_row(*[str(cell) for cell in row])
-        return table
-
-    def create_progress(self) -> Progress:
-        """Create Rich progress bar."""
-        return Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=self.console,
-        )
-        ```
 ### CLI Command Structure
 
 #### Current Implementation
@@ -391,4 +370,3 @@ ______________________________________________________________________
 **Phase Status**: CLI enhancement foundation established, Rich implementation pending
 **Next Milestone**: First Rich formatter functional
 **Risk Level**: Medium (learning curve for Rich, but well-established patterns available)
-````

@@ -111,14 +111,23 @@ def test_connection_with_mocked_engine(mock_create_engine):
     result = connection.connect()
 
     # Assert
-    assert result.success
+    tm.ok(result.success)
     mock_create_engine.assert_called_once()
 ```
 
 ### **Domain Logic Testing**
 
-```python notest
+```python
 from __future__ import annotations
+
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
 
 
 def test_config_validation_with_invalid_host():

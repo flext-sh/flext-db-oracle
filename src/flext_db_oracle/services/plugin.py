@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
@@ -33,19 +33,19 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         """Initialize shared Oracle service state for this mixin."""
         FlextDbOracleServiceBase.__init__(self, settings)
 
-    def fetch_metrics(self) -> p.Result[m.DbOracle.HealthStatus]:
+    def fetch_metrics(self) -> p.Result[p.DbOracle.HealthStatus]:
         """Get metrics status with observability integration.
 
         Returns:
-            The resulting ``p.Result[m.DbOracle.HealthStatus]``.
+            The resulting ``p.Result[p.DbOracle.HealthStatus]``.
 
         """
         status = "connected" if self.connected() else "disconnected"
-        metrics_payload: t.StrMapping = {
+        metrics_payload: Mapping[str, str] = {
             metric_name: str(metric_value)
             for metric_name, metric_value in self._metrics.items()
         }
-        return r[m.DbOracle.HealthStatus].ok(
+        return r[p.DbOracle.HealthStatus].ok(
             m.DbOracle.HealthStatus.model_validate({
                 "status": f"{status}_with_observability",
                 "timestamp": self._get_current_timestamp(),
@@ -55,43 +55,47 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
             }),
         )
 
-    def fetch_operations(self) -> p.Result[Sequence[m.DbOracle.OperationRecord]]:
+    def fetch_operations(self) -> p.Result[Sequence[p.DbOracle.OperationRecord]]:
         """Get tracked operations.
 
         Returns:
-            The resulting ``p.Result[Sequence[m.DbOracle.OperationRecord]]``.
+            The resulting ``p.Result[Sequence[p.DbOracle.OperationRecord]]``.
 
         """
-        return r[Sequence[m.DbOracle.OperationRecord]].ok(list(self._operations))
+        return r[Sequence[p.DbOracle.OperationRecord]].ok(list(self._operations))
 
-    def fetch_plugin(self, name: str) -> p.Result[t.JsonPayload]:
+    def fetch_plugin(self, name: str) -> p.Result[t.JsonPayload | t.FlatContainer]:
         """Get plugin data from local service registry.
 
         Returns:
-            The resulting ``p.Result[t.JsonPayload]``.
+            The resulting ``p.Result[t.JsonPayload | t.FlatContainer]``.
 
         """
         if not name:
-            return r[t.JsonPayload].fail("Plugin name is required")
+            return r[t.JsonPayload | t.FlatContainer].fail("Plugin name is required")
         if name not in self._plugins:
-            return e.fail_not_found("Plugin", name, result_type=r[t.JsonPayload])
-        return r[t.JsonPayload].ok(self._plugins[name])
+            return e.fail_not_found(
+                "Plugin",
+                name,
+                result_type=r[t.JsonPayload | t.FlatContainer],
+            )
+        return r[t.JsonPayload | t.FlatContainer].ok(self._plugins[name])
 
-    def list_plugins(self) -> p.Result[m.ConfigMap]:
+    def list_plugins(self) -> p.Result[p.ConfigMap]:
         """List plugin names from local service registry.
 
         Returns:
-            The resulting ``p.Result[m.ConfigMap]``.
+            The resulting ``p.Result[p.ConfigMap]``.
 
         """
         plugin_names = list(self._plugins.keys())
-        return r[m.ConfigMap].ok(m.ConfigMap(root=dict.fromkeys(plugin_names, True)))
+        return r[p.ConfigMap].ok(m.ConfigMap(root=dict.fromkeys(plugin_names, True)))
 
     def record_metric(
         self,
         name: str,
         value: float,
-        tags: m.ConfigMap | t.JsonMapping | None = None,
+        tags: p.ConfigMap | t.JsonMapping | None = None,
     ) -> p.Result[bool]:
         """Record metric in the local service metrics registry.
 
@@ -104,14 +108,18 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         metric_payload: t.JsonValue = value
         if tags is not None:
             normalized_tags: t.JsonDict = {
-                tag_name: u.normalize_to_metadata(tag_value)
+                tag_name: u.normalize_to_json_value(tag_value)
                 for tag_name, tag_value in tags.items()
             }
             metric_payload = {"value": value, "tags": normalized_tags}
         self._metrics[name] = metric_payload
         return r[bool].ok(value=True)
 
-    def register_plugin(self, name: str, plugin: t.JsonPayload) -> p.Result[bool]:
+    def register_plugin(
+        self,
+        name: str,
+        plugin: t.JsonPayload | t.FlatContainer,
+    ) -> p.Result[bool]:
         """Register plugin in local service registry.
 
         Returns:
@@ -129,7 +137,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         duration: float = 0.0,
         *,
         success: bool = True,
-        metadata: m.ConfigMap | t.JsonMapping | None = None,
+        metadata: p.ConfigMap | t.JsonMapping | None = None,
     ) -> p.Result[bool]:
         """Track database operation for monitoring.
 

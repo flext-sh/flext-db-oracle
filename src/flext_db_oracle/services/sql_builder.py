@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from typing import override
 
 from sqlalchemy import (
@@ -78,9 +79,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
     @classmethod
     def _compile_statement_with_binds(
-        cls,
-        statement: ClauseElement,
-        bind_names: t.MappingKV[str, str],
+        cls, statement: ClauseElement, bind_names: Mapping[str, str]
     ) -> str:
         sql = cls._compile_statement(statement)
         for column_name, bind_name in bind_names.items():
@@ -90,7 +89,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     @staticmethod
     def _build_table_clause(
         table_name: str,
-        column_names: t.StrSequence,
+        column_names: Sequence[str],
         schema: str | None = None,
     ) -> TableClause:
         """Build a ``table()`` clause with Oracle-safe identifier quoting.
@@ -145,7 +144,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
     def _create_index_sql(
         self,
-        settings: m.DbOracle.CreateIndexConfig,
+        settings: p.DbOracle.CreateIndexConfig,
     ) -> p.Result[str]:
         """Compile CREATE INDEX SQL from validated settings.
 
@@ -171,7 +170,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             sql = f"{sql} PARALLEL {settings.parallel}"
         return r[str].ok(sql)
 
-    def _create_index_table(self, settings: m.DbOracle.CreateIndexConfig) -> Table:
+    def _create_index_table(self, settings: p.DbOracle.CreateIndexConfig) -> Table:
         """Build a SQLAlchemy table object for CREATE INDEX compilation.
 
         Returns:
@@ -201,7 +200,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     def build_delete_statement(
         self,
         table_name: str,
-        where_columns: t.StrSequence,
+        where_columns: Sequence[str],
         schema: str | None = None,
     ) -> p.Result[str]:
         """Build DELETE statement through SQLAlchemy Core Oracle compilation.
@@ -226,9 +225,9 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     def build_insert_statement(
         self,
         table_name: str,
-        columns: t.StrSequence,
+        columns: Sequence[str],
         schema: str | None = None,
-        returning_columns: t.StrSequence | None = None,
+        returning_columns: Sequence[str] | None = None,
     ) -> p.Result[str]:
         """Build INSERT statement through SQLAlchemy Core Oracle compilation.
 
@@ -256,8 +255,8 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     def build_select(
         self,
         table_name: str,
-        columns: t.StrSequence | None = None,
-        conditions: m.ConfigMap | t.JsonMapping | None = None,
+        columns: Sequence[str] | None = None,
+        conditions: p.ConfigMap | t.JsonMapping | None = None,
         schema_name: str | None = None,
     ) -> p.Result[str]:
         """Build SELECT query through SQLAlchemy Core Oracle compilation.
@@ -306,8 +305,8 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     def build_update_statement(
         self,
         table_name: str,
-        set_columns: t.StrSequence,
-        where_columns: t.StrSequence,
+        set_columns: Sequence[str],
+        where_columns: Sequence[str],
         schema: str | None = None,
     ) -> p.Result[str]:
         """Build UPDATE statement through SQLAlchemy Core Oracle compilation.
@@ -336,7 +335,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     def create_table_ddl(
         self,
         table_name: str,
-        columns: t.SequenceOf[m.DbOracle.Column | t.JsonMapping],
+        columns: Sequence[p.DbOracle.Column | t.JsonMapping],
         schema: str | None = None,
     ) -> p.Result[str]:
         """Generate CREATE TABLE DDL through SQLAlchemy Oracle DDL compilation.
@@ -355,35 +354,35 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
 
     def _normalize_table_columns(
         self,
-        columns: t.SequenceOf[m.DbOracle.Column | t.JsonMapping],
-    ) -> t.SequenceOf[m.DbOracle.Column]:
+        columns: Sequence[p.DbOracle.Column | t.JsonMapping],
+    ) -> Sequence[p.DbOracle.Column]:
         """Normalize raw column payloads into Column models.
 
         Returns:
-            The resulting ``t.SequenceOf[m.DbOracle.Column]``.
+            The resulting ``Sequence[p.DbOracle.Column]``.
 
         """
         return tuple(self._normalize_table_column(column) for column in columns)
 
     @staticmethod
     def _normalize_table_column(
-        column: m.DbOracle.Column | t.JsonMapping,
-    ) -> m.DbOracle.Column:
+        column: p.DbOracle.Column | t.JsonMapping,
+    ) -> p.DbOracle.Column:
         """Normalize one raw column payload into a Column model.
 
         Returns:
             The resulting ``m.DbOracle.Column``.
 
         """
-        if isinstance(column, m.DbOracle.Column):
-            copied: m.DbOracle.Column = column.model_copy(
+        if not isinstance(column, Mapping):
+            copied: p.DbOracle.Column = column.model_copy(
                 update={
                     "name": column.name or c.IDENTIFIER_UNKNOWN,
                     "data_type": column.data_type or "VARCHAR2(255)",
                 },
             )
             return copied
-        normalized: m.DbOracle.Column = m.DbOracle.Column.model_validate({
+        normalized: p.DbOracle.Column = m.DbOracle.Column.model_validate({
             "name": str(
                 column.get("name") or column.get("column_name") or c.IDENTIFIER_UNKNOWN,
             ),
@@ -397,7 +396,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     def _create_table_object(
         self,
         table_name: str,
-        column_models: t.SequenceOf[m.DbOracle.Column],
+        column_models: Sequence[p.DbOracle.Column],
         schema: str | None,
     ) -> Table:
         """Build a SQLAlchemy table object for CREATE TABLE compilation.

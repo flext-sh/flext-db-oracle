@@ -442,6 +442,15 @@ custom_rules:
 ```text
 from __future__ import annotations
 
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
+
 
 # Add custom report sections
 def generate_custom_report_section(self, results: List[AuditResult]) -> str:

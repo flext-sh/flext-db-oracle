@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, MutableMapping
+from collections.abc import Mapping, MutableMapping, Sequence
 
 from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
 
@@ -27,7 +27,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
 
     def convert_singer_type(
         self,
-        singer_type: str | t.StrSequence = "string",
+        singer_type: str | Sequence[str] = "string",
         _format_hint: str | None = None,
     ) -> p.Result[str]:
         """Convert Singer type to Oracle type via the config-owned type map.
@@ -44,21 +44,21 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
 
     def map_singer_schema(
         self,
-        singer_schema: m.DbOracle.SingerSchema | t.JsonMapping,
-    ) -> p.Result[m.DbOracle.TypeMapping]:
+        singer_schema: p.DbOracle.SingerSchema | t.JsonMapping,
+    ) -> p.Result[p.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified.
 
         Returns:
-            The resulting ``p.Result[m.DbOracle.TypeMapping]``.
+            The resulting ``p.Result[p.DbOracle.TypeMapping]``.
 
         """
         raw_properties: t.JsonDict = {}
-        if isinstance(singer_schema, m.DbOracle.SingerSchema):
+        if not isinstance(singer_schema, Mapping):
             schema_model = singer_schema
         else:
             raw_props_value = singer_schema.get("properties", {})
             if not isinstance(raw_props_value, dict):
-                return r[m.DbOracle.TypeMapping].fail(
+                return r[p.DbOracle.TypeMapping].fail(
                     "Singer schema properties must be a mapping",
                 )
             raw_properties = raw_props_value
@@ -95,7 +95,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
         type_mapping = m.DbOracle.TypeMapping.model_validate({
             "mapping": normalized_mapping,
         })
-        return r[m.DbOracle.TypeMapping].ok(type_mapping)
+        return r[p.DbOracle.TypeMapping].ok(type_mapping)
 
 
 __all__: list[str] = ["FlextDbOracleServiceSinger"]

@@ -254,6 +254,15 @@ All tests must pass these quality standards:
 ```python
 from __future__ import annotations
 
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
+
 
 # Test naming pattern: test_<method>_<scenario>_<expected_result>
 def test_connect_with_valid_config_returns_success():
@@ -284,8 +293,8 @@ Following FLEXT Core patterns for consistent testing:
 ```text
 # r pattern testing
 result = api.connect()
-assert result.success
-assert result.value is not None
+tm.ok(result.success)
+tm.not_none(result.value)
 
 # Error testing
 result = api.connect_with_invalid_config()

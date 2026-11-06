@@ -8,9 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-import pytest
-
-from tests import c, tm
+from tests import c, tm, u
 
 
 class TestsFlextDbOracleConftestConstants:
@@ -28,13 +26,13 @@ class TestsFlextDbOracleConftestConstants:
         """Test shared containers registry is stable across access."""
         first = c.Tests.SHARED_CONTAINERS
         second = c.Tests.SHARED_CONTAINERS
-        tm.that(dict(first) == dict(second), eq=True)
+        tm.ok(dict(first) == dict(second))
 
     @staticmethod
     def test_oracle_container_is_registered() -> None:
         # Act / Assert: the oracle DB test container is part of the contract.
         """Test oracle container is registered."""
-        tm.that(c.Tests.ORACLE_CONTAINER in c.Tests.SHARED_CONTAINERS, eq=True)
+        tm.ok(c.Tests.ORACLE_CONTAINER in c.Tests.SHARED_CONTAINERS)
 
     @staticmethod
     def test_oracle_container_config_is_a_mapping() -> None:
@@ -43,7 +41,7 @@ class TestsFlextDbOracleConftestConstants:
         tm.that(config, is_=Mapping)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("key", "expected"),
         [
             ("service", "oracle-db"),
@@ -76,5 +74,5 @@ class TestsFlextDbOracleConftestConstants:
     def test_missing_container_lookup_raises_key_error() -> None:
         # Error path: unknown container names are not silently defaulted.
         """Test missing container lookup raises key error."""
-        with pytest.raises(KeyError):
+        with u.Tests.raises(KeyError):
             _ = c.Tests.SHARED_CONTAINERS["flext-nonexistent-test"]

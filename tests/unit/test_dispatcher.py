@@ -6,18 +6,23 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
-
-from flext_db_oracle import FlextDbOracleDispatcher, FlextDbOracleSettings
-from flext_db_oracle.services import FlextDbOracleServices
-from tests import m, tm
+from tests import (
+    FlextDbOracleDispatcher,
+    FlextDbOracleServices,
+    FlextDbOracleSettings,
+    c,
+    m,
+    p,
+    tm,
+    u,
+)
 
 
 class TestsFlextDbOracleDispatcher:
     """Observable public contract of the Oracle dispatcher and its command surface."""
 
+    @u.Tests.fixture
     @staticmethod
-    @pytest.fixture
     def services() -> FlextDbOracleServices:
         """Oracle services wired to non-connecting placeholder settings.
 
@@ -38,7 +43,7 @@ class TestsFlextDbOracleDispatcher:
     def test_execute_reports_success() -> None:
         """execute() is a no-op factory hook that yields a successful result."""
         result = FlextDbOracleDispatcher().execute()
-        tm.that(result.success, eq=True)
+        tm.ok(result.success)
 
     @staticmethod
     def test_build_dispatcher_exposes_dispatch_capability(
@@ -46,7 +51,7 @@ class TestsFlextDbOracleDispatcher:
     ) -> None:
         """build_dispatcher returns a wired dispatcher exposing dispatch()."""
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
-        tm.that(callable(dispatcher.dispatch), eq=True)
+        tm.ok(callable(dispatcher.dispatch))
 
     @staticmethod
     def test_build_dispatcher_exposes_register_handler_capability(
@@ -54,7 +59,7 @@ class TestsFlextDbOracleDispatcher:
     ) -> None:
         """The wired dispatcher can accept handler registrations."""
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
-        tm.that(callable(dispatcher.register_handler), eq=True)
+        tm.ok(callable(dispatcher.register_handler))
 
     @staticmethod
     def test_build_dispatcher_reuses_shared_dispatcher(
@@ -63,7 +68,7 @@ class TestsFlextDbOracleDispatcher:
         """Repeated builds resolve the same shared container dispatcher."""
         first = FlextDbOracleDispatcher.build_dispatcher(services)
         second = FlextDbOracleDispatcher.build_dispatcher(services)
-        tm.that(first is second, eq=True)
+        tm.ok(first is second)
 
     @staticmethod
     def test_execute_query_command_carries_sql_and_parameters() -> None:
@@ -76,7 +81,7 @@ class TestsFlextDbOracleDispatcher:
         tm.that(cmd.parameters, eq={"limit": 10})
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "command_type",
         [
             m.DbOracle.ExecuteQueryCommand,
@@ -85,7 +90,7 @@ class TestsFlextDbOracleDispatcher:
         ],
     )
     def test_sql_command_parameters_default_to_none(
-        command_type: type[m.DbOracle.ExecuteQueryCommand],
+        command_type: type[p.DbOracle.ExecuteQueryCommand],
     ) -> None:
         """SQL commands omit parameters as None when none are supplied."""
         cmd = command_type(sql="SELECT 1 FROM DUAL")
@@ -93,7 +98,7 @@ class TestsFlextDbOracleDispatcher:
         tm.that(cmd.parameters, none=True)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "command_type",
         [
             m.DbOracle.ExecuteQueryCommand,
@@ -103,14 +108,14 @@ class TestsFlextDbOracleDispatcher:
         ],
     )
     def test_sql_command_requires_sql(
-        command_type: type[m.DbOracle.ExecuteQueryCommand],
+        command_type: type[p.DbOracle.ExecuteQueryCommand],
     ) -> None:
         """SQL is a mandatory field; construction without it fails validation."""
         # flext-1wjg1.16: model_validate({}) (its `obj` parameter is
         # intentionally untyped) instead of a direct/unpacked call, so
         # pyrefly does not statically flag the deliberately-omitted required
         # `sql` -- the runtime ValidationError is exactly what this asserts.
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             command_type.model_validate({})
 
     @staticmethod
@@ -131,7 +136,7 @@ class TestsFlextDbOracleDispatcher:
         tm.that(cmd.schema_name, eq="HR")
 
     @staticmethod
-    @pytest.mark.parametrize(("schema_name", "expected"), [("HR", "HR"), (None, None)])
+    @c.Tests.MARK.parametrize(("schema_name", "expected"), [("HR", "HR"), (None, None)])
     def test_get_tables_command_schema_is_optional(
         schema_name: str | None,
         expected: str | None,

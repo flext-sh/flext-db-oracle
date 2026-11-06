@@ -7,24 +7,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from types import MappingProxyType
 from typing import TYPE_CHECKING
 
 from flext_core.lazy import install_lazy_exports
 
-from flext_db_oracle.__version__ import __version__
-
 if TYPE_CHECKING:
-    from flext_core import d, h, r, x
+    from flext_cli import d, h, r, x
 
-    from flext_db_oracle import (
-        _constants,
-        _models,
-        _protocols,
-        _typings,
-        _utilities,
-        services,
-    )
     from flext_db_oracle.__version__ import (
         FlextDbOracleVersion,
         __author__,
@@ -33,6 +22,7 @@ if TYPE_CHECKING:
         __license__,
         __title__,
         __url__,
+        __version__,
         __version_info__,
     )
     from flext_db_oracle._config import FlextDbOracleConfig, config
@@ -45,6 +35,7 @@ if TYPE_CHECKING:
     from flext_db_oracle.base import FlextDbOracleServiceBase, s
     from flext_db_oracle.cli import main
     from flext_db_oracle.client import FlextDbOracleClient
+    from flext_db_oracle.config_models import FlextDbOracleModelsConfig
     from flext_db_oracle.constants import FlextDbOracleConstants, c
     from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
     from flext_db_oracle.exceptions import FlextDbOracleExceptions, e
@@ -63,6 +54,7 @@ __all__: tuple[str, ...] = (
     "FlextDbOracleDispatcher",
     "FlextDbOracleExceptions",
     "FlextDbOracleModels",
+    "FlextDbOracleModelsConfig",
     "FlextDbOracleProtocols",
     "FlextDbOracleServiceBase",
     "FlextDbOracleSettings",
@@ -77,11 +69,6 @@ __all__: tuple[str, ...] = (
     "__url__",
     "__version__",
     "__version_info__",
-    "_constants",
-    "_models",
-    "_protocols",
-    "_typings",
-    "_utilities",
     "c",
     "config",
     "d",
@@ -93,7 +80,6 @@ __all__: tuple[str, ...] = (
     "p",
     "r",
     "s",
-    "services",
     "settings",
     "t",
     "u",
@@ -103,7 +89,7 @@ __all__: tuple[str, ...] = (
 install_lazy_exports(
     __name__,
     globals(),
-    MappingProxyType({
+    {
         "DbOracleSettings": "._settings",
         "FlextDbOracleApi": ".api",
         "FlextDbOracleClient": ".client",
@@ -112,6 +98,7 @@ install_lazy_exports(
         "FlextDbOracleDispatcher": ".dispatcher",
         "FlextDbOracleExceptions": ".exceptions",
         "FlextDbOracleModels": ".models",
+        "FlextDbOracleModelsConfig": ".config_models",
         "FlextDbOracleProtocols": ".protocols",
         "FlextDbOracleServiceBase": ".base",
         "FlextDbOracleSettings": "._settings",
@@ -125,27 +112,24 @@ install_lazy_exports(
         "__title__": ".__version__",
         "__url__": ".__version__",
         "__version_info__": ".__version__",
-        "_constants": "._constants",
-        "_models": "._models",
-        "_protocols": "._protocols",
-        "_typings": "._typings",
-        "_utilities": "._utilities",
         "c": ".constants",
         "config": "._config",
-        "d": "flext_core",
+        "d": "flext_cli",
         "db_oracle": ".api",
         "e": ".exceptions",
-        "h": "flext_core",
+        "h": "flext_cli",
         "m": ".models",
         "main": ".cli",
         "p": ".protocols",
-        "r": "flext_core",
+        "r": "flext_cli",
         "s": ".base",
-        "services": ".services",
         "settings": "._settings",
         "t": ".typings",
         "u": ".utilities",
-        "x": "flext_core",
-    }),
+        "x": "flext_cli",
+    },
     public_exports=__all__,
 )
+
+if not TYPE_CHECKING:
+    from flext_db_oracle.__version__ import __version__

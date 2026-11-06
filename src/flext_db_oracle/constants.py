@@ -1,3 +1,4 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
 """Oracle database constants following unified class pattern.
 
 This module provides Oracle-specific constants organized into nested classes
@@ -12,13 +13,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextConstants
+from flext_cli import c
 
-from flext_db_oracle._constants.exceptions import FlextDbOracleConstantsExceptions
-from flext_db_oracle._constants.values import FlextDbOracleConstantsValues
+from flext_db_oracle._constants import (
+    FlextDbOracleConstantsBase,
+    FlextDbOracleConstantsExceptions,
+    FlextDbOracleConstantsValues,
+)
 
 
-class FlextDbOracleConstants(FlextConstants):
+class FlextDbOracleConstants(c):
     """Oracle database constants extending c foundation.
 
     Usage:
@@ -31,8 +35,9 @@ class FlextDbOracleConstants(FlextConstants):
     """
 
     class DbOracle(
-        FlextDbOracleConstantsExceptions.DbOracle,
-        FlextDbOracleConstantsValues.DbOracle,
+        FlextDbOracleConstantsBase,
+        FlextDbOracleConstantsExceptions,
+        FlextDbOracleConstantsValues,
     ):
         """Oracle domain constants namespace with flat SSOT members.
 
@@ -44,5 +49,4 @@ class FlextDbOracleConstants(FlextConstants):
 
 
 c = FlextDbOracleConstants
-
-__all__ = ["FlextDbOracleConstants", "c"]
+__all__: list[str] = ["FlextDbOracleConstants", "c"]

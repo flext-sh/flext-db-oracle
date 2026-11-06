@@ -12,40 +12,32 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Mapping
 
-import pytest
+from tests import FlextDbOracleApi, FlextDbOracleSettings, c, p, t, tm, u
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import c, t, tm, u
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from tests import m
 _NOT_CONNECTED = "not connected to database"
 
 
-@pytest.mark.docker
+@c.Tests.MARK.docker
 class TestsFlextDbOracleOracle:
     """Behavioral end-to-end tests for the Oracle API public contract."""
 
-    @staticmethod
-    @pytest.fixture
+    @u.Tests.fixture
     def offline_settings() -> FlextDbOracleSettings:
         """Return settings for an unreachable host in offline contract tests."""
         return FlextDbOracleSettings.model_validate({
             "DbOracle": {
                 "host": "nonexistent-host.invalid",
                 "port": 9999,
-                "service_name": "INVALID_DB",
+                c.ContextKey.SERVICE_NAME: "INVALID_DB",
                 "username": "invalid_user",
-                "password": "p" + "1" * 10,
+                "password": "p" + c.ParserBooleanToken.ONE * 10,
             },
         })
 
+    @u.Tests.fixture
     @staticmethod
-    @pytest.fixture
     def offline_api(offline_settings: FlextDbOracleSettings) -> FlextDbOracleApi:
         """Unconnected API instance for pure-logic and error-path behavior.
 
@@ -105,11 +97,11 @@ class TestsFlextDbOracleOracle:
         result = offline_api.transaction()
         tm.ok(result)
         status = result.value
-        tm.that(status["connected"], eq=False)
+        tm.that(status["connected"], eq=offline_api.connected())
         tm.that(status["transaction_available"], eq=True)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("singer_type", "expected_oracle_type"),
         list(c.Tests.SINGER_TYPE_MAP_TEST_CASES.items()),
     )
@@ -143,7 +135,7 @@ class TestsFlextDbOracleOracle:
         tm.that(mapped["is_active"], has="NUMBER(1)")
 
     @staticmethod
-    def _row_mapping(row: m.Dict) -> Mapping[str, t.JsonPayload]:
+    def _row_mapping(row: p.Dict) -> Mapping[str, t.JsonPayload]:
         """Expose a query row's public mapping regardless of case handling.
 
         Returns:
@@ -156,7 +148,7 @@ class TestsFlextDbOracleOracle:
         self,
         api1: FlextDbOracleApi,
         api2: FlextDbOracleApi,
-    ) -> t.Pair[Mapping[str, t.JsonPayload], Mapping[str, t.JsonPayload]]:
+    ) -> tuple[Mapping[str, t.JsonPayload], Mapping[str, t.JsonPayload]]:
         """Return one query row from each concurrent API context."""
         with api1, api2:
             result1 = api1.query("SELECT 'API1' AS SOURCE FROM DUAL")
@@ -168,7 +160,7 @@ class TestsFlextDbOracleOracle:
                 self._row_mapping(result2.value[0]),
             )
 
-    @pytest.mark.e2e
+    @c.Tests.MARK.e2e
     def test_complete_crud_workflow_returns_expected_results(
         self,
         real_oracle_config: FlextDbOracleSettings,
@@ -179,7 +171,7 @@ class TestsFlextDbOracleOracle:
             tm.ok(api.test_connection())
             schemas = api.fetch_schemas()
             tm.ok(schemas)
-            assert schemas.value
+            tm.that(schemas.value, empty=False)
             create = api.execute_sql(
                 f"CREATE TABLE {table} ( ID NUMBER(10) NOT NULL PRIMARY KEY, "
                 "NAME VARCHAR2(100) NOT NULL, EMAIL VARCHAR2(255))",
@@ -210,7 +202,10 @@ class TestsFlextDbOracleOracle:
                 tm.that(metadata.value.table_name, eq=table)
                 columns = api.fetch_columns(table)
                 tm.ok(columns)
-                assert len(columns.value) >= 3
+                tm.that(
+                    {column.name for column in columns.value},
+                    has=["ID", "NAME", "EMAIL"],
+                )
                 primary_keys = api.fetch_primary_keys(table)
                 tm.ok(primary_keys)
                 tm.that(primary_keys.value, has="ID")
@@ -230,7 +225,7 @@ class TestsFlextDbOracleOracle:
             finally:
                 api.execute_sql(f"DROP TABLE {table}")
 
-    @pytest.mark.e2e
+    @c.Tests.MARK.e2e
     def test_concurrent_apis_return_independent_query_results(
         self,
         real_oracle_config: FlextDbOracleSettings,
@@ -243,8 +238,8 @@ class TestsFlextDbOracleOracle:
         tm.that(row2["SOURCE"], eq="API2")
 
     @staticmethod
-    @pytest.mark.e2e
-    @pytest.mark.benchmark
+    @c.Tests.MARK.e2e
+    @c.Tests.MARK.benchmark
     def test_benchmark_query_returns_single_row(
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:

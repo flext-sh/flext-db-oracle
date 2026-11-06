@@ -225,41 +225,41 @@ Presentation Layer → Application Layer → Domain Layer ← Infrastructure Lay
 
 #### Error Handling Flow
 
-```{.python .notest}
+```python
 # Railway Pattern Implementation
 from __future__ import annotations
 
-from flext_core import r
+from flext_core import p, r
 
 
-def validate_input(data: t.StrDict) -> p.Result[t.StrDict]:
-    return r[t.StrDict].ok(data)
+def validate_input(data: dict[str, str]) -> p.Result[dict[str, str]]:
+    return r[dict[str, str]].ok(data)
 
 
-def process_data(data: t.StrDict) -> p.Result[t.StrDict]:
-    return r[t.StrDict].ok(data)
+def process_data(data: dict[str, str]) -> p.Result[dict[str, str]]:
+    return r[dict[str, str]].ok(data)
 
 
-def save_to_database(data: t.StrDict) -> p.Result[t.StrDict]:
-    return r[t.StrDict].ok(data)
+def save_to_database(data: dict[str, str]) -> p.Result[dict[str, str]]:
+    return r[dict[str, str]].ok(data)
 
 
-def format_response(data: t.StrDict) -> p.Result[str]:
+def format_response(data: dict[str, str]) -> p.Result[str]:
     return r[str].ok(str(data))
 
 
-def log_and_enrich_error(error: Exception) -> p.Result[str]:
-    return r[str].fail(error)
+def enrich_error(error: str) -> str:
+    return f"pipeline failed: {error}"
 
 
 data = {"id": "123"}
 
 result = (
     validate_input(data)
-    .flat_map(lambda d: process_data(d))
-    .flat_map(lambda payload: save_to_database(payload))
-    .map(lambda saved: format_response(saved))
-    .map_error(lambda exc: log_and_enrich_error(exc))
+    .flat_map(process_data)
+    .flat_map(save_to_database)
+    .flat_map(format_response)
+    .map_error(enrich_error)
 )
 
 print(result)

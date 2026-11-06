@@ -10,8 +10,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
-from typing import override
+from collections.abc import Callable, Mapping, Sequence
+from datetime import datetime
+from typing import Annotated, override
 
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
@@ -26,17 +27,17 @@ class FlextDbOracleClient(s):
     integration.
     """
 
-    debug: bool = u.Field(
+    debug: bool = m.Field(
         default=False,
         description="Enable debug output",
         validate_default=True,
     )
-    current_connection: FlextDbOracleApi | None = u.Field(
+    current_connection: FlextDbOracleApi | None = m.Field(
         None,
         description="Active Oracle API connection instance",
         validate_default=True,
     )
-    user_preferences: m.ConfigMap = u.Field(
+    user_preferences: Annotated[p.ConfigMap, t.schema_for_model(m.ConfigMap)] = m.Field(
         default_factory=lambda: m.ConfigMap(
             root={
                 "default_output_format": "table",
@@ -77,7 +78,7 @@ class FlextDbOracleClient(s):
     def _run_cli_command(
         cls,
         operation: str,
-        params: t.MappingKV[str, t.Scalar],
+        params: Mapping[str, t.Scalar],
     ) -> p.Result[str]:
         """Run a normalized CLI operation.
 
@@ -99,7 +100,10 @@ class FlextDbOracleClient(s):
             )
         return r[str].fail(f"Unknown CLI operation: {operation}")
 
-    def configure_preferences(self, **preferences: t.Scalar) -> p.Result[bool]:
+    def configure_preferences(
+        self,
+        **preferences: t.Primitives | datetime,
+    ) -> p.Result[bool]:
         """Configure client preferences.
 
         Returns:
@@ -188,14 +192,14 @@ class FlextDbOracleClient(s):
         )
         # NOTE (multi-agent): ADR-005 — password is a plain str in the DbOracle
         # namespace and is guaranteed non-empty by the validations above.
-        db_oracle_payload: t.MappingKV[str, t.JsonPayloadLeaf] = {
+        db_oracle_payload: t.JsonDict = {
             "host": actual_host,
             "port": actual_port,
-            "service_name": actual_service_name,
+            c.ContextKey.SERVICE_NAME: actual_service_name,
             "username": actual_username,
             "password": actual_password_raw,
         }
-        payload: t.MappingKV[str, t.JsonPayload] = {"DbOracle": db_oracle_payload}
+        payload: t.JsonDict = {"DbOracle": db_oracle_payload}
         settings = FlextDbOracleSettings.model_validate(payload)
         return r[FlextDbOracleSettings].ok(settings)
 
@@ -249,7 +253,7 @@ class FlextDbOracleClient(s):
         """
         query_params = m.ConfigMap.model_validate(params or {})
         operation_result = self._execute_with_chain(
-            "query",
+            c.HandlerMode.QUERY,
             sql=sql,
             params=query_params,
         )
@@ -258,11 +262,11 @@ class FlextDbOracleClient(s):
         )
         return self._format_and_display_result(operation_result, format_type)
 
-    def health_check(self) -> p.Result[m.ConfigMap]:
+    def health_check(self) -> p.Result[p.ConfigMap]:
         """Perform Oracle health check.
 
         Returns:
-        r[m.ConfigMap]: Health check result or error.
+        r[p.ConfigMap]: Health check result or error.
 
         """
         return self._execute_health_check()
@@ -274,7 +278,7 @@ class FlextDbOracleClient(s):
         r[str]: Formatted schemas list or error.
 
         """
-        operation_result: p.Result[m.ConfigMap] = self._execute_with_chain(
+        operation_result: p.Result[p.ConfigMap] = self._execute_with_chain(
             "list_schemas",
         )
         format_type = str(
@@ -289,7 +293,7 @@ class FlextDbOracleClient(s):
         r[str]: Formatted tables list or error.
 
         """
-        operation_result: p.Result[m.ConfigMap] = self._execute_with_chain(
+        operation_result: p.Result[p.ConfigMap] = self._execute_with_chain(
             "list_tables",
             schema=schema or "",
         )
@@ -299,17 +303,17 @@ class FlextDbOracleClient(s):
         return self._format_and_display_result(operation_result, format_type)
 
     @staticmethod
-    def _adapt_schemas(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
+    def _adapt_schemas(raw_value: t.JsonValue) -> Sequence[p.ConfigMap]:
         schemas = u.json_list_adapter().validate_python(raw_value)
-        return [m.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
+        return [p.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
 
     @staticmethod
-    def _adapt_tables(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
+    def _adapt_tables(raw_value: t.JsonValue) -> Sequence[p.ConfigMap]:
         tables = u.json_list_adapter().validate_python(raw_value)
-        return [m.ConfigMap(root={"table": str(table)}) for table in tables]
+        return [p.ConfigMap(root={"table": str(table)}) for table in tables]
 
     @staticmethod
-    def _adapt_health(raw_value: t.JsonValue) -> t.SequenceOf[m.ConfigMap]:
+    def _adapt_health(raw_value: t.JsonValue) -> Sequence[p.ConfigMap]:
         # Why: no-hidden-errors — validate_config_map now raises on malformed
         # input instead of returning None; no sentinel branch needed here.
         health = u.DbOracle.validate_config_map(raw_value)
@@ -320,34 +324,34 @@ class FlextDbOracleClient(s):
 
     def _adapt_data_for_table(
         self,
-        data: m.ConfigMap,
-    ) -> p.Result[Sequence[m.ConfigMap]]:
+        data: p.ConfigMap,
+    ) -> p.Result[Sequence[p.ConfigMap]]:
         """Adapt data for table display.
 
         Returns:
-        r[Sequence[m.ConfigMap]]: Adapted data or error.
+        r[Sequence[p.ConfigMap]]: Adapted data or error.
 
         """
         try:
             result_data = self._adapt_data_root(data.root)
         except c.DbOracle.EXC_DB_CONNECT as e:
-            result = r[Sequence[m.ConfigMap]].fail_op("Data adaptation", e)
+            result = r[Sequence[p.ConfigMap]].fail_op("Data adaptation", e)
         else:
-            result = r[Sequence[m.ConfigMap]].ok(result_data)
+            result = r[Sequence[p.ConfigMap]].ok(result_data)
         return result
 
     def _adapt_data_root(
         self,
-        data_root: t.MappingKV[str, t.JsonPayload],
-    ) -> t.SequenceOf[m.ConfigMap]:
+        data_root: Mapping[str, t.JsonPayload],
+    ) -> Sequence[p.ConfigMap]:
         """Adapt one ConfigMap root into table rows.
 
         Returns:
-            The resulting ``t.SequenceOf[m.ConfigMap]``.
+            The resulting ``Sequence[p.ConfigMap]``.
 
         """
-        strategies: t.SequenceOf[
-            t.Pair[str, Callable[[t.JsonValue], t.SequenceOf[m.ConfigMap]]]
+        strategies: Sequence[
+            tuple[str, Callable[[t.JsonValue], Sequence[p.ConfigMap]]]
         ] = [
             ("schemas", self._adapt_schemas),
             ("tables", self._adapt_tables),
@@ -362,34 +366,34 @@ class FlextDbOracleClient(s):
         ]
 
     @staticmethod
-    def _build_table_string(adapted_data: t.SequenceOf[m.ConfigMap]) -> str:
+    def _build_table_string(adapted_data: Sequence[p.ConfigMap]) -> str:
         """Build table string from adapted data.
 
         Returns:
             The resulting ``str``.
 
         """
-        headers: t.StrSequence = list(adapted_data[0].keys())
-        rows: t.SequenceOf[t.StrSequence] = [
+        headers: Sequence[str] = list(adapted_data[0].keys())
+        rows: Sequence[Sequence[str]] = [
             [str(row[h]) for h in headers] for row in adapted_data
         ]
         result_str = f"{'|'.join(headers)}\n{'|'.join(['---'] * len(headers))}\n"
         result_str += "\n".join(["|".join(row) for row in rows])
         return result_str
 
-    def _execute_health_check(self) -> p.Result[m.ConfigMap]:
+    def _execute_health_check(self) -> p.Result[p.ConfigMap]:
         """Execute Oracle health check.
 
         Returns:
-        r[m.ConfigMap]: Health check result or error.
+        r[p.ConfigMap]: Health check result or error.
 
         """
         try:
             validation_result: p.Result[bool] = self._validate_connection()
             if validation_result.failure:
-                return r[m.ConfigMap].from_failure(validation_result)
+                return r[p.ConfigMap].from_failure(validation_result)
             if not self.current_connection:
-                return r[m.ConfigMap].fail("No connection available")
+                return r[p.ConfigMap].fail("No connection available")
             health_data = m.ConfigMap(
                 root={
                     "connection_status": "active"
@@ -397,43 +401,43 @@ class FlextDbOracleClient(s):
                     else "inactive",
                     "host": self.current_connection.oracle_config.DbOracle.host,
                     "port": self.current_connection.oracle_config.DbOracle.port,
-                    "service_name": (
+                    c.ContextKey.SERVICE_NAME: (
                         self.current_connection.oracle_config.DbOracle.service_name
                     ),
                     "timestamp": "now",
                 },
             )
-            return r[m.ConfigMap].ok(health_data)
+            return r[p.ConfigMap].ok(health_data)
         except c.DbOracle.EXC_DB_CONNECT as e:
-            return r[m.ConfigMap].fail_op("Health check", e)
+            return r[p.ConfigMap].fail_op("Health check", e)
 
     def _execute_operation(
         self,
         operation: str,
         **params: t.Scalar | m.ConfigMap,
-    ) -> p.Result[m.ConfigMap]:
+    ) -> p.Result[p.ConfigMap]:
         """Execute Oracle operation with error handling.
 
         Returns:
-        r[m.ConfigMap]: Operation result or error.
+        r[p.ConfigMap]: Operation result or error.
 
         """
         if not self.current_connection:
-            return r[m.ConfigMap].fail("No active connection")
+            return r[p.ConfigMap].fail("No active connection")
         try:
             return self._dispatch_operation(operation, params)
         except c.DbOracle.EXC_DB_CONNECT as e:
-            return r[m.ConfigMap].fail_op("Operation", e)
+            return r[p.ConfigMap].fail_op("Operation", e)
 
     def _dispatch_operation(
         self,
         operation: str,
-        params: t.MappingKV[str, t.Scalar | m.ConfigMap],
-    ) -> p.Result[m.ConfigMap]:
+        params: Mapping[str, t.Scalar | m.ConfigMap],
+    ) -> p.Result[p.ConfigMap]:
         """Dispatch one validated Oracle client operation.
 
         Returns:
-            The resulting ``p.Result[m.ConfigMap]``.
+            The resulting ``p.Result[p.ConfigMap]``.
 
         """
         match operation:
@@ -441,32 +445,32 @@ class FlextDbOracleClient(s):
                 return self._handle_list_schemas_operation()
             case "list_tables":
                 return self._handle_list_tables_operation(**params)
-            case "query":
+            case c.HandlerMode.QUERY:
                 return self._handle_query_operation(**params)
             case "health_check":
                 return self._handle_health_check_operation()
             case _:
-                return r[m.ConfigMap].fail(f"Unknown operation: {operation}")
+                return r[p.ConfigMap].fail(f"Unknown operation: {operation}")
 
     def _execute_with_chain(
         self,
         operation: str,
         **params: t.Scalar | m.ConfigMap,
-    ) -> p.Result[m.ConfigMap]:
+    ) -> p.Result[p.ConfigMap]:
         """Execute operation with validation chain.
 
         Returns:
-        r[m.ConfigMap]: Operation result or error.
+        r[p.ConfigMap]: Operation result or error.
 
         """
         validation_result: p.Result[bool] = self._validate_connection()
         if validation_result.failure:
-            return r[m.ConfigMap].from_failure(validation_result)
+            return r[p.ConfigMap].from_failure(validation_result)
         return self._execute_operation(operation, **params)
 
     def _format_and_display_result(
         self,
-        operation_result: p.Result[m.ConfigMap],
+        operation_result: p.Result[p.ConfigMap],
         format_type: str = "table",
     ) -> p.Result[str]:
         """Format and display operation result.
@@ -480,7 +484,7 @@ class FlextDbOracleClient(s):
         )
 
     @staticmethod
-    def _format_as_json(data: m.ConfigMap) -> p.Result[str]:
+    def _format_as_json(data: p.ConfigMap) -> p.Result[str]:
         """Format data as JSON output.
 
         Returns:
@@ -496,7 +500,7 @@ class FlextDbOracleClient(s):
             ),
         ).map_error(lambda e: f"JSON formatting failed: {e}")
 
-    def _format_as_table(self, data: m.ConfigMap) -> p.Result[str]:
+    def _format_as_table(self, data: p.ConfigMap) -> p.Result[str]:
         """Format data as table output.
 
         Returns:
@@ -522,7 +526,7 @@ class FlextDbOracleClient(s):
     def _get_formatter_strategy(
         self,
         format_type: str,
-    ) -> p.Result[Callable[[m.ConfigMap], p.Result[str]]]:
+    ) -> p.Result[Callable[[p.ConfigMap], p.Result[str]]]:
         """Get formatter strategy for output format.
 
         Returns:
@@ -530,8 +534,8 @@ class FlextDbOracleClient(s):
 
         """
         try:
-            formatter_strategies: t.SequenceOf[
-                t.Pair[str, Callable[[m.ConfigMap], p.Result[str]]]
+            formatter_strategies: Sequence[
+                tuple[str, Callable[[p.ConfigMap], p.Result[str]]]
             ] = [
                 ("table", self._format_as_table),
                 ("json", self._format_as_json),
@@ -539,38 +543,38 @@ class FlextDbOracleClient(s):
             ]
             for supported_format, formatter in formatter_strategies:
                 if format_type == supported_format:
-                    return r[Callable[[m.ConfigMap], p.Result[str]]].ok(formatter)
-            return r[Callable[[m.ConfigMap], p.Result[str]]].fail(
+                    return r[Callable[[p.ConfigMap], p.Result[str]]].ok(formatter)
+            return r[Callable[[p.ConfigMap], p.Result[str]]].fail(
                 f"Unsupported format: {format_type}",
             )
         except c.DbOracle.EXC_DB_CONNECT as e:
-            return r[Callable[[m.ConfigMap], p.Result[str]]].fail(
+            return r[Callable[[p.ConfigMap], p.Result[str]]].fail(
                 f"Formatter strategy error: {e}",
                 exception=e,
             )
 
-    def _handle_health_check_operation(self) -> p.Result[m.ConfigMap]:
+    def _handle_health_check_operation(self) -> p.Result[p.ConfigMap]:
         """Handle health check operation.
 
         Returns:
-            The resulting ``p.Result[m.ConfigMap]``.
+            The resulting ``p.Result[p.ConfigMap]``.
 
         """
         if self.current_connection is None:
-            return r[m.ConfigMap].fail("No active database connection")
+            return r[p.ConfigMap].fail("No active database connection")
         return self.current_connection.fetch_health_status().map(
             lambda status: m.ConfigMap(root=status.model_dump()),
         )
 
-    def _handle_list_schemas_operation(self) -> p.Result[m.ConfigMap]:
+    def _handle_list_schemas_operation(self) -> p.Result[p.ConfigMap]:
         """Handle list schemas operation.
 
         Returns:
-            The resulting ``p.Result[m.ConfigMap]``.
+            The resulting ``p.Result[p.ConfigMap]``.
 
         """
         if self.current_connection is None:
-            return r[m.ConfigMap].fail("No active database connection")
+            return r[p.ConfigMap].fail("No active database connection")
         return self.current_connection.fetch_schemas().map(
             lambda schemas: m.ConfigMap.model_validate({
                 "root": {"schemas": list(schemas)},
@@ -580,15 +584,15 @@ class FlextDbOracleClient(s):
     def _handle_list_tables_operation(
         self,
         **params: t.Scalar | m.ConfigMap,
-    ) -> p.Result[m.ConfigMap]:
+    ) -> p.Result[p.ConfigMap]:
         """Handle list tables operation.
 
         Returns:
-            The resulting ``p.Result[m.ConfigMap]``.
+            The resulting ``p.Result[p.ConfigMap]``.
 
         """
         if self.current_connection is None:
-            return r[m.ConfigMap].fail("No active database connection")
+            return r[p.ConfigMap].fail("No active database connection")
         schema = str(params.get("schema", ""))
         return self.current_connection.fetch_tables(schema or None).map(
             lambda tables: m.ConfigMap.model_validate({
@@ -599,25 +603,25 @@ class FlextDbOracleClient(s):
     def _handle_query_operation(
         self,
         **params: t.Scalar | m.ConfigMap,
-    ) -> p.Result[m.ConfigMap]:
+    ) -> p.Result[p.ConfigMap]:
         """Handle query operation.
 
         Returns:
-            The resulting ``p.Result[m.ConfigMap]``.
+            The resulting ``p.Result[p.ConfigMap]``.
 
         """
         if self.current_connection is None:
-            return r[m.ConfigMap].fail("No active database connection")
+            return r[p.ConfigMap].fail("No active database connection")
         sql = str(params.get("sql", ""))
         if not sql:
-            return r[m.ConfigMap].fail("SQL query required")
+            return r[p.ConfigMap].fail("SQL query required")
         raw_params = params.get("params", m.ConfigMap(root={}))
         if isinstance(raw_params, m.ConfigMap):
             params_map = raw_params
         else:
             normalized = u.validate_value(u.json_mapping_adapter(), raw_params)
             if normalized.failure:
-                return r[m.ConfigMap].from_failure(normalized)
+                return r[p.ConfigMap].from_failure(normalized)
             params_map = m.ConfigMap.model_validate({"root": normalized.value})
         query_params: t.JsonMapping = u.json_mapping_adapter().validate_python(
             params_map.root,
@@ -640,4 +644,4 @@ class FlextDbOracleClient(s):
         return r[bool].ok(value=True)
 
 
-__all__: t.StrSequence = ("FlextDbOracleClient",)
+__all__: Sequence[str] = ("FlextDbOracleClient",)

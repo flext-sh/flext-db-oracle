@@ -215,14 +215,14 @@ Production-quality testing environment
 
 #### 1. **Railway Pattern Throughout**
 
-````python notest
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+```python
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c
 
 settings = FlextDbOracleSettings(
     DbOracle={
         "host": "localhost",
         "port": 1521,
-        "service_name": "XEPDB1",
+        c.ContextKey.SERVICE_NAME: "XEPDB1",
         "username": "system",
         "password": "",
     }
@@ -232,10 +232,11 @@ api = FlextDbOracleApi(settings)
 # All operations return r[T]
 result = api.connect()
 if result.success:
-    connection = result.unwrap()
+    print("Connected")
 else:
     print(f"Guarded: {result.error}")
-    ```
+```
+
 #### 2. **Single Responsibility Modules**
 
 - `api.py`: ONLY SQLAlchemy imports
@@ -255,7 +256,7 @@ else:
 - Pyrefly strict: ZERO type errors
 - 100% test coverage: MANDATORY
 
-______________________________________________________________________
+---
 
 ## 🎯 Current Phase Focus (CLI Enhancement)
 
@@ -280,7 +281,7 @@ ______________________________________________________________________
 - ✅ Consistent output formatting
 - ✅ Interactive features working
 
-______________________________________________________________________
+---
 
 ## 📈 Project Health Metrics
 
@@ -305,7 +306,7 @@ ______________________________________________________________________
 - **Documentation**: Current and comprehensive
 - **Testing**: Production-ready validation
 
-______________________________________________________________________
+---
 
 ## 🚀 Next Steps
 
@@ -330,9 +331,8 @@ ______________________________________________________________________
 1. **Migration Guide**: From legacy implementations
 1. **Troubleshooting**: Advanced debugging and common issues
 
-______________________________________________________________________
+---
 
 **Status**: Functional foundation complete, CLI enhancement in progress
 **Next Milestone**: Complete Rich integration and CLI formatters
 **Target**: v1.0.0 production release
-````

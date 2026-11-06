@@ -12,6 +12,7 @@ These pages are generated from public modules and their docstrings.
 - [flext_db_oracle.base](base.md)
 - [flext_db_oracle.cli](cli.md)
 - [flext_db_oracle.client](client.md)
+- [flext_db_oracle.config_models](config_models.md)
 - [flext_db_oracle.constants](constants.md)
 - [flext_db_oracle.dispatcher](dispatcher.md)
 - [flext_db_oracle.exceptions](exceptions.md)

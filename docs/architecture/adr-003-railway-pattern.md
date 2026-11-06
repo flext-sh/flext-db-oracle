@@ -59,19 +59,28 @@ Implement Railway Pattern error handling throughout flext-db-oracle using r\[T\]
 
 **Core Pattern:**
 
-```{.python .notest}
+```python
 from __future__ import annotations
 
+from flext_db_oracle import p, r
 
-# Railway Pattern with r[T]
-def enterprise_operation(settings: Config) -> p.Result[Result]:
-    return (
-        validate_config(settings)
-        .flat_map(lambda c: create_connection(c))
-        .flat_map(lambda conn: execute_query(conn, sql))
-        .map(lambda result: transform_result(result))
-        .map_error(lambda error: log_and_enrich_error(error))
-    )
+
+class RailwayExample:
+    """Railway pattern with r[T]: each step returns a result, never raises."""
+
+    @staticmethod
+    def parse_port(raw: str) -> p.Result[int]:
+        """Validate the port text once at the boundary."""
+        if not raw.isdigit():
+            return r[int].fail(f"invalid port: {raw}")
+        return r[int].ok(int(raw))
+
+    @staticmethod
+    def dsn(raw_port: str) -> p.Result[str]:
+        """Compose validation and formatting on one railway."""
+        return RailwayExample.parse_port(raw_port).map(
+            lambda port: f"localhost:{port}/XEPDB1"
+        )
 ```
 
 **Key Implementation Details:**

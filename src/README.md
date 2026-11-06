@@ -111,7 +111,7 @@ All modules integrate with FLEXT Core patterns:
 
 ### **Import Patterns**
 
-```python notest
+```python
 # Primary imports (direct imports only - STRICT RULE)
 from flext_db_oracle import FlextDbOracleApi
 from flext_db_oracle import FlextDbOracleSettings

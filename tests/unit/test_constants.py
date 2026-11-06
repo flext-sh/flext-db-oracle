@@ -11,20 +11,17 @@ import contextlib
 import time
 from enum import StrEnum
 
-import pytest
-
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import c, tm, u
+from tests import FlextDbOracleApi, FlextDbOracleSettings, c, tm, u
 
 
-@pytest.mark.unit
+@c.Tests.MARK.unit
 class TestsFlextDbOracleConstants:
     """Verify the observable public contract exposed by ``c.DbOracle``."""
 
     # ---- flat SSOT default values (public contract) ---------------------
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("name", "expected"),
         [
             ("DEFAULT_CHARSET", "UTF8"),
@@ -73,7 +70,7 @@ class TestsFlextDbOracleConstants:
     # ---- query / performance constants ----------------------------------
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("name", "expected"),
         [
             ("TEST_QUERY", "SELECT 1 FROM DUAL"),
@@ -104,7 +101,7 @@ class TestsFlextDbOracleConstants:
         tm.that(getattr(c.DbOracle, name), eq=expected)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("name", "expected"),
         [
             ("PERFORMANCE_WARNING_THRESHOLD_SECONDS", 5.0),
@@ -141,7 +138,7 @@ class TestsFlextDbOracleConstants:
     # ---- data type constants + Singer mapping ---------------------------
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("member", "expected"),
         [
             ("DATE", "DATE"),
@@ -173,7 +170,7 @@ class TestsFlextDbOracleConstants:
         )
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("singer_type", "oracle_type"),
         list(c.Tests.SINGER_TYPE_MAP_TEST_CASES.items()),
     )
@@ -192,10 +189,13 @@ class TestsFlextDbOracleConstants:
             base_type = oracle_type.split("(", 1)[0]
             tm.that(valid_types, has=base_type)
 
-    # ---- validation limits, patterns, and messages ----------------------
+
+@c.Tests.MARK.unit
+class TestsFlextDbOracleConstantsValidation:
+    """Validation boundaries, messages, keywords, and environment contracts."""
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("name", "expected"),
         [
             ("MIN_PORT", 1),
@@ -223,10 +223,10 @@ class TestsFlextDbOracleConstants:
         """Port bounds are ordered and contain the default listener port."""
         tm.that(c.DbOracle.MIN_PORT, lt=c.DbOracle.MAX_PORT)
         in_range = c.DbOracle.MIN_PORT <= c.DbOracle.DEFAULT_PORT <= c.DbOracle.MAX_PORT
-        tm.that(in_range, eq=True)
+        tm.ok(in_range)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("name", "expected"),
         [
             ("HOST_EMPTY", "Host cannot be empty"),
@@ -247,7 +247,7 @@ class TestsFlextDbOracleConstants:
         tm.that(getattr(c.DbOracle, name), eq=expected)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("name", "fragment"),
         [
             ("IDENTIFIER_TOO_LONG", "max_length"),
@@ -273,20 +273,20 @@ class TestsFlextDbOracleConstants:
             max_port=65535,
             port=0,
         )
-        tm.that(rendered, has="1")
+        tm.that(rendered, has=c.ParserBooleanToken.ONE)
         tm.that(rendered, has="65535")
 
     # ---- keyword / reserved-word sets -----------------------------------
 
     @staticmethod
-    @pytest.mark.parametrize("word", ["SELECT", "DELETE", "TABLE", "INDEX"])
+    @c.Tests.MARK.parametrize("word", ["SELECT", "DELETE", "TABLE", "INDEX"])
     def test_oracle_reserved_contains_core_keywords(word: str) -> None:
         """ORACLE_RESERVED advertises core Oracle reserved keywords."""
         tm.that(c.DbOracle.ORACLE_RESERVED, is_=frozenset)
         tm.that(c.DbOracle.ORACLE_RESERVED, has=word)
 
     @staticmethod
-    @pytest.mark.parametrize("word", ["JOIN", "ORDER", "GROUP", "UNION"])
+    @c.Tests.MARK.parametrize("word", ["JOIN", "ORDER", "GROUP", "UNION"])
     def test_sql_keywords_contains_clause_keywords(word: str) -> None:
         """SQL_KEYWORDS advertises common SQL clause keywords."""
         tm.that(c.DbOracle.SQL_KEYWORDS, is_=frozenset)
@@ -295,7 +295,7 @@ class TestsFlextDbOracleConstants:
     # ---- environment naming SSOT ----------------------------------------
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("name", "expected"),
         [
             ("PREFIX_ORACLE", "ORACLE_"),
@@ -315,14 +315,18 @@ class TestsFlextDbOracleConstants:
         tm.that(getattr(c.DbOracle, name), eq=expected)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("field", "oracle_key", "target_key"),
         [
             ("host", "ORACLE_HOST", "FLEXT_TARGET_ORACLE_HOST"),
             ("port", "ORACLE_PORT", "FLEXT_TARGET_ORACLE_PORT"),
             ("username", "ORACLE_USERNAME", "FLEXT_TARGET_ORACLE_USERNAME"),
             ("password", "ORACLE_PASSWORD", "FLEXT_TARGET_ORACLE_PASSWORD"),
-            ("service_name", "ORACLE_SERVICE_NAME", "FLEXT_TARGET_ORACLE_SERVICE_NAME"),
+            (
+                c.ContextKey.SERVICE_NAME,
+                "ORACLE_SERVICE_NAME",
+                "FLEXT_TARGET_ORACLE_SERVICE_NAME",
+            ),
         ],
     )
     def test_env_mapping_resolves_both_prefixes_to_same_field(
@@ -341,13 +345,20 @@ class TestsFlextDbOracleConstants:
     def test_connection_type_literal_matches_documented_order() -> None:
         """CONNECTION_TYPE_LITERAL exposes the ordered connection-type tuple."""
         tm.that(c.DbOracle.CONNECTION_TYPE_LITERAL, is_=tuple)
-        tm.that(c.DbOracle.CONNECTION_TYPE_LITERAL, eq=("service_name", "sid", "tns"))
+        tm.that(
+            c.DbOracle.CONNECTION_TYPE_LITERAL,
+            eq=(c.ContextKey.SERVICE_NAME, "sid", "tns"),
+        )
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("literal_name", "valid_name", "member"),
         [
-            ("CONNECTION_TYPE_LITERAL", "VALID_CONNECTION_TYPES", "service_name"),
+            (
+                "CONNECTION_TYPE_LITERAL",
+                "VALID_CONNECTION_TYPES",
+                c.ContextKey.SERVICE_NAME,
+            ),
             ("QUERY_TYPE_LITERAL", "VALID_QUERY_TYPES", "DELETE"),
             ("DATA_TYPE_LITERAL", "VALID_DATA_TYPES", "CLOB"),
             ("ISOLATION_LEVEL_LITERAL", "VALID_ISOLATION_LEVELS", "SERIALIZABLE"),
@@ -375,7 +386,7 @@ class TestsFlextDbOracleConstants:
     # ---- enums ----------------------------------------------------------
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "enum_name",
         ["ConnectionType", "QueryType", "DataType", "IsolationLevel"],
     )
@@ -383,7 +394,7 @@ class TestsFlextDbOracleConstants:
         """Each exposed Oracle enum is a StrEnum subclass."""
         enum_cls = getattr(c.DbOracle, enum_name)
         tm.that(enum_cls, is_=type)
-        assert issubclass(enum_cls, StrEnum)
+        tm.ok(issubclass(enum_cls, StrEnum))
 
     @staticmethod
     def test_valid_data_types_match_data_type_enum_members() -> None:
@@ -391,10 +402,13 @@ class TestsFlextDbOracleConstants:
         enum_values = frozenset(member.value for member in c.DbOracle.DataType)
         tm.that(enum_values, eq=c.DbOracle.VALID_DATA_TYPES)
 
-    # ---- public behavior: collapse_whitespace ---------------------------
+
+@c.Tests.MARK.unit
+class TestsFlextDbOracleConstantsRuntime:
+    """Public whitespace, settings, and live Oracle consumer contracts."""
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("raw", "expected"),
         [
             ("SELECT   *", "SELECT *"),
@@ -420,7 +434,7 @@ class TestsFlextDbOracleConstants:
     # ---- feature flag surfaced through settings public API --------------
 
     @staticmethod
-    @pytest.mark.parametrize("enabled", [True, False])
+    @c.Tests.MARK.parametrize("enabled", [True, False])
     def test_enable_dispatcher_flag_round_trips_through_settings(
         *,
         enabled: bool,
@@ -434,14 +448,14 @@ class TestsFlextDbOracleConstants:
     # ---- real Oracle integration (public API, fail-loud when unavailable) -
 
     @staticmethod
-    @pytest.mark.docker
+    @c.Tests.MARK.docker
     def test_oracle_constants_real_connection_validation(
         connected_oracle_api: FlextDbOracleApi,
         *,
         oracle_available: bool,
     ) -> None:
         """TEST_QUERY and DUAL_TABLE drive a real Oracle round-trip."""
-        tm.that(oracle_available, eq=True)
+        tm.ok(oracle_available)
         result = connected_oracle_api.query(c.DbOracle.TEST_QUERY)
         tm.ok(result)
         tm.that(len(result.value), eq=1)
@@ -456,21 +470,21 @@ class TestsFlextDbOracleConstants:
     def test_oracle_constants_default_values() -> None:
         """Default connection constants expose valid service and port values."""
         tm.that(c.DbOracle.DEFAULT_SERVICE_NAME, is_=str)
-        tm.that(bool(c.DbOracle.DEFAULT_SERVICE_NAME), eq=True)
+        tm.ok(bool(c.DbOracle.DEFAULT_SERVICE_NAME))
         default_port = c.DbOracle.DEFAULT_PORT
         tm.that(default_port, is_=int)
         in_range = c.DbOracle.MIN_PORT <= default_port <= c.DbOracle.MAX_PORT
-        tm.that(in_range, eq=True)
+        tm.ok(in_range)
 
     @staticmethod
-    @pytest.mark.docker
+    @c.Tests.MARK.docker
     def test_oracle_data_types_real_validation(
         connected_oracle_api: FlextDbOracleApi,
         *,
         oracle_available: bool,
     ) -> None:
         """Data-type constants form a DDL statement a real Oracle accepts."""
-        tm.that(oracle_available, eq=True)
+        tm.ok(oracle_available)
         create_sql = (
             "\n        CREATE TABLE test_data_types (\n"
             f"            id {c.DbOracle.DataType.NUMBER} PRIMARY KEY,\n"
@@ -484,7 +498,7 @@ class TestsFlextDbOracleConstants:
         with contextlib.suppress(Exception):
             connected_oracle_api.execute_statement("DROP TABLE test_data_types")
         accepted = result.success or ("already exists" in str(result.error).lower())
-        tm.that(accepted, eq=True)
+        tm.ok(accepted)
 
     @staticmethod
     def test_oracle_validation_constants_local_usage() -> None:
@@ -497,14 +511,14 @@ class TestsFlextDbOracleConstants:
         tm.that(c.DbOracle.MAX_VARCHAR_LENGTH, gt=c.DbOracle.MAX_IDENTIFIER_LENGTH)
 
     @staticmethod
-    @pytest.mark.docker
+    @c.Tests.MARK.docker
     def test_oracle_performance_constants_real_timing(
         connected_oracle_api: FlextDbOracleApi,
         *,
         oracle_available: bool,
     ) -> None:
         """Query timing is classified by the documented ms thresholds."""
-        tm.that(oracle_available, eq=True)
+        tm.ok(oracle_available)
         start_time = time.time()
         result = connected_oracle_api.query("SELECT 1 FROM DUAL")
         execution_ms = (time.time() - start_time) * 1000

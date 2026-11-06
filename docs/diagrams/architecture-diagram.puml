@@ -42,7 +42,7 @@ package "flext-db-oracle Library" as library #White {
 
     ' === DOMAIN LAYER ===
     package "Domain Layer" as domain #LightGreen {
-        rectangle "FlextDbOracleModels\nPydantic v2 Models\nData Validation" as models
+        rectangle "FlextModelsDbOracle\nPydantic v2 Models\nData Validation" as models
         rectangle "FlextDbOracleExceptions\nError Hierarchy\nDomain Exceptions" as exceptions
         rectangle "FlextDbOracleConstants\nSystem Constants\nConfiguration" as constants
     }

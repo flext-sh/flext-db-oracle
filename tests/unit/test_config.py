@@ -7,8 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle import FlextDbOracleSettings
-from tests import c, tm
+from tests import FlextDbOracleSettings, c, tm
 
 
 class TestsFlextDbOracleSettings:
@@ -27,7 +26,7 @@ class TestsFlextDbOracleSettings:
         tm.that(settings.DbOracle.pool_max, eq=c.DbOracle.DEFAULT_POOL_MAX)
         tm.that(settings.DbOracle.name, eq=c.DbOracle.DEFAULT_DATABASE_NAME)
         tm.that(settings.DbOracle.sid, none=True)
-        tm.that(settings.DbOracle.enable_dispatcher, eq=False)
+        tm.fail(settings.DbOracle.enable_dispatcher)
 
     @staticmethod
     def test_model_dump_exposes_every_public_field() -> None:
@@ -36,7 +35,7 @@ class TestsFlextDbOracleSettings:
         expected_fields = {
             "host",
             "port",
-            "service_name",
+            c.ContextKey.SERVICE_NAME,
             "username",
             "password",
             "timeout",
@@ -47,8 +46,9 @@ class TestsFlextDbOracleSettings:
             "ssl_cert_file",
             "ssl_server_cert_dn",
             "enable_dispatcher",
+            "mode",
         }
-        assert expected_fields <= set(dumped["DbOracle"])
+        tm.ok(expected_fields <= set(dumped["DbOracle"]))
 
     @staticmethod
     def test_namespace_overrides_round_trip() -> None:
@@ -58,7 +58,7 @@ class TestsFlextDbOracleSettings:
                 "host": "db.internal",
                 "port": 1522,
                 "username": "appuser",
-                "service_name": "PRODSVC",
+                c.ContextKey.SERVICE_NAME: "PRODSVC",
                 "password": "apppass",
             },
         })
@@ -72,7 +72,7 @@ class TestsFlextDbOracleSettings:
     def test_sid_only_configuration_is_accepted_without_service_name() -> None:
         """A legacy SID connection is valid even with a blank service_name."""
         settings = FlextDbOracleSettings.model_validate({
-            "DbOracle": {"service_name": "", "sid": "legacy"},
+            "DbOracle": {c.ContextKey.SERVICE_NAME: "", "sid": "legacy"},
         })
         tm.that(settings.DbOracle.sid, eq="legacy")
         tm.that(settings.DbOracle.service_name, eq="")
@@ -102,20 +102,33 @@ class TestsFlextDbOracleSettings:
         tm.that(settings.DbOracle.ssl_server_cert_dn, eq="CN=oracle,O=flext")
 
     @staticmethod
+    def test_mode_defaults_to_none() -> None:
+        """Privilege mode is unset by default (normal connection)."""
+        tm.that(FlextDbOracleSettings().DbOracle.mode, none=True)
+
+    @staticmethod
+    def test_explicit_mode_is_preserved() -> None:
+        """An explicit privilege mode round-trips through the namespace."""
+        settings = FlextDbOracleSettings.model_validate({
+            "DbOracle": {"mode": "SYSDBA"},
+        })
+        tm.that(settings.DbOracle.mode, eq="SYSDBA")
+
+    @staticmethod
     def test_fetch_global_returns_shared_singleton() -> None:
         """fetch_global without overrides yields the shared singleton instance."""
         first = FlextDbOracleSettings.fetch_global()
         second = FlextDbOracleSettings.fetch_global()
-        assert first is second
+        tm.ok(first is second)
 
     @staticmethod
     def test_fetch_global_overrides_return_isolated_clone() -> None:
         """fetch_global with a scalar override yields an isolated clone."""
         singleton = FlextDbOracleSettings.fetch_global()
         clone = FlextDbOracleSettings.fetch_global(overrides={"debug": True})
-        assert clone is not singleton
-        tm.that(clone.debug, eq=True)
-        assert FlextDbOracleSettings.fetch_global() is singleton
+        tm.ok(clone is not singleton)
+        tm.ok(clone.debug)
+        tm.ok(FlextDbOracleSettings.fetch_global() is singleton)
 
     @staticmethod
     def test_clone_preserves_canonical_type() -> None:
