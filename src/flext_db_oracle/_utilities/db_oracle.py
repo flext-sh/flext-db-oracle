@@ -20,6 +20,7 @@ from sqlalchemy import (
     Engine as SAEngine,
     TextClause,
     create_engine,
+    event,
     func as _sqlalchemy_func,
     select as _sqlalchemy_select,
     text as _sqlalchemy_text,
@@ -34,6 +35,7 @@ if TYPE_CHECKING:
     import contextlib
 
     from sqlalchemy.engine import CursorResult
+    from sqlalchemy.pool import ConnectionPoolEntry, PoolProxiedConnection
 
 
 class FlextDbOracleUtilitiesDbOracle:
@@ -331,7 +333,7 @@ class FlextDbOracleUtilitiesDbOracle:
             if options.max_overflow is not None
             else oracle.pool_max - oracle.pool_min
         )
-        return create_engine(
+        engine = create_engine(
             url,
             pool_size=pool_size,
             max_overflow=max_overflow,
@@ -340,6 +342,45 @@ class FlextDbOracleUtilitiesDbOracle:
             echo=False,
             connect_args=driver_args,
         )
+        event.listen(engine, "checkout", FlextDbOracleUtilitiesDbOracle._track_checkout)
+        event.listen(engine, "checkin", FlextDbOracleUtilitiesDbOracle._track_checkin)
+        return engine
+
+    @classmethod
+    def _track_checkout(
+        cls,
+        dbapi_connection: oracledb.Connection,
+        _record: ConnectionPoolEntry,
+        _proxy: PoolProxiedConnection,
+    ) -> None:
+        with cls._CHECKED_OUT_LOCK:
+            cls._CHECKED_OUT.add(dbapi_connection)
+
+    @classmethod
+    def _track_checkin(
+        cls, dbapi_connection: oracledb.Connection, _record: ConnectionPoolEntry
+    ) -> None:
+        with cls._CHECKED_OUT_LOCK:
+            cls._CHECKED_OUT.discard(dbapi_connection)
+
+    @classmethod
+    def cancel_active(cls) -> int:
+        """Break the server call of every checked-out driver connection.
+
+        ``oracledb.Connection.cancel`` is the driver's thread-safe break: the
+        server aborts the running call with ORA-01013 and rolls it back. Meant
+        for a process's SIGTERM/SIGINT handler, so a killed CLI leaves no
+        session executing on the database.
+
+        Returns:
+            How many connections received the break.
+
+        """
+        with cls._CHECKED_OUT_LOCK:
+            active = tuple(cls._CHECKED_OUT)
+        for connection in active:
+            connection.cancel()
+        return len(active)
 
     @staticmethod
     def fetch_models[M: m.BaseModel](
