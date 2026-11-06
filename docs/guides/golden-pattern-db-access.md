@@ -24,7 +24,7 @@ SPDX-License-Identifier: MIT
 
 ## Layers
 
-```
+```text
 consumers (CLI, daemon, services)      — depend only on ports (p.DbOracle)
 ports        p.DbOracle.*              — runtime_checkable Protocols
 adapter      FlextDbOracleServices     — mixin facade implementing the ports
@@ -41,15 +41,17 @@ rows         pydantic / SQLModel models validated from native mappings
 2. **Typed rows via `fetch_models`.** Never hand-parse positional rows:
    `svc.fetch_models(sql_or_select, params, *, model=RowModel)` returns
    `r[Sequence[RowModel]]` with NATIVE column values (dates, decimals — no
-   string coercion). The model is pydantic or SQLModel.
+   string coercion). The model is pydantic or SQLModel. When the caller already
+   owns a connection, `u.DbOracle.fetch_models_on_connection` uses that session
+   so its transaction and session settings are preserved.
 3. **Statements over strings where shape matters.** Control tables get
    SQLModel `table=True` models; reads/writes use `select()`/`update()`
    compiled for the Oracle dialect. Raw SQL stays only for engine-owned
    blocks (PL/SQL) and dynamic dictionary views.
-4. **One engine factory.** `_engine_factory(url)` on the Connection mixin is
-   the only engine constructor; connect/disconnect/test/transaction reuse it.
-   Members with another transport (TNS descriptor, thick mode, SYSDBA)
-   override the hook — never reimplement the lifecycle.
+4. **One engine factory.** `u.DbOracle.engine(url, options)` constructs the
+   engine. `u.DbOracle.build_engine(settings)` translates the configured
+   credentials, DSN and pool settings into that same factory. Oracle driver
+   checkouts are tracked so the CLI can cancel active calls on shutdown.
 5. **Batch writes with `execute_many`.** One native executemany round trip
    per batch; empty batch short-circuits to `r[int].ok(0)`.
 6. **Results are `r[T]`.** Every fallible operation returns
@@ -63,9 +65,8 @@ rows         pydantic / SQLModel models validated from native mappings
 ## Member adoption sketch
 
 A member composes the mixins it needs from `flext_db_oracle.services` and adds
-only its own operations. Members with another transport (TNS descriptor, thick
-mode, custom pools) override the `_engine_factory(url)` hook of
-`FlextDbOracleServiceConnection`; they never reimplement the lifecycle.
+only its own operations. Members that already own a URL use
+`u.DbOracle.engine(url, options)` with the same typed pool and driver options.
 
 Control-table example (dc-recon): typed rows through `fetch_models` with a
 bind parameter, no positional parsing.
@@ -78,11 +79,12 @@ from datetime import UTC, datetime
 
 from flext_core import p
 
-from flext_db_oracle import FlextDbOracleSettings, m
 from flext_db_oracle import (
     FlextDbOracleServiceConnection,
     FlextDbOracleServiceQuery,
     FlextDbOracleServiceSchema,
+    FlextDbOracleSettings,
+    m,
 )
 
 

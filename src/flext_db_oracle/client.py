@@ -37,7 +37,9 @@ class FlextDbOracleClient(s):
         description="Active Oracle API connection instance",
         validate_default=True,
     )
-    user_preferences: Annotated[p.ConfigMap, t.schema_for_model(m.ConfigMap)] = m.Field(
+    user_preferences: Annotated[
+        p.ConfigMap, t.schema_for_model(lambda: m.ConfigMap)
+    ] = m.Field(
         default_factory=lambda: m.ConfigMap(
             root={
                 "default_output_format": "table",
@@ -305,12 +307,12 @@ class FlextDbOracleClient(s):
     @staticmethod
     def _adapt_schemas(raw_value: t.JsonValue) -> Sequence[p.ConfigMap]:
         schemas = u.json_list_adapter().validate_python(raw_value)
-        return [p.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
+        return [m.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
 
     @staticmethod
     def _adapt_tables(raw_value: t.JsonValue) -> Sequence[p.ConfigMap]:
         tables = u.json_list_adapter().validate_python(raw_value)
-        return [p.ConfigMap(root={"table": str(table)}) for table in tables]
+        return [m.ConfigMap(root={"table": str(table)}) for table in tables]
 
     @staticmethod
     def _adapt_health(raw_value: t.JsonValue) -> Sequence[p.ConfigMap]:
@@ -414,7 +416,7 @@ class FlextDbOracleClient(s):
     def _execute_operation(
         self,
         operation: str,
-        **params: t.Scalar | m.ConfigMap,
+        **params: t.Scalar | p.ConfigMap,
     ) -> p.Result[p.ConfigMap]:
         """Execute Oracle operation with error handling.
 
@@ -432,7 +434,7 @@ class FlextDbOracleClient(s):
     def _dispatch_operation(
         self,
         operation: str,
-        params: Mapping[str, t.Scalar | m.ConfigMap],
+        params: Mapping[str, t.Scalar | p.ConfigMap],
     ) -> p.Result[p.ConfigMap]:
         """Dispatch one validated Oracle client operation.
 
@@ -455,7 +457,7 @@ class FlextDbOracleClient(s):
     def _execute_with_chain(
         self,
         operation: str,
-        **params: t.Scalar | m.ConfigMap,
+        **params: t.Scalar | p.ConfigMap,
     ) -> p.Result[p.ConfigMap]:
         """Execute operation with validation chain.
 
@@ -563,7 +565,7 @@ class FlextDbOracleClient(s):
         if self.current_connection is None:
             return r[p.ConfigMap].fail("No active database connection")
         return self.current_connection.fetch_health_status().map(
-            lambda status: m.ConfigMap(root=status.model_dump()),
+            lambda status: m.ConfigMap.model_validate({"root": status.model_dump()}),
         )
 
     def _handle_list_schemas_operation(self) -> p.Result[p.ConfigMap]:
@@ -583,7 +585,7 @@ class FlextDbOracleClient(s):
 
     def _handle_list_tables_operation(
         self,
-        **params: t.Scalar | m.ConfigMap,
+        **params: t.Scalar | p.ConfigMap,
     ) -> p.Result[p.ConfigMap]:
         """Handle list tables operation.
 
@@ -602,7 +604,7 @@ class FlextDbOracleClient(s):
 
     def _handle_query_operation(
         self,
-        **params: t.Scalar | m.ConfigMap,
+        **params: t.Scalar | p.ConfigMap,
     ) -> p.Result[p.ConfigMap]:
         """Handle query operation.
 
@@ -616,7 +618,7 @@ class FlextDbOracleClient(s):
         if not sql:
             return r[p.ConfigMap].fail("SQL query required")
         raw_params = params.get("params", m.ConfigMap(root={}))
-        if isinstance(raw_params, m.ConfigMap):
+        if isinstance(raw_params, p.ConfigMap):
             params_map = raw_params
         else:
             normalized = u.validate_value(u.json_mapping_adapter(), raw_params)

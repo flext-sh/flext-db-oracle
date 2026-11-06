@@ -93,7 +93,7 @@ class TestsFlextDbOracleDispatcher:
         command_type: type[p.DbOracle.ExecuteQueryCommand],
     ) -> None:
         """SQL commands omit parameters as None when none are supplied."""
-        cmd = command_type(sql="SELECT 1 FROM DUAL")
+        cmd = command_type.model_validate({"sql": "SELECT 1 FROM DUAL"})
         tm.that(cmd.sql, eq="SELECT 1 FROM DUAL")
         tm.that(cmd.parameters, none=True)
 

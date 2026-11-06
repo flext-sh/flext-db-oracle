@@ -8,8 +8,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
+from pydantic import ValidationError
 from sqlalchemy import text
 
 from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
@@ -18,7 +19,7 @@ from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t
 class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     """Mixin providing query execution for FlextDbOracleServices.
 
-    Handles: execute_query, execute_statement, execute_many, fetch_one.
+    Handles: execute_query, execute_statement, execute_many, fetch_one, fetch_models.
     """
 
     # flext-1wjg1.16: see services/plugin.py -- explicit wrapper keeps this
@@ -41,13 +42,15 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             The resulting ``p.Result[int]``.
 
         """
+        if not params_list:
+            return r[int].ok(value=0)
         engine_result = self._get_engine()
         if engine_result.failure:
             return r[int].from_failure(engine_result)
         batch = [
-            params.root
-            if isinstance(params, m.ConfigMap)
-            else m.ConfigMap.model_validate(params).root
+            m.ConfigMap.model_validate(params).root
+            if isinstance(params, Mapping)
+            else params.root
             for params in params_list
         ]
         try:
@@ -60,8 +63,8 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     def execute_query(
         self,
         sql: str,
-        params: m.ConfigMap | None = None,
-    ) -> p.Result[Sequence[m.Dict]]:
+        params: p.ConfigMap | None = None,
+    ) -> p.Result[Sequence[p.Dict]]:
         """Execute SQL query and return its rows with driver-native values.
 
         Returns:
@@ -106,6 +109,36 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         return self.execute_query(sql, params).map(
             lambda rows: rows[0] if rows else None,
         )
+
+    def fetch_models[T: p.BaseModel](
+        self,
+        sql: str | t.DbOracle.SqlExecutable,
+        params: p.ConfigMap | None = None,
+        *,
+        model: type[T],
+    ) -> p.Result[Sequence[T]]:
+        """Validate native rows fetched through the service's pooled connection.
+
+        Returns:
+            The validated rows or a typed query or validation failure.
+
+        """
+        engine_result = self._get_engine()
+        if engine_result.failure:
+            return r[Sequence[T]].from_failure(engine_result)
+        try:
+            with self._engine_connect(engine_result.value) as connection:
+                rows = self.fetch_models_on_connection(
+                    sql,
+                    params.root if params is not None else None,
+                    model=model,
+                    connection=connection,
+                )
+            return r[Sequence[T]].ok(rows)
+        except c.DbOracle.EXC_DB_BROAD as exc:
+            return r[Sequence[T]].fail_op("Typed query execution", exc)
+        except ValidationError as exc:
+            return r[Sequence[T]].fail_op("Row validation", exc)
 
 
 __all__: list[str] = ["FlextDbOracleServiceQuery"]

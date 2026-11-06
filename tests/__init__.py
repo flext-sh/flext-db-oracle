@@ -46,11 +46,21 @@ if TYPE_CHECKING:
     )
     from tests.base import TestsFlextDbOracleServiceBase, s
     from tests.constants import TestsFlextDbOracleConstants, c
+    from tests.dependencies import (
+        FlextDbOracleServices,
+        FlextExceptions,
+        FlextTestsDocker,
+        FlextTestsServiceBase,
+        FlextTestsSettings,
+    )
     from tests.models import TestsFlextDbOracleModels, m
     from tests.protocols import TestsFlextDbOracleProtocols, p
     from tests.settings import TestsFlextDbOracleSettings
     from tests.typings import TestsFlextDbOracleTypes, t
-    from tests.unit import TestsFlextDbOracleStatementBuilders
+    from tests.unit import (
+        TestsFlextDbOracleDriverSession,
+        TestsFlextDbOracleStatementBuilders,
+    )
     from tests.utilities import TestsFlextDbOracleUtilities, u
 
 
@@ -66,11 +76,17 @@ __all__: tuple[str, ...] = (
     "FlextDbOracleModelsConfig",
     "FlextDbOracleProtocols",
     "FlextDbOracleServiceBase",
+    "FlextDbOracleServices",
     "FlextDbOracleSettings",
     "FlextDbOracleTypes",
     "FlextDbOracleUtilities",
     "FlextDbOracleVersion",
+    "FlextExceptions",
+    "FlextTestsDocker",
+    "FlextTestsServiceBase",
+    "FlextTestsSettings",
     "TestsFlextDbOracleConstants",
+    "TestsFlextDbOracleDriverSession",
     "TestsFlextDbOracleModels",
     "TestsFlextDbOracleProtocols",
     "TestsFlextDbOracleServiceBase",
@@ -123,11 +139,17 @@ install_lazy_exports(
         "FlextDbOracleModelsConfig": "flext_db_oracle",
         "FlextDbOracleProtocols": "flext_db_oracle",
         "FlextDbOracleServiceBase": "flext_db_oracle",
+        "FlextDbOracleServices": ".dependencies",
         "FlextDbOracleSettings": "flext_db_oracle",
         "FlextDbOracleTypes": "flext_db_oracle",
         "FlextDbOracleUtilities": "flext_db_oracle",
         "FlextDbOracleVersion": "flext_db_oracle",
+        "FlextExceptions": ".dependencies",
+        "FlextTestsDocker": ".dependencies",
+        "FlextTestsServiceBase": ".dependencies",
+        "FlextTestsSettings": ".dependencies",
         "TestsFlextDbOracleConstants": ".constants",
+        "TestsFlextDbOracleDriverSession": ".unit",
         "TestsFlextDbOracleModels": ".models",
         "TestsFlextDbOracleProtocols": ".protocols",
         "TestsFlextDbOracleServiceBase": ".base",

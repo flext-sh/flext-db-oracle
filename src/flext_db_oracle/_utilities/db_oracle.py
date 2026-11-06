@@ -10,28 +10,32 @@ import hashlib
 import threading
 from collections.abc import Mapping, Sequence
 from enum import StrEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 from urllib.parse import quote_plus
 
 import oracledb
 from flext_cli import u
+from flext_core import FlextTypingNativeExport
 from sqlalchemy import (
     Connection as SAConnection,
     Engine as SAEngine,
     TextClause,
     create_engine,
-    text,
+    event,
+    func as _sqlalchemy_func,
+    select as _sqlalchemy_select,
+    text as _sqlalchemy_text,
 )
 from sqlalchemy.exc import DatabaseError as SADatabaseError
 from sqlalchemy.orm import aliased as _sqlalchemy_aliased
 
 from flext_db_oracle import c, m, p, r, settings, t
-from flext_db_oracle._models import FlextDbOracleModelsConnection
 
 if TYPE_CHECKING:
     import contextlib
 
     from sqlalchemy.engine import CursorResult
+    from sqlalchemy.pool import ConnectionPoolEntry, PoolProxiedConnection
 
 
 class FlextDbOracleUtilitiesDbOracle:
@@ -59,9 +63,9 @@ class FlextDbOracleUtilitiesDbOracle:
     # Statement builders published natively (every overload kept):
     # `u.DbOracle.select(*columns)`, `u.DbOracle.func.count()` and
     # `u.DbOracle.aliased(Model)`.
-    select = staticmethod(_sqlalchemy_select)
-    func = _sqlalchemy_func
-    aliased = staticmethod(_sqlalchemy_aliased)
+    select = FlextTypingNativeExport(_sqlalchemy_select)
+    func = FlextTypingNativeExport(_sqlalchemy_func)
+    aliased = FlextTypingNativeExport(_sqlalchemy_aliased)
 
     @staticmethod
     def text(statement: str) -> TextClause:
@@ -231,23 +235,78 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @staticmethod
     def engine(
-        url: str, options: FlextDbOracleModelsConnection.EngineOptions
+        url: str,
+        options: p.DbOracle.EngineOptions,
+        *,
+        connect_args: Mapping[str, t.Scalar] | None = None,
     ) -> SAEngine:
-        """Build the Oracle SQLAlchemy engine declared by ``settings``.
+        """Build a SQLAlchemy engine through the database facade.
 
-        ``settings.DbOracle.dsn`` (TNS descriptor or alias), when set, is the
-        driver ``dsn``; otherwise host/port/service_name form the URL. The
-        privilege ``mode`` maps to the oracledb auth mode (SYSDBA logins
-        reject a normal connection with ORA-28009), ``pool_min``/``pool_max``
-        become ``pool_size``/``max_overflow`` and ``connect_args`` adds driver
-        arguments the settings do not own.
+        SQLAlchemy is owned by flext-db-oracle: consumers construct engines
+        here instead of importing the library. ``options.mode`` maps to the
+        oracledb privilege mode (SYSDBA logins reject a normal connection with
+        ORA-28009); ``options.dsn`` carries a TNS descriptor or alias.
 
         Returns:
-            The unconnected engine; the first checkout opens the session.
+            The resulting ``SAEngine``.
 
         Raises:
-            ValueError: The password is empty, or ``connect_args`` repeats an
-                argument the settings already own.
+            ValueError: An extra argument repeats a typed driver option.
+
+        """
+        driver_args: dict[str, t.Scalar] = {}
+        if options.dsn is not None:
+            driver_args["dsn"] = options.dsn
+        if options.connect_timeout is not None:
+            driver_args["tcp_connect_timeout"] = options.connect_timeout
+        if options.mode is not None:
+            driver_args["mode"] = (
+                oracledb.AUTH_MODE_SYSDBA
+                if options.mode == "SYSDBA"
+                else oracledb.AUTH_MODE_SYSOPER
+            )
+        pool: dict[str, int] = {
+            name: value
+            for name, value in (
+                ("pool_size", options.pool_size),
+                ("max_overflow", options.max_overflow),
+            )
+            if value is not None
+        }
+        if connect_args is not None:
+            conflicting = sorted(driver_args.keys() & connect_args.keys())
+            if conflicting:
+                msg = (
+                    "connect_args repeat settings-owned driver arguments: "
+                    f"{conflicting}"
+                )
+                raise ValueError(msg)
+            driver_args.update(connect_args)
+        engine = create_engine(
+            url,
+            pool_pre_ping=True,
+            pool_recycle=options.pool_recycle,
+            echo=False,
+            connect_args=driver_args,
+            **pool,
+        )
+        event.listen(engine, "checkout", FlextDbOracleUtilitiesDbOracle._track_checkout)
+        event.listen(engine, "checkin", FlextDbOracleUtilitiesDbOracle._track_checkin)
+        return engine
+
+    @classmethod
+    def build_engine(
+        cls,
+        settings: t.DbOracle.Settings,
+        connect_args: Mapping[str, t.Scalar] | None = None,
+    ) -> SAEngine:
+        """Build an unconnected engine from the namespace's driver and pool settings.
+
+        Returns:
+            The engine used for Oracle connection checkout.
+
+        Raises:
+            ValueError: Credentials are incomplete or a driver option is duplicated.
 
         """
         oracle = settings.DbOracle
@@ -258,41 +317,66 @@ class FlextDbOracleUtilitiesDbOracle:
             f"oracle+oracledb://{quote_plus(oracle.username)}"
             f":{quote_plus(oracle.password)}@"
         )
-        driver_args: dict[str, t.Scalar] = {"tcp_connect_timeout": oracle.timeout}
-        if oracle.dsn is None:
-            url = (
-                f"{credentials}{oracle.host}:{oracle.port}"
-                f"/?service_name={quote_plus(oracle.service_name)}"
-            )
-        else:
-            url = credentials
-            driver_args["dsn"] = oracle.dsn
-        if oracle.mode is not None:
-            driver_args["mode"] = (
-                oracledb.AUTH_MODE_SYSDBA
-                if oracle.mode == "SYSDBA"
-                else oracledb.AUTH_MODE_SYSOPER
-            )
-        extra_args = connect_args or {}
-        conflicting = sorted(driver_args.keys() & extra_args.keys())
-        if conflicting:
-            msg = f"connect_args repeat settings-owned driver arguments: {conflicting}"
-            raise ValueError(msg)
-        driver_args.update(extra_args)
-        return create_engine(
+        url = (
+            f"{credentials}{oracle.host}:{oracle.port}"
+            f"/?service_name={quote_plus(oracle.service_name)}"
+            if oracle.dsn is None
+            else credentials
+        )
+        return cls.engine(
             url,
-            pool_size=oracle.pool_min,
-            max_overflow=oracle.pool_max - oracle.pool_min,
-            pool_pre_ping=True,
-            pool_recycle=c.DbOracle.DEFAULT_POOL_RECYCLE,
-            echo=False,
-            connect_args=driver_args,
+            m.DbOracle.EngineOptions(
+                dsn=oracle.dsn,
+                mode=oracle.mode,
+                connect_timeout=oracle.timeout,
+                pool_size=oracle.pool_min,
+                max_overflow=oracle.pool_max - oracle.pool_min,
+            ),
+            connect_args=connect_args,
         )
 
+    @classmethod
+    def _track_checkout(
+        cls,
+        dbapi_connection: object,
+        _record: ConnectionPoolEntry,
+        _proxy: PoolProxiedConnection,
+    ) -> None:
+        if isinstance(dbapi_connection, oracledb.Connection):
+            with cls._CHECKED_OUT_LOCK:
+                cls._CHECKED_OUT.add(dbapi_connection)
+
+    @classmethod
+    def _track_checkin(
+        cls, dbapi_connection: object, _record: ConnectionPoolEntry
+    ) -> None:
+        if isinstance(dbapi_connection, oracledb.Connection):
+            with cls._CHECKED_OUT_LOCK:
+                cls._CHECKED_OUT.discard(dbapi_connection)
+
+    @classmethod
+    def cancel_active(cls) -> int:
+        """Break the server call of every checked-out driver connection.
+
+        ``oracledb.Connection.cancel`` is the driver's thread-safe break: the
+        server aborts the running call with ORA-01013 and rolls it back. Meant
+        for a process's SIGTERM/SIGINT handler, so a killed CLI leaves no
+        session executing on the database.
+
+        Returns:
+            How many connections received the break.
+
+        """
+        with cls._CHECKED_OUT_LOCK:
+            active = tuple(cls._CHECKED_OUT)
+        for connection in active:
+            connection.cancel()
+        return len(active)
+
     @staticmethod
-    def fetch_models[M: m.BaseModel](
-        sql: str,
-        params: Mapping[str, t.Scalar | None] | None = None,
+    def fetch_models_on_connection[M: p.BaseModel](
+        sql: str | t.DbOracle.SqlExecutable,
+        params: Mapping[str, t.JsonPayload] | None = None,
         *,
         model: type[M],
         connection: SAConnection,
@@ -307,7 +391,8 @@ class FlextDbOracleUtilitiesDbOracle:
             One ``model`` instance per row, in result order.
 
         """
-        result = connection.execute(text(sql), dict(params or {}))
+        statement = _sqlalchemy_text(sql) if isinstance(sql, str) else sql
+        result = connection.execute(statement, dict(params or {}))
         return [model.model_validate(dict(row)) for row in result.mappings()]
 
     @staticmethod

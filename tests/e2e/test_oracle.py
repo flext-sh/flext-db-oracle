@@ -19,33 +19,33 @@ from tests import FlextDbOracleApi, FlextDbOracleSettings, c, p, t, tm, u
 _NOT_CONNECTED = "not connected to database"
 
 
-@c.Tests.MARK.docker
+@u.Tests.fixture
+def offline_settings() -> FlextDbOracleSettings:
+    """Return settings for an unreachable host in offline contract tests."""
+    return FlextDbOracleSettings.model_validate({
+        "DbOracle": {
+            "host": "nonexistent-host.invalid",
+            "port": 9999,
+            c.ContextKey.SERVICE_NAME: "INVALID_DB",
+            "username": "invalid_user",
+            "password": "p" + c.ParserBooleanToken.ONE * 10,
+        },
+    })
+
+
+@u.Tests.fixture
+def offline_api(offline_settings: FlextDbOracleSettings) -> FlextDbOracleApi:
+    """Unconnected API instance for pure-logic and error-path behavior.
+
+    Returns:
+        The resulting ``FlextDbOracleApi``.
+
+    """
+    return FlextDbOracleApi(offline_settings)
+
+
 class TestsFlextDbOracleOracle:
     """Behavioral end-to-end tests for the Oracle API public contract."""
-
-    @u.Tests.fixture
-    def offline_settings() -> FlextDbOracleSettings:
-        """Return settings for an unreachable host in offline contract tests."""
-        return FlextDbOracleSettings.model_validate({
-            "DbOracle": {
-                "host": "nonexistent-host.invalid",
-                "port": 9999,
-                c.ContextKey.SERVICE_NAME: "INVALID_DB",
-                "username": "invalid_user",
-                "password": "p" + c.ParserBooleanToken.ONE * 10,
-            },
-        })
-
-    @u.Tests.fixture
-    @staticmethod
-    def offline_api(offline_settings: FlextDbOracleSettings) -> FlextDbOracleApi:
-        """Unconnected API instance for pure-logic and error-path behavior.
-
-        Returns:
-            The resulting ``FlextDbOracleApi``.
-
-        """
-        return FlextDbOracleApi(offline_settings)
 
     @staticmethod
     def test_env_vars_populate_settings_namespace() -> None:

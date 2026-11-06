@@ -25,7 +25,7 @@ class TestsFlextDbOracleUtilitiesUnit:
     # checker-visible type expression (aliases unwrap to the same adapter).
     # Concrete generics only: bare PEP 695 aliases in a runtime union collapse
     # to UnionType/TypeAliasType objects, which the adapter form rejects.
-    _JSON_RESULT_ADAPTER: u.type_adapter[
+    _JSON_RESULT_ADAPTER: t.TypeAdapter[
         Sequence[Mapping[str, int | str | bool]]
         | Sequence[Mapping[str, str]]
         | Sequence[Mapping[str, int]]

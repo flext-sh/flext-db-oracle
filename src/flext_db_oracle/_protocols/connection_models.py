@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from flext_cli import p
 
     from flext_db_oracle import t
-    from flext_db_oracle._typings import FlextDbOracleTypesDbOracle
 
 
 class FlextDbOracleProtocolsConnectionModels:
@@ -80,7 +79,7 @@ class FlextDbOracleProtocolsConnectionModels:
             ...
 
         @property
-        def mode(self) -> FlextDbOracleTypesDbOracle.DbOracle.PrivilegeMode | None:
+        def mode(self) -> t.DbOracle.PrivilegeMode | None:
             """Oracledb privilege mode (SYSDBA/SYSOPER); None = normal."""
             ...
 
