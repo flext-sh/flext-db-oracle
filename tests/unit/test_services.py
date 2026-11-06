@@ -72,7 +72,7 @@ class TestsFlextDbOracleServices:
                     "port": 19999,
                     c.ContextKey.SERVICE_NAME: "INVALID",
                     "username": "invalid",
-                    "password": "invalid",
+                    "password": u.Tests.oracle_test_password(),
                     "timeout": 1,
                 },
             }),
@@ -544,7 +544,7 @@ class TestsFlextDbOracleServicesOfflineData:
                 "port": 1522,
                 c.ContextKey.SERVICE_NAME: "XE",
                 "username": "app",
-                "password": "secret",
+                "password": u.Tests.oracle_test_password(),
             },
         })
         tm.that(settings.DbOracle.host, eq="dbhost")
@@ -561,7 +561,7 @@ class TestsFlextDbOracleServicesOfflineData:
                     "port": 19999,
                     c.ContextKey.SERVICE_NAME: "INVALID",
                     "username": "invalid",
-                    "password": "invalid",
+                    "password": u.Tests.oracle_test_password(),
                     "timeout": 1,
                 },
             }),

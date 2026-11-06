@@ -417,7 +417,7 @@ class TestsFlextDbOracleModelSettings:
                 "host": "test.com",
                 "port": 1522,
                 "username": c.ContextScope.USER,
-                "password": "pass",
+                "password": u.Tests.oracle_test_password(),
             },
         })
         serialized = settings.model_dump()

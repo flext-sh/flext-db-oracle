@@ -54,8 +54,9 @@ class TestsFlextDbOracleDriverSession:
             The validated settings instance.
 
         """
+        part = u.Tests.oracle_test_password()
         return FlextDbOracleSettings.model_validate({
-            "DbOracle": {"username": "app", "password": "s3cr:t@x", **overrides},
+            "DbOracle": {"username": "app", "password": f"{part}:t@x", **overrides},
         })
 
     @classmethod
@@ -123,7 +124,7 @@ class TestsFlextDbOracleDriverSession:
         tm.that(engine.url.port, eq=1530)
         tm.that(engine.url.query["service_name"], eq="ORCLPDB")
         tm.that(engine.url.username, eq="app")
-        tm.that(engine.url.password, eq="s3cr:t@x")
+        tm.that(engine.url.password, eq=settings.DbOracle.password)
         pool = engine.pool
         if not isinstance(pool, QueuePool):
             pytest.fail("Oracle engine must use a queue pool")

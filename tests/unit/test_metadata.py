@@ -100,7 +100,7 @@ class TestsFlextDbOracleMetadata:
                 "port": 1521,
                 c.ContextKey.SERVICE_NAME: "TEST",
                 "username": "test",
-                "password": "test",
+                "password": u.Tests.oracle_test_password(),
             },
         })
 

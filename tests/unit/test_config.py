@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from tests import FlextDbOracleSettings, c, tm
+from tests import FlextDbOracleSettings, c, tm, u
 
 
 class TestsFlextDbOracleSettings:
@@ -54,20 +54,21 @@ class TestsFlextDbOracleSettings:
     @staticmethod
     def test_namespace_overrides_round_trip() -> None:
         """Caller-provided DbOracle values are stored and readable."""
+        password = u.Tests.oracle_test_password()
         settings = FlextDbOracleSettings.model_validate({
             "DbOracle": {
                 "host": "db.internal",
                 "port": 1522,
                 "username": "appuser",
                 c.ContextKey.SERVICE_NAME: "PRODSVC",
-                "password": "apppass",
+                "password": password,
             },
         })
         tm.that(settings.DbOracle.host, eq="db.internal")
         tm.that(settings.DbOracle.port, eq=1522)
         tm.that(settings.DbOracle.username, eq="appuser")
         tm.that(settings.DbOracle.service_name, eq="PRODSVC")
-        tm.that(settings.DbOracle.password, eq="apppass")
+        tm.that(settings.DbOracle.password, eq=password)
 
     @staticmethod
     def test_sid_only_configuration_is_accepted_without_service_name() -> None:
