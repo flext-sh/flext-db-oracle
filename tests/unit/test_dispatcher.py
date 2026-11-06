@@ -6,17 +6,22 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
-
-from flext_db_oracle import FlextDbOracleDispatcher, FlextDbOracleSettings
-from flext_db_oracle.services import FlextDbOracleServices
-from tests import m, p, tm
+from tests import (
+    FlextDbOracleDispatcher,
+    FlextDbOracleServices,
+    FlextDbOracleSettings,
+    c,
+    m,
+    p,
+    tm,
+    u,
+)
 
 
 class TestsFlextDbOracleDispatcher:
     """Observable public contract of the Oracle dispatcher and its command surface."""
 
-    @pytest.fixture
+    @u.Tests.fixture
     @staticmethod
     def services() -> FlextDbOracleServices:
         """Oracle services wired to non-connecting placeholder settings.
@@ -76,7 +81,7 @@ class TestsFlextDbOracleDispatcher:
         tm.that(cmd.parameters, eq={"limit": 10})
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "command_type",
         [
             m.DbOracle.ExecuteQueryCommand,
@@ -93,7 +98,7 @@ class TestsFlextDbOracleDispatcher:
         tm.that(cmd.parameters, none=True)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "command_type",
         [
             m.DbOracle.ExecuteQueryCommand,
@@ -110,7 +115,7 @@ class TestsFlextDbOracleDispatcher:
         # intentionally untyped) instead of a direct/unpacked call, so
         # pyrefly does not statically flag the deliberately-omitted required
         # `sql` -- the runtime ValidationError is exactly what this asserts.
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             command_type.model_validate({})
 
     @staticmethod
@@ -131,7 +136,7 @@ class TestsFlextDbOracleDispatcher:
         tm.that(cmd.schema_name, eq="HR")
 
     @staticmethod
-    @pytest.mark.parametrize(("schema_name", "expected"), [("HR", "HR"), (None, None)])
+    @c.Tests.MARK.parametrize(("schema_name", "expected"), [("HR", "HR"), (None, None)])
     def test_get_tables_command_schema_is_optional(
         schema_name: str | None,
         expected: str | None,

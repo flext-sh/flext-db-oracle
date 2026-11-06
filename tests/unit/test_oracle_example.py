@@ -14,11 +14,16 @@ from __future__ import annotations
 import contextlib
 from collections.abc import Sequence
 
-import pytest
-
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from flext_db_oracle.services import FlextDbOracleServices
-from tests import c, p, t, tm, u
+from tests import (
+    FlextDbOracleApi,
+    FlextDbOracleServices,
+    FlextDbOracleSettings,
+    c,
+    p,
+    t,
+    tm,
+    u,
+)
 
 
 class TestsFlextDbOracleOracleExample:
@@ -214,7 +219,7 @@ class TestsFlextDbOracleOracleExample:
         tm.ok(len(result.value) > 0)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("singer_type", "format_hint", "expected_fragment"),
         [
             ("string", None, "VARCHAR2(4000)"),
@@ -274,7 +279,7 @@ class TestsFlextDbOracleOracleExample:
     # ------------------------------------------------------------------
 
     @staticmethod
-    @pytest.mark.docker
+    @c.Tests.MARK.docker
     def test_connect_with_invalid_credentials_fails_with_reason() -> None:
         """Connecting with bad credentials yields a failing result.
 

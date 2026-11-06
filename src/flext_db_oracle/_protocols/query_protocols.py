@@ -12,10 +12,15 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 from pydantic import BaseModel
 
 if TYPE_CHECKING:
+    from flext_cli import p
     from flext_core._protocols import FlextProtocolsResult
     from sqlalchemy import Executable
 
     from flext_db_oracle import t
+    from flext_db_oracle._protocols import (
+        FlextDbOracleProtocolsConnectionModels,
+        FlextDbOracleProtocolsSchemaModels,
+    )
 
 
 class FlextDbOracleProtocolsQuery:
@@ -121,7 +126,9 @@ class FlextDbOracleProtocolsQuery:
             self,
             table: str,
             schema: str | None = None,
-        ) -> FlextProtocolsResult.Result[Sequence[p.DbOracle.Column]]:
+        ) -> FlextProtocolsResult.Result[
+            Sequence[FlextDbOracleProtocolsSchemaModels.Column]
+        ]:
             """Get column information for Oracle table.
 
             Args:
@@ -164,7 +171,9 @@ class FlextDbOracleProtocolsQuery:
             self,
             table: str,
             schema: str | None = None,
-        ) -> FlextProtocolsResult.Result[p.DbOracle.TableMetadata]:
+        ) -> FlextProtocolsResult.Result[
+            FlextDbOracleProtocolsSchemaModels.TableMetadata
+        ]:
             """Get Oracle table metadata.
 
             Args:
@@ -307,7 +316,7 @@ class FlextDbOracleProtocolsQuery:
         def create_table_ddl(
             self,
             table: str,
-            columns: Sequence[p.DbOracle.Column],
+            columns: Sequence[FlextDbOracleProtocolsSchemaModels.Column],
             schema: str | None = None,
         ) -> FlextProtocolsResult.Result[str]:
             """Generate Oracle CREATE TABLE DDL.
@@ -344,7 +353,11 @@ class FlextDbOracleProtocolsQuery:
     class MetricsCollector(Protocol):
         """Protocol for Oracle database metrics collection."""
 
-        def fetch_metrics(self) -> FlextProtocolsResult.Result[p.DbOracle.HealthStatus]:
+        def fetch_metrics(
+            self,
+        ) -> FlextProtocolsResult.Result[
+            FlextDbOracleProtocolsConnectionModels.HealthStatus
+        ]:
             """Get collected Oracle metrics.
 
             Returns:

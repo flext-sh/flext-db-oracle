@@ -8,9 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-import pytest
-
-from tests import c, tm
+from tests import c, tm, u
 
 
 class TestsFlextDbOracleConftestConstants:
@@ -43,7 +41,7 @@ class TestsFlextDbOracleConftestConstants:
         tm.that(config, is_=Mapping)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("key", "expected"),
         [
             ("service", "oracle-db"),
@@ -76,5 +74,5 @@ class TestsFlextDbOracleConftestConstants:
     def test_missing_container_lookup_raises_key_error() -> None:
         # Error path: unknown container names are not silently defaulted.
         """Test missing container lookup raises key error."""
-        with pytest.raises(KeyError):
+        with u.Tests.raises(KeyError):
             _ = c.Tests.SHARED_CONTAINERS["flext-nonexistent-test"]

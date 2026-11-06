@@ -9,18 +9,18 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import ClassVar
 
-from flext_cli import m, p
+from flext_cli import m
 
-from flext_db_oracle import c, p, t
+from flext_db_oracle import c, t
 
 
-class FlextModelsDbOracleQuery:
+class FlextDbOracleModelsQuery:
     """Oracle Database query models composed into ``m.DbOracle``."""
 
     class DbOracleDomainModel(m.BaseModel):
         """Base model for FlextDbOracle with standard Pydantic v2 configuration."""
 
-        model_config: ClassVar[p.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             use_enum_values=True,
             validate_default=True,
             str_strip_whitespace=True,
@@ -31,7 +31,7 @@ class FlextModelsDbOracleQuery:
         """Typed row payload for query results."""
 
         values: t.JsonList = m.Field(
-            default_factory=tuple[t.JsonValue, ...],
+            default_factory=tuple,
             description="Row column values",
         )
 
@@ -45,13 +45,13 @@ class FlextModelsDbOracleQuery:
     class QueryResult(m.Entity):
         """Query result using flext-core Entity."""
 
-        model_config: ClassVar[p.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             frozen=False, extra="ignore", strict=False
         )
 
         query: str = m.Field(description="SQL query that produced the result")
         result_data: t.JsonList = m.Field(
-            default_factory=tuple[t.JsonValue, ...],
+            default_factory=tuple,
             description="Raw result data from query execution",
         )
         row_count: t.NonNegativeInt = m.Field(
@@ -67,10 +67,10 @@ class FlextModelsDbOracleQuery:
 
         # Additional Oracle-specific query result details
         columns: Sequence[str] = m.Field(
-            default_factory=tuple[str, ...],
+            default_factory=tuple,
             description="Column names in result set",
         )
-        rows: Sequence[FlextModelsDbOracleQuery.RowData] = m.Field(
+        rows: Sequence[FlextDbOracleModelsQuery.RowData] = m.Field(
             default_factory=lambda: (),
             description="Typed row data from query result",
         )
@@ -161,11 +161,11 @@ class FlextModelsDbOracleQuery:
         @m.model_validator(mode="after")
         def validate_query_result_consistency(
             self,
-        ) -> FlextModelsDbOracleQuery.QueryResult:
+        ) -> FlextDbOracleModelsQuery.QueryResult:
             """Validate query result consistency.
 
             Returns:
-                The resulting ``FlextModelsDbOracle.DbOracle.QueryResult``.
+                The resulting ``FlextDbOracleModels.DbOracle.QueryResult``.
 
             Raises:
                 ValueError: If Execution time cannot be negative; or if Row length.
@@ -187,4 +187,4 @@ class FlextModelsDbOracleQuery:
             return self
 
 
-__all__: list[str] = ["FlextModelsDbOracleQuery"]
+__all__: list[str] = ["FlextDbOracleModelsQuery"]

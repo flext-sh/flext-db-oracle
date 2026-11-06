@@ -8,10 +8,10 @@ from __future__ import annotations
 
 from flext_cli import m
 
-from flext_db_oracle.config_models import FlextModelsDbOracleConfig
+from flext_db_oracle.config_models import FlextDbOracleModelsConfig
 
 
-class FlextModelsDbOracleBase(FlextModelsDbOracleConfig):
+class FlextDbOracleModelsBase(FlextDbOracleModelsConfig):
     """Base models for flext-db-oracle."""
 
     class CredentialRoot(m.RootModel[str]):
@@ -24,4 +24,4 @@ class FlextModelsDbOracleBase(FlextModelsDbOracleConfig):
         )
 
 
-__all__: list[str] = ["FlextModelsDbOracleBase"]
+__all__: list[str] = ["FlextDbOracleModelsBase"]

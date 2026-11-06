@@ -13,10 +13,10 @@ from typing import cast
 from flext_cli import m
 
 from flext_db_oracle import t
-from flext_db_oracle._models import FlextModelsDbOracleQuery
+from flext_db_oracle._models import FlextDbOracleModelsQuery
 
 
-class FlextModelsDbOracleSchema:
+class FlextDbOracleModelsSchema:
     """Oracle Database schema models composed into ``m.DbOracle``."""
 
     class TableMetadata(m.Entity):
@@ -28,12 +28,12 @@ class FlextModelsDbOracleSchema:
             description="Oracle schema name",
             validate_default=True,
         )
-        columns: Sequence[FlextModelsDbOracleQuery.ColumnMetadata] = m.Field(
+        columns: Sequence[FlextDbOracleModelsQuery.ColumnMetadata] = m.Field(
             default_factory=lambda: (),
             description="Column metadata for the table",
         )
         primary_keys: Sequence[str] = m.Field(
-            default_factory=tuple[str, ...],
+            default_factory=tuple,
             description="Primary key column names",
         )
 
@@ -105,10 +105,10 @@ class FlextModelsDbOracleSchema:
     class SingerSchema(m.Entity):
         """Singer schema container with typed properties."""
 
-        properties: Mapping[str, FlextModelsDbOracleSchema.SingerField] = m.Field(
+        properties: Mapping[str, FlextDbOracleModelsSchema.SingerField] = m.Field(
             default_factory=lambda: MappingProxyType(
                 cast(
-                    "dict[str, FlextModelsDbOracleSchema.SingerField]",
+                    "dict[str, FlextDbOracleModelsSchema.SingerField]",
                     {},
                 ),
             ),
@@ -124,7 +124,7 @@ class FlextModelsDbOracleSchema:
             description="Table owner or schema",
             validate_default=True,
         )
-        columns: Sequence[FlextModelsDbOracleSchema.Column] = m.Field(
+        columns: Sequence[FlextDbOracleModelsSchema.Column] = m.Field(
             default_factory=lambda: (),
             description="Column definitions for the table",
         )
@@ -189,7 +189,7 @@ class FlextModelsDbOracleSchema:
         """Schema metadata using flext-core Entity."""
 
         name: str = m.Field(description="Schema name")
-        tables: Sequence[FlextModelsDbOracleSchema.Table] = m.Field(
+        tables: Sequence[FlextDbOracleModelsSchema.Table] = m.Field(
             default_factory=lambda: (),
             description="Tables within this schema",
         )
@@ -224,4 +224,4 @@ class FlextModelsDbOracleSchema:
         )
 
 
-__all__: list[str] = ["FlextModelsDbOracleSchema"]
+__all__: list[str] = ["FlextDbOracleModelsSchema"]

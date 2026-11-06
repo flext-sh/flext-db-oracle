@@ -6,10 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
-
-from flext_db_oracle import FlextDbOracleExceptions
-from tests import e, tm
+from tests import FlextDbOracleExceptions, c, e, tm, u
 
 
 class TestsFlextDbOracleExceptions:
@@ -31,7 +28,7 @@ class TestsFlextDbOracleExceptions:
 
         """
         message = "explode now"
-        with pytest.raises(e.BaseError, match="explode"):
+        with u.Tests.raises(e.BaseError, match="explode"):
             raise FlextDbOracleExceptions.Error(message)
 
     @staticmethod
@@ -89,10 +86,10 @@ class TestsFlextDbOracleExceptions:
         )
 
         tm.that(error.query_id, eq="q-42")
-        tm.that(error.elapsed_time, eq=pytest.approx(12.5))
+        tm.that(error.elapsed_time, eq=u.Tests.approx(12.5))
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("factory", "base"),
         [
             (FlextDbOracleExceptions.Error, e.BaseError),
@@ -115,7 +112,7 @@ class TestsFlextDbOracleExceptions:
         tm.that(FlextDbOracleExceptions.__mro__, has=e)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "factory",
         [
             FlextDbOracleExceptions.Error,
@@ -129,7 +126,7 @@ class TestsFlextDbOracleExceptions:
     ) -> None:
         """Each Oracle error can be raised and caught as a builtin Exception."""
         message = "raised message"
-        with pytest.raises(Exception, match="raised message") as exc_info:
+        with u.Tests.raises(Exception, match="raised message") as exc_info:
             raise factory(message)
 
         tm.that(str(exc_info.value), has="raised message")

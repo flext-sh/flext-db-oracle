@@ -14,9 +14,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle import FlextDbOracleSettings
-from flext_db_oracle.services import FlextDbOracleServices
-from tests import p, t, tm
+from tests import FlextDbOracleServices, FlextDbOracleSettings, p, t, tm
 
 # (public name, protocol class, promised method surface) — the contract each
 # Oracle domain protocol advertises to implementers.

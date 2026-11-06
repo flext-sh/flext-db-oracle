@@ -79,7 +79,7 @@ from datetime import UTC, datetime
 from flext_core import p
 
 from flext_db_oracle import FlextDbOracleSettings, m
-from flext_db_oracle.services import (
+from flext_db_oracle import (
     FlextDbOracleServiceConnection,
     FlextDbOracleServiceQuery,
     FlextDbOracleServiceSchema,

@@ -19,11 +19,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, TypeVar
 
-import pytest
-
-from flext_db_oracle import FlextDbOracleSettings
-from flext_db_oracle.services import FlextDbOracleServices
-from tests import c, m, p, tm
+from tests import FlextDbOracleServices, FlextDbOracleSettings, c, m, p, tm, u
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -94,7 +90,7 @@ def _call_test_connection(services: FlextDbOracleServices) -> p.Result[bool]:
 class TestsFlextDbOracleMetadata:
     """Public-contract tests for Oracle metadata introspection."""
 
-    @pytest.fixture
+    @u.Tests.fixture
     @staticmethod
     def settings() -> FlextDbOracleSettings:
         """Return in-memory Oracle settings pointing at no reachable host."""
@@ -108,7 +104,7 @@ class TestsFlextDbOracleMetadata:
             },
         })
 
-    @pytest.fixture
+    @u.Tests.fixture
     @staticmethod
     def services(settings: FlextDbOracleSettings) -> FlextDbOracleServices:
         """Return a freshly composed, unconnected services facade."""
@@ -144,7 +140,7 @@ class TestsFlextDbOracleMetadata:
         tm.that(value, eq=settings)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("label", "call"),
         [
             ("fetch_schemas", _call_fetch_schemas),
@@ -197,7 +193,7 @@ class TestsFlextDbOracleMetadata:
         tm.that(value, eq=["RECOVERED"])
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("data_type", "nullable"),
         [("NUMBER", False), ("VARCHAR2", True), ("DATE", True)],
     )

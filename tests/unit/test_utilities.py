@@ -14,13 +14,10 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
-import pytest
-
-from flext_db_oracle import FlextDbOracleSettings
-from tests import c, t, tm, u
+from tests import FlextDbOracleSettings, c, t, tm, u
 
 
-@pytest.mark.unit
+@c.Tests.MARK.unit
 class TestsFlextDbOracleUtilitiesUnit:
     """Behavioral contract for u.DbOracle Oracle helper utilities."""
 
@@ -172,7 +169,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         )
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("raw", "expected"),
         [("", ""), ("   \n\t  ", "")],
         ids=["empty", "whitespace-only"],
@@ -189,7 +186,7 @@ class TestsFlextDbOracleUtilitiesUnit:
     # ------------------------------------------------------------------ #
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("identifier", "expected"),
         [("users", "users"), ("userTable", "userTable"), ("user_table", "user_table")],
     )
@@ -201,7 +198,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         tm.that(tm.ok(u.DbOracle.escape_oracle_identifier(identifier)), eq=expected)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("identifier", "error_substring"),
         [
             ("user's", "Invalid Oracle identifier"),
@@ -244,7 +241,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         tm.ok(tm.ok(u.DbOracle.validate_identifier("VALID_TABLE")))
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("identifier", "error_substring"),
         [
             ("", "Empty"),
@@ -264,7 +261,7 @@ class TestsFlextDbOracleUtilitiesUnit:
     # format_query_result                                                #
     # ------------------------------------------------------------------ #
 
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "data",
         [
             [{"id": 1, "name": "John", "active": True}],
@@ -302,7 +299,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         data: list[t.JsonValue] = [{"id": 1, "name": "John"}]
         formatted: str = tm.ok(u.DbOracle.format_query_result(data, "table"))
         tm.that(formatted, eq=str(data))
-        with pytest.raises(c.PydanticSerializationError, match="range"):
+        with u.Tests.raises(c.PydanticSerializationError, match="range"):
             u.normalize_to_json_value(range(3))
 
     @staticmethod
@@ -312,7 +309,7 @@ class TestsFlextDbOracleUtilitiesUnit:
         tm.that(tm.ok(u.DbOracle.format_query_result(data)), eq=str(data))
 
 
-@pytest.mark.unit
+@c.Tests.MARK.unit
 class TestsFlextDbOracleUtilitiesEnvironmentAndSql:
     """Environment loading and composed offline Oracle SQL contracts."""
 

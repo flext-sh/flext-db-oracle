@@ -7,7 +7,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from types import MappingProxyType
 from typing import TYPE_CHECKING
 
 from flext_core.lazy import install_lazy_exports
@@ -15,24 +14,78 @@ from flext_core.lazy import install_lazy_exports
 if TYPE_CHECKING:
     from flext_tests import api, d, h, r, td, tf, tk, tm, x
 
-    from flext_db_oracle import config, db_oracle, e, main, settings
+    from flext_db_oracle import (
+        DbOracleSettings,
+        FlextDbOracleApi,
+        FlextDbOracleClient,
+        FlextDbOracleConfig,
+        FlextDbOracleConstants,
+        FlextDbOracleDispatcher,
+        FlextDbOracleExceptions,
+        FlextDbOracleModels,
+        FlextDbOracleModelsConfig,
+        FlextDbOracleProtocols,
+        FlextDbOracleServiceBase,
+        FlextDbOracleSettings,
+        FlextDbOracleTypes,
+        FlextDbOracleUtilities,
+        FlextDbOracleVersion,
+        __author__,
+        __author_email__,
+        __description__,
+        __license__,
+        __title__,
+        __url__,
+        __version__,
+        __version_info__,
+        config,
+        db_oracle,
+        e,
+        main,
+        settings,
+    )
     from tests.base import TestsFlextDbOracleServiceBase, s
     from tests.constants import TestsFlextDbOracleConstants, c
     from tests.models import TestsFlextDbOracleModels, m
     from tests.protocols import TestsFlextDbOracleProtocols, p
     from tests.settings import TestsFlextDbOracleSettings
     from tests.typings import TestsFlextDbOracleTypes, t
+    from tests.unit import TestsFlextDbOracleStatementBuilders
     from tests.utilities import TestsFlextDbOracleUtilities, u
 
 
 __all__: tuple[str, ...] = (
+    "DbOracleSettings",
+    "FlextDbOracleApi",
+    "FlextDbOracleClient",
+    "FlextDbOracleConfig",
+    "FlextDbOracleConstants",
+    "FlextDbOracleDispatcher",
+    "FlextDbOracleExceptions",
+    "FlextDbOracleModels",
+    "FlextDbOracleModelsConfig",
+    "FlextDbOracleProtocols",
+    "FlextDbOracleServiceBase",
+    "FlextDbOracleSettings",
+    "FlextDbOracleTypes",
+    "FlextDbOracleUtilities",
+    "FlextDbOracleVersion",
     "TestsFlextDbOracleConstants",
     "TestsFlextDbOracleModels",
     "TestsFlextDbOracleProtocols",
     "TestsFlextDbOracleServiceBase",
     "TestsFlextDbOracleSettings",
+    "TestsFlextDbOracleStatementBuilders",
     "TestsFlextDbOracleTypes",
     "TestsFlextDbOracleUtilities",
+    "__author__",
+    "__author_email__",
+    "__description__",
+    "__license__",
+    "__title__",
+    "__url__",
+    "__version__",
+    "__version_info__",
     "api",
     "c",
     "config",
@@ -58,14 +111,38 @@ __all__: tuple[str, ...] = (
 install_lazy_exports(
     __name__,
     globals(),
-    MappingProxyType({
+    {
+        "DbOracleSettings": "flext_db_oracle",
+        "FlextDbOracleApi": "flext_db_oracle",
+        "FlextDbOracleClient": "flext_db_oracle",
+        "FlextDbOracleConfig": "flext_db_oracle",
+        "FlextDbOracleConstants": "flext_db_oracle",
+        "FlextDbOracleDispatcher": "flext_db_oracle",
+        "FlextDbOracleExceptions": "flext_db_oracle",
+        "FlextDbOracleModels": "flext_db_oracle",
+        "FlextDbOracleModelsConfig": "flext_db_oracle",
+        "FlextDbOracleProtocols": "flext_db_oracle",
+        "FlextDbOracleServiceBase": "flext_db_oracle",
+        "FlextDbOracleSettings": "flext_db_oracle",
+        "FlextDbOracleTypes": "flext_db_oracle",
+        "FlextDbOracleUtilities": "flext_db_oracle",
+        "FlextDbOracleVersion": "flext_db_oracle",
         "TestsFlextDbOracleConstants": ".constants",
         "TestsFlextDbOracleModels": ".models",
         "TestsFlextDbOracleProtocols": ".protocols",
         "TestsFlextDbOracleServiceBase": ".base",
         "TestsFlextDbOracleSettings": ".settings",
+        "TestsFlextDbOracleStatementBuilders": ".unit",
         "TestsFlextDbOracleTypes": ".typings",
         "TestsFlextDbOracleUtilities": ".utilities",
+        "__author__": "flext_db_oracle",
+        "__author_email__": "flext_db_oracle",
+        "__description__": "flext_db_oracle",
+        "__license__": "flext_db_oracle",
+        "__title__": "flext_db_oracle",
+        "__url__": "flext_db_oracle",
+        "__version__": "flext_db_oracle",
+        "__version_info__": "flext_db_oracle",
         "api": "flext_tests",
         "c": ".constants",
         "config": "flext_db_oracle",
@@ -86,6 +163,6 @@ install_lazy_exports(
         "tm": "flext_tests",
         "u": ".utilities",
         "x": "flext_tests",
-    }),
+    },
     public_exports=__all__,
 )

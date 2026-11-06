@@ -12,7 +12,7 @@ from collections.abc import Generator
 import pytest
 from sqlalchemy import Connection, create_engine
 
-from flext_db_oracle import FlextDbOracleClient
+from tests import FlextDbOracleClient
 
 # Prevent unit tests from hanging on network failures.
 socket.setdefaulttimeout(2)

@@ -41,7 +41,7 @@ graph TB
     end
 
     subgraph "Domain Layer"
-        MODELS[FlextModelsDbOracle<br/>📋 Domain Models<br/>Entity Pattern]
+        MODELS[FlextDbOracleModels<br/>📋 Domain Models<br/>Entity Pattern]
 
         SERVICES[FlextDbOracleServices<br/>🔧 Business Logic<br/>Service Pattern]
 
@@ -203,7 +203,7 @@ target
 
 ### Domain Layer Components
 
-#### FlextModelsDbOracle (Domain Models)
+#### FlextDbOracleModels (Domain Models)
 
 **Pattern**: Entity Pattern **Responsibilities**:
 
@@ -365,7 +365,7 @@ sequenceDiagram
     participant Client
     participant API as FlextDbOracleApi
     participant Services as FlextDbOracleServices
-    participant Models as FlextModelsDbOracle
+    participant Models as FlextDbOracleModels
     participant Connection as FlextDbOracleConnection
     participant Oracle as Oracle Database
 

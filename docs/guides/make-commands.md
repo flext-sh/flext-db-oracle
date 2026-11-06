@@ -29,7 +29,7 @@
 - [Scope and generation](#scope-and-generation)
   - [Workspace vs. Member Scope Dispatch](#workspace-vs-member-scope-dispatch)
   - [Scaffolding, Codemod Census, and Template Ownership](#scaffolding-codemod-census-and-template-ownership)
-  - [Convergence, Shared Worktree, and Clean Rules](#convergence-shared-worktree-and-clean-rules)
+  - [Convergence, Dirty Inputs, and Clean Rules](#convergence-dirty-inputs-and-clean-rules)
   - [Git Lane and Worktree Hygiene Verification](#git-lane-and-worktree-hygiene-verification)
 - [Related guides](#related-guides)
 
@@ -233,11 +233,11 @@ to repair authored declarations.
 
 | Verb | Owned operation | Inputs |
 | --- | --- | --- |
-| `setup` | Install the declared frozen locks, synchronize the physical environment and configure local integrations; FLEXT=<path> reinstalls the FLEXT distributions that workspace provides as editable (local only). | FLEXT |
+| `setup` | Install the declared frozen locks, synchronize the physical environment and configure local integrations; FLEXT=<path> reinstalls the FLEXT distributions that workspace provides as editable (local only). | FLEXT, RECREATE |
 | `upg` | Resolve declared dependency and tool updates and publish their resolution metadata and locks. | — |
 | `gen` | Materialize explicitly declared new projects and publish every applicable generated projection. | — |
 | `gen-scope` | Run the focal generation surface (WHAT, MODULE for facades, SCOPE) through the same engine, lock and budget as gen. | WHAT, MODULE, SCOPE |
-| `mod` | Transform declared source structure and publish the complete coherent semantic change through the shared engines. | — |
+| `mod` | Refactor declared source structure through the shared pipeline and publish the complete coherent change; LAWS (ENFORCE ids) or RULES (rule ids) diagnose or repair one law (ADR-028 Decision 18 item 2). | LAWS, RULES |
 | `fix` | Apply declared repairs to authored inputs through their canonical owners. | — |
 | `fmt` | Format authored content through the configured formatters. | — |
 | `check` | Validate declarations, projections, environment, documentation and configured gates without repairs or publication. | CHECK_PHASE |
@@ -660,7 +660,7 @@ physical scope without claiming completed generation. The publisher rechecks tho
 identities before effects. Profiling retains the same operation's outcome and raw
 evidence; wall time and function timings remain distinct.
 
-### Convergence, Shared Worktree, and Clean Rules
+### Convergence, Dirty Inputs, and Clean Rules
 
 Acceptance exercises each required public operation explicitly against workspace
 roots, selected members, independent checkouts and applicable CI contexts. Root
@@ -685,9 +685,10 @@ runs a fixer or formatter over its own output. A later effective change invalida
 affected runtime and gate receipts and requires their renewed validation, never a hidden
 retry or a whole-workspace quiet window.
 
-Staged, unstaged and untracked work are normal shared-workspace inputs, not
-admission failures. Check's existing Git observer reports that state without
-demanding cleanup or a globally stable tree. It does not authorize discarding
+Staged, unstaged and untracked work are normal rig and lane inputs (root
+`AGENTS.md` "Rig and Lane Contract"), not admission failures. Check's existing
+Git observer reports that state without demanding cleanup or a globally stable
+tree. It does not authorize discarding
 changes or clearing recovery objects. Repair actual validation failures forward
 and recapture only the affected inputs when they change.
 

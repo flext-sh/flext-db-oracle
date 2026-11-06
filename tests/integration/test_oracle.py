@@ -17,13 +17,10 @@ import threading
 import time
 from collections.abc import Mapping
 
-import pytest
-
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import c, m, p, tm, u
+from tests import FlextDbOracleApi, FlextDbOracleSettings, c, m, p, tm, u
 
 
-@pytest.fixture
+@u.Tests.fixture
 def offline_oracle_settings() -> FlextDbOracleSettings:
     """Return a well-formed offline Oracle settings value."""
     return FlextDbOracleSettings.model_validate({
@@ -37,7 +34,7 @@ def offline_oracle_settings() -> FlextDbOracleSettings:
     })
 
 
-@pytest.mark.integration
+@c.Tests.MARK.integration
 class TestsFlextDbOracleOracle:
     """Behavioral contract of the Oracle settings and API public surface."""
 
@@ -199,7 +196,7 @@ class TestsFlextDbOracleOracle:
 
         connected_api.disconnect()
 
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "invalid_sql",
         ["INVALID SQL STATEMENT", "SELECT * FROM NONEXISTENT_TABLE_12345"],
     )
@@ -271,7 +268,7 @@ class TestsFlextDbOracleOracle:
             eq=c.ParserBooleanToken.ZERO,
         )
 
-    @pytest.mark.usefixtures("oracle_test_database")
+    @c.Tests.MARK.usefixtures("oracle_test_database")
     def test_committed_row_is_visible_after_commit(
         self,
         connected_oracle_api: FlextDbOracleApi,

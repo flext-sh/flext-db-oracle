@@ -15,7 +15,6 @@ from urllib.parse import quote_plus
 
 import oracledb
 from flext_cli import u
-from flext_core import FlextTypingNativeExport
 from sqlalchemy import (
     Connection as SAConnection,
     Engine as SAEngine,
@@ -27,13 +26,12 @@ from sqlalchemy.exc import DatabaseError as SADatabaseError
 from sqlalchemy.orm import aliased as _sqlalchemy_aliased
 
 from flext_db_oracle import c, m, p, r, settings, t
+from flext_db_oracle._models import FlextDbOracleModelsConnection
 
 if TYPE_CHECKING:
     import contextlib
 
     from sqlalchemy.engine import CursorResult
-
-    from flext_db_oracle import FlextDbOracleSettings
 
 
 class FlextDbOracleUtilitiesDbOracle:
@@ -61,9 +59,9 @@ class FlextDbOracleUtilitiesDbOracle:
     # Statement builders published natively (every overload kept):
     # `u.DbOracle.select(*columns)`, `u.DbOracle.func.count()` and
     # `u.DbOracle.aliased(Model)`.
-    select = FlextTypingNativeExport(_sqlalchemy_select)
-    func = FlextTypingNativeExport(_sqlalchemy_func)
-    aliased = FlextTypingNativeExport(_sqlalchemy_aliased)
+    select = staticmethod(_sqlalchemy_select)
+    func = _sqlalchemy_func
+    aliased = staticmethod(_sqlalchemy_aliased)
 
     @staticmethod
     def text(statement: str) -> TextClause:
@@ -232,9 +230,8 @@ class FlextDbOracleUtilitiesDbOracle:
         return validated[0]
 
     @staticmethod
-    def build_engine(
-        settings: FlextDbOracleSettings,
-        connect_args: Mapping[str, t.Scalar] | None = None,
+    def engine(
+        url: str, options: FlextDbOracleModelsConnection.EngineOptions
     ) -> SAEngine:
         """Build the Oracle SQLAlchemy engine declared by ``settings``.
 

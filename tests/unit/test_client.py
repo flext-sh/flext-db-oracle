@@ -14,10 +14,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from types import MappingProxyType
 
-import pytest
-
-from flext_db_oracle import FlextDbOracleClient
-from tests import c, m, tm, u
+from tests import FlextDbOracleClient, c, m, tm, u
 
 
 class TestsFlextDbOracleClient:
@@ -63,7 +60,7 @@ class TestsFlextDbOracleClientSqlUtilities:
     """Identifier, SQL, hash, result-formatting, and parameter contracts."""
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("identifier", "expected"),
         [("valid_name", "valid_name"), ("Table1", "Table1"), ("COL_A_1", "COL_A_1")],
     )
@@ -77,7 +74,7 @@ class TestsFlextDbOracleClientSqlUtilities:
         tm.that(result.unwrap(), eq=expected)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("identifier", "error"),
         [
             ("", "Empty Oracle identifier"),
@@ -107,7 +104,7 @@ class TestsFlextDbOracleClientSqlUtilities:
     # -- validate_identifier ----------------------------------------------
 
     @staticmethod
-    @pytest.mark.parametrize("identifier", ["my_col", "employees", "T1"])
+    @c.Tests.MARK.parametrize("identifier", ["my_col", "employees", "T1"])
     def test_validate_identifier_accepts_normal_names(identifier: str) -> None:
         """Ordinary identifiers validate successfully to True."""
         result = u.DbOracle.validate_identifier(identifier)
@@ -115,7 +112,7 @@ class TestsFlextDbOracleClientSqlUtilities:
         tm.ok(result.unwrap())
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("identifier", "error"),
         [
             ("", "Empty Oracle identifier"),
@@ -143,7 +140,7 @@ class TestsFlextDbOracleClientSqlUtilities:
     # -- format_sql_for_oracle --------------------------------------------
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("raw", "expected"),
         [
             ("SELECT   1  FROM dual", "SELECT 1 FROM dual"),
@@ -192,7 +189,7 @@ class TestsFlextDbOracleClientSqlUtilities:
     # -- format_query_result ----------------------------------------------
 
     @staticmethod
-    @pytest.mark.parametrize("payload", [{"a": 1}, MappingProxyType({"a": 1})])
+    @c.Tests.MARK.parametrize("payload", [{"a": 1}, MappingProxyType({"a": 1})])
     def test_format_result_json_emits_json_text(payload: Mapping[str, int]) -> None:
         """JSON formatting yields parseable JSON for the payload."""
         result = u.DbOracle.format_query_result(payload, "json")

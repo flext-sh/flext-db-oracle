@@ -12,10 +12,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
-
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleClient, FlextDbOracleSettings
-from tests import c, r, tm, u
+from tests import (
+    FlextDbOracleApi,
+    FlextDbOracleClient,
+    FlextDbOracleSettings,
+    c,
+    r,
+    tm,
+    u,
+)
 
 _NO_CONNECTION_ERROR = "No active Oracle connection"
 _CONNECTION_FAILURE_SNIPPETS = (
@@ -32,7 +37,7 @@ class TestsFlextDbOracleCli:
         """Client construction and preference state contracts."""
 
         @staticmethod
-        @pytest.mark.parametrize("debug", [True, False])
+        @c.Tests.MARK.parametrize("debug", [True, False])
         def test_construction_exposes_requested_debug_flag(*, debug: bool) -> None:
             """The ``debug`` public field reflects the constructor argument."""
             client = FlextDbOracleClient(debug=debug)
@@ -45,7 +50,7 @@ class TestsFlextDbOracleCli:
             tm.that(client.current_connection, none=True)
 
         @staticmethod
-        @pytest.mark.parametrize(
+        @c.Tests.MARK.parametrize(
             ("preference_key", "expected_value"),
             [
                 ("default_output_format", "table"),
@@ -123,7 +128,7 @@ class TestsFlextDbOracleCli:
     # ---- fail-fast without a connection ----------------------------------
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("method_name", "args"),
         [
             ("execute_query", ("SELECT 1 FROM DUAL",)),
@@ -302,7 +307,7 @@ class TestsFlextDbOracleCli:
     # ---- output formatting -----------------------------------------------
 
     @staticmethod
-    @pytest.mark.parametrize("format_type", ["table", "json", "csv"])
+    @c.Tests.MARK.parametrize("format_type", ["table", "json", "csv"])
     def test_format_query_result_produces_non_empty_string(
         format_type: str,
     ) -> None:

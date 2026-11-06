@@ -14,11 +14,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-import pytest
-from flext_core import FlextExceptions
-
-from flext_db_oracle import FlextDbOracleExceptions
-from tests import e, tm
+from tests import FlextDbOracleExceptions, FlextExceptions, c, e, tm, u
 
 
 class TestsFlextDbOracleOracleExceptions:
@@ -30,7 +26,7 @@ class TestsFlextDbOracleOracleExceptions:
         tm.ok(e is FlextDbOracleExceptions)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "factory",
         [
             lambda: FlextDbOracleExceptions.Error("boom"),
@@ -50,7 +46,7 @@ class TestsFlextDbOracleOracleExceptions:
         tm.that(str(exc), has="boom")
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("factory", "expected_base"),
         [
             (lambda: FlextDbOracleExceptions.Error("m"), FlextExceptions.BaseError),
@@ -126,10 +122,10 @@ class TestsFlextDbOracleOracleExceptions:
         )
 
         tm.that(exc.query_id, eq="q-42")
-        tm.that(exc.elapsed_time, eq=pytest.approx(1.5))
+        tm.that(exc.elapsed_time, eq=u.Tests.approx(1.5))
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "factory",
         [
             lambda: FlextDbOracleExceptions.Error("m"),
@@ -171,7 +167,7 @@ class TestsFlextDbOracleOracleExceptions:
         def _raise() -> None:
             raise exc
 
-        with pytest.raises(FlextExceptions.FlextConnectionError) as caught:
+        with u.Tests.raises(FlextExceptions.FlextConnectionError) as caught:
             _raise()
 
         tm.ok(caught.value is exc)
@@ -193,7 +189,7 @@ class TestsFlextDbOracleOracleExceptions:
                 )
                 raise wrapped from driver_error
 
-        with pytest.raises(FlextDbOracleExceptions.Error) as caught:
+        with u.Tests.raises(FlextDbOracleExceptions.Error) as caught:
             _translate()
 
         tm.ok(caught.value.__cause__ is root)

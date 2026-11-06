@@ -13,7 +13,7 @@ from flext_cli import m
 from flext_db_oracle import t
 
 
-class FlextModelsDbOracleCommand:
+class FlextDbOracleModelsCommand:
     """Oracle Database command models composed into ``m.DbOracle``."""
 
     class ConnectCommand(m.Entity):
@@ -60,7 +60,7 @@ class FlextModelsDbOracleCommand:
 
         sql: str = m.Field(description="SQL statement for batch execution")
         parameters_list: Sequence[t.JsonMapping] = m.Field(
-            default_factory=tuple[t.JsonMapping, ...],
+            default_factory=tuple,
             description="List of parameter sets for batch execution",
         )
 
@@ -87,4 +87,4 @@ class FlextModelsDbOracleCommand:
         )
 
 
-__all__: list[str] = ["FlextModelsDbOracleCommand"]
+__all__: list[str] = ["FlextDbOracleModelsCommand"]

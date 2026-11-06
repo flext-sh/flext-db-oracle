@@ -16,7 +16,7 @@ from sqlalchemy.sql import Executable
 from flext_db_oracle import FlextDbOracleSettings
 
 
-class FlextDbOracleTypes(FlextCliTypes):
+class FlextDbOracleTypesDbOracle(FlextCliTypes):
     """Oracle database-specific type definitions extending t via MRO."""
 
     class DbOracle:
@@ -44,6 +44,4 @@ class FlextDbOracleTypes(FlextCliTypes):
         type PrivilegeMode = Literal["SYSDBA", "SYSOPER"]
 
 
-t = FlextDbOracleTypes
-
-__all__: list[str] = ["FlextDbOracleTypes", "t"]
+__all__: list[str] = ["FlextDbOracleTypesDbOracle"]
