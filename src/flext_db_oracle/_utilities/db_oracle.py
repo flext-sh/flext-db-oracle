@@ -10,7 +10,7 @@ import hashlib
 import threading
 from collections.abc import Mapping, Sequence
 from enum import StrEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 from urllib.parse import quote_plus
 
 import oracledb
@@ -20,12 +20,14 @@ from sqlalchemy import (
     Engine as SAEngine,
     TextClause,
     create_engine,
-    text,
+    func as _sqlalchemy_func,
+    select as _sqlalchemy_select,
+    text as _sqlalchemy_text,
 )
 from sqlalchemy.exc import DatabaseError as SADatabaseError
 from sqlalchemy.orm import aliased as _sqlalchemy_aliased
 
-from flext_db_oracle import c, m, p, r, settings, t
+from flext_db_oracle import FlextDbOracleSettings, c, m, p, r, settings, t
 from flext_db_oracle._models import FlextDbOracleModelsConnection
 
 if TYPE_CHECKING:
@@ -229,28 +231,64 @@ class FlextDbOracleUtilitiesDbOracle:
             raise ValueError(msg)
         return validated[0]
 
-    @staticmethod
+    @classmethod
     def engine(
-        url: str, options: FlextDbOracleModelsConnection.EngineOptions
+        cls, url: str, options: FlextDbOracleModelsConnection.EngineOptions
     ) -> SAEngine:
-        """Build the Oracle SQLAlchemy engine declared by ``settings``.
+        """Build the Oracle engine honoring the caller's ``options``.
 
-        ``settings.DbOracle.dsn`` (TNS descriptor or alias), when set, is the
-        driver ``dsn``; otherwise host/port/service_name form the URL. The
-        privilege ``mode`` maps to the oracledb auth mode (SYSDBA logins
-        reject a normal connection with ORA-28009), ``pool_min``/``pool_max``
-        become ``pool_size``/``max_overflow`` and ``connect_args`` adds driver
-        arguments the settings do not own.
+        ``dsn`` replaces the TNS descriptor/alias; ``mode`` maps to the
+        oracledb auth mode, ``pool_size``/``max_overflow`` mirror the pool
+        bounds, ``connect_timeout`` overrides the settings timeout and
+        ``connect_args`` adds driver arguments the settings do not own.
 
         Returns:
             The unconnected engine; the first checkout opens the session.
 
-        Raises:
-            ValueError: The password is empty, or ``connect_args`` repeats an
-                argument the settings already own.
+        """
+        return cls._engine_from(settings, url, options, options.connect_args or {})
+
+    @classmethod
+    def build_engine(
+        cls,
+        config: FlextDbOracleSettings,
+        connect_args: Mapping[str, t.Scalar] | None = None,
+    ) -> SAEngine:
+        """Build the engine of one settings snapshot (services and tests).
+
+        Returns:
+            The unconnected engine for ``config``.
 
         """
-        oracle = settings.DbOracle
+        oracle = config.DbOracle
+        options = m.DbOracle.EngineOptions(
+            dsn=oracle.dsn,
+            mode=oracle.mode,
+            connect_timeout=oracle.timeout,
+            pool_size=oracle.pool_min,
+            max_overflow=oracle.pool_max - oracle.pool_min,
+            connect_args=connect_args,
+        )
+        return cls._engine_from(config, "", options, connect_args or {})
+
+    @staticmethod
+    def _engine_from(
+        config: FlextDbOracleSettings,
+        url: str,
+        options: FlextDbOracleModelsConnection.EngineOptions,
+        driver_args_extra: Mapping[str, t.Scalar],
+    ) -> SAEngine:
+        """Shared engine builder for a settings snapshot and its options.
+
+        Returns:
+            The unconnected engine.
+
+        Raises:
+            ValueError: The password is empty, or the extra driver arguments
+                repeat an argument the settings already own.
+
+        """
+        oracle = config.DbOracle
         if not oracle.password:
             msg = "Password is required for database connection"
             raise ValueError(msg)
@@ -258,33 +296,47 @@ class FlextDbOracleUtilitiesDbOracle:
             f"oracle+oracledb://{quote_plus(oracle.username)}"
             f":{quote_plus(oracle.password)}@"
         )
-        driver_args: dict[str, t.Scalar] = {"tcp_connect_timeout": oracle.timeout}
-        if oracle.dsn is None:
+        timeout = (
+            options.connect_timeout
+            if options.connect_timeout is not None
+            else oracle.timeout
+        )
+        driver_args: dict[str, t.Scalar] = {"tcp_connect_timeout": timeout}
+        dsn = options.dsn if options.dsn is not None else oracle.dsn
+        if dsn is None:
             url = (
                 f"{credentials}{oracle.host}:{oracle.port}"
                 f"/?service_name={quote_plus(oracle.service_name)}"
             )
         else:
             url = credentials
-            driver_args["dsn"] = oracle.dsn
-        if oracle.mode is not None:
+            driver_args["dsn"] = dsn
+        mode = options.mode if options.mode is not None else oracle.mode
+        if mode is not None:
             driver_args["mode"] = (
                 oracledb.AUTH_MODE_SYSDBA
-                if oracle.mode == "SYSDBA"
+                if mode == "SYSDBA"
                 else oracledb.AUTH_MODE_SYSOPER
             )
-        extra_args = connect_args or {}
-        conflicting = sorted(driver_args.keys() & extra_args.keys())
+        conflicting = sorted(driver_args.keys() & driver_args_extra.keys())
         if conflicting:
             msg = f"connect_args repeat settings-owned driver arguments: {conflicting}"
             raise ValueError(msg)
-        driver_args.update(extra_args)
+        driver_args.update(driver_args_extra)
+        pool_size = (
+            options.pool_size if options.pool_size is not None else oracle.pool_min
+        )
+        max_overflow = (
+            options.max_overflow
+            if options.max_overflow is not None
+            else oracle.pool_max - oracle.pool_min
+        )
         return create_engine(
             url,
-            pool_size=oracle.pool_min,
-            max_overflow=oracle.pool_max - oracle.pool_min,
+            pool_size=pool_size,
+            max_overflow=max_overflow,
             pool_pre_ping=True,
-            pool_recycle=c.DbOracle.DEFAULT_POOL_RECYCLE,
+            pool_recycle=options.pool_recycle,
             echo=False,
             connect_args=driver_args,
         )
@@ -307,7 +359,7 @@ class FlextDbOracleUtilitiesDbOracle:
             One ``model`` instance per row, in result order.
 
         """
-        result = connection.execute(text(sql), dict(params or {}))
+        result = connection.execute(_sqlalchemy_text(sql), dict(params or {}))
         return [model.model_validate(dict(row)) for row in result.mappings()]
 
     @staticmethod

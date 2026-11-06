@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import datetime
 from types import MappingProxyType
 from typing import ClassVar
@@ -242,6 +243,10 @@ class FlextDbOracleModelsConnection:
         pool_recycle: int = m.Field(
             default=c.DbOracle.DEFAULT_POOL_RECYCLE,
             description="Seconds before a pooled connection is recycled",
+        )
+        connect_args: Mapping[str, t.Scalar] | None = m.Field(
+            default=None,
+            description="Driver arguments the settings do not own",
         )
 
     class OperationRecord(m.Entity):

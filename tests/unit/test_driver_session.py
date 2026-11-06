@@ -35,7 +35,7 @@ class TestsFlextDbOracleDriverSession:
         "(CONNECT_DATA=(SERVICE_NAME=svc_high)))"
     )
 
-    class CheckoutStopped(Exception):
+    class CheckoutStoppedError(Exception):
         """Raised by the do_connect listener once the driver arguments exist."""
 
     class SampleRow(m.BaseModel):
@@ -76,10 +76,10 @@ class TestsFlextDbOracleDriverSession:
         ) -> None:
             _ = dialect, conn_rec, cargs
             captured.update(cparams)
-            raise cls.CheckoutStopped
+            raise cls.CheckoutStoppedError
 
         event.listen(engine, "do_connect", stop_checkout)
-        with pytest.raises(cls.CheckoutStopped):
+        with pytest.raises(cls.CheckoutStoppedError):
             engine.connect()
         return captured
 

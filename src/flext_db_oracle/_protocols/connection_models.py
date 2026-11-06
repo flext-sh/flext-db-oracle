@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from datetime import datetime
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from flext_cli import p
 
     from flext_db_oracle import t
-    from flext_db_oracle._typings import FlextDbOracleTypesDbOracle
 
 
 class FlextDbOracleProtocolsConnectionModels:
@@ -80,7 +79,7 @@ class FlextDbOracleProtocolsConnectionModels:
             ...
 
         @property
-        def mode(self) -> FlextDbOracleTypesDbOracle.DbOracle.PrivilegeMode | None:
+        def mode(self) -> t.DbOracle.PrivilegeMode | None:
             """Oracledb privilege mode (SYSDBA/SYSOPER); None = normal."""
             ...
 
@@ -102,6 +101,11 @@ class FlextDbOracleProtocolsConnectionModels:
         @property
         def pool_recycle(self) -> int:
             """Seconds before a pooled connection is recycled."""
+            ...
+
+        @property
+        def connect_args(self) -> Mapping[str, t.Scalar] | None:
+            """Driver arguments the settings do not own."""
             ...
 
     @runtime_checkable
