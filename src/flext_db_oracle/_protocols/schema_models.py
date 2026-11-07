@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from datetime import datetime
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_cli import FlextCliProtocols
@@ -26,6 +27,16 @@ class FlextDbOracleProtocolsSchemaModels:
     @runtime_checkable
     class TableMetadata(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
+
+        version: t.NonNegativeInt
+        unique_id: t.NonEmptyStr
+
+        @property
+        def created_at(self) -> datetime:
+            """Creation timestamp (configured timezone)."""
+            ...
+
+        updated_at: datetime | None
 
         @property
         def domain_events(self) -> Sequence[p.DomainEvent]:
@@ -54,6 +65,16 @@ class FlextDbOracleProtocolsSchemaModels:
     class TypeMapping(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
+        version: t.NonNegativeInt
+        unique_id: t.NonEmptyStr
+
+        @property
+        def created_at(self) -> datetime:
+            """Creation timestamp (configured timezone)."""
+            ...
+
+        updated_at: datetime | None
+
         @property
         def domain_events(self) -> Sequence[p.DomainEvent]:
             """List of uncommitted domain events for event sourcing."""
@@ -77,6 +98,16 @@ class FlextDbOracleProtocolsSchemaModels:
     class SingerField(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
+        version: t.NonNegativeInt
+        unique_id: t.NonEmptyStr
+
+        @property
+        def created_at(self) -> datetime:
+            """Creation timestamp (configured timezone)."""
+            ...
+
+        updated_at: datetime | None
+
         @property
         def domain_events(self) -> Sequence[p.DomainEvent]:
             """List of uncommitted domain events for event sourcing."""
@@ -87,6 +118,16 @@ class FlextDbOracleProtocolsSchemaModels:
     @runtime_checkable
     class SingerSchema(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
+
+        version: t.NonNegativeInt
+        unique_id: t.NonEmptyStr
+
+        @property
+        def created_at(self) -> datetime:
+            """Creation timestamp (configured timezone)."""
+            ...
+
+        updated_at: datetime | None
 
         @property
         def domain_events(self) -> Sequence[p.DomainEvent]:
@@ -104,6 +145,16 @@ class FlextDbOracleProtocolsSchemaModels:
     class Table(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
+        version: t.NonNegativeInt
+        unique_id: t.NonEmptyStr
+
+        @property
+        def created_at(self) -> datetime:
+            """Creation timestamp (configured timezone)."""
+            ...
+
+        updated_at: datetime | None
+
         @property
         def domain_events(self) -> Sequence[p.DomainEvent]:
             """List of uncommitted domain events for event sourcing."""
@@ -120,6 +171,16 @@ class FlextDbOracleProtocolsSchemaModels:
     @runtime_checkable
     class Column(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
+
+        version: t.NonNegativeInt
+        unique_id: t.NonEmptyStr
+
+        @property
+        def created_at(self) -> datetime:
+            """Creation timestamp (configured timezone)."""
+            ...
+
+        updated_at: datetime | None
 
         @property
         def domain_events(self) -> Sequence[p.DomainEvent]:
@@ -144,6 +205,16 @@ class FlextDbOracleProtocolsSchemaModels:
     class Schema(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
+        version: t.NonNegativeInt
+        unique_id: t.NonEmptyStr
+
+        @property
+        def created_at(self) -> datetime:
+            """Creation timestamp (configured timezone)."""
+            ...
+
+        updated_at: datetime | None
+
         @property
         def domain_events(self) -> Sequence[p.DomainEvent]:
             """List of uncommitted domain events for event sourcing."""
@@ -159,6 +230,16 @@ class FlextDbOracleProtocolsSchemaModels:
     @runtime_checkable
     class CreateIndexConfig(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
+
+        version: t.NonNegativeInt
+        unique_id: t.NonEmptyStr
+
+        @property
+        def created_at(self) -> datetime:
+            """Creation timestamp (configured timezone)."""
+            ...
+
+        updated_at: datetime | None
 
         @property
         def domain_events(self) -> Sequence[p.DomainEvent]:

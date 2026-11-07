@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from datetime import datetime
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from flext_cli import p
 
     from flext_db_oracle import t
-    from flext_db_oracle._typings import FlextDbOracleTypesDbOracle
 
 
 class FlextDbOracleProtocolsConnectionModels:
@@ -27,6 +26,16 @@ class FlextDbOracleProtocolsConnectionModels:
     @runtime_checkable
     class ConnectionStatus(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
+
+        version: t.NonNegativeInt
+        unique_id: t.NonEmptyStr
+
+        @property
+        def created_at(self) -> datetime:
+            """Creation timestamp (configured timezone)."""
+            ...
+
+        updated_at: datetime | None
 
         @property
         def domain_events(self) -> Sequence[p.DomainEvent]:
@@ -80,7 +89,7 @@ class FlextDbOracleProtocolsConnectionModels:
             ...
 
         @property
-        def mode(self) -> FlextDbOracleTypesDbOracle.DbOracle.PrivilegeMode | None:
+        def mode(self) -> t.DbOracle.PrivilegeMode | None:
             """Oracledb privilege mode (SYSDBA/SYSOPER); None = normal."""
             ...
 
@@ -104,9 +113,24 @@ class FlextDbOracleProtocolsConnectionModels:
             """Seconds before a pooled connection is recycled."""
             ...
 
+        @property
+        def connect_args(self) -> Mapping[str, t.Scalar] | None:
+            """Driver arguments the settings do not own."""
+            ...
+
     @runtime_checkable
     class OperationRecord(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
+
+        version: t.NonNegativeInt
+        unique_id: t.NonEmptyStr
+
+        @property
+        def created_at(self) -> datetime:
+            """Creation timestamp (configured timezone)."""
+            ...
+
+        updated_at: datetime | None
 
         @property
         def domain_events(self) -> Sequence[p.DomainEvent]:
@@ -122,6 +146,16 @@ class FlextDbOracleProtocolsConnectionModels:
     @runtime_checkable
     class HealthStatus(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
+
+        version: t.NonNegativeInt
+        unique_id: t.NonEmptyStr
+
+        @property
+        def created_at(self) -> datetime:
+            """Creation timestamp (configured timezone)."""
+            ...
+
+        updated_at: datetime | None
 
         @property
         def domain_events(self) -> Sequence[p.DomainEvent]:

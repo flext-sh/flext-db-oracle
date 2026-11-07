@@ -6,16 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from tests import (
-    FlextDbOracleDispatcher,
-    FlextDbOracleServices,
-    FlextDbOracleSettings,
-    c,
-    m,
-    p,
-    tm,
-    u,
-)
+from flext_db_oracle.services import FlextDbOracleServices
+from tests import FlextDbOracleDispatcher, FlextDbOracleSettings, c, m, p, tm, u
 
 
 class TestsFlextDbOracleDispatcher:
@@ -90,7 +82,7 @@ class TestsFlextDbOracleDispatcher:
         ],
     )
     def test_sql_command_parameters_default_to_none(
-        command_type: type[p.DbOracle.ExecuteQueryCommand],
+        command_type: type[m.DbOracle.ExecuteQueryCommand],
     ) -> None:
         """SQL commands omit parameters as None when none are supplied."""
         cmd = command_type(sql="SELECT 1 FROM DUAL")

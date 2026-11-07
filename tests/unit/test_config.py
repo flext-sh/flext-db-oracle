@@ -36,6 +36,7 @@ class TestsFlextDbOracleSettings:
             "host",
             "port",
             c.ContextKey.SERVICE_NAME,
+            "dsn",
             "username",
             "password",
             "timeout",

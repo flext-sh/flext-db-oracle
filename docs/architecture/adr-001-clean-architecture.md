@@ -55,7 +55,7 @@ for a consistent, scalable approach for database integrations.
 Adopt Clean Architecture principles for flext-db-oracle with the following layered
 structure:
 
-```
+```text
 ┌─────────────────────────────────────┐
 │ Presentation Layer (CLI/API)        │ ← Application interfaces
 ├─────────────────────────────────────┤

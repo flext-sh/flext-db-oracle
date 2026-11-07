@@ -180,7 +180,7 @@ Security, auditability, compliance
 
 #### Dependency Rule
 
-```
+```text
 Presentation Layer → Application Layer → Domain Layer ← Infrastructure Layer
 ```
 

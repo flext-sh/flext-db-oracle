@@ -61,7 +61,7 @@ Oracle database integration library built on Clean Architecture principles.
 
 The source code follows Clean Architecture principles with clear layer separation:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Application Layer                            │
 │  api.py: FlextDbOracleApi (main service)                      │

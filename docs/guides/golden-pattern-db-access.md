@@ -24,7 +24,7 @@ SPDX-License-Identifier: MIT
 
 ## Layers
 
-```
+```text
 consumers (CLI, daemon, services)      — depend only on ports (p.DbOracle)
 ports        p.DbOracle.*              — runtime_checkable Protocols
 adapter      FlextDbOracleServices     — mixin facade implementing the ports
@@ -78,11 +78,12 @@ from datetime import UTC, datetime
 
 from flext_core import p
 
-from flext_db_oracle import FlextDbOracleSettings, m
 from flext_db_oracle import (
     FlextDbOracleServiceConnection,
     FlextDbOracleServiceQuery,
     FlextDbOracleServiceSchema,
+    FlextDbOracleSettings,
+    m,
 )
 
 

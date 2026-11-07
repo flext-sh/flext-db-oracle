@@ -8,7 +8,9 @@ from __future__ import annotations
 
 from typing import override
 
-from tests import FlextTestsServiceBase, TestsFlextDbOracleSettings, m, p
+from flext_tests import FlextTestsServiceBase
+
+from tests import TestsFlextDbOracleSettings, m, p
 
 
 class TestsFlextDbOracleServiceBase(FlextTestsServiceBase):
@@ -19,6 +21,12 @@ class TestsFlextDbOracleServiceBase(FlextTestsServiceBase):
     @classmethod
     @override
     def runtime_bootstrap_options(cls) -> p.RuntimeBootstrapOptions:
+        """Return the project bootstrap options bound to the test settings.
+
+        Returns:
+            The runtime bootstrap options for the tests.
+
+        """
         return m.RuntimeBootstrapOptions(settings_type=TestsFlextDbOracleSettings)
 
 

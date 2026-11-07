@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Self, override
-from urllib.parse import quote_plus
 
 from sqlalchemy import Connection as SAConnection, Engine as SAEngine, text
 
@@ -39,55 +38,35 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
     def connect(self) -> p.Result[Self]:
         """Establish Oracle database connection.
 
+        The engine comes from ``build_engine`` (one owner for URL, ``dsn``,
+        privilege mode and pool sizing) and is kept only after a probe query
+        succeeds on it.
+
         Returns:
             The resulting ``p.Result[Self]``.
 
         """
-        url_result = self._build_connection_url()
-        if url_result.failure:
+        oracle = self.db_config.DbOracle
+        if not oracle.password:
             return r[Self](
-                error=url_result.error or "Failed to build connection URL",
+                error="Password is required for database connection",
                 success=False,
             )
-        self._engine = self._engine_factory(url_result.value)
+        engine = self.build_engine(self.db_config)
         try:
-            with self._engine_connect(self._engine) as conn:
+            with self._engine_connect(engine) as conn:
                 _ = self._connection_execute(conn, text("SELECT 1 FROM dual"))
-            self.logger.info(
-                "Connected to Oracle database: %s",
-                self.db_config.DbOracle.host,
-            )
-            ok_result: p.Result[Self] = r.ok(self)
         except c.DbOracle.EXC_DB_BROAD as exc:
-            local_host = self.db_config.DbOracle.host in {
-                "localhost",
-                c.DbOracle.LOOPBACK_IP,
-            }
-            default_port = c.DbOracle.DEFAULT_PORT
-            if local_host and self.db_config.DbOracle.port != default_port:
-                retry_url_result = self._build_connection_url(port=default_port)
-                if retry_url_result.success:
-                    self._engine = self._engine_factory(retry_url_result.value)
-                    try:
-                        with self._engine_connect(self._engine) as conn:
-                            _ = self._connection_execute(
-                                conn,
-                                text("SELECT 1 FROM dual"),
-                            )
-                        self.logger.info(
-                            "Connected to Oracle database: %s",
-                            self.db_config.DbOracle.host,
-                        )
-                        nested_ok: p.Result[Self] = r.ok(self)
-                    except c.DbOracle.EXC_DB_BROAD:
-                        self._engine = None
-                    else:
-                        return nested_ok
-            self._engine = None
+            self._engine_dispose(engine)
             self.logger.exception("Oracle connection failed")
             return r[Self](error=f"Connection failed: {exc}", success=False)
-        else:
-            return ok_result
+        self._engine = engine
+        self.logger.info(
+            "Connected to Oracle database: %s",
+            oracle.dsn or oracle.host,
+        )
+        ok_result: p.Result[Self] = r.ok(self)
+        return ok_result
 
     def disconnect(self) -> p.Result[bool]:
         """Disconnect from Oracle database.
@@ -227,6 +206,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         except c.DbOracle.EXC_DB_BROAD as exc:
             return r[bool].fail_op("Connection test", exc)
 
+    @contextmanager
     def transaction(self) -> Generator[SAConnection]:
         """Open a transactional connection context for composed callers.
 
@@ -236,39 +216,6 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         """
         with self._engine_begin(self._require_engine()) as txn:
             yield txn
-
-    def _assemble_connection_url(
-        self,
-        password: str,
-        port: int | None = None,
-    ) -> p.Result[str]:
-        """Assemble Oracle connection URL from validated password.
-
-        Returns:
-            The resulting ``p.Result[str]``.
-
-        """
-        encoded_password = quote_plus(password.encode())
-        service_name = self.db_config.DbOracle.service_name
-        effective_port = port if port is not None else self.db_config.DbOracle.port
-        base = f"oracle+oracledb://{self.db_config.DbOracle.username}:{encoded_password}@{self.db_config.DbOracle.host}:{effective_port}"
-        url = f"{base}/?service_name={service_name}"
-        return r[str].ok(url)
-
-    def _build_connection_url(self, port: int | None = None) -> p.Result[str]:
-        """Build Oracle connection URL from configuration.
-
-        Returns:
-            The resulting ``p.Result[str]``.
-
-        """
-        try:
-            password = self.db_config.DbOracle.password
-            if not password:
-                return r[str].fail("Password is required for database connection")
-            return self._assemble_connection_url(password, port=port)
-        except c.DbOracle.EXC_DB_BROAD as exc:
-            return r[str].fail(f"Failed to build connection URL: {exc}", exception=exc)
 
 
 __all__: list[str] = ["FlextDbOracleServiceConnection"]

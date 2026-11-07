@@ -7,8 +7,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import socket
+from collections.abc import Generator
 
 import pytest
+from sqlalchemy import Connection, create_engine
 
 from tests import FlextDbOracleClient
 
@@ -25,3 +27,17 @@ def client() -> FlextDbOracleClient:
 
     """
     return FlextDbOracleClient()
+
+
+@pytest.fixture
+def memory_connection() -> Generator[Connection]:
+    """Open a caller-owned in-memory SQLAlchemy connection.
+
+    Yields:
+        The open connection; the engine is disposed at teardown.
+
+    """
+    engine = create_engine("sqlite://")
+    with engine.connect() as connection:
+        yield connection
+    engine.dispose()
