@@ -41,7 +41,7 @@ Architecture principles and enterprise testing standards.
 The test suite is organized into three distinct layers, each serving specific testing
 purposes:
 
-```
+```text
 tests/
 ├── unit/           # Fast, isolated tests with mocks
 ├── integration/    # Tests requiring actual Oracle database
@@ -141,7 +141,7 @@ tests/
 
 Our test suite follows Clean Architecture principles with clear separation of concerns:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                    E2E Tests                                    │
 │  Complete workflow testing with real systems                   │
