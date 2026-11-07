@@ -68,9 +68,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             The resulting ``p.Result[Sequence[p.Dict]]``.
 
         """
-        normalized = (
-            m.ConfigMap.model_validate(params) if params is not None else None
-        )
+        normalized = m.ConfigMap.model_validate(params) if params is not None else None
         return self.execute_rows(sql, normalized)
 
     def execute_statement(
