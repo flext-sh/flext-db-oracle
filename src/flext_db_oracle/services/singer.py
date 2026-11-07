@@ -62,7 +62,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
                     "Singer schema properties must be a mapping",
                 )
             raw_properties = raw_props_value
-            normalized_properties: MutableMapping[str, m.DbOracle.SingerField] = {}
+            normalized_properties: MutableMapping[str, p.DbOracle.SingerField] = {}
             for field_name, field_def in raw_properties.items():
                 if isinstance(field_def, Mapping):
                     field_type = field_def.get("type", "string")
