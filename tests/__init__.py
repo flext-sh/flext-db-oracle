@@ -50,7 +50,10 @@ if TYPE_CHECKING:
     from tests.protocols import TestsFlextDbOracleProtocols, p
     from tests.settings import TestsFlextDbOracleSettings
     from tests.typings import TestsFlextDbOracleTypes, t
-    from tests.unit import TestsFlextDbOracleStatementBuilders
+    from tests.unit import (
+        TestsFlextDbOracleDriverSession,
+        TestsFlextDbOracleStatementBuilders,
+    )
     from tests.utilities import TestsFlextDbOracleUtilities, u
 
 
@@ -71,6 +74,7 @@ __all__: tuple[str, ...] = (
     "FlextDbOracleUtilities",
     "FlextDbOracleVersion",
     "TestsFlextDbOracleConstants",
+    "TestsFlextDbOracleDriverSession",
     "TestsFlextDbOracleModels",
     "TestsFlextDbOracleProtocols",
     "TestsFlextDbOracleServiceBase",
@@ -128,6 +132,7 @@ install_lazy_exports(
         "FlextDbOracleUtilities": "flext_db_oracle",
         "FlextDbOracleVersion": "flext_db_oracle",
         "TestsFlextDbOracleConstants": ".constants",
+        "TestsFlextDbOracleDriverSession": ".unit",
         "TestsFlextDbOracleModels": ".models",
         "TestsFlextDbOracleProtocols": ".protocols",
         "TestsFlextDbOracleServiceBase": ".base",

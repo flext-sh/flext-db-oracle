@@ -38,7 +38,7 @@ ecosystem.
 
 ### Clean Architecture Layers
 
-```
+```text
 ┌─────────────────────────────────────┐
 │ Presentation Layer (CLI/API)        │
 ├─────────────────────────────────────┤
@@ -63,7 +63,7 @@ ecosystem.
 
 ### Core Components
 
-```
+```text
 src/flext_db_oracle/
 ├── api.py                 # 🎯 FlextDbOracleApi (orchestration layer)
 ├── services.py            # 🔧 FlextDbOracleServices (business logic)

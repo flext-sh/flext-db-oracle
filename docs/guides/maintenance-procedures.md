@@ -52,7 +52,7 @@ consistency, and accuracy across the flext-db-oracle project.
 
 The documentation maintenance system consists of several integrated components:
 
-```
+```text
 📊 Audit System → 🔍 Validation Engine → ✨ Optimization Tools → 📋 Reporting System
       ↓              ↓                      ↓                    ↓
    Quality Checks  Link Validation    Content Enhancement  Health Dashboards

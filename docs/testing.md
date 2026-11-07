@@ -104,7 +104,7 @@ ______________________________________________________________________
 
 #### Current Test Run Results
 
-```
+```text
     "class .*\\b\\):",  # Protocol classes
     "def __repr__",  # Debug representations
     "if self.debug:",  # Debug-only code

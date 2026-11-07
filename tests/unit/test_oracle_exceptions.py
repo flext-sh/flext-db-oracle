@@ -14,7 +14,10 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from tests import FlextDbOracleExceptions, FlextExceptions, c, e, tm, u
+from flext_core import FlextExceptions
+
+from flext_db_oracle.exceptions import FlextDbOracleExceptions
+from tests import c, e, tm, u
 
 
 class TestsFlextDbOracleOracleExceptions:

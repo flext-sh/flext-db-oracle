@@ -131,7 +131,7 @@ class FlextDbOracleApiRuntimeExecution(FlextDbOracleApiRuntimeState):
     @staticmethod
     def _normalize_parameters(
         parameters: t.JsonMapping | None = None,
-    ) -> p.Result[p.ConfigMap]:
+    ) -> p.Result[m.ConfigMap]:
         """Normalize query parameters into the canonical ConfigMap contract.
 
         Returns:
@@ -139,13 +139,13 @@ class FlextDbOracleApiRuntimeExecution(FlextDbOracleApiRuntimeState):
 
         """
         if parameters is None:
-            return r[p.ConfigMap].ok(m.ConfigMap(root={}))
+            return r[m.ConfigMap].ok(m.ConfigMap(root={}))
         return (
             u
             .try_(lambda: dict(parameters))
             .map(m.ConfigMap.model_validate)
             .lash(
-                lambda error: r[p.ConfigMap].fail(f"Invalid query parameters: {error}"),
+                lambda error: r[m.ConfigMap].fail(f"Invalid query parameters: {error}"),
             )
         )
 

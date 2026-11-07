@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from tests import FlextDbOracleExceptions
+from flext_db_oracle.exceptions import FlextDbOracleExceptions
 
 
 class TestsFlextDbOracleExceptions(FlextDbOracleExceptions):

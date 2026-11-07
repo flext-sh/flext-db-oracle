@@ -428,7 +428,7 @@ and generics **Features**:
 
 ### Test Organization
 
-```
+```text
 tests/
 ├── **init**.py              # Test package initialization
 ├── conftest.py              # Shared fixtures and configuration

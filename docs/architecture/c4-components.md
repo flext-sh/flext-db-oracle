@@ -219,7 +219,7 @@ from __future__ import annotations
 
 import os
 
-from flext_core import m, p, t
+from flext_core import m, t
 from pydantic import SecretStr
 
 
@@ -282,7 +282,7 @@ print(result.row_count)
 
 **Exception Hierarchy**:
 
-```
+```text
 FlextDbOracleException (base)
 ├── ConnectionException
 ├── QueryException

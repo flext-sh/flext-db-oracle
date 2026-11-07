@@ -12,14 +12,21 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
+    from tests.unit.test_driver_session import TestsFlextDbOracleDriverSession
     from tests.unit.test_statement_builders import TestsFlextDbOracleStatementBuilders
 
 
-__all__: tuple[str, ...] = ("TestsFlextDbOracleStatementBuilders",)
+__all__: tuple[str, ...] = (
+    "TestsFlextDbOracleDriverSession",
+    "TestsFlextDbOracleStatementBuilders",
+)
 
 install_lazy_exports(
     __name__,
     globals(),
-    {"TestsFlextDbOracleStatementBuilders": ".test_statement_builders"},
+    {
+        "TestsFlextDbOracleDriverSession": ".test_driver_session",
+        "TestsFlextDbOracleStatementBuilders": ".test_statement_builders",
+    },
     public_exports=__all__,
 )

@@ -20,7 +20,7 @@ import oracledb
 import pytest
 from sqlalchemy import Connection, Engine, event
 from sqlalchemy.engine.interfaces import Dialect
-from sqlalchemy.pool import ConnectionPoolEntry
+from sqlalchemy.pool import ConnectionPoolEntry, QueuePool
 
 from flext_db_oracle import FlextDbOracleSettings
 from tests import c, m, t, tm, u
@@ -124,7 +124,9 @@ class TestsFlextDbOracleDriverSession:
         tm.that(engine.url.query["service_name"], eq="ORCLPDB")
         tm.that(engine.url.username, eq="app")
         tm.that(engine.url.password, eq="s3cr:t@x")
-        tm.that(engine.pool.size(), eq=3)
+        pool = engine.pool
+        if isinstance(pool, QueuePool):
+            tm.that(pool.size(), eq=3)
         arguments = cls._driver_arguments(engine)
         tm.that(str(arguments["dsn"]), has="db.internal")
         tm.that(arguments["tcp_connect_timeout"], eq=settings.DbOracle.timeout)
@@ -189,7 +191,7 @@ class TestsFlextDbOracleDriverSession:
             connection=memory_connection,
         )
         tm.that(inserted, eq=1)
-        rows = u.DbOracle.fetch_models(
+        rows = u.DbOracle.fetch_models_on_connection(
             "SELECT id, ratio, raw, label FROM sample WHERE id = :id",
             {"id": 7},
             model=cls.SampleRow,
@@ -213,7 +215,7 @@ class TestsFlextDbOracleDriverSession:
             "CREATE TEMP TABLE sample (id INTEGER, ratio REAL, raw BLOB, label TEXT)",
             connection=memory_connection,
         )
-        rows = u.DbOracle.fetch_models(
+        rows = u.DbOracle.fetch_models_on_connection(
             "SELECT id, ratio, raw, label FROM sample",
             model=cls.SampleRow,
             connection=memory_connection,

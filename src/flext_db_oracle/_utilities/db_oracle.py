@@ -18,6 +18,7 @@ from flext_cli import u
 from sqlalchemy import (
     Connection as SAConnection,
     Engine as SAEngine,
+    Executable,
     TextClause,
     create_engine,
     event,
@@ -383,9 +384,9 @@ class FlextDbOracleUtilitiesDbOracle:
         return len(active)
 
     @staticmethod
-    def fetch_models[M: m.BaseModel](
-        sql: str,
-        params: Mapping[str, t.Scalar | None] | None = None,
+    def fetch_models_on_connection[M: m.BaseModel](
+        sql: Executable | str,
+        params: Mapping[str, t.JsonPayload] | None = None,
         *,
         model: type[M],
         connection: SAConnection,
@@ -400,7 +401,8 @@ class FlextDbOracleUtilitiesDbOracle:
             One ``model`` instance per row, in result order.
 
         """
-        result = connection.execute(_sqlalchemy_text(sql), dict(params or {}))
+        statement = sql if isinstance(sql, Executable) else _sqlalchemy_text(sql)
+        result = connection.execute(statement, dict(params or {}))
         return [model.model_validate(dict(row)) for row in result.mappings()]
 
     @staticmethod

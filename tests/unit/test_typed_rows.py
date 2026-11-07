@@ -11,12 +11,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from pydantic import BaseModel
+from flext_db_oracle.services import FlextDbOracleServices
+from tests import m, p, tm
 
-from tests import FlextDbOracleServices, p, tm
 
-
-class TypedRow(BaseModel):
+class TypedRow(m.BaseModel):
     """Row projection consumed by the typed-fetch contract."""
 
     user_id: str

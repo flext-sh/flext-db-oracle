@@ -18,7 +18,7 @@ FLEXT ecosystem integration patterns for flext-db-oracle.
 ## FLEXT Core Integration
 
 ```python
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c, p, u
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c, u
 
 settings = FlextDbOracleSettings.model_validate({
     "DbOracle": {
@@ -111,6 +111,6 @@ api = FlextDbOracleApi(settings)
 
 Updated: April 14, 2026 | Version: 0.12.0-dev
 
-```
+```text
 
 ```

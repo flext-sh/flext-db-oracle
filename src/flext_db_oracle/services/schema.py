@@ -286,7 +286,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
                 "SELECT table_name FROM all_tables "
                 "WHERE owner = UPPER(:schema_name) ORDER BY table_name"
             )
-            params: p.ConfigMap | None = m.ConfigMap(root={"schema_name": schema})
+            params: m.ConfigMap | None = m.ConfigMap(root={"schema_name": schema})
         else:
             sql = "SELECT table_name FROM user_tables ORDER BY table_name"
             params = None

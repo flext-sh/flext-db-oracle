@@ -9,14 +9,12 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from pydantic import BaseModel
-
 if TYPE_CHECKING:
     from flext_cli import p
     from flext_core._protocols import FlextProtocolsResult
     from sqlalchemy import Executable
 
-    from flext_db_oracle import t
+    from flext_db_oracle import m, t
     from flext_db_oracle._protocols import (
         FlextDbOracleProtocolsConnectionModels,
         FlextDbOracleProtocolsSchemaModels,
@@ -47,7 +45,7 @@ class FlextDbOracleProtocolsQuery:
             """
             ...
 
-        def fetch_models[T: BaseModel](
+        def fetch_models[T: m.BaseModel](
             self,
             sql: str | Executable,
             params: p.ConfigMap | None = None,
