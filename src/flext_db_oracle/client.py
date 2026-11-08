@@ -305,17 +305,17 @@ class FlextDbOracleClient(s):
         return self._format_and_display_result(operation_result, format_type)
 
     @staticmethod
-    def _adapt_schemas(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:
+    def _adapt_schemas(raw_value: t.JsonValue) -> Sequence[p.ConfigMap]:
         schemas = u.json_list_adapter().validate_python(raw_value)
-        return [m.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
+        return [p.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
 
     @staticmethod
-    def _adapt_tables(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:
+    def _adapt_tables(raw_value: t.JsonValue) -> Sequence[p.ConfigMap]:
         tables = u.json_list_adapter().validate_python(raw_value)
-        return [m.ConfigMap(root={"table": str(table)}) for table in tables]
+        return [p.ConfigMap(root={"table": str(table)}) for table in tables]
 
     @staticmethod
-    def _adapt_health(raw_value: t.JsonValue) -> Sequence[m.ConfigMap]:
+    def _adapt_health(raw_value: t.JsonValue) -> Sequence[p.ConfigMap]:
         # Why: no-hidden-errors — validate_config_map now raises on malformed
         # input instead of returning None; no sentinel branch needed here.
         health = u.DbOracle.validate_config_map(raw_value)
@@ -345,7 +345,7 @@ class FlextDbOracleClient(s):
     def _adapt_data_root(
         self,
         data_root: Mapping[str, t.JsonPayload],
-    ) -> Sequence[m.ConfigMap]:
+    ) -> Sequence[p.ConfigMap]:
         """Adapt one ConfigMap root into table rows.
 
         Returns:
@@ -353,7 +353,7 @@ class FlextDbOracleClient(s):
 
         """
         strategies: Sequence[
-            tuple[str, Callable[[t.JsonValue], Sequence[m.ConfigMap]]]
+            tuple[str, Callable[[t.JsonValue], Sequence[p.ConfigMap]]]
         ] = [
             ("schemas", self._adapt_schemas),
             ("tables", self._adapt_tables),

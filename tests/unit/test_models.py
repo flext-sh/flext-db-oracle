@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from tests import FlextDbOracleSettings, c, m, tm, u
+from tests import FlextDbOracleSettings, c, m, p, tm, u
 
 
 @c.Tests.MARK.unit
@@ -201,7 +201,7 @@ class TestsFlextDbOracleModels:
         result = m.DbOracle.QueryResult(
             query="SELECT 1",
             columns=["col1"],
-            rows=[m.DbOracle.RowData(values=[1])],
+            rows=[p.DbOracle.RowData(values=[1])],
             execution_time_ms=c.DbOracle.QUERY_ACCEPTABLE_THRESHOLD_MS,
         )
         tm.ok(result.has_results)
@@ -216,7 +216,7 @@ class TestsFlextDbOracleModels:
             m.DbOracle.QueryResult(
                 query="SELECT 1",
                 columns=["id", "name"],
-                rows=[m.DbOracle.RowData(values=[1])],
+                rows=[p.DbOracle.RowData(values=[1])],
             )
 
     @staticmethod
@@ -231,7 +231,7 @@ class TestsFlextDbOracleModels:
         result = m.DbOracle.QueryResult(
             query="SELECT 1",
             columns=["id"],
-            rows=[m.DbOracle.RowData(values=[1]), m.DbOracle.RowData(values=[2])],
+            rows=[p.DbOracle.RowData(values=[1]), m.DbOracle.RowData(values=[2])],
             execution_time_ms=100,
         )
         validated = m.DbOracle.QueryResult.model_validate(result.model_dump())
