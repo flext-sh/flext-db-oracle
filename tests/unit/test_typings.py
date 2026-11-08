@@ -12,8 +12,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import oracledb
+from flext_cli import FlextCliTypes
 
-from tests import FlextDbOracleTypes, c, t, tm, typings
+from flext_db_oracle import typings
+from tests import FlextDbOracleTypes, c, tm
 
 
 class TestsFlextDbOracleTypings:
@@ -35,7 +37,7 @@ class TestsFlextDbOracleTypings:
 
         Inherited members stay reachable.
         """
-        tm.that(FlextDbOracleTypes.__mro__, has=t)
+        tm.that(FlextDbOracleTypes.__mro__, has=FlextCliTypes)
         tm.ok(hasattr(FlextDbOracleTypes, "Scalar"))
 
     @staticmethod
@@ -64,7 +66,7 @@ class TestsFlextDbOracleTypings:
     def test_query_parameters_alias_resolves_to_json_mapping() -> None:
         """``QueryParameters`` is a named alias for the cli JSON mapping type."""
         alias = FlextDbOracleTypes.DbOracle.QueryParameters
-        tm.ok(alias.__value__ is t.JsonMapping)
+        tm.ok(alias.__value__ is FlextCliTypes.JsonMapping)
 
     @staticmethod
     def test_cli_scalar_alias_is_optional_scalar() -> None:

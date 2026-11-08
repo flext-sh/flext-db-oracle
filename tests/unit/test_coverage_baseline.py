@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from tests import FlextDbOracleSettings, c, m, p, tm
+from tests import FlextDbOracleSettings, c, m, p, tm, u
 
 if TYPE_CHECKING:
     from flext_db_oracle.services import FlextDbOracleServices
@@ -35,9 +35,10 @@ class TestsFlextDbOracleCoverageBaseline:
     @staticmethod
     def test_settings_password_is_a_plain_string(
         oracle_unit_settings: FlextDbOracleSettings,
+        oracle_unit_password: str,
     ) -> None:
         """The namespace stores the password as a plain string scalar."""
-        tm.that(oracle_unit_settings.DbOracle.password, eq="testpass")
+        tm.that(oracle_unit_settings.DbOracle.password, eq=oracle_unit_password)
 
     @staticmethod
     def test_settings_service_name_round_trips_verbatim() -> None:
@@ -48,7 +49,7 @@ class TestsFlextDbOracleCoverageBaseline:
                 "port": 1521,
                 c.ContextKey.SERVICE_NAME: "lower_svc",
                 "username": "testuser",
-                "password": "testpass",
+                "password": u.Tests.oracle_test_password(),
             },
         })
         tm.that(settings.DbOracle.service_name, eq="lower_svc")

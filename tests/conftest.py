@@ -37,7 +37,13 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
 
 
 @pytest.fixture
-def oracle_unit_settings() -> FlextDbOracleSettings:
+def oracle_unit_password() -> str:
+    """Return the fresh password shared by a settings fixture and its test."""
+    return u.Tests.oracle_test_password()
+
+
+@pytest.fixture
+def oracle_unit_settings(oracle_unit_password: str) -> FlextDbOracleSettings:
     """Return a valid Oracle settings instance for service construction."""
     return FlextDbOracleSettings.model_validate({
         "DbOracle": {
@@ -45,7 +51,7 @@ def oracle_unit_settings() -> FlextDbOracleSettings:
             "port": 1521,
             c.ContextKey.SERVICE_NAME: "TEST",
             "username": "testuser",
-            "password": "testpass",
+            "password": oracle_unit_password,
         },
     })
 

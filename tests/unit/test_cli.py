@@ -182,7 +182,7 @@ class TestsFlextDbOracleCli:
                 "name": "XE",
                 c.ContextKey.SERVICE_NAME: "XE",
                 "username": "test",
-                "password": "test",
+                "password": u.Tests.oracle_test_password(),
             },
         })
         client = FlextDbOracleClient()
@@ -219,7 +219,7 @@ class TestsFlextDbOracleCli:
             "ORACLE_DBORACLE__HOST": "localhost",
             "ORACLE_DBORACLE__PORT": "1521",
             "ORACLE_DBORACLE__USERNAME": "testuser",
-            "ORACLE_DBORACLE__PASSWORD": "testpass",
+            "ORACLE_DBORACLE__PASSWORD": u.Tests.oracle_test_password(),
             "ORACLE_DBORACLE__SERVICE_NAME": "TESTDB",
         }):
             api_result = FlextDbOracleApi.from_env()
@@ -233,7 +233,7 @@ class TestsFlextDbOracleCli:
         with u.Tests.env_vars_context({
             "ORACLE_DBORACLE__HOST": "localhost",
             "ORACLE_DBORACLE__USERNAME": "testuser",
-            "ORACLE_DBORACLE__PASSWORD": "testpass",
+            "ORACLE_DBORACLE__PASSWORD": u.Tests.oracle_test_password(),
             "ORACLE_DBORACLE__SERVICE_NAME": "XEPDB1",
         }):
             api_result = FlextDbOracleApi.from_env()
@@ -362,7 +362,7 @@ class TestsFlextDbOracleCli:
                     "port": 1521,
                     c.ContextKey.SERVICE_NAME: "TESTDB",
                     "username": "test",
-                    "password": "test",
+                    "password": u.Tests.oracle_test_password(),
                 },
             }),
         )

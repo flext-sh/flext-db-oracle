@@ -15,10 +15,10 @@ from urllib.parse import quote_plus
 
 import oracledb
 from flext_cli import u
+from flext_core import FlextTypingNativeExport
 from sqlalchemy import (
     Connection as SAConnection,
     Engine as SAEngine,
-    Executable,
     TextClause,
     create_engine,
     event,
@@ -29,7 +29,7 @@ from sqlalchemy import (
 from sqlalchemy.exc import DatabaseError as SADatabaseError
 from sqlalchemy.orm import aliased as _sqlalchemy_aliased
 
-from flext_db_oracle import FlextDbOracleSettings, c, m, p, r, settings, t
+from flext_db_oracle import c, m, p, r, settings, t
 
 if TYPE_CHECKING:
     import contextlib
@@ -63,9 +63,9 @@ class FlextDbOracleUtilitiesDbOracle:
     # Statement builders published natively (every overload kept):
     # `u.DbOracle.select(*columns)`, `u.DbOracle.func.count()` and
     # `u.DbOracle.aliased(Model)`.
-    select = staticmethod(_sqlalchemy_select)
-    func = _sqlalchemy_func
-    aliased = staticmethod(_sqlalchemy_aliased)
+    select = FlextTypingNativeExport(_sqlalchemy_select)
+    func = FlextTypingNativeExport(_sqlalchemy_func)
+    aliased = FlextTypingNativeExport(_sqlalchemy_aliased)
 
     @staticmethod
     def text(statement: str) -> TextClause:
@@ -245,7 +245,7 @@ class FlextDbOracleUtilitiesDbOracle:
         arguments the options do not own.
 
         Returns:
-            The unconnected engine; the first checkout opens the session.
+            The resulting ``SAEngine``.
 
         Raises:
             ValueError: ``connect_args`` repeats a driver argument the options
@@ -292,7 +292,7 @@ class FlextDbOracleUtilitiesDbOracle:
     @classmethod
     def build_engine(
         cls,
-        config: FlextDbOracleSettings,
+        config: t.DbOracle.Settings,
         connect_args: Mapping[str, t.Scalar] | None = None,
     ) -> SAEngine:
         """Build the engine of one settings snapshot (services and tests).
@@ -372,8 +372,8 @@ class FlextDbOracleUtilitiesDbOracle:
         return len(active)
 
     @staticmethod
-    def fetch_models_on_connection[M: m.BaseModel](
-        sql: Executable | str,
+    def fetch_models_on_connection[M: p.BaseModel](
+        sql: str | t.DbOracle.SqlExecutable,
         params: Mapping[str, t.JsonPayload] | None = None,
         *,
         model: type[M],
@@ -389,7 +389,7 @@ class FlextDbOracleUtilitiesDbOracle:
             One ``model`` instance per row, in result order.
 
         """
-        statement = sql if isinstance(sql, Executable) else _sqlalchemy_text(sql)
+        statement = _sqlalchemy_text(sql) if isinstance(sql, str) else sql
         result = connection.execute(statement, dict(params or {}))
         return [model.model_validate(dict(row)) for row in result.mappings()]
 
