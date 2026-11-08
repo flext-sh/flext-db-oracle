@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from tests import FlextDbOracleSettings, c, m, p, tm, u
+from tests import FlextDbOracleSettings, c, m, tm, u
 
 
 class TestsFlextDbOracleFields:
@@ -84,7 +84,7 @@ class TestsFlextDbOracleFields:
             m.DbOracle.QueryResult(
                 query="SELECT a FROM t",
                 columns=("a",),
-                rows=[p.DbOracle.RowData(values=(1, 2))],
+                rows=[m.DbOracle.RowData(values=(1, 2))],
             )
 
     @staticmethod
