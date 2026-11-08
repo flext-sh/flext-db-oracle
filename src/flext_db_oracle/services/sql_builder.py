@@ -17,7 +17,6 @@ from sqlalchemy import (
     Column as sa_Column,
     Index,
     MetaData,
-    Select,
     Table,
     TableClause,
     bindparam,
@@ -290,7 +289,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         # ``literal_column`` leaves its type parameter unbound; the pinned
         # local keeps the projection type known without changing the runtime.
         star_column: ColumnClause[str] = literal_column("*")
-        statement: Select[tuple[str]] = (
+        statement = (
             select(*selected_column_clauses)
             if selected_column_clauses
             else select(star_column)

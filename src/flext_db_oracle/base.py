@@ -32,7 +32,7 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
     _db_config: FlextDbOracleSettings | None = m.PrivateAttr()
     _engine: SAEngine | None = m.PrivateAttr(default_factory=lambda: None)
     _operations: MutableSequence[p.DbOracle.OperationRecord] = m.PrivateAttr(
-        default_factory=list,
+        default_factory=list[p.DbOracle.OperationRecord],
     )
     _plugins: MutableMapping[str, t.JsonPayload | t.FlatContainer] = m.PrivateAttr(
         default_factory=dict,
@@ -108,13 +108,13 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
     def execute_rows(
         self,
         sql: str,
-        params: m.ConfigMap | None = None,
-    ) -> p.Result[Sequence[m.Dict]]:
+        params: p.ConfigMap | None = None,
+    ) -> p.Result[Sequence[p.Dict]]:
         """Execute a SQL query on a fresh pooled connection.
 
         Row values stay as the driver returned them and are validated by the
         ``m.Dict`` payload contract; for caller session state or a typed row
-        model use ``fetch_models`` on the caller's connection.
+        model use ``fetch_models_on_connection`` on the caller's connection.
 
         Returns:
             The resulting ``p.Result[Sequence[p.Dict]]``.
@@ -126,7 +126,7 @@ class FlextDbOracleServiceBase(FlextService, u.DbOracle):
         try:
             with self._engine_connect(engine_result.value) as connection:
                 result = self._connection_execute(connection, text(sql), params)
-                rows: Sequence[m.Dict] = [
+                rows: Sequence[p.Dict] = [
                     m.Dict(root=dict(row)) for row in result.mappings().all()
                 ]
                 return r[Sequence[p.Dict]].ok(rows)

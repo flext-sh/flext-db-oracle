@@ -37,7 +37,13 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
 
 
 @pytest.fixture
-def oracle_unit_settings() -> FlextDbOracleSettings:
+def oracle_unit_password() -> str:
+    """Return the fresh password shared by a settings fixture and its test."""
+    return u.Tests.oracle_test_password()
+
+
+@pytest.fixture
+def oracle_unit_settings(oracle_unit_password: str) -> FlextDbOracleSettings:
     """Return a valid Oracle settings instance for service construction."""
     return FlextDbOracleSettings.model_validate({
         "DbOracle": {
@@ -45,7 +51,7 @@ def oracle_unit_settings() -> FlextDbOracleSettings:
             "port": 1521,
             c.ContextKey.SERVICE_NAME: "TEST",
             "username": "testuser",
-            "password": "testpass",
+            "password": oracle_unit_password,
         },
     })
 
@@ -56,6 +62,23 @@ def oracle_unit_services(
 ) -> FlextDbOracleServices:
     """Return a services facade bound to the valid settings."""
     return FlextDbOracleServices(settings=oracle_unit_settings)
+
+
+@pytest.fixture
+def oracle_unreachable_settings(
+    oracle_unit_password: str,
+) -> FlextDbOracleSettings:
+    """Build the unreachable loopback scenario used by both public facades."""
+    return FlextDbOracleSettings.model_validate({
+        "DbOracle": {
+            "host": "127.0.0.1",
+            "port": 19999,
+            c.ContextKey.SERVICE_NAME: "INVALID",
+            "username": "invalid",
+            "password": oracle_unit_password,
+            "timeout": 1,
+        },
+    })
 
 
 # NOTE (multi-agent): ADR-005 singleton discipline — drop the settings singleton
