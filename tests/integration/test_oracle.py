@@ -16,6 +16,7 @@ from __future__ import annotations
 import threading
 import time
 from collections.abc import Mapping
+from pathlib import Path
 
 from tests import FlextDbOracleApi, FlextDbOracleSettings, c, m, p, tm, u
 
@@ -324,21 +325,29 @@ class TestsFlextDbOracleOracle:
         connected_oracle_api: FlextDbOracleApi,
     ) -> None:
         """A signal handler's cancel_active aborts an in-flight call (ORA-01013)."""
-        sleep_seconds = 30
+        # A single DBMS_SESSION.SLEEP can return the break only after its wait.
+        # Exercise a long SQL statement with observable interruption instead.
+        statement = (
+            Path(__file__).resolve().parents[1]
+            / "fixtures"
+            / "oracle"
+            / "cancel_statement.sql"
+        ).read_text(encoding="utf-8")
+        cancel_budget_seconds = 10
         outcome: list[str] = []
 
         def run_long_call() -> None:
-            result = connected_oracle_api.execute_statement(
-                f"BEGIN DBMS_SESSION.SLEEP({sleep_seconds}); END;",
-            )
+            result = connected_oracle_api.query(statement)
             outcome.append(result.error or "completed")
 
         started = time.monotonic()
-        call = threading.Thread(target=run_long_call)
+        deadline = started + cancel_budget_seconds
+        call = threading.Thread(target=run_long_call, daemon=True)
         call.start()
-        while call.is_alive() and u.DbOracle.cancel_active() == 0:
-            time.sleep(0.2)
-        call.join(sleep_seconds)
+        while call.is_alive() and time.monotonic() < deadline:
+            call.join(0.2)
+            if call.is_alive():
+                u.DbOracle.cancel_active()
         tm.fail(call.is_alive())
-        tm.that(time.monotonic() - started < sleep_seconds)
+        tm.that(time.monotonic() - started < cancel_budget_seconds)
         tm.that(outcome[0], has="ORA-01013")

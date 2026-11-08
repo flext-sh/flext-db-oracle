@@ -8,9 +8,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
-from sqlalchemy import Executable, text
+from sqlalchemy import text
 
 from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t, u
 
@@ -18,7 +18,7 @@ from flext_db_oracle import FlextDbOracleServiceBase, c, m, p, r, t, u
 class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     """Mixin providing query execution for FlextDbOracleServices.
 
-    Handles: execute_query, execute_statement, execute_many, fetch_one.
+    Handles: execute_query, execute_statement, execute_many, fetch_one, fetch_models.
     """
 
     # flext-1wjg1.16: see services/plugin.py -- explicit wrapper keeps this
@@ -41,13 +41,15 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             The resulting ``p.Result[int]``.
 
         """
+        if not params_list:
+            return r[int].ok(value=0)
         engine_result = self._get_engine()
         if engine_result.failure:
             return r[int].from_failure(engine_result)
         batch = [
-            params.root
-            if isinstance(params, m.ConfigMap)
-            else m.ConfigMap.model_validate(params).root
+            m.ConfigMap.model_validate(params).root
+            if isinstance(params, Mapping)
+            else params.root
             for params in params_list
         ]
         try:
@@ -61,7 +63,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         self,
         sql: str,
         params: p.ConfigMap | None = None,
-    ) -> p.Result[Sequence[m.Dict]]:
+    ) -> p.Result[Sequence[p.Dict]]:
         """Execute SQL query and return its rows with driver-native values.
 
         Returns:
@@ -93,9 +95,9 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         except c.DbOracle.EXC_DB_BROAD as exc:
             return r[int].fail_op("Statement execution", exc)
 
-    def fetch_models[M: m.BaseModel](
+    def fetch_models[M: p.BaseModel](
         self,
-        sql: Executable | str,
+        sql: str | t.DbOracle.SqlExecutable,
         params: p.ConfigMap | None = None,
         *,
         model: type[M],

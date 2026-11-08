@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+import secrets
 import time
 from collections.abc import Mapping
 
@@ -21,6 +22,16 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
 
     class Tests(FlextTestsUtilities.Tests):
         """Test-specific utilities."""
+
+        @staticmethod
+        def oracle_test_password() -> str:
+            """Create a fresh credential for an offline Oracle scenario.
+
+            Returns:
+                A random password used only by the test that creates it.
+
+            """
+            return secrets.token_urlsafe()
 
         @classmethod
         def normalize_port_bindings(
