@@ -64,6 +64,23 @@ def oracle_unit_services(
     return FlextDbOracleServices(settings=oracle_unit_settings)
 
 
+@pytest.fixture
+def oracle_unreachable_settings(
+    oracle_unit_password: str,
+) -> FlextDbOracleSettings:
+    """Build the unreachable loopback scenario used by both public facades."""
+    return FlextDbOracleSettings.model_validate({
+        "DbOracle": {
+            "host": "127.0.0.1",
+            "port": 19999,
+            c.ContextKey.SERVICE_NAME: "INVALID",
+            "username": "invalid",
+            "password": oracle_unit_password,
+            "timeout": 1,
+        },
+    })
+
+
 # NOTE (multi-agent): ADR-005 singleton discipline — drop the settings singleton
 # around every test so direct FlextDbOracleSettings(...) construction never leaks.
 def pytest_runtest_setup(item: pytest.Item) -> None:

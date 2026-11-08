@@ -55,20 +55,11 @@ class TestsFlextDbOracleServices:
         tm.ok(first.value)
 
     @staticmethod
-    def test_connect_fails_for_unreachable_host() -> None:
+    def test_connect_fails_for_unreachable_host(
+        oracle_unreachable_settings: FlextDbOracleSettings,
+    ) -> None:
         """Connecting to an unreachable endpoint returns a failure result."""
-        svc = FlextDbOracleServices(
-            settings=FlextDbOracleSettings.model_validate({
-                "DbOracle": {
-                    "host": "127.0.0.1",
-                    "port": 19999,
-                    c.ContextKey.SERVICE_NAME: "INVALID",
-                    "username": "invalid",
-                    "password": u.Tests.oracle_test_password(),
-                    "timeout": 1,
-                },
-            }),
-        )
+        svc = FlextDbOracleServices(settings=oracle_unreachable_settings)
         result = svc.connect()
         tm.ok(result.failure)
         tm.fail(svc.connected())
@@ -544,20 +535,11 @@ class TestsFlextDbOracleServicesOfflineData:
         tm.that(settings.DbOracle.service_name, eq="XE")
 
     @staticmethod
-    def test_api_operations_fail_for_unreachable_config() -> None:
+    def test_api_operations_fail_for_unreachable_config(
+        oracle_unreachable_settings: FlextDbOracleSettings,
+    ) -> None:
         """Every API read operation fails deterministically when offline."""
-        api = FlextDbOracleApi(
-            FlextDbOracleSettings.model_validate({
-                "DbOracle": {
-                    "host": "127.0.0.1",
-                    "port": 19999,
-                    c.ContextKey.SERVICE_NAME: "INVALID",
-                    "username": "invalid",
-                    "password": u.Tests.oracle_test_password(),
-                    "timeout": 1,
-                },
-            }),
-        )
+        api = FlextDbOracleApi(oracle_unreachable_settings)
         tm.ok(api.test_connection().failure)
         tm.ok(api.fetch_schemas().failure)
         tm.ok(api.fetch_tables().failure)
