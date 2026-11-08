@@ -24,6 +24,7 @@ class TestsFlextDbOracleOracle:
     """Behavioral end-to-end tests for the Oracle API public contract."""
 
     @u.Tests.fixture
+    @staticmethod
     def offline_settings() -> FlextDbOracleSettings:
         """Return settings for an unreachable host in offline contract tests."""
         return FlextDbOracleSettings.model_validate({
