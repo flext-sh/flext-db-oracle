@@ -307,12 +307,12 @@ class FlextDbOracleClient(s):
     @staticmethod
     def _adapt_schemas(raw_value: t.JsonValue) -> Sequence[p.ConfigMap]:
         schemas = u.json_list_adapter().validate_python(raw_value)
-        return [p.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
+        return [m.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
 
     @staticmethod
     def _adapt_tables(raw_value: t.JsonValue) -> Sequence[p.ConfigMap]:
         tables = u.json_list_adapter().validate_python(raw_value)
-        return [p.ConfigMap(root={"table": str(table)}) for table in tables]
+        return [m.ConfigMap(root={"table": str(table)}) for table in tables]
 
     @staticmethod
     def _adapt_health(raw_value: t.JsonValue) -> Sequence[p.ConfigMap]:
