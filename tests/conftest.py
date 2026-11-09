@@ -68,7 +68,12 @@ def oracle_unit_services(
 def oracle_unreachable_settings(
     oracle_unit_password: str,
 ) -> FlextDbOracleSettings:
-    """Build the unreachable loopback scenario used by both public facades."""
+    """Build the unreachable loopback scenario used by both public facades.
+
+    Returns:
+        The resulting ``FlextDbOracleSettings``.
+
+    """
     return FlextDbOracleSettings.model_validate({
         "DbOracle": {
             "host": "127.0.0.1",
