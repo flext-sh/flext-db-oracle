@@ -37,9 +37,7 @@ class FlextDbOracleClient(s):
         description="Active Oracle API connection instance",
         validate_default=True,
     )
-    user_preferences: Annotated[
-        p.ConfigMap, t.schema_for_model(lambda: m.ConfigMap)
-    ] = m.Field(
+    user_preferences: Annotated[m.ConfigMap] = m.Field(
         default_factory=lambda: m.ConfigMap(
             root={
                 "default_output_format": "table",
