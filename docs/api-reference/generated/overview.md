@@ -26,7 +26,7 @@
   `FlextDbOracleConfig`, `FlextDbOracleConstants`, `FlextDbOracleDispatcher`,
   `FlextDbOracleExceptions`, `FlextDbOracleModels`, `FlextDbOracleModelsConfig`,
   `FlextDbOracleProtocols` (+9 more)
-- Exported module shortcuts: _none_
+- Exported module shortcuts: *none*
 - Generated module pages: `12`
 
 ## Next Pages
