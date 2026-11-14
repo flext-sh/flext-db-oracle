@@ -10,8 +10,8 @@
 <!-- TOC END -->
 
 The single reference for every flext member that touches a database
-(dc-recon today; flext-tap-oracle, flext-target-oracle, flext-dbt-oracle and
-non-Oracle adapters tomorrow). Consumers depend on **ports**, never on the
+(flext-tap-oracle, flext-target-oracle, flext-dbt-oracle and
+non-Oracle adapters). Consumers depend on **ports**, never on the
 concrete adapter: Clean Architecture with the flext-core DI container.
 
 Published statement builders such as `u.DbOracle.func` retain their native dynamic
@@ -68,7 +68,7 @@ A member composes the mixins it needs from `flext_db_oracle.services` and adds
 only its own operations. Members that already own a URL use
 `u.DbOracle.engine(url, options)` with the same typed pool and driver options.
 
-Control-table example (dc-recon): typed rows through `fetch_models` with a
+Control-table example (a consumer engine): typed rows through `fetch_models` with a
 bind parameter, no positional parsing.
 
 ```python
