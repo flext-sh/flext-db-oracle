@@ -10,15 +10,17 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from flext_db_oracle._protocols import FlextDbOracleProtocolsBase
+from flext_cli import FlextCliProtocols
 
 
 class FlextDbOracleProtocolsCredential:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class Password(FlextDbOracleProtocolsBase.CredentialRoot, Protocol):
+    class Password(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
+
+        root: str
 
 
 __all__: list[str] = [
