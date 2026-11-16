@@ -16,7 +16,7 @@ from collections.abc import Callable
 
 from flext_core import FlextExceptions
 
-from flext_db_oracle.exceptions import FlextDbOracleExceptions
+from flext_db_oracle import FlextDbOracleExceptions
 from tests import c, e, tm, u
 
 
