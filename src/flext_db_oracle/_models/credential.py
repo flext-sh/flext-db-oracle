@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle import m
+from flext_core import m
 
 
 class FlextDbOracleCredentialModel:
