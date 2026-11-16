@@ -17,7 +17,6 @@ import oracledb
 import pytest
 from flext_tests import FlextTestsDocker
 
-from flext_db_oracle.services import FlextDbOracleServices
 from tests import FlextDbOracleApi, FlextDbOracleSettings, c, p, tk, tm, u
 
 if TYPE_CHECKING:
@@ -59,9 +58,9 @@ def oracle_unit_settings(oracle_unit_password: str) -> FlextDbOracleSettings:
 @pytest.fixture
 def oracle_unit_services(
     oracle_unit_settings: FlextDbOracleSettings,
-) -> FlextDbOracleServices:
-    """Return a services facade bound to the valid settings."""
-    return FlextDbOracleServices(settings=oracle_unit_settings)
+) -> p.DbOracle.QueryExecutor:
+    """Return the public Oracle services facade bound to the valid settings."""
+    return FlextDbOracleApi(settings=oracle_unit_settings).oracle_services
 
 
 @pytest.fixture

@@ -14,7 +14,6 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
 
-from flext_db_oracle.services import FlextDbOracleServices
 from tests import FlextDbOracleApi, FlextDbOracleSettings, c, p, t, tm, u
 
 
@@ -392,7 +391,7 @@ class TestsFlextDbOracleApi:
             columns: Sequence[str],
         ) -> None:
             """build_select produces a SELECT that references the table and columns."""
-            services = FlextDbOracleServices(settings=settings)
+            services = FlextDbOracleApi(settings=settings).oracle_services
             result = services.build_select(table_name, columns)
             tm.ok(result)
             sql_upper = result.value.upper()
@@ -406,7 +405,7 @@ class TestsFlextDbOracleApi:
             settings: FlextDbOracleSettings,
         ) -> None:
             """A schema-qualified build_select references both schema and table."""
-            services = FlextDbOracleServices(settings=settings)
+            services = FlextDbOracleApi(settings=settings).oracle_services
             result = services.build_select(
                 "test_table",
                 ["col1"],

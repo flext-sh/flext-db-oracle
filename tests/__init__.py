@@ -47,7 +47,6 @@ if TYPE_CHECKING:
     from tests.base import TestsFlextDbOracleServiceBase, s
     from tests.constants import TestsFlextDbOracleConstants, c
     from tests.dependencies import (
-        FlextDbOracleServices,
         FlextExceptions,
         FlextTestsDocker,
         FlextTestsServiceBase,
@@ -76,7 +75,6 @@ __all__: tuple[str, ...] = (
     "FlextDbOracleModelsConfig",
     "FlextDbOracleProtocols",
     "FlextDbOracleServiceBase",
-    "FlextDbOracleServices",
     "FlextDbOracleSettings",
     "FlextDbOracleTypes",
     "FlextDbOracleUtilities",
@@ -139,7 +137,6 @@ install_lazy_exports(
         "FlextDbOracleModelsConfig": "flext_db_oracle",
         "FlextDbOracleProtocols": "flext_db_oracle",
         "FlextDbOracleServiceBase": "flext_db_oracle",
-        "FlextDbOracleServices": ".dependencies",
         "FlextDbOracleSettings": "flext_db_oracle",
         "FlextDbOracleTypes": "flext_db_oracle",
         "FlextDbOracleUtilities": "flext_db_oracle",
