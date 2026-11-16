@@ -15,7 +15,7 @@ import re
 from collections.abc import Mapping, Sequence
 from enum import StrEnum, unique
 from types import MappingProxyType
-from typing import TYPE_CHECKING, ClassVar, Final
+from typing import TYPE_CHECKING, ClassVar
 
 from flext_core import c
 
@@ -26,85 +26,85 @@ if TYPE_CHECKING:
 class FlextDbOracleConstantsValues:
     """Oracle domain scalar namespace owned here (ENFORCE-079 SSOT)."""
 
-    DEFAULT_CHARSET: Final[str] = "UTF8"
-    DEFAULT_SERVICE_NAME: Final[str] = "XEPDB1"
-    DEFAULT_PORT: Final[int] = 1521
-    DEFAULT_DATABASE_NAME: Final[str] = "XE"
-    DEFAULT_SID: Final[str] = "XE"
-    DEFAULT_USERNAME: Final[str] = "system"
-    DEFAULT_TIMEOUT: Final[int] = c.DEFAULT_TIMEOUT_SECONDS
-    DEFAULT_POOL_MIN: Final[int] = 2
-    DEFAULT_POOL_MAX: Final[int] = 20
-    DEFAULT_POOL_INCREMENT: Final[int] = 1
-    DEFAULT_POOL_TIMEOUT: Final[int] = 60
-    DEFAULT_CONNECTION_TIMEOUT: Final[int] = c.DEFAULT_TIMEOUT_SECONDS
-    DEFAULT_HOST: Final[str] = c.LOCALHOST
-    DEFAULT_ARRAY_SIZE: Final[int] = 100
-    DEFAULT_QUERY_LIMIT: Final[int] = 1000
-    DEFAULT_QUERY_TIMEOUT: Final[int] = 60
-    DEFAULT_BATCH_SIZE: Final[int] = c.DEFAULT_SIZE
-    DEFAULT_COMMIT_SIZE: Final[int] = 1000
-    DEFAULT_POOL_RECYCLE: Final[int] = 3600
-    DEFAULT_LISTENER_PORT: Final[int] = DEFAULT_PORT
-    DEFAULT_SSL_PORT: Final[int] = 2484
+    DEFAULT_CHARSET: ClassVar[str] = "UTF8"
+    DEFAULT_SERVICE_NAME: ClassVar[str] = "XEPDB1"
+    DEFAULT_PORT: ClassVar[int] = 1521
+    DEFAULT_DATABASE_NAME: ClassVar[str] = "XE"
+    DEFAULT_SID: ClassVar[str] = "XE"
+    DEFAULT_USERNAME: ClassVar[str] = "system"
+    DEFAULT_TIMEOUT: ClassVar[int] = c.DEFAULT_TIMEOUT_SECONDS
+    DEFAULT_POOL_MIN: ClassVar[int] = 2
+    DEFAULT_POOL_MAX: ClassVar[int] = 20
+    DEFAULT_POOL_INCREMENT: ClassVar[int] = 1
+    DEFAULT_POOL_TIMEOUT: ClassVar[int] = 60
+    DEFAULT_CONNECTION_TIMEOUT: ClassVar[int] = c.DEFAULT_TIMEOUT_SECONDS
+    DEFAULT_HOST: ClassVar[str] = c.LOCALHOST
+    DEFAULT_ARRAY_SIZE: ClassVar[int] = 100
+    DEFAULT_QUERY_LIMIT: ClassVar[int] = 1000
+    DEFAULT_QUERY_TIMEOUT: ClassVar[int] = 60
+    DEFAULT_BATCH_SIZE: ClassVar[int] = c.DEFAULT_SIZE
+    DEFAULT_COMMIT_SIZE: ClassVar[int] = 1000
+    DEFAULT_POOL_RECYCLE: ClassVar[int] = 3600
+    DEFAULT_LISTENER_PORT: ClassVar[int] = DEFAULT_PORT
+    DEFAULT_SSL_PORT: ClassVar[int] = 2484
 
-    MIN_PORT: Final[int] = 1
-    MAX_PORT: Final[int] = 65535
-    MAX_ERROR_MESSAGE_LENGTH: Final[int] = 500
-    MAX_QUERY_TIMEOUT: Final[int] = 3600
-    MAX_QUERY_ROWS: Final[int] = 100000
-    MAX_BATCH_SIZE: Final[int] = c.DEFAULT_MAX_COMMAND_RETRIES or 1000
-    MAX_DISPLAY_ROWS: Final[int] = 1000
-    MAX_ORACLE_IDENTIFIER_LENGTH: Final[int] = 30
-    MAX_IDENTIFIER_LENGTH: Final[int] = 128
-    MAX_TABLE_NAME_LENGTH: Final[int] = MAX_IDENTIFIER_LENGTH
-    MAX_COLUMN_NAME_LENGTH: Final[int] = MAX_IDENTIFIER_LENGTH
-    MAX_SCHEMA_NAME_LENGTH: Final[int] = MAX_IDENTIFIER_LENGTH
-    MAX_USERNAME_LENGTH: Final[int] = MAX_IDENTIFIER_LENGTH
-    MAX_SERVICE_NAME_LENGTH: Final[int] = MAX_IDENTIFIER_LENGTH
-    MAX_HOSTNAME_LENGTH: Final[int] = 253
-    MAX_VARCHAR_LENGTH: Final[int] = 4000
+    MIN_PORT: ClassVar[int] = 1
+    MAX_PORT: ClassVar[int] = 65535
+    MAX_ERROR_MESSAGE_LENGTH: ClassVar[int] = 500
+    MAX_QUERY_TIMEOUT: ClassVar[int] = 3600
+    MAX_QUERY_ROWS: ClassVar[int] = 100000
+    MAX_BATCH_SIZE: ClassVar[int] = c.DEFAULT_MAX_COMMAND_RETRIES or 1000
+    MAX_DISPLAY_ROWS: ClassVar[int] = 1000
+    MAX_ORACLE_IDENTIFIER_LENGTH: ClassVar[int] = 30
+    MAX_IDENTIFIER_LENGTH: ClassVar[int] = 128
+    MAX_TABLE_NAME_LENGTH: ClassVar[int] = MAX_IDENTIFIER_LENGTH
+    MAX_COLUMN_NAME_LENGTH: ClassVar[int] = MAX_IDENTIFIER_LENGTH
+    MAX_SCHEMA_NAME_LENGTH: ClassVar[int] = MAX_IDENTIFIER_LENGTH
+    MAX_USERNAME_LENGTH: ClassVar[int] = MAX_IDENTIFIER_LENGTH
+    MAX_SERVICE_NAME_LENGTH: ClassVar[int] = MAX_IDENTIFIER_LENGTH
+    MAX_HOSTNAME_LENGTH: ClassVar[int] = 253
+    MAX_VARCHAR_LENGTH: ClassVar[int] = 4000
 
-    MIN_COLUMN_FIELDS: Final[int] = 4
-    COLUMN_METADATA_FIELD_COUNT: Final[int] = 7
-    MILLISECONDS_TO_SECONDS_THRESHOLD: Final[int] = 1000
-    PERFORMANCE_WARNING_THRESHOLD_SECONDS: Final[float] = 5.0
-    CONNECTION_IDLE_TIMEOUT_SECONDS: Final[int] = 3600
-    DATA_SIZE_ESTIMATION_FACTOR: Final[int] = 50
-    CONNECTION_EXCELLENT_THRESHOLD_SECONDS: Final[float] = 0.1
-    CONNECTION_GOOD_THRESHOLD_SECONDS: Final[float] = 0.5
-    CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS: Final[float] = 2.0
-    QUERY_EXCELLENT_THRESHOLD_MS: Final[int] = 100
-    QUERY_GOOD_THRESHOLD_MS: Final[int] = 500
-    QUERY_ACCEPTABLE_THRESHOLD_MS: Final[int] = 2000
+    MIN_COLUMN_FIELDS: ClassVar[int] = 4
+    COLUMN_METADATA_FIELD_COUNT: ClassVar[int] = 7
+    MILLISECONDS_TO_SECONDS_THRESHOLD: ClassVar[int] = 1000
+    PERFORMANCE_WARNING_THRESHOLD_SECONDS: ClassVar[float] = 5.0
+    CONNECTION_IDLE_TIMEOUT_SECONDS: ClassVar[int] = 3600
+    DATA_SIZE_ESTIMATION_FACTOR: ClassVar[int] = 50
+    CONNECTION_EXCELLENT_THRESHOLD_SECONDS: ClassVar[float] = 0.1
+    CONNECTION_GOOD_THRESHOLD_SECONDS: ClassVar[float] = 0.5
+    CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS: ClassVar[float] = 2.0
+    QUERY_EXCELLENT_THRESHOLD_MS: ClassVar[int] = 100
+    QUERY_GOOD_THRESHOLD_MS: ClassVar[int] = 500
+    QUERY_ACCEPTABLE_THRESHOLD_MS: ClassVar[int] = 2000
 
-    TEST_QUERY: Final[str] = "SELECT 1 FROM DUAL"
-    DUAL_TABLE: Final[str] = "DUAL"
-    DEFAULT_VARCHAR_TYPE: Final[str] = "VARCHAR2(4000)"
-    INTEGER_TYPE: Final[str] = "NUMBER(38)"
-    BOOLEAN_TYPE: Final[str] = "NUMBER(1)"
-    INDEX_HINT: Final[str] = "/*+ INDEX */"
-    FULL_HINT: Final[str] = "/*+ FULL */"
-    PARALLEL_HINT: Final[str] = "/*+ PARALLEL */"
-    PREFIX_ORACLE: Final[str] = "ORACLE_"
-    PREFIX_FLEXT_TARGET_ORACLE: Final[str] = "FLEXT_TARGET_ORACLE_"
-    ENV_HOST: Final[str] = "ORACLE_HOST"
-    ENV_PORT: Final[str] = "ORACLE_PORT"
-    ENV_USERNAME: Final[str] = "ORACLE_USERNAME"
-    ENV_PASSWORD: Final[str] = PREFIX_ORACLE + "PASSWORD"
-    ENV_SERVICE_NAME: Final[str] = "ORACLE_SERVICE_NAME"
-    ENV_DATABASE_NAME: Final[str] = "ORACLE_DATABASE_NAME"
-    ENV_SID: Final[str] = "ORACLE_SID"
-    ENV_ENABLE_DISPATCHER: Final[str] = "FLEXT_DB_ORACLE_ENABLE_DISPATCHER"
-    LOOPBACK_IP: Final[str] = "127.0.0.1"
+    TEST_QUERY: ClassVar[str] = "SELECT 1 FROM DUAL"
+    DUAL_TABLE: ClassVar[str] = "DUAL"
+    DEFAULT_VARCHAR_TYPE: ClassVar[str] = "VARCHAR2(4000)"
+    INTEGER_TYPE: ClassVar[str] = "NUMBER(38)"
+    BOOLEAN_TYPE: ClassVar[str] = "NUMBER(1)"
+    INDEX_HINT: ClassVar[str] = "/*+ INDEX */"
+    FULL_HINT: ClassVar[str] = "/*+ FULL */"
+    PARALLEL_HINT: ClassVar[str] = "/*+ PARALLEL */"
+    PREFIX_ORACLE: ClassVar[str] = "ORACLE_"
+    PREFIX_FLEXT_TARGET_ORACLE: ClassVar[str] = "FLEXT_TARGET_ORACLE_"
+    ENV_HOST: ClassVar[str] = "ORACLE_HOST"
+    ENV_PORT: ClassVar[str] = "ORACLE_PORT"
+    ENV_USERNAME: ClassVar[str] = "ORACLE_USERNAME"
+    ENV_PASSWORD: ClassVar[str] = PREFIX_ORACLE + "PASSWORD"
+    ENV_SERVICE_NAME: ClassVar[str] = "ORACLE_SERVICE_NAME"
+    ENV_DATABASE_NAME: ClassVar[str] = "ORACLE_DATABASE_NAME"
+    ENV_SID: ClassVar[str] = "ORACLE_SID"
+    ENV_ENABLE_DISPATCHER: ClassVar[str] = "FLEXT_DB_ORACLE_ENABLE_DISPATCHER"
+    LOOPBACK_IP: ClassVar[str] = "127.0.0.1"
 
-    ORACLE_IDENTIFIER_PATTERN: Final[str] = "^[A-Z][A-Z0-9_$#]*$"
+    ORACLE_IDENTIFIER_PATTERN: ClassVar[str] = "^[A-Z][A-Z0-9_$#]*$"
     ORACLE_IDENTIFIER_RE: ClassVar[t.RegexPattern] = re.compile(
         ORACLE_IDENTIFIER_PATTERN,
     )
-    IDENTIFIER_PATTERN: Final[str] = "^[A-Za-z][A-Za-z0-9_$#]*$"
+    IDENTIFIER_PATTERN: ClassVar[str] = "^[A-Za-z][A-Za-z0-9_$#]*$"
     IDENTIFIER_RE: ClassVar[t.RegexPattern] = re.compile(IDENTIFIER_PATTERN)
-    SCHEMA_PATTERN: Final[str] = IDENTIFIER_PATTERN
+    SCHEMA_PATTERN: ClassVar[str] = IDENTIFIER_PATTERN
     SCHEMA_RE: ClassVar[t.RegexPattern] = IDENTIFIER_RE
     WHITESPACE_RE: ClassVar[t.RegexPattern] = re.compile(r"\s+")
 
@@ -126,29 +126,29 @@ class FlextDbOracleConstantsValues:
         )
         return collapsed
 
-    HOST_EMPTY: Final[str] = "Host cannot be empty"
-    USERNAME_EMPTY: Final[str] = "Username cannot be empty"
-    COLUMN_NAME_EMPTY: Final[str] = "Column name cannot be empty"
-    DATA_TYPE_EMPTY: Final[str] = "Data type cannot be empty"
-    TABLE_NAME_EMPTY: Final[str] = "Table name cannot be empty"
-    SCHEMA_NAME_EMPTY: Final[str] = "Schema name cannot be empty"
-    POSITION_INVALID: Final[str] = "Position must be positive"
-    COLUMN_ID_INVALID: Final[str] = "Column ID must be positive"
-    PORT_INVALID: Final[str] = "Invalid port number"
-    CONNECTION_FAILED: Final[str] = "Failed to connect to Oracle database"
-    QUERY_EXECUTION_FAILED: Final[str] = "Query execution failed"
-    IDENTIFIER_TOO_LONG: Final[str] = "Identifier exceeds max_length characters"
-    IDENTIFIER_INVALID_PATTERN: Final[str] = (
+    HOST_EMPTY: ClassVar[str] = "Host cannot be empty"
+    USERNAME_EMPTY: ClassVar[str] = "Username cannot be empty"
+    COLUMN_NAME_EMPTY: ClassVar[str] = "Column name cannot be empty"
+    DATA_TYPE_EMPTY: ClassVar[str] = "Data type cannot be empty"
+    TABLE_NAME_EMPTY: ClassVar[str] = "Table name cannot be empty"
+    SCHEMA_NAME_EMPTY: ClassVar[str] = "Schema name cannot be empty"
+    POSITION_INVALID: ClassVar[str] = "Position must be positive"
+    COLUMN_ID_INVALID: ClassVar[str] = "Column ID must be positive"
+    PORT_INVALID: ClassVar[str] = "Invalid port number"
+    CONNECTION_FAILED: ClassVar[str] = "Failed to connect to Oracle database"
+    QUERY_EXECUTION_FAILED: ClassVar[str] = "Query execution failed"
+    IDENTIFIER_TOO_LONG: ClassVar[str] = "Identifier exceeds max_length characters"
+    IDENTIFIER_INVALID_PATTERN: ClassVar[str] = (
         "Identifier does not match required pattern"
     )
-    IDENTIFIER_RESERVED_WORD: Final[str] = "Identifier is a reserved word"
-    HOST_TOO_LONG: Final[str] = "Host is too long"
-    PORT_OUT_OF_RANGE: Final[str] = (
+    IDENTIFIER_RESERVED_WORD: ClassVar[str] = "Identifier is a reserved word"
+    HOST_TOO_LONG: ClassVar[str] = "Host is too long"
+    PORT_OUT_OF_RANGE: ClassVar[str] = (
         "Port must be between {min_port}-{max_port}, got {port}"
     )
-    QUERY_TIMEOUT_TOO_HIGH: Final[str] = "Query timeout is too high"
+    QUERY_TIMEOUT_TOO_HIGH: ClassVar[str] = "Query timeout is too high"
 
-    ORACLE_RESERVED: Final[frozenset[str]] = frozenset({
+    ORACLE_RESERVED: ClassVar[frozenset[str]] = frozenset({
         "SELECT",
         "FROM",
         "WHERE",
@@ -184,7 +184,7 @@ class FlextDbOracleConstantsValues:
         "ROLLBACK",
         "SAVEPOINT",
     })
-    SQL_KEYWORDS: Final[frozenset[str]] = frozenset({
+    SQL_KEYWORDS: ClassVar[frozenset[str]] = frozenset({
         "SELECT",
         "FROM",
         "WHERE",
@@ -268,12 +268,12 @@ class FlextDbOracleConstantsValues:
         REPEATABLE_READ = "REPEATABLE_READ"
         SERIALIZABLE = "SERIALIZABLE"
 
-    CONNECTION_TYPE_LITERAL: Final[Sequence[str]] = (
+    CONNECTION_TYPE_LITERAL: ClassVar[Sequence[str]] = (
         ConnectionType.SERVICE_NAME.value,
         ConnectionType.SID.value,
         ConnectionType.TNS.value,
     )
-    QUERY_TYPE_LITERAL: Final[Sequence[str]] = (
+    QUERY_TYPE_LITERAL: ClassVar[Sequence[str]] = (
         QueryType.SELECT.value,
         QueryType.INSERT.value,
         QueryType.UPDATE.value,
@@ -282,7 +282,7 @@ class FlextDbOracleConstantsValues:
         QueryType.DROP.value,
         QueryType.ALTER.value,
     )
-    DATA_TYPE_LITERAL: Final[Sequence[str]] = (
+    DATA_TYPE_LITERAL: ClassVar[Sequence[str]] = (
         DataType.VARCHAR2.value,
         DataType.NUMBER.value,
         DataType.DATE.value,
@@ -292,25 +292,25 @@ class FlextDbOracleConstantsValues:
         DataType.CHAR.value,
         DataType.RAW.value,
     )
-    ISOLATION_LEVEL_LITERAL: Final[Sequence[str]] = (
+    ISOLATION_LEVEL_LITERAL: ClassVar[Sequence[str]] = (
         IsolationLevel.READ_UNCOMMITTED.value,
         IsolationLevel.READ_COMMITTED.value,
         IsolationLevel.REPEATABLE_READ.value,
         IsolationLevel.SERIALIZABLE.value,
     )
 
-    VALID_CONNECTION_TYPES: Final[frozenset[str]] = frozenset(
+    VALID_CONNECTION_TYPES: ClassVar[frozenset[str]] = frozenset(
         CONNECTION_TYPE_LITERAL,
     )
-    VALID_QUERY_TYPES: Final[frozenset[str]] = frozenset(QUERY_TYPE_LITERAL)
-    VALID_DATA_TYPES: Final[frozenset[str]] = frozenset(DATA_TYPE_LITERAL)
-    VALID_ISOLATION_LEVELS: Final[frozenset[str]] = frozenset(
+    VALID_QUERY_TYPES: ClassVar[frozenset[str]] = frozenset(QUERY_TYPE_LITERAL)
+    VALID_DATA_TYPES: ClassVar[frozenset[str]] = frozenset(DATA_TYPE_LITERAL)
+    VALID_ISOLATION_LEVELS: ClassVar[frozenset[str]] = frozenset(
         ISOLATION_LEVEL_LITERAL,
     )
-    SYSTEM_USERS: Final[Sequence[str]] = ("SYS", "SYSTEM", "XDB", "DBSNMP", "OUTLN")
-    DEFAULT_SCHEMAS: Final[Sequence[str]] = ("SYSTEM", "SYS", "PUBLIC")
+    SYSTEM_USERS: ClassVar[Sequence[str]] = ("SYS", "SYSTEM", "XDB", "DBSNMP", "OUTLN")
+    DEFAULT_SCHEMAS: ClassVar[Sequence[str]] = ("SYSTEM", "SYS", "PUBLIC")
 
-    SINGER_TYPE_MAP: Final[Mapping[str, str]] = MappingProxyType({
+    SINGER_TYPE_MAP: ClassVar[Mapping[str, str]] = MappingProxyType({
         "string": DEFAULT_VARCHAR_TYPE,
         "integer": INTEGER_TYPE,
         "number": DataType.NUMBER.value,
@@ -321,7 +321,7 @@ class FlextDbOracleConstantsValues:
         "date": DataType.DATE.value,
         "time": DataType.TIMESTAMP.value,
     })
-    ENV_MAPPING: Final[Mapping[str, str]] = MappingProxyType({
+    ENV_MAPPING: ClassVar[Mapping[str, str]] = MappingProxyType({
         "FLEXT_TARGET_ORACLE_HOST": "host",
         ENV_HOST: "host",
         "FLEXT_TARGET_ORACLE_PORT": "port",
