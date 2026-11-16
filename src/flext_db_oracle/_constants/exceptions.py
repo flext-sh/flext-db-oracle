@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from oracledb import (
     DatabaseError as OracleDatabaseError,
     InterfaceError as OracleInterfaceError,
@@ -20,14 +22,14 @@ from sqlalchemy.exc import (
 class FlextDbOracleConstantsExceptions:
     """Oracle database exception type tuples."""
 
-    EXC_DB_CONNECT: tuple[type[Exception], ...] = (
+    EXC_DB_CONNECT: ClassVar[tuple[type[Exception], ...]] = (
         ConnectionError,
         OracleDatabaseError,
         OracleInterfaceError,
     )
     """Oracle DB connection boundary catch (oracledb library errors)."""
 
-    EXC_DB_BROAD: tuple[type[Exception], ...] = (
+    EXC_DB_BROAD: ClassVar[tuple[type[Exception], ...]] = (
         ConnectionError,
         OSError,
         SQLAlchemyDatabaseError,
