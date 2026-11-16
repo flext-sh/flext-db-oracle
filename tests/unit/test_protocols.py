@@ -14,8 +14,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle.services import FlextDbOracleServices
-from tests import FlextDbOracleSettings, p, t, tm
+from tests import FlextDbOracleApi, FlextDbOracleSettings, p, t, tm
 
 # (public name, protocol class, promised method surface) — the contract each
 # Oracle domain protocol advertises to implementers.
@@ -89,7 +88,7 @@ class TestsFlextDbOracleProtocols:
     @staticmethod
     def test_real_services_satisfy_connection_contract() -> None:
         """The actual services expose disconnected connection behavior."""
-        services = FlextDbOracleServices(FlextDbOracleSettings())
+        services = FlextDbOracleApi(settings=FlextDbOracleSettings()).oracle_services
         tm.that(services, is_=p.DbOracle.Connection)
         tm.ok(services.connected() is False)
         tm.ok(services.disconnect())
@@ -98,7 +97,7 @@ class TestsFlextDbOracleProtocols:
     @staticmethod
     def test_real_services_satisfy_sql_builder_contract() -> None:
         """The actual SQL builder produces the requested identifiers."""
-        services = FlextDbOracleServices(FlextDbOracleSettings())
+        services = FlextDbOracleApi(settings=FlextDbOracleSettings()).oracle_services
         tm.that(services, is_=p.DbOracle.SqlBuilder)
         result = services.build_select("customers", ["customer_id"])
         tm.ok(result)

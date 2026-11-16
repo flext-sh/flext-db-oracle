@@ -9,10 +9,7 @@ from __future__ import annotations
 from flext_core import FlextExceptions
 from flext_tests import FlextTestsDocker, FlextTestsServiceBase, FlextTestsSettings
 
-from flext_db_oracle.services import FlextDbOracleServices
-
 __all__: list[str] = [
-    "FlextDbOracleServices",
     "FlextExceptions",
     "FlextTestsDocker",
     "FlextTestsServiceBase",

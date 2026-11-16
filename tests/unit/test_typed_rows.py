@@ -11,7 +11,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle.services import FlextDbOracleServices
 from tests import m, p, tm
 
 
@@ -27,7 +26,7 @@ class TestsFetchModelsContract:
 
     @staticmethod
     def test_fetch_models_fails_when_disconnected(
-        oracle_unit_services: FlextDbOracleServices,
+        oracle_unit_services: p.DbOracle.QueryExecutor,
     ) -> None:
         """A typed fetch on an unconnected service returns a failure result."""
         result = oracle_unit_services.fetch_models(
@@ -39,7 +38,7 @@ class TestsFetchModelsContract:
 
     @staticmethod
     def test_facade_serves_the_query_executor_port(
-        oracle_unit_services: FlextDbOracleServices,
+        oracle_unit_services: p.DbOracle.QueryExecutor,
     ) -> None:
         """Consumers typed on the query port get the facade's typed failure."""
         port: p.DbOracle.QueryExecutor = oracle_unit_services
@@ -53,7 +52,7 @@ class TestsExecuteManyContract:
 
     @staticmethod
     def test_empty_batch_reports_zero_rows_without_connection(
-        oracle_unit_services: FlextDbOracleServices,
+        oracle_unit_services: p.DbOracle.QueryExecutor,
     ) -> None:
         """An empty parameter batch short-circuits to zero affected rows."""
         result = oracle_unit_services.execute_many(
@@ -65,7 +64,7 @@ class TestsExecuteManyContract:
 
     @staticmethod
     def test_nonempty_batch_fails_when_disconnected(
-        oracle_unit_services: FlextDbOracleServices,
+        oracle_unit_services: p.DbOracle.QueryExecutor,
     ) -> None:
         """A real batch requires an active connection and fails cleanly."""
         result = oracle_unit_services.execute_many(
