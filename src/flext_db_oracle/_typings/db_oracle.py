@@ -9,14 +9,14 @@ from __future__ import annotations
 from typing import Literal
 
 import oracledb
-from flext_cli import FlextCliTypes
 from sqlalchemy import Connection, DateTime, Engine, Text
 from sqlalchemy.sql import Executable
 
+from flext_core import t
 from flext_db_oracle import FlextDbOracleSettings
 
 
-class FlextDbOracleTypesDbOracle(FlextCliTypes):
+class FlextDbOracleTypesDbOracle(t):
     """Oracle database-specific type definitions extending t via MRO."""
 
     class DbOracle:
@@ -38,8 +38,8 @@ class FlextDbOracleTypesDbOracle(FlextCliTypes):
         type SqlEngine = Engine
         type SqlExecutable = Executable
 
-        type QueryParameters = FlextCliTypes.JsonMapping
-        type CliScalar = FlextCliTypes.Scalar | None
+        type QueryParameters = t.JsonMapping
+        type CliScalar = t.Scalar | None
         type Settings = FlextDbOracleSettings
         type PrivilegeMode = Literal["SYSDBA", "SYSOPER"]
 

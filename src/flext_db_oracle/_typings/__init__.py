@@ -31,6 +31,6 @@ install_lazy_exports(
 defer_lazy_bases(
     __name__,
     {
-        "FlextDbOracleTypesDbOracle": (("flext_cli", "FlextCliTypes"),),
+        "FlextDbOracleTypesDbOracle": (("flext_core", "t"),),
     },
 )
