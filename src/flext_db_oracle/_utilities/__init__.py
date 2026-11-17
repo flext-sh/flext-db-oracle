@@ -29,5 +29,4 @@ install_lazy_exports(
         "FlextDbOracleUtilitiesDbOracle": ".db_oracle",
     },
     public_exports=__all__,
-    deferred_members=("FlextDbOracleUtilitiesDbOracle",),
 )
