@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import defer_lazy_bases, install_lazy_exports
+from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_db_oracle._models.base import FlextDbOracleModelsBase
@@ -41,49 +41,12 @@ install_lazy_exports(
         "FlextDbOracleModelsSchema": ".schema_models",
     },
     public_exports=__all__,
-    deferred_members={
-        "FlextDbOracleCredentialModel": ("Password",),
-        "FlextDbOracleModelsBase": ("CredentialRoot",),
-        "FlextDbOracleModelsCommand": (
-            "ConnectCommand",
-            "DisconnectCommand",
-            "TestConnectionCommand",
-            "ExecuteQueryCommand",
-            "FetchOneCommand",
-            "ExecuteStatementCommand",
-            "ExecuteManyCommand",
-            "GetSchemasCommand",
-            "GetTablesCommand",
-            "GetColumnsCommand",
-        ),
-        "FlextDbOracleModelsConnection": (
-            "ConnectionStatus",
-            "EngineOptions",
-            "OperationRecord",
-            "HealthStatus",
-        ),
-        "FlextDbOracleModelsQuery": (
-            "DbOracleDomainModel",
-            "RowData",
-            "ColumnMetadata",
-            "QueryResult",
-        ),
-        "FlextDbOracleModelsSchema": (
-            "TableMetadata",
-            "TypeMapping",
-            "SingerField",
-            "SingerSchema",
-            "Table",
-            "Column",
-            "Schema",
-            "CreateIndexConfig",
-        ),
-    },
-)
-
-defer_lazy_bases(
-    __name__,
-    {
-        "FlextDbOracleModelsBase": (("flext_db_oracle", "FlextDbOracleModelsConfig"),),
-    },
+    deferred_members=(
+        "FlextDbOracleCredentialModel",
+        "FlextDbOracleModelsBase",
+        "FlextDbOracleModelsCommand",
+        "FlextDbOracleModelsConnection",
+        "FlextDbOracleModelsQuery",
+        "FlextDbOracleModelsSchema",
+    ),
 )

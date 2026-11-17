@@ -129,9 +129,7 @@ install_lazy_exports(
         "x": "flext_cli",
     },
     public_exports=__all__,
-    deferred_members={
-        "FlextDbOracleModelsConfig": ("ConfigNamespace",),
-    },
+    deferred_members=("FlextDbOracleModelsConfig",),
 )
 
 if not TYPE_CHECKING:
