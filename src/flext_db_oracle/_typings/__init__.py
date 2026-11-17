@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import defer_lazy_bases, install_lazy_exports
+from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_db_oracle._typings.base import FlextDbOracleTypingsBase
@@ -25,12 +25,5 @@ install_lazy_exports(
     public_exports=__all__,
     deferred_members={
         "FlextDbOracleTypesDbOracle": ("DbOracle",),
-    },
-)
-
-defer_lazy_bases(
-    __name__,
-    {
-        "FlextDbOracleTypesDbOracle": (("flext_core", "t"),),
     },
 )

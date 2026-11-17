@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+
 class FlextDbOracleTypingsBase:
     """Base typings for flext-db-oracle."""
 
