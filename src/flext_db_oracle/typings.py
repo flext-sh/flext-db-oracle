@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import t
+from flext_cli import FlextCliTypes
 
 from flext_db_oracle._typings import (
     FlextDbOracleTypesDbOracle,
@@ -16,7 +16,7 @@ from flext_db_oracle._typings import (
 )
 
 
-class FlextDbOracleTypes(t):
+class FlextDbOracleTypes(FlextCliTypes):
     """Public type facade inheriting its complete canonical owner."""
 
     class DbOracle(
