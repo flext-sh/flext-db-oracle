@@ -15,7 +15,7 @@ from typing import Annotated
 from flext_cli import FlextCliConfig
 from pydantic import Field
 
-from flext_db_oracle.config_models import FlextDbOracleModelsConfig
+from flext_db_oracle import FlextDbOracleModelsConfig
 
 
 class FlextDbOracleConfig(FlextCliConfig):
