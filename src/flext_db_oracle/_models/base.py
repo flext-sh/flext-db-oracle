@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from flext_cli import m
 
-from flext_db_oracle.config_models import FlextDbOracleModelsConfig
+from flext_db_oracle import FlextDbOracleModelsConfig
 
 
 class FlextDbOracleModelsBase(FlextDbOracleModelsConfig):
