@@ -16,14 +16,10 @@ from flext_db_oracle._typings import (
 )
 
 
-class FlextDbOracleTypes(FlextCliTypes):
+class FlextDbOracleTypes(
+    FlextCliTypes, FlextDbOracleTypingsBase, FlextDbOracleTypesDbOracle
+):
     """Public type facade inheriting its complete canonical owner."""
-
-    class DbOracle(
-        FlextDbOracleTypingsBase,
-        FlextDbOracleTypesDbOracle,
-    ):
-        """Public type facade inheriting its namespace canonical owner."""
 
 
 t = FlextDbOracleTypes
