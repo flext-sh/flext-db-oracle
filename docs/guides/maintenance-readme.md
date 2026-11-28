@@ -51,6 +51,11 @@
 **Automated documentation maintenance system for flext-db-oracle with comprehensive
 quality assurance, validation, and continuous improvement.**
 
+The numerical health indicators, KPI tables, and sample dashboard below are retained
+from the maintenance record last updated on 2026-04-14. They are historical context,
+not measurements or acceptance receipts for the current commit. Use the native
+reports from the validated candidate for its current status.
+
 ![Documentation Health](https://img.shields.io/badge/docs-health-83.4%25-orange)
 ![Files Audited](https://img.shields.io/badge/files-21-blue)
 [![Maintenance](https://img.shields.io/badge/maintenance-automated-green)](maintenance-procedures.md)
@@ -86,9 +91,9 @@ make check CHECK_PHASE=complete
 
 ### Automated Maintenance
 
-Local checks from the current workspace root first converge generation, repairs,
-and formatting. CI checks committed projections and documentation without applying
-those repairs.
+Normal local checks from the active workspace/worktree root first converge
+generation, repairs, and formatting. CI and commit hooks verify committed
+projections and documentation without applying those repairs.
 
 ```bash
 # Complete maintenance checks: verify projections and formatting,
@@ -174,6 +179,13 @@ Comprehensive reporting with trend analysis and stakeholder communication.
 ### Configuration System
 
 #### Maintenance Configuration (`docs/maintenance_config.yaml`)
+
+This filename belongs to the earlier configuration proposal reproduced below;
+there is no such file in the current repository. The current repository layer is
+[`config/codegen.yaml`](https://github.com/flext-sh/flext-db-oracle/blob/0.12.0-dev/config/codegen.yaml),
+which inherits the [shared typed policy](https://github.com/flext-sh/flext-infra/blob/0.12.0-dev/src/flext_infra/config/codegen.yaml).
+The [native documentation auditor](https://github.com/flext-sh/flext-infra/blob/0.12.0-dev/src/flext_infra/docs/auditor.py) owns audit behavior.
+The proposed fields below are retained for design history and are not active settings.
 
 ```yaml
 # Quality thresholds and validation rules
@@ -308,8 +320,8 @@ make check CHECK_PHASE=complete
 
 ```bash
 # Check latest audit report
-ls -la docs/reports/ | tail -1
-cat docs/reports/$(ls docs/reports/ | tail -1)
+cat .reports/docs/audit-report.md
+cat .reports/docs/validate-report.md
 ```
 
 #### 2. Address High-Priority Issues
@@ -549,24 +561,18 @@ python --version
 # Provision the declared tools and frozen dependencies
 make setup
 
-# Validate configuration
-python -c "import yaml; yaml.safe_load(open('docs/maintenance_config.yaml'))"
-
-# Debug execution through the canonical lifecycle
+# Validate the governed configuration and diagnose through its native lifecycle
 make check CHECK_PHASE=complete
 ```
 
 #### Configuration Problems
 
 ```bash
-# Validate YAML syntax
-python -c "import yaml; print('Valid YAML')" && yaml.safe_load(open('docs/maintenance_config.yaml'))
+# Validate the declared repository layer and shared policy
+make check CHECK_PHASE=complete
 
-# Check file permissions
-ls -la docs/maintenance_config.yaml
-
-# Verify paths
-ls docs/ scripts/
+# Inspect the tracked repository layer and documentation paths
+ls -la config/codegen.yaml docs/
 ```
 
 #### Performance Issues
@@ -575,21 +581,21 @@ ls docs/ scripts/
 # Monitor execution time
 time make check CHECK_PHASE=complete
 
-# Debug slow files
-make check CHECK_PHASE=complete 2>&1 | grep -E "(ERROR|FAIL|timeout)"
+# Keep the complete diagnostics and the native exit status
+make check CHECK_PHASE=complete
 ```
 
 #### Report Generation Issues
 
 ```bash
 # Check reports directory
-ls -la docs/reports/
+ls -la .reports/docs/
 
 # Verify write permissions
-touch docs/reports/test.txt && rm docs/reports/test.txt
+touch .reports/docs/test.txt && rm .reports/docs/test.txt
 
 # Check disk space
-df -h docs/reports/
+df -h .reports/docs/
 ```
 
 ## 📈 Success Metrics
@@ -649,4 +655,7 @@ df -h docs/reports/
 **Documentation Maintenance System v1.0.0** **Automated Quality Assurance Framework**
 **Maintained by: FLEXT Documentation Team**
 
-*Last Updated: 2026-04-14 | Next Review: 2025-11-10*
+*Revision 1.1: 2026-11-28 · Marlon Costa <marlon.costa@datacosmos.com.br>.*
+
+*Historical record: last updated 2026-04-14; its recorded next-review date was
+2025-11-10. Those dates do not establish a current review.*
