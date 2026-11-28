@@ -70,8 +70,8 @@ quality assurance, validation, and continuous improvement.**
 ### Quick Health Check
 
 ```bash
-# Run the full docs lifecycle: fix, validate, audit
-make docs
+# Check generated documentation, formatting, structure, and content
+make check CHECK_PHASE=complete
 
 # Output:
 # Documentation Health Check:
@@ -86,10 +86,14 @@ make docs
 
 ### Automated Maintenance
 
+Local checks from the current workspace root first converge generation, repairs,
+and formatting. CI checks committed projections and documentation without applying
+those repairs.
+
 ```bash
-# Complete maintenance suite: fix and fmt apply repairs,
-# then validate and audit gate the result
-make docs
+# Complete maintenance checks: verify projections and formatting,
+# then validate and audit the documentation
+make check CHECK_PHASE=complete
 
 # Reports land in .reports/docs/ (audit-report.md, audit-summary.json)
 ```
@@ -97,8 +101,8 @@ make docs
 ### Manual Operation
 
 ```bash
-# Run the complete maintenance lifecycle from the workspace root
-make docs
+# Run the complete maintenance checks from the workspace root
+make check CHECK_PHASE=complete
 ```
 
 ## 📋 Maintenance Framework
@@ -110,7 +114,7 @@ make docs
 Automated analysis of documentation quality, freshness, and completeness.
 
 ```bash
-make docs
+make check CHECK_PHASE=complete
 # Generates: .reports/docs/audit-report.md
 ```
 
@@ -127,7 +131,7 @@ make docs
 Comprehensive validation of markdown syntax, links, and references.
 
 ```bash
-make docs
+make check CHECK_PHASE=complete
 # Validation failures fail the lifecycle with a non-zero exit
 ```
 
@@ -144,8 +148,8 @@ make docs
 Intelligent content enhancement and formatting improvements.
 
 ```bash
-make docs
-# Note: the fix phase applies fence repairs and formatting in place
+make check CHECK_PHASE=complete
+# Review the resulting formatting and documentation findings
 ```
 
 **Optimization Features:**
@@ -253,13 +257,14 @@ jobs:
           python-version: "3.13"
       - name: Install dependencies
         run: make setup
-      - name: Run documentation audit
-        run: make docs
+      - name: Run documentation validation and audit
+        run: make check CHECK_PHASE=complete
       - name: Upload reports
         uses: actions/upload-artifact@v7
         with:
           name: docs-reports
-          path: docs/reports/
+          path: .reports/docs/
+          include-hidden-files: true
 ```
 
 ### Pre-commit Hook Integration
@@ -292,9 +297,9 @@ chmod +x .git/hooks/pre-commit
 ### Daily Maintenance (Automated)
 
 ```bash
-# Automated docs lifecycle (CI/CD scheduled or local):
-# fix, validate, audit in one canonical verb
-make docs
+# Automated documentation checks (CI/CD scheduled or local):
+# projection and formatting checks, validation, and audit in one verb
+make check CHECK_PHASE=complete
 ```
 
 ### Weekly Review Process
@@ -327,7 +332,7 @@ cat docs/reports/$(ls docs/reports/ | tail -1)
 
 ```bash
 # Run comprehensive maintenance
-make docs
+make check CHECK_PHASE=complete
 
 # Review all metrics and trends
 # Update configuration if needed
@@ -358,7 +363,7 @@ make docs
 
 ```bash
 # Identify stale files from the audit report
-make docs
+make check CHECK_PHASE=complete
 grep "stale_content" .reports/docs/audit-report.md
 
 # Update with current information
@@ -370,7 +375,7 @@ grep "stale_content" .reports/docs/audit-report.md
 
 ```bash
 # Find broken links in the audit report
-make docs
+make check CHECK_PHASE=complete
 grep "broken_link" .reports/docs/audit-report.md
 
 # Update URLs or remove dead links
@@ -382,7 +387,7 @@ grep "broken_link" .reports/docs/audit-report.md
 
 ```bash
 # Check style problems in the audit report
-make docs
+make check CHECK_PHASE=complete
 grep -E "broken_link|forbidden_term" .reports/docs/audit-report.md
 
 # Standardize formatting
@@ -540,13 +545,15 @@ Links: 95% healthy
 ```bash
 # Check Python environment
 python --version
-make status
+
+# Provision the declared tools and frozen dependencies
+make setup
 
 # Validate configuration
 python -c "import yaml; yaml.safe_load(open('docs/maintenance_config.yaml'))"
 
 # Debug execution through the canonical lifecycle
-make docs
+make check CHECK_PHASE=complete
 ```
 
 #### Configuration Problems
@@ -566,10 +573,10 @@ ls docs/ scripts/
 
 ```bash
 # Monitor execution time
-time make docs
+time make check CHECK_PHASE=complete
 
 # Debug slow files
-make docs 2>&1 | grep -E "(ERROR|FAIL|timeout)"
+make check CHECK_PHASE=complete 2>&1 | grep -E "(ERROR|FAIL|timeout)"
 ```
 
 #### Report Generation Issues

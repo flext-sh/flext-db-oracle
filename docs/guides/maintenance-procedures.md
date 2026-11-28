@@ -62,21 +62,29 @@ The documentation maintenance system consists of several integrated components:
 
 ### Key Components
 
-#### 1. Content Quality Audit (`make docs DOCS_PHASE=audit`)
+Run `make check CHECK_PHASE=complete` to verify generated projections, formatting,
+documentation structure, and content. Validation and audit reports are written to
+`.reports/docs/`.
+
+Local checks from the current workspace root first converge generation, repairs,
+and formatting. CI checks committed projections and documentation without applying
+those repairs.
+
+#### 1. Content Quality Audit
 
 - **File Discovery**: Automatically finds all documentation files
 - **Content Analysis**: Word count, structure, readability metrics
 - **Freshness Tracking**: Identifies stale content (>90 days old)
 - **Issue Classification**: Critical, High, Medium, Low severity levels
 
-#### 2. Validation Engine (`make docs DOCS_PHASE=validate`)
+#### 2. Validation Engine
 
 - **Markdown Syntax**: Heading hierarchy, list consistency, code blocks
 - **Link Validation**: External links, internal references, broken links
 - **Reference Integrity**: Cross-document references and citations
 - **Accessibility**: Alt text, descriptive links, semantic structure
 
-#### 3. Optimization Tools (`make docs DOCS_PHASE=fix FIX=1`)
+#### 3. Optimization Tools
 
 - **Content Enhancement**: Table of contents, metadata updates
 - **Style Consistency**: Emphasis styles, formatting standardization
@@ -98,7 +106,7 @@ Run daily automated checks using the maintenance script:
 
 ```bash
 # Complete audit and validation in one lifecycle
-make docs
+make check CHECK_PHASE=complete
 
 # Reports land in .reports/docs/
 ```
@@ -109,11 +117,14 @@ make docs
 
 ```bash
 # Pre-commit quality check
-make docs
+make check CHECK_PHASE=complete
+```
 
-# Include in CI/CD pipeline
+Include the same validation in the CI/CD pipeline:
+
+```yaml
 - name: Validate Documentation
-run: make docs
+  run: make check CHECK_PHASE=complete
 ```
 
 ## Weekly Maintenance Tasks
@@ -124,7 +135,7 @@ run: make docs
 
 ```bash
 # Check for stale content (>90 days)
-make docs
+make check CHECK_PHASE=complete
 grep "stale_content" .reports/docs/audit-report.md
 
 # Review and update outdated information
@@ -135,7 +146,7 @@ grep "stale_content" .reports/docs/audit-report.md
 
 ```bash
 # Validate all external links
-make docs
+make check CHECK_PHASE=complete
 grep "broken_link" .reports/docs/audit-report.md
 
 # Update or remove broken references
@@ -146,7 +157,7 @@ grep "broken_link" .reports/docs/audit-report.md
 
 ```bash
 # Check internal document references
-make docs
+make check CHECK_PHASE=complete
 grep "broken_link" .reports/docs/audit-report.md
 
 # Fix relative paths and anchor links
@@ -184,7 +195,7 @@ grep "broken_link" .reports/docs/audit-report.md
 
 ```bash
 # Generate comprehensive audit report
-make docs
+make check CHECK_PHASE=complete
 
 # Review all files with issues
 # Focus on critical and high-severity items first
@@ -348,16 +359,13 @@ chmod +x .git/hooks/pre-commit
 
 #### CI/CD Pipeline Integration
 
+Run this step from the `flext-db-oracle` repository directory. The complete check
+performs documentation quality validation and auditing and generates their reports.
+
 ```yaml
 # .github/workflows/docs.yml
-- name: Documentation Quality
- run: make docs DOCS_PHASE=validate
-
-- name: Documentation Audit
- run: make docs DOCS_PHASE=audit
-
-- name: Generate Report
- run: make docs DOCS_PHASE=all PROJECT=flext-db-oracle
+- name: Documentation Quality, Audit, and Reports
+  run: make check CHECK_PHASE=complete
 ```
 
 ### External Tool Integration
@@ -423,7 +431,7 @@ pip list | grep PyYAML
 python -c "import yaml; yaml.safe_load(open('docs/maintenance_config.yaml'))"
 
 # Debug execution through the canonical lifecycle
-make docs
+make check CHECK_PHASE=complete
 ```
 
 #### Configuration Issues
@@ -443,10 +451,10 @@ ls docs/ scripts/
 
 ```bash
 # Monitor execution time
-time make docs
+time make check CHECK_PHASE=complete
 
 # Re-run after repairs; validate and audit gate the same lifecycle
-make docs
+make check CHECK_PHASE=complete
 
 # Check system resources
 df -h   # Disk space

@@ -129,6 +129,7 @@ class FlextDbOracleSettings(FlextCliSettings):
 
 
 DbOracleSettings = FlextDbOracleSettings.DbOracleSettings
+"""Public model for namespaced Oracle connection and pool settings."""
 
 settings: FlextDbOracleSettings = FlextDbOracleSettings.fetch_global()
 """Pre-instantiated """
