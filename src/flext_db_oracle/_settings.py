@@ -129,8 +129,11 @@ class FlextDbOracleSettings(FlextCliSettings):
 
 
 DbOracleSettings = FlextDbOracleSettings.DbOracleSettings
+"""Public model for namespaced Oracle connection and pool settings."""
 
 settings: FlextDbOracleSettings = FlextDbOracleSettings.fetch_global()
-"""Pre-instantiated """
-"""project settings singleton — ``from flext_db_oracle import settings``."""
+"""Pre-instantiated project settings singleton.
+
+Import it with ``from flext_db_oracle import settings``.
+"""
 __all__: list[str] = ["DbOracleSettings", "FlextDbOracleSettings", "settings"]

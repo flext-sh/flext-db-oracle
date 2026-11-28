@@ -51,6 +51,11 @@
 **Automated documentation maintenance system for flext-db-oracle with comprehensive
 quality assurance, validation, and continuous improvement.**
 
+The numerical health indicators, KPI tables, and sample dashboard below are retained
+from the maintenance record last updated on 2026-04-14. They are historical context,
+not measurements or acceptance receipts for the current commit. Use the native
+reports from the validated candidate for its current status.
+
 ![Documentation Health](https://img.shields.io/badge/docs-health-83.4%25-orange)
 ![Files Audited](https://img.shields.io/badge/files-21-blue)
 [![Maintenance](https://img.shields.io/badge/maintenance-automated-green)](maintenance-procedures.md)
@@ -70,8 +75,8 @@ quality assurance, validation, and continuous improvement.**
 ### Quick Health Check
 
 ```bash
-# Run the full docs lifecycle: fix, validate, audit
-make docs
+# Check generated documentation, formatting, structure, and content
+make check CHECK_PHASE=complete
 
 # Output:
 # Documentation Health Check:
@@ -86,10 +91,14 @@ make docs
 
 ### Automated Maintenance
 
+Normal local checks from the active workspace/worktree root first converge
+generation, repairs, and formatting. CI and commit hooks verify committed
+projections and documentation without applying those repairs.
+
 ```bash
-# Complete maintenance suite: fix and fmt apply repairs,
-# then validate and audit gate the result
-make docs
+# Complete maintenance checks: verify projections and formatting,
+# then validate and audit the documentation
+make check CHECK_PHASE=complete
 
 # Reports land in .reports/docs/ (audit-report.md, audit-summary.json)
 ```
@@ -97,8 +106,8 @@ make docs
 ### Manual Operation
 
 ```bash
-# Run the complete maintenance lifecycle from the workspace root
-make docs
+# Run the complete maintenance checks from the workspace root
+make check CHECK_PHASE=complete
 ```
 
 ## 📋 Maintenance Framework
@@ -110,7 +119,7 @@ make docs
 Automated analysis of documentation quality, freshness, and completeness.
 
 ```bash
-make docs
+make check CHECK_PHASE=complete
 # Generates: .reports/docs/audit-report.md
 ```
 
@@ -127,7 +136,7 @@ make docs
 Comprehensive validation of markdown syntax, links, and references.
 
 ```bash
-make docs
+make check CHECK_PHASE=complete
 # Validation failures fail the lifecycle with a non-zero exit
 ```
 
@@ -144,8 +153,8 @@ make docs
 Intelligent content enhancement and formatting improvements.
 
 ```bash
-make docs
-# Note: the fix phase applies fence repairs and formatting in place
+make check CHECK_PHASE=complete
+# Review the resulting formatting and documentation findings
 ```
 
 **Optimization Features:**
@@ -170,6 +179,13 @@ Comprehensive reporting with trend analysis and stakeholder communication.
 ### Configuration System
 
 #### Maintenance Configuration (`docs/maintenance_config.yaml`)
+
+This filename belongs to the earlier configuration proposal reproduced below;
+there is no such file in the current repository. The current repository layer is
+[`config/codegen.yaml`](https://github.com/flext-sh/flext-db-oracle/blob/0.12.0-dev/config/codegen.yaml),
+which inherits the [shared typed policy](https://github.com/flext-sh/flext-infra/blob/0.12.0-dev/src/flext_infra/config/codegen.yaml).
+The [native documentation auditor](https://github.com/flext-sh/flext-infra/blob/0.12.0-dev/src/flext_infra/docs/auditor.py) owns audit behavior.
+The proposed fields below are retained for design history and are not active settings.
 
 ```yaml
 # Quality thresholds and validation rules
@@ -253,13 +269,14 @@ jobs:
           python-version: "3.13"
       - name: Install dependencies
         run: make setup
-      - name: Run documentation audit
-        run: make docs
+      - name: Run documentation validation and audit
+        run: make check CHECK_PHASE=complete
       - name: Upload reports
         uses: actions/upload-artifact@v7
         with:
           name: docs-reports
-          path: docs/reports/
+          path: .reports/docs/
+          include-hidden-files: true
 ```
 
 ### Pre-commit Hook Integration
@@ -292,9 +309,9 @@ chmod +x .git/hooks/pre-commit
 ### Daily Maintenance (Automated)
 
 ```bash
-# Automated docs lifecycle (CI/CD scheduled or local):
-# fix, validate, audit in one canonical verb
-make docs
+# Automated documentation checks (CI/CD scheduled or local):
+# projection and formatting checks, validation, and audit in one verb
+make check CHECK_PHASE=complete
 ```
 
 ### Weekly Review Process
@@ -303,8 +320,8 @@ make docs
 
 ```bash
 # Check latest audit report
-ls -la docs/reports/ | tail -1
-cat docs/reports/$(ls docs/reports/ | tail -1)
+cat .reports/docs/audit-report.md
+cat .reports/docs/validate-report.md
 ```
 
 #### 2. Address High-Priority Issues
@@ -327,7 +344,7 @@ cat docs/reports/$(ls docs/reports/ | tail -1)
 
 ```bash
 # Run comprehensive maintenance
-make docs
+make check CHECK_PHASE=complete
 
 # Review all metrics and trends
 # Update configuration if needed
@@ -358,7 +375,7 @@ make docs
 
 ```bash
 # Identify stale files from the audit report
-make docs
+make check CHECK_PHASE=complete
 grep "stale_content" .reports/docs/audit-report.md
 
 # Update with current information
@@ -370,7 +387,7 @@ grep "stale_content" .reports/docs/audit-report.md
 
 ```bash
 # Find broken links in the audit report
-make docs
+make check CHECK_PHASE=complete
 grep "broken_link" .reports/docs/audit-report.md
 
 # Update URLs or remove dead links
@@ -382,7 +399,7 @@ grep "broken_link" .reports/docs/audit-report.md
 
 ```bash
 # Check style problems in the audit report
-make docs
+make check CHECK_PHASE=complete
 grep -E "broken_link|forbidden_term" .reports/docs/audit-report.md
 
 # Standardize formatting
@@ -540,49 +557,45 @@ Links: 95% healthy
 ```bash
 # Check Python environment
 python --version
-make status
 
-# Validate configuration
-python -c "import yaml; yaml.safe_load(open('docs/maintenance_config.yaml'))"
+# Provision the declared tools and frozen dependencies
+make setup
 
-# Debug execution through the canonical lifecycle
-make docs
+# Validate the governed configuration and diagnose through its native lifecycle
+make check CHECK_PHASE=complete
 ```
 
 #### Configuration Problems
 
 ```bash
-# Validate YAML syntax
-python -c "import yaml; print('Valid YAML')" && yaml.safe_load(open('docs/maintenance_config.yaml'))
+# Validate the declared repository layer and shared policy
+make check CHECK_PHASE=complete
 
-# Check file permissions
-ls -la docs/maintenance_config.yaml
-
-# Verify paths
-ls docs/ scripts/
+# Inspect the tracked repository layer and documentation paths
+ls -la config/codegen.yaml docs/
 ```
 
 #### Performance Issues
 
 ```bash
 # Monitor execution time
-time make docs
+time make check CHECK_PHASE=complete
 
-# Debug slow files
-make docs 2>&1 | grep -E "(ERROR|FAIL|timeout)"
+# Keep the complete diagnostics and the native exit status
+make check CHECK_PHASE=complete
 ```
 
 #### Report Generation Issues
 
 ```bash
 # Check reports directory
-ls -la docs/reports/
+ls -la .reports/docs/
 
 # Verify write permissions
-touch docs/reports/test.txt && rm docs/reports/test.txt
+touch .reports/docs/test.txt && rm .reports/docs/test.txt
 
 # Check disk space
-df -h docs/reports/
+df -h .reports/docs/
 ```
 
 ## 📈 Success Metrics
@@ -642,4 +655,7 @@ df -h docs/reports/
 **Documentation Maintenance System v1.0.0** **Automated Quality Assurance Framework**
 **Maintained by: FLEXT Documentation Team**
 
-*Last Updated: 2026-04-14 | Next Review: 2025-11-10*
+*Revision 1.1: 2026-11-28 · Marlon Costa <marlon.costa@datacosmos.com.br>.*
+
+*Historical record: last updated 2026-04-14; its recorded next-review date was
+2025-11-10. Those dates do not establish a current review.*

@@ -62,21 +62,33 @@ The documentation maintenance system consists of several integrated components:
 
 ### Key Components
 
-#### 1. Content Quality Audit (`make docs DOCS_PHASE=audit`)
+Run `make check CHECK_PHASE=complete` to verify generated projections, formatting,
+documentation structure, and content. Validation and audit reports are written to
+`.reports/docs/`.
 
-- **File Discovery**: Automatically finds all documentation files
-- **Content Analysis**: Word count, structure, readability metrics
-- **Freshness Tracking**: Identifies stale content (>90 days old)
-- **Issue Classification**: Critical, High, Medium, Low severity levels
+Normal local checks from the active workspace/worktree root first converge
+generation, repairs, and formatting. CI and commit hooks verify committed
+projections and documentation without applying those repairs.
 
-#### 2. Validation Engine (`make docs DOCS_PHASE=validate`)
+#### 1. Content Quality Audit
+
+- **File Discovery**: Uses the governed documentation scope.
+- **Native Checks**: Covers links, forbidden terms, placeholders, machine paths,
+  stale symbols, scope boundaries, generated ownership, command contracts,
+  public docstrings, and Python code blocks.
+- **Maintenance Review**: Word count, readability, and the historical 90-day
+  freshness goal remain editorial review criteria; they are not a native health score.
+- **Findings**: The native auditor reports every finding and fails the phase;
+  the response priorities later in this guide do not suppress findings.
+
+#### 2. Validation Engine
 
 - **Markdown Syntax**: Heading hierarchy, list consistency, code blocks
 - **Link Validation**: External links, internal references, broken links
 - **Reference Integrity**: Cross-document references and citations
 - **Accessibility**: Alt text, descriptive links, semantic structure
 
-#### 3. Optimization Tools (`make docs DOCS_PHASE=fix FIX=1`)
+#### 3. Optimization Tools
 
 - **Content Enhancement**: Table of contents, metadata updates
 - **Style Consistency**: Emphasis styles, formatting standardization
@@ -98,7 +110,7 @@ Run daily automated checks using the maintenance script:
 
 ```bash
 # Complete audit and validation in one lifecycle
-make docs
+make check CHECK_PHASE=complete
 
 # Reports land in .reports/docs/
 ```
@@ -109,11 +121,14 @@ make docs
 
 ```bash
 # Pre-commit quality check
-make docs
+make check CHECK_PHASE=complete
+```
 
-# Include in CI/CD pipeline
+Include the same validation in the CI/CD pipeline:
+
+```yaml
 - name: Validate Documentation
-run: make docs
+  run: make check CHECK_PHASE=complete
 ```
 
 ## Weekly Maintenance Tasks
@@ -124,7 +139,7 @@ run: make docs
 
 ```bash
 # Check for stale content (>90 days)
-make docs
+make check CHECK_PHASE=complete
 grep "stale_content" .reports/docs/audit-report.md
 
 # Review and update outdated information
@@ -135,7 +150,7 @@ grep "stale_content" .reports/docs/audit-report.md
 
 ```bash
 # Validate all external links
-make docs
+make check CHECK_PHASE=complete
 grep "broken_link" .reports/docs/audit-report.md
 
 # Update or remove broken references
@@ -146,7 +161,7 @@ grep "broken_link" .reports/docs/audit-report.md
 
 ```bash
 # Check internal document references
-make docs
+make check CHECK_PHASE=complete
 grep "broken_link" .reports/docs/audit-report.md
 
 # Fix relative paths and anchor links
@@ -184,7 +199,7 @@ grep "broken_link" .reports/docs/audit-report.md
 
 ```bash
 # Generate comprehensive audit report
-make docs
+make check CHECK_PHASE=complete
 
 # Review all files with issues
 # Focus on critical and high-severity items first
@@ -249,24 +264,33 @@ When critical documentation issues are identified:
 
 ### System Failure Recovery
 
-If maintenance system fails:
+Keep the native failure visible if the maintenance check fails. The following
+manual inspections support diagnosis and do not replace its acceptance receipt:
 
 ```bash
-# Manual audit fallback
+# Manual inspection for diagnosis
 find docs/ -name "*.md" -exec echo "Checking {}" \;
 
 # Manual link checking
 grep -r "http" docs/ | head -10
 
 # Emergency report generation
-echo "# Emergency Documentation Report" > docs/reports/emergency_$(date +%Y%m%d).md
+mkdir -p .reports/docs
+echo "# Emergency Documentation Report" > .reports/docs/emergency_$(date +%Y%m%d).md
 ```
 
 ## Configuration Management
 
 ### Maintenance Configuration
 
-The maintenance system is configured via `docs/maintenance_config.yaml`:
+The current repository layer is
+[`config/codegen.yaml`](https://github.com/flext-sh/flext-db-oracle/blob/0.12.0-dev/config/codegen.yaml),
+which inherits the [shared typed policy](https://github.com/flext-sh/flext-infra/blob/0.12.0-dev/src/flext_infra/config/codegen.yaml).
+The [native documentation auditor](https://github.com/flext-sh/flext-infra/blob/0.12.0-dev/src/flext_infra/docs/auditor.py) owns audit behavior.
+
+The `docs/maintenance_config.yaml` proposal below is retained from the record last
+updated on 2026-04-14. That file is absent from the current repository, and its
+proposed fields do not configure the current checks:
 
 ```yaml
 # Quality thresholds
@@ -289,10 +313,10 @@ optimization:
 
 #### Adding New Validation Rules
 
-1. Extend `DocumentationAuditor` class
-1. Add rule configuration to `maintenance_config.yaml`
-1. Implement validation logic in appropriate method
-1. Add test cases for new validation
+1. Locate the existing rule and configuration owner in `flext-infra`.
+1. Change its declared policy or native implementation at that owner.
+1. Add behavioral coverage for the new validation.
+1. Validate and regenerate affected outputs through the public Make lifecycle.
 
 #### Custom Quality Metrics
 
@@ -348,16 +372,15 @@ chmod +x .git/hooks/pre-commit
 
 #### CI/CD Pipeline Integration
 
+Run this step from the active workspace/worktree root. A standalone checkout
+uses its own repository root; a physical workspace uses the workspace root.
+The complete check performs documentation quality validation and auditing and
+generates their reports.
+
 ```yaml
 # .github/workflows/docs.yml
-- name: Documentation Quality
- run: make docs DOCS_PHASE=validate
-
-- name: Documentation Audit
- run: make docs DOCS_PHASE=audit
-
-- name: Generate Report
- run: make docs DOCS_PHASE=all PROJECT=flext-db-oracle
+- name: Documentation Quality, Audit, and Reports
+  run: make check CHECK_PHASE=complete
 ```
 
 ### External Tool Integration
@@ -415,38 +438,31 @@ chmod +x .git/hooks/pre-commit
 #### Maintenance Script Failures
 
 ```bash
-# Check Python environment
-python --version
-pip list | grep PyYAML
+# Provision the declared tools and frozen dependencies
+make setup
 
-# Validate configuration
-python -c "import yaml; yaml.safe_load(open('docs/maintenance_config.yaml'))"
-
-# Debug execution through the canonical lifecycle
-make docs
+# Validate the governed configuration and diagnose through its native lifecycle
+make check CHECK_PHASE=complete
 ```
 
 #### Configuration Issues
 
 ```bash
-# Validate YAML syntax
-python -c "import yaml; yaml.safe_load(open('docs/maintenance_config.yaml'))"
+# Validate the declared repository layer and shared policy
+make check CHECK_PHASE=complete
 
-# Check file permissions
-ls -la docs/maintenance_config.yaml
-
-# Verify paths exist
-ls docs/ scripts/
+# Inspect the tracked repository layer and documentation paths
+ls -la config/codegen.yaml docs/
 ```
 
 #### Performance Problems
 
 ```bash
 # Monitor execution time
-time make docs
+time make check CHECK_PHASE=complete
 
 # Re-run after repairs; validate and audit gate the same lifecycle
-make docs
+make check CHECK_PHASE=complete
 
 # Check system resources
 df -h   # Disk space
@@ -471,5 +487,8 @@ free -h # Memory
 
 ---
 
-**Documentation Maintenance Framework v1.0.0** **Last Updated**: 2026-04-14
-**Next Review**: 2025-11-10
+**Documentation Maintenance Framework** · **Revision**: 1.1 · 2026-11-28 ·
+Marlon Costa <marlon.costa@datacosmos.com.br>.
+
+Historical record: v1.0.0 was last updated on 2026-04-14 and recorded
+2025-11-10 as its next-review date. Those dates do not establish a current review.
